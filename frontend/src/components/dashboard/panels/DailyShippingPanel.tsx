@@ -161,8 +161,8 @@ const DailyShippingPanel: React.FC<DailyShippingPanelProps> = ({
       searchTerm={searchTerm}
       onSearchChange={onSearchChange}
       wildcardMode={wildcardMode}
-      onWildcardModeChange={onWildcardModeChange}
-      onItemClick={onShippingOrderClick}
+      {...(onWildcardModeChange && { onWildcardModeChange })}
+      {...(onShippingOrderClick && { onItemClick: onShippingOrderClick })}
       config={config}
     />
   );

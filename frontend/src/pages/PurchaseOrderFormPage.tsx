@@ -677,7 +677,7 @@ const PurchaseOrderFormPage: React.FC = () => {
             <BasicInfoForm
               formData={{
                 ...formData,
-                accountingEntryType: formData.accountingEntryType || undefined
+                accountingEntryType: formData.accountingEntryType || 'expense-asset'
               }}
               handleInputChange={handleFormInputChange}
               handleDateChange={handleDateChange}

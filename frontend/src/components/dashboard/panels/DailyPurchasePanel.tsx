@@ -153,8 +153,8 @@ const DailyPurchasePanel: React.FC<DailyPurchasePanelProps> = ({
       searchTerm={searchTerm}
       onSearchChange={onSearchChange}
       wildcardMode={wildcardMode}
-      onWildcardModeChange={onWildcardModeChange}
-      onItemClick={onPurchaseOrderClick}
+      {...(onWildcardModeChange && { onWildcardModeChange })}
+      {...(onPurchaseOrderClick && { onItemClick: onPurchaseOrderClick })}
       config={config}
     />
   );

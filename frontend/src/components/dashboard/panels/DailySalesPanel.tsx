@@ -65,7 +65,7 @@ const createSalesConfig = (onSaleClick?: (sale: Sale) => void): DailyPanelConfig
   // 渲染函數
   renderItemSummary: (sale: Sale) => (
     <ItemSummary
-      orderNumber={sale.saleNumber}
+      orderNumber={sale.saleNumber || ''}
       amount={sale.totalAmount || 0}
       rightContent={
         <Typography
@@ -150,8 +150,8 @@ const DailySalesPanel: React.FC<DailySalesPanelProps> = ({
       searchTerm={searchTerm}
       onSearchChange={onSearchChange}
       wildcardMode={wildcardMode}
-      onWildcardModeChange={onWildcardModeChange}
-      onItemClick={onSaleClick}
+      {...(onWildcardModeChange && { onWildcardModeChange })}
+      {...(onSaleClick && { onItemClick: onSaleClick })}
       config={config}
     />
   );

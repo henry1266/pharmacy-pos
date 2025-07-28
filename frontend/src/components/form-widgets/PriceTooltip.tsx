@@ -209,7 +209,7 @@ const PriceTooltip: React.FC<PriceTooltipProps> = ({
         onClose={handleCloseSimulationDialog}
         simulationResult={simulationResult}
         loading={loading}
-        error={error ?? undefined}
+        error={error || ''}
         onApplyCostAndAdd={handleApplyCost}
       />
     </>

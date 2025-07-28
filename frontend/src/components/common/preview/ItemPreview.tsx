@@ -167,7 +167,7 @@ const TableVariantComponent: React.FC<TableVariantComponentProps> = ({
                       item={item}
                       index={index}
                       columns={columns}
-                      renderItem={renderItem}
+                      {...(renderItem && { renderItem })}
                     />
                   ))}
                   {items.length > maxItems && (
@@ -317,7 +317,7 @@ const ListVariantComponent: React.FC<ListVariantComponentProps> = ({
                 key={`list-item-${item.id ?? item.did ?? index}`}
                 item={item}
                 index={index}
-                renderItem={renderItem}
+                {...(renderItem && { renderItem })}
               />
             ))}
             {items.length > maxItems && (
@@ -452,10 +452,10 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({
       title={title}
       columns={columns}
       itemsKey={itemsKey}
-      renderItem={renderItem}
+      {...(renderItem && { renderItem })}
       emptyText={emptyText}
       maxItems={maxItems}
-      total={total}
+      total={total ?? 0}
       noteContent={noteContent}
       containerProps={containerProps}
     />
@@ -464,10 +464,10 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({
       data={data}
       title={title}
       itemsKey={itemsKey}
-      renderItem={renderItem}
+      {...(renderItem && { renderItem })}
       emptyText={emptyText}
       maxItems={maxItems}
-      total={total}
+      total={total ?? 0}
       noteContent={noteContent}
       containerProps={containerProps}
     />

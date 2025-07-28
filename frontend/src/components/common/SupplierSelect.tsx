@@ -47,13 +47,13 @@ const SupplierSelect: React.FC<SupplierSelectProps> = ({
   };
 
   return (
-    <Autocomplete
+    <Autocomplete<Supplier>
       id="supplier-select"
       options={suppliers}
-      getOptionLabel={(option) => option?.name ?? ''}
-      value={selectedSupplier}
-      onChange={onChange}
-      filterOptions={(options, state) => filterSuppliers(options, state.inputValue)}
+      getOptionLabel={(option) => (option as Supplier)?.name ?? ''}
+      value={selectedSupplier || null}
+      onChange={(event, value) => onChange(event, value as Supplier | null)}
+      filterOptions={(options, state) => filterSuppliers(options as Supplier[], state.inputValue)}
       onKeyDown={(event) => {
         if (['Enter', 'Tab'].includes(event.key)) {
           const target = event.target as HTMLInputElement;
@@ -84,23 +84,35 @@ const SupplierSelect: React.FC<SupplierSelectProps> = ({
           }
         }
       }}
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          label={label}
-          fullWidth
-          required={required}
-          error={error}
-          helperText={helperText}
-          size={size}
-          autoFocus={autoFocus}
-        />
-      )}
-      renderOption={showCode ? (props, option) => (
-        <li {...props}>
-          {option.name} {option.code && <span style={{color: 'gray', marginLeft: '8px'}}>({option.code})</span>}
-        </li>
-      ) : undefined}
+      renderInput={(params) => {
+        const { InputLabelProps, ...restParams } = params;
+        const cleanInputLabelProps = InputLabelProps ? {
+          ...InputLabelProps,
+          className: InputLabelProps.className || '',
+          style: InputLabelProps.style || {}
+        } : {};
+        
+        return (
+          <TextField
+            {...restParams}
+            label={label}
+            fullWidth
+            required={required}
+            error={error}
+            helperText={helperText}
+            size={size}
+            autoFocus={autoFocus}
+            InputLabelProps={cleanInputLabelProps}
+          />
+        );
+      }}
+      {...(showCode && {
+        renderOption: (props, option) => (
+          <li {...props}>
+            {(option as Supplier).name} {(option as Supplier).code && <span style={{color: 'gray', marginLeft: '8px'}}>({(option as Supplier).code})</span>}
+          </li>
+        )
+      })}
     />
   );
 };

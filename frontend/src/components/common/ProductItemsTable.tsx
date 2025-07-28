@@ -173,7 +173,7 @@ const renderTableRows = (
     return (
       <TableRow key={rowKey}>
         <TableCell>{index + 1}</TableCell>
-        <TableCell><ProductCodeLink product={{ _id: productDetail._id, code: productCode }} /></TableCell>
+        <TableCell><ProductCodeLink product={{ _id: productDetail._id || '', code: productCode }} /></TableCell>
         {showHealthInsuranceCode && (
           <TableCell>{healthInsuranceCode}</TableCell>
         )}
@@ -194,7 +194,7 @@ const renderTableRows = (
         <TableCell align="right">{calculateItemSubtotal(item, totalCostField, quantityField, priceField)}</TableCell>
         {showProfitColumns && hasProfitData && (
           <>
-            <GrossProfitCell fifoProfit={fifoProfitData} />
+            <GrossProfitCell fifoProfit={fifoProfitData.grossProfit !== undefined ? { grossProfit: fifoProfitData.grossProfit } : {}} />
             <TableCell align="right" sx={{ color: profitMarginColor }}>
               {itemProfitMargin !== undefined ? itemProfitMargin : 'N/A'}
             </TableCell>

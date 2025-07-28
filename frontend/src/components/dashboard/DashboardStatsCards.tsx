@@ -100,7 +100,7 @@ const DashboardStatsCards: FC<DashboardStatsCardsProps> = ({ countsData }) => {
       <Grid item xs={12} sm={6} md={3}>
         <StatCard 
           title="藥品數量"
-          value={counts.products}
+          value={counts.products ?? 0}
           icon={<LocalPharmacy />}
           iconBgColor="var(--primary-light)"
           iconColor="var(--primary-color)"
@@ -109,7 +109,7 @@ const DashboardStatsCards: FC<DashboardStatsCardsProps> = ({ countsData }) => {
       <Grid item xs={12} sm={6} md={3}>
         <StatCard 
           title="會員數量"
-          value={counts.customers}
+          value={counts.customers ?? 0}
           icon={<People />}
           iconBgColor="rgba(0, 217, 126, 0.1)"
           iconColor="var(--success-color)"
@@ -118,7 +118,7 @@ const DashboardStatsCards: FC<DashboardStatsCardsProps> = ({ countsData }) => {
       <Grid item xs={12} sm={6} md={3}>
         <StatCard 
           title="供應商數量"
-          value={counts.suppliers}
+          value={counts.suppliers ?? 0}
           icon={<Business />}
           iconBgColor="rgba(245, 166, 35, 0.1)"
           iconColor="var(--warning-color)"
@@ -127,7 +127,7 @@ const DashboardStatsCards: FC<DashboardStatsCardsProps> = ({ countsData }) => {
       <Grid item xs={12} sm={6} md={3}>
         <StatCard 
           title="訂單數量"
-          value={counts.orders}
+          value={counts.orders ?? 0}
           icon={<ShoppingCart />}
           iconBgColor="rgba(57, 175, 209, 0.1)"
           iconColor="var(--info-color)"

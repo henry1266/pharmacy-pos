@@ -486,8 +486,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             {timeLeft && <Typography component="span" sx={{ fontSize: '0.7em', color: 'lightcoral', marginLeft: 1 }}>{timeLeft}</Typography>}
           </Typography>
 
-          <NavIconButton to="/shipping-orders/new" tooltip="出貨" activeIcon={<LocalShippingIcon />} inactiveIcon={<LocalShippingOutlinedIcon />} adminOnly={true} userRole={user?.role} />
-          <NavIconButton to="/purchase-orders/new" tooltip="進貨" activeIcon={<AssignmentIcon />} inactiveIcon={<AssignmentOutlinedIcon />} adminOnly={true} userRole={user?.role} />
+          <NavIconButton to="/shipping-orders/new" tooltip="出貨" activeIcon={<LocalShippingIcon />} inactiveIcon={<LocalShippingOutlinedIcon />} adminOnly={true} userRole={user?.role || ''} />
+          <NavIconButton to="/purchase-orders/new" tooltip="進貨" activeIcon={<AssignmentIcon />} inactiveIcon={<AssignmentOutlinedIcon />} adminOnly={true} userRole={user?.role || ''} />
           <NavIconButton to="/sales/new2" tooltip="銷售" activeIcon={<PointOfSaleIcon />} inactiveIcon={<PointOfSaleOutlinedIcon />} />
           <NavIconButton to="/accounting/new" tooltip="記帳" activeIcon={<AssuredWorkloadIcon />} inactiveIcon={<AssuredWorkloadOutlinedIcon />} />
           
