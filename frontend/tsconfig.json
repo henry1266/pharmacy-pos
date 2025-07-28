@@ -33,10 +33,6 @@
       "@accounting3/core/*": ["./modules/accounting3/core/*"],
       "@accounting3/types/*": ["./modules/accounting3/types/*"]
     },
-    
-    /* React 開發設定 */
-    "allowJs": true,
-    "allowSyntheticDefaultImports": true,
 
     /* 程式碼品質與附加檢查 */
     "noUnusedLocals": false,

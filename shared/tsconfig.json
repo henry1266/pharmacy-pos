@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     /* 基本選項 - 針對共享模組 */
-    "target": "ES2020",
-    "lib": ["ES2020"],
+    "target": "ES2022",
+    "lib": ["ES2022"],
     "module": "ESNext",
     "moduleResolution": "node",
     
