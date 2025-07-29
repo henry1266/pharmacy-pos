@@ -19,6 +19,8 @@ import {
   Divider,
   Box
 } from '@mui/material';
+import MDEditor from '@uiw/react-md-editor';
+import '@uiw/react-md-editor/markdown-editor.css';
 import { getProductCategories } from '../../services/productCategoryService';
 import { PackageUnitsConfig } from '../package-units';
 import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
@@ -245,7 +247,7 @@ const ProductFormDialog: React.FC<ProductFormDialogProps> = ({
               )}
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={6} {...({} as any)}>
+          <Grid item xs={12} sm={3} {...({} as any)}>
             <TextField
               name="unit"
               label="單位"
@@ -255,7 +257,7 @@ const ProductFormDialog: React.FC<ProductFormDialogProps> = ({
               margin="dense"
             />
           </Grid>
-          <Grid item xs={12} sm={6} {...({} as any)}>
+          <Grid item xs={12} sm={3} {...({} as any)}>
             <TextField
               name="purchasePrice"
               label="進貨價"
@@ -311,16 +313,28 @@ const ProductFormDialog: React.FC<ProductFormDialogProps> = ({
             </FormControl>
           </Grid>
           <Grid item xs={12} {...({} as any)}>
-            <TextField
-              name="description"
-              label="描述"
-              value={currentProduct?.description ?? ''}
-              onChange={handleInputChange}
-              fullWidth
-              margin="dense"
-              multiline
-              rows={3}
-            />
+            <Box sx={{ mt: 1 }}>
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'medium' }}>
+                產品描述
+              </Typography>
+              <MDEditor
+                value={currentProduct?.description ?? ''}
+                onChange={(value) => {
+                  const syntheticEvent = {
+                    target: {
+                      name: 'description',
+                      value: value || ''
+                    }
+                  } as unknown as ChangeEvent<HTMLInputElement>;
+                  handleInputChange(syntheticEvent);
+                }}
+                preview="edit"
+                hideToolbar={false}
+                visibleDragbar={false}
+                data-color-mode="light"
+                height={200}
+              />
+            </Box>
           </Grid>
           <Grid item xs={12} {...({} as any)}>
             <FormControlLabel

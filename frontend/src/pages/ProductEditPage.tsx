@@ -23,6 +23,8 @@ import {
   Save as SaveIcon
 } from '@mui/icons-material';
 import axios from 'axios';
+import MDEditor from '@uiw/react-md-editor';
+import '@uiw/react-md-editor/markdown-editor.css';
 import { getProductCategories } from '../services/productCategoryService';
 import { PackageUnitsConfig } from '../components/package-units';
 import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
@@ -392,27 +394,28 @@ const ProductEditPage: React.FC = () => {
         <Grid container spacing={3}>
           {/* 左側：描述欄位獨佔 */}
           <Grid item xs={12} md={4}>
-            <TextField
-              name="description"
-              label="描述"
-              value={currentProduct.description}
-              onChange={handleInputChange}
-              fullWidth
-              multiline
-              rows={25}
-              disabled={saving}
-              sx={{ 
-                height: '100%',
-                '& .MuiInputBase-root': {
-                  height: '100%',
-                  alignItems: 'flex-start'
-                },
-                '& .MuiInputBase-input': {
-                  height: '100% !important',
-                  overflow: 'auto !important'
-                }
-              }}
-            />
+            <Box sx={{ height: '100%', minHeight: '600px' }}>
+              <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 'medium' }}>
+                產品描述
+              </Typography>
+              <MDEditor
+                value={currentProduct.description || ''}
+                onChange={(value) => {
+                  const syntheticEvent = {
+                    target: {
+                      name: 'description',
+                      value: value || ''
+                    }
+                  } as unknown as ChangeEvent<HTMLInputElement>;
+                  handleInputChange(syntheticEvent);
+                }}
+                preview="edit"
+                hideToolbar={saving}
+                visibleDragbar={false}
+                data-color-mode="light"
+                height={550}
+              />
+            </Box>
           </Grid>
           
           {/* 右側：其他所有欄位 */}
@@ -511,7 +514,7 @@ const ProductEditPage: React.FC = () => {
                 />
               </Grid>
               
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={3}>
                 <TextField
                   name="barcode"
                   label="國際條碼"
@@ -521,7 +524,7 @@ const ProductEditPage: React.FC = () => {
                   disabled={saving}
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={3}>
                 <TextField
                   name="healthInsuranceCode"
                   label="健保碼"
@@ -533,7 +536,7 @@ const ProductEditPage: React.FC = () => {
               </Grid>
               
               {productType === 'medicine' && (
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12} sm={2}>
                   <TextField
                     name="healthInsurancePrice"
                     label="健保價"
@@ -548,7 +551,7 @@ const ProductEditPage: React.FC = () => {
               
               
               
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={2}>
                 <TextField
                   name="unit"
                   label="單位"
@@ -560,7 +563,7 @@ const ProductEditPage: React.FC = () => {
                 />
               </Grid>
               
-              <Grid item xs={12} sm={4}>
+              <Grid item xs={12} sm={2}>
                 <TextField
                   name="purchasePrice"
                   label="進貨價"
@@ -571,7 +574,7 @@ const ProductEditPage: React.FC = () => {
                   disabled={saving}
                 />
               </Grid>
-              <Grid item xs={12} sm={4}>
+              <Grid item xs={12} sm={2}>
                 <TextField
                   name="sellingPrice"
                   label="售價"
@@ -582,7 +585,7 @@ const ProductEditPage: React.FC = () => {
                   disabled={saving}
                 />
               </Grid>
-              <Grid item xs={12} sm={4}>
+              <Grid item xs={12} sm={2}>
                 <TextField
                   name="minStock"
                   label="最低庫存"
