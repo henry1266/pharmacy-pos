@@ -56,23 +56,23 @@ interface ProductNoteEditorProps {
 }
 
 /**
- * 產品筆記編輯元件 - 支持重點和細文分離
+ * 產品筆記編輯元件 V2 - 單一編輯框模式
  * 功能：
- * - 分離的重點摘要和詳細內容編輯
- * - 富文本編輯
+ * - 檢視/編輯模式切換
+ * - 單一編輯框合併編輯
  * - 自動儲存
  * - 版本歷史
  * - 手動儲存
  * - 版本還原
  */
-const ProductNoteEditor: React.FC<ProductNoteEditorProps> = ({
+const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
   productId,
   initialSummary = '',
   initialDescription = '',
   onNoteChange,
-  autoSaveInterval = 30000, // 預設30秒自動儲存
+  autoSaveInterval = 30000, // 預設30秒自動儲存 (暫未實現自動儲存)
   disabled = false,
-  height = 500, // 已棄用，請使用 ProductNoteEditorV2
+  height = 500,
   showVersionHistory = true
 }) => {
   // 狀態管理
@@ -94,8 +94,8 @@ const ProductNoteEditor: React.FC<ProductNoteEditorProps> = ({
   const lastSavedSummaryRef = useRef<string>(initialSummary);
   const lastSavedDescriptionRef = useRef<string>(initialDescription);
 
-  // 消除未使用參數警告（已棄用元件）
-  void height;
+  // 消除未使用參數警告（未來可實現自動儲存功能）
+  void autoSaveInterval;
 
   // 合併內容函數
   const combineSummaryAndDescription = useCallback((summaryText: string, descriptionText: string) => {
@@ -217,49 +217,30 @@ const ProductNoteEditor: React.FC<ProductNoteEditorProps> = ({
 
   // 手動儲存
   const handleManualSave = useCallback(() => {
-    saveNote(summary, description, false);
-  }, [summary, description, saveNote]);
-
-  // 自動儲存
-  const scheduleAutoSave = useCallback(() => {
-    if (autoSaveTimerRef.current) {
-      clearTimeout(autoSaveTimerRef.current);
+    if (isEditMode) {
+      // 編輯模式：先分離內容再儲存
+      const separated = separateCombinedContent(combinedContent);
+      saveNote(separated.summary, separated.description, false);
+      setSummary(separated.summary);
+      setDescription(separated.description);
+    } else {
+      // 檢視模式：直接儲存
+      saveNote(summary, description, false);
     }
+  }, [isEditMode, combinedContent, summary, description, saveNote, separateCombinedContent]);
 
-    autoSaveTimerRef.current = setTimeout(() => {
-      if (hasUnsavedChanges && 
-          (summary !== lastSavedSummaryRef.current || 
-           description !== lastSavedDescriptionRef.current)) {
-        saveNote(summary, description, true);
-      }
-    }, autoSaveInterval);
-  }, [summary, description, hasUnsavedChanges, saveNote, autoSaveInterval]);
-
-  // 處理重點摘要變更
-  const handleSummaryChange = useCallback((value: string | undefined) => {
+  // 處理合併內容變更
+  const handleCombinedContentChange = useCallback((value: string | undefined) => {
     const newValue = value || '';
-    setSummary(newValue);
-    setHasUnsavedChanges(
-      newValue !== lastSavedSummaryRef.current || 
-      description !== lastSavedDescriptionRef.current
-    );
+    setCombinedContent(newValue);
     
-    // 排程自動儲存
-    scheduleAutoSave();
-  }, [description, scheduleAutoSave]);
-
-  // 處理詳細內容變更
-  const handleDescriptionChange = useCallback((value: string | undefined) => {
-    const newValue = value || '';
-    setDescription(newValue);
+    // 檢查是否有變更
+    const separated = separateCombinedContent(newValue);
     setHasUnsavedChanges(
-      summary !== lastSavedSummaryRef.current || 
-      newValue !== lastSavedDescriptionRef.current
+      separated.summary !== lastSavedSummaryRef.current || 
+      separated.description !== lastSavedDescriptionRef.current
     );
-    
-    // 排程自動儲存
-    scheduleAutoSave();
-  }, [summary, scheduleAutoSave]);
+  }, [separateCombinedContent]);
 
   // 還原版本
   const handleRestoreVersion = useCallback(async (version: DescriptionVersion) => {
@@ -322,8 +303,15 @@ const ProductNoteEditor: React.FC<ProductNoteEditorProps> = ({
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Typography variant="h6" sx={{ fontWeight: 'medium' }}>
-            產品筆記編輯器
+            產品筆記
           </Typography>
+          
+          <Chip 
+            label={isEditMode ? "編輯模式" : "檢視模式"} 
+            size="small" 
+            color={isEditMode ? "primary" : "default"}
+            variant={isEditMode ? "filled" : "outlined"}
+          />
           
           {hasUnsavedChanges && (
             <Chip 
@@ -389,64 +377,118 @@ const ProductNoteEditor: React.FC<ProductNoteEditorProps> = ({
         </Box>
       </Box>
 
-      {/* 編輯區域 - 上下排版 */}
+      {/* 編輯區域 - 單一編輯框模式 */}
       <Paper sx={{ border: '1px solid', borderColor: 'divider' }}>
-        {/* 重點摘要區域 */}
-        <Box sx={{ p: 2 }}>
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="subtitle1" sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
-              fontWeight: 'medium',
-              color: 'primary.main'
-            }}>
-              <SummaryIcon fontSize="small" />
-              重點摘要
-            </Typography>
+        {isEditMode ? (
+          /* 編輯模式 */
+          <Box sx={{ p: 2 }}>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle1" sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                fontWeight: 'medium',
+                color: 'primary.main'
+              }}>
+                <EditNoteIcon fontSize="small" />
+                編輯模式
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                使用 "# 重點摘要" 和 "# 詳細內容" 標題來分隔不同區域
+              </Typography>
+            </Box>
+            <MDEditor
+              value={combinedContent}
+              onChange={handleCombinedContentChange}
+              preview="edit"
+              hideToolbar={disabled}
+              visibleDragbar={false}
+              data-color-mode="light"
+              height={height}
+            />
           </Box>
-          <MDEditor
-            value={summary}
-            onChange={handleSummaryChange}
-            preview="edit"
-            hideToolbar={disabled}
-            visibleDragbar={false}
-            data-color-mode="light"
-            height={summary.trim() ? Math.max(120, Math.min(200, summary.split('\n').length * 24 + 80)) : 120}
-          />
-        </Box>
+        ) : (
+          /* 檢視模式 */
+          <Box sx={{ p: 2 }}>
+            {/* 重點摘要區域 */}
+            {summary.trim() && (
+              <Box sx={{ mb: 3 }}>
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="subtitle1" sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    fontWeight: 'medium',
+                    color: 'primary.main'
+                  }}>
+                    <SummaryIcon fontSize="small" />
+                    重點摘要
+                  </Typography>
+                </Box>
+                <MDEditor.Markdown 
+                  source={summary} 
+                  style={{ 
+                    backgroundColor: 'transparent',
+                    padding: '16px',
+                    border: '1px solid #e0e0e0',
+                    borderRadius: '4px'
+                  }} 
+                />
+              </Box>
+            )}
 
-        {/* 分隔線 */}
-        <Divider sx={{
-          borderColor: 'primary.main',
-          borderWidth: 1,
-          mx: 2
-        }} />
+            {/* 分隔線 */}
+            {summary.trim() && description.trim() && (
+              <Divider sx={{
+                borderColor: 'divider',
+                my: 2
+              }} />
+            )}
 
-        {/* 詳細內容區域 */}
-        <Box sx={{ p: 2 }}>
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="subtitle1" sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
-              fontWeight: 'medium',
-              color: 'secondary.main'
-            }}>
-              <DescriptionIcon fontSize="small" />
-              詳細內容
-            </Typography>
+            {/* 詳細內容區域 */}
+            {description.trim() && (
+              <Box>
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="subtitle1" sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    fontWeight: 'medium',
+                    color: 'secondary.main'
+                  }}>
+                    <DescriptionIcon fontSize="small" />
+                    詳細內容
+                  </Typography>
+                </Box>
+                <MDEditor.Markdown 
+                  source={description} 
+                  style={{ 
+                    backgroundColor: 'transparent',
+                    padding: '16px',
+                    border: '1px solid #e0e0e0',
+                    borderRadius: '4px'
+                  }} 
+                />
+              </Box>
+            )}
+
+            {/* 空狀態 */}
+            {!summary.trim() && !description.trim() && (
+              <Box sx={{ 
+                textAlign: 'center', 
+                py: 4,
+                color: 'text.secondary'
+              }}>
+                <Typography variant="body1">
+                  暫無產品筆記內容
+                </Typography>
+                <Typography variant="body2" sx={{ mt: 1 }}>
+                  點擊編輯按鈕開始添加內容
+                </Typography>
+              </Box>
+            )}
           </Box>
-          <MDEditor
-            value={description}
-            onChange={handleDescriptionChange}
-            preview="edit"
-            hideToolbar={disabled}
-            visibleDragbar={false}
-            data-color-mode="light"
-            height={400}
-          />
-        </Box>
+        )}
       </Paper>
 
       {/* 版本歷史對話框 */}
@@ -536,4 +578,4 @@ const ProductNoteEditor: React.FC<ProductNoteEditorProps> = ({
   );
 };
 
-export default ProductNoteEditor;
+export default ProductNoteEditorV2;

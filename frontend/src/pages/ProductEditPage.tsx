@@ -26,7 +26,7 @@ import axios from 'axios';
 import { getProductCategories } from '../services/productCategoryService';
 import { PackageUnitsConfig } from '../components/package-units';
 import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
-import ProductNoteEditor from '../components/products/ProductNoteEditor';
+import ProductNoteEditorV2 from '../components/products/ProductNoteEditorV2';
 import useProductData from '../hooks/useProductData';
 
 // 定義 API 回應格式
@@ -394,7 +394,7 @@ const ProductEditPage: React.FC = () => {
           {/* 左側：描述欄位獨佔 */}
           <Grid item xs={12} lg={4}>
             <Box sx={{ height: '100%', minHeight: '600px' }}>
-              <ProductNoteEditor
+              <ProductNoteEditorV2
                 productId={currentProduct.id || ''}
                 initialSummary=""
                 initialDescription={currentProduct.description || ''}
@@ -408,8 +408,7 @@ const ProductEditPage: React.FC = () => {
                   handleInputChange(descriptionEvent);
                 }}
                 disabled={saving}
-                summaryHeight={250}
-                descriptionHeight={300}
+                height={550}
                 showVersionHistory={true}
                 autoSaveInterval={30000}
               />
