@@ -4,6 +4,7 @@ import DashboardPage from './pages/DashboardPage';
 import DashboardDateDetailPage from './pages/DashboardDateDetailPage';
 import ProductsPage from './pages/ProductsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
+import ProductEditPage from './pages/ProductEditPage';
 import PackagesPage from './pages/PackagesPage';
 import SuppliersPage from './pages/SuppliersPage';
 import SupplierDetailPage from './pages/SupplierDetailPage';
@@ -64,6 +65,7 @@ const AppRouter: React.FC = () => {
       {/* Product Routes */}
       <Route path="/products" element={<ProductsPage />} />
       <Route path="/products/packages" element={<PackagesPage />} />
+      <Route path="/products/edit/:id" element={<ProductEditPage />} />
       <Route path="/products/:id" element={<ProductDetailPage />} />
       <Route path="/product-categories" element={<ProductCategoryPage />} />
       <Route path="/product-categories/:id" element={<CategoryDetailPage />} />

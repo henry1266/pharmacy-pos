@@ -1,17 +1,15 @@
-import React, { useState, useEffect, ChangeEvent, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Box,
   Typography,
   Grid,
   Paper,
-  SelectChangeEvent,
   Button
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { LocalOffer as PackageIcon } from '@mui/icons-material';
-import { useLocation, useNavigate } from 'react-router-dom';
-import ProductFormDialog from '../components/products/ProductFormDialog';
+import { useNavigate } from 'react-router-dom';
 import CsvImportDialog from '../components/products/CsvImportDialog';
 import ProductDetailCard from '../components/products/ProductDetailCard';
 import ProductSearchBar from '../components/products/ProductSearchBar';
@@ -19,9 +17,8 @@ import DataTable from '../components/tables/DataTable';
 import useProductData from '../hooks/useProductData';
 import useInventoryData from '../hooks/useInventoryData';
 import useCsvImport from '../hooks/useCsvImport';
-import { createProductColumns, createMedicineColumns } from '../components/products/ProductTableColumns';
+import { createProductColumns } from '../components/products/ProductTableColumns';
 import { ProductFilters } from '../services/productServiceV2';
-import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
 
 // 產品類型
 type ProductType = 'product' | 'medicine';
@@ -55,55 +52,12 @@ interface ProductWithId {
   [key: string]: any;
 }
 
-// 定義當前產品類型
-interface CurrentProduct {
-  id?: string;
-  code: string;
-  shortCode: string;
-  name: string;
-  subtitle: string;
-  category: string;
-  unit: string;
-  purchasePrice: number;
-  sellingPrice: number;
-  description: string;
-  supplier: string;
-  minStock: number;
-  barcode: string;
-  healthInsuranceCode: string;
-  healthInsurancePrice: number;
-  excludeFromStock?: boolean;
-  packageUnits?: ProductPackageUnit[];
-}
-
 const ProductsPage: React.FC = () => {
-  const location = useLocation();
   const navigate = useNavigate();
   
   // 基本狀態管理
   const [selectedProduct, setSelectedProduct] = useState<ProductWithId | null>(null);
-  const [openDialog, setOpenDialog] = useState<boolean>(false);
   const [openCsvDialog, setOpenCsvDialog] = useState<boolean>(false);
-  const [currentProduct, setCurrentProduct] = useState<CurrentProduct>({
-    code: '',
-    shortCode: '',
-    name: '',
-    subtitle: '',
-    category: '',
-    unit: '',
-    purchasePrice: 0,
-    sellingPrice: 0,
-    description: '',
-    supplier: '',
-    minStock: 0,
-    barcode: '',
-    healthInsuranceCode: '',
-    healthInsurancePrice: 0,
-    excludeFromStock: false,
-    packageUnits: []
-  });
-  const [editMode, setEditMode] = useState<boolean>(false);
-  const [productType, setProductType] = useState<ProductType>('product');
   
   // 篩選狀態
   const [filters, setFilters] = useState<ProductFilters>({
@@ -124,8 +78,7 @@ const ProductsPage: React.FC = () => {
     loading, 
     fetchProducts,
     fetchFilteredProducts,
-    handleDeleteProduct,
-    handleSaveProduct: saveProduct
+    handleDeleteProduct
   } = useProductData();
   
   const { getTotalInventory } = useInventoryData(selectedProduct?.id);
@@ -139,6 +92,11 @@ const ProductsPage: React.FC = () => {
     handleCsvImport,
     resetCsvImport
   } = useCsvImport(0, fetchProducts); // 使用固定值 0，因為不再使用 tabValue
+  
+  // 導向編輯產品頁面
+  function handleEditProduct(id: string): void {
+    navigate(`/products/edit/${id}`);
+  }
   
   // 創建表格列定義 - 使用統一的產品列定義
   const productColumns = createProductColumns(handleEditProduct, handleDeleteProduct, getTotalInventory, categories || []);
@@ -212,189 +170,9 @@ const ProductsPage: React.FC = () => {
     }
   }, [allProducts]);
   
-  // 處理從 ProductDetailPage 傳來的編輯狀態
-  useEffect(() => {
-    const state = location.state as any;
-    if (state?.shouldOpenEditDialog && state?.editProductId && state?.productType) {
-      // 等待產品數據載入後再觸發編輯
-      const timer: NodeJS.Timeout = setTimeout(() => {
-        handleEditProduct(state.editProductId, state.productType);
-        // 清除 location state 避免重複觸發
-        window.history.replaceState({}, document.title);
-      }, 100);
-      
-      return () => clearTimeout(timer);
-    }
-    // 返回空的清理函數
-    return () => {};
-  }, [location.state, allProducts]);
-  
-  // 打開新增產品對話框
+  // 導向新增產品頁面
   const handleAddProduct = (): void => {
-    setEditMode(false);
-    setProductType('product'); // 預設為產品類型
-    setCurrentProduct({
-      code: '',
-      shortCode: '',
-      name: '',
-      subtitle: '',
-      category: '',
-      unit: '',
-      purchasePrice: 0,
-      sellingPrice: 0,
-      description: '',
-      supplier: '',
-      minStock: 0,
-      barcode: '',
-      healthInsuranceCode: '',
-      healthInsurancePrice: 0,
-      excludeFromStock: false,
-      packageUnits: []
-    });
-    setOpenDialog(true);
-  };
-  
-  // 打開編輯產品對話框
-  function handleEditProduct(id: string, type?: string): void {
-    const productType = type as ProductType;
-    setEditMode(true);
-    setProductType(productType);
-    
-    // 從統一列表中查找產品
-    const product = allProducts.find(p => p.id === id);
-    
-    if (product) {
-      // 處理分類和供應商 - 如果是物件則取 _id，如果是字串則直接使用
-      const categoryId = typeof product.category === 'object' && product.category
-        ? (product.category as any)._id
-        : product.category ?? '';
-      
-      const supplierId = typeof product.supplier === 'object' && product.supplier
-        ? (product.supplier as any)._id
-        : product.supplier ?? '';
-
-      setCurrentProduct({
-        id: product.id,
-        code: product.code ?? '',
-        shortCode: (product as { shortCode?: string }).shortCode ?? '',
-        name: product.name ?? '',
-        subtitle: (product as { subtitle?: string }).subtitle ?? '',
-        category: categoryId,
-        unit: product.unit ?? '',
-        purchasePrice: (product as { purchasePrice?: number }).purchasePrice ?? 0,
-        sellingPrice: (product as { sellingPrice?: number }).sellingPrice ?? 0,
-        description: product.description ?? '',
-        supplier: supplierId,
-        minStock: (product as { minStock?: number }).minStock ?? 10,
-        barcode: product.barcode ?? '',
-        healthInsuranceCode: (product as { healthInsuranceCode?: string }).healthInsuranceCode ?? '',
-        healthInsurancePrice: (product as { healthInsurancePrice?: number }).healthInsurancePrice ?? 0,
-        excludeFromStock: (product as { excludeFromStock?: boolean }).excludeFromStock ?? false,
-        packageUnits: (product as { packageUnits?: ProductPackageUnit[] }).packageUnits ?? []
-      });
-      setOpenDialog(true);
-    }
-  }
-  
-  // 處理表單輸入變化
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent): void => {
-    const { name, value } = e.target;
-    if (name) {
-      // 檢查是否為 HTMLInputElement 且為 checkbox 類型
-      if ('type' in e.target && e.target.type === 'checkbox') {
-        const checked = (e.target as HTMLInputElement).checked;
-        setCurrentProduct(prev => ({
-          ...prev,
-          [name]: checked
-        }));
-      } else {
-        // 處理其他類型的輸入
-        setCurrentProduct(prev => ({
-          ...prev,
-          [name]: value
-        }));
-      }
-    }
-  };
-  
-  // 處理包裝單位變更
-  const handlePackageUnitsChange = useCallback((packageUnits: ProductPackageUnit[]): void => {
-    setCurrentProduct(prev => ({
-      ...prev,
-      packageUnits
-    }));
-  }, []);
-  
-  // 處理保存產品
-  const handleSaveProduct = async (): Promise<void> => {
-    try {
-      // 驗證必填欄位
-      if (!currentProduct.name?.trim()) {
-        alert('產品名稱為必填項目');
-        return;
-      }
-      
-      if (!currentProduct.unit?.trim()) {
-        alert('單位為必填項目');
-        return;
-      }
-
-      const productData: any = {
-        code: currentProduct.code?.trim() || '',
-        shortCode: currentProduct.shortCode?.trim() || '',
-        name: currentProduct.name.trim(),
-        subtitle: currentProduct.subtitle?.trim() || '',
-        category: currentProduct.category || '',
-        unit: currentProduct.unit.trim(),
-        purchasePrice: Number(currentProduct.purchasePrice) || 0,
-        sellingPrice: Number(currentProduct.sellingPrice) || 0,
-        description: currentProduct.description?.trim() || '',
-        supplier: currentProduct.supplier || '',
-        minStock: Number(currentProduct.minStock) || 0,
-        excludeFromStock: Boolean(currentProduct.excludeFromStock),
-        packageUnits: currentProduct.packageUnits || []
-      };
-      
-      // 添加所有產品都支援的屬性
-      productData.barcode = currentProduct.barcode?.trim() || '';
-      productData.healthInsuranceCode = currentProduct.healthInsuranceCode?.trim() || '';
-      
-      // 根據產品類型添加特有屬性
-      if (productType === 'product') {
-        productData.productType = 'product';
-      } else {
-        productData.healthInsurancePrice = Number(currentProduct.healthInsurancePrice) || 0;
-        productData.productType = 'medicine';
-      }
-      
-      if (editMode && currentProduct.id) {
-        productData.id = currentProduct.id;
-      }
-      
-      console.log('發送的產品資料:', productData); // 除錯用
-      
-      // 使用從Hook中獲取的saveProduct函數
-      const result = await saveProduct(productData, editMode);
-      
-      if (result) {
-        // 重新獲取產品列表
-        fetchProducts();
-        
-        // 如果更新的是當前選中的產品，更新選中狀態
-        if (editMode && selectedProduct && selectedProduct.id === currentProduct.id) {
-          setSelectedProduct({
-            ...result,
-            id: result._id,
-            productType
-          });
-        }
-        
-        // 關閉對話框
-        setOpenDialog(false);
-      }
-    } catch (err: unknown) {
-      console.error(err);
-    }
+    navigate('/products/edit/new');
   };
   
   // 處理CSV匯入對話框
@@ -505,20 +283,7 @@ const ProductsPage: React.FC = () => {
         </Grid>
       </Grid>
       
-      {/* 對話框組件 */}
-      <ProductFormDialog
-        open={openDialog}
-        onClose={() => setOpenDialog(false)}
-        currentProduct={currentProduct}
-        editMode={editMode}
-        productType={productType}
-        suppliers={suppliers}
-        categories={categories}
-        handleInputChange={handleInputChange}
-        handleSave={handleSaveProduct}
-        onPackageUnitsChange={handlePackageUnitsChange}
-      />
-      
+      {/* CSV匯入對話框 */}
       <CsvImportDialog 
         open={openCsvDialog}
         onClose={() => setOpenCsvDialog(false)}

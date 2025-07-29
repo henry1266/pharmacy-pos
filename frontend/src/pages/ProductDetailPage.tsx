@@ -130,15 +130,8 @@ const ProductDetailPage: React.FC = () => {
   };
   
   const handleEdit = (): void => {
-    // 導航到產品編輯頁面或打開編輯對話框
-    // 由於系統使用對話框編輯產品，這裡我們返回產品列表頁並觸發編輯
-    navigate('/products', {
-      state: {
-        editProductId: id,
-        productType: product?.productType,
-        shouldOpenEditDialog: true
-      }
-    });
+    // 導航到獨立的產品編輯頁面
+    navigate(`/products/edit/${id}`);
   };
   
   const handleDeleteProduct = async (productId: string): Promise<void> => {
