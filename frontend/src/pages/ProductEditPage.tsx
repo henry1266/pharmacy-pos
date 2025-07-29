@@ -387,184 +387,11 @@ const ProductEditPage: React.FC = () => {
         </Alert>
       )}
       
-      {/* 表單內容 */}
+      {/* 表單內容 - 左右排版 */}
       <Paper sx={{ p: 3 }}>
         <Grid container spacing={3}>
-          <Grid item xs={12} sm={1}>
-            <TextField
-              name="code"
-              label="編號"
-              value={currentProduct.code}
-              onChange={handleInputChange}
-              fullWidth
-              helperText="系統自動生成"
-              disabled={saving}
-            />
-          </Grid>
-          <Grid item xs={12} sm={1}>
-            <TextField
-              name="shortCode"
-              label="簡碼"
-              value={currentProduct.shortCode}
-              onChange={handleInputChange}
-              fullWidth
-              required
-              disabled={saving}
-            />
-          </Grid>
-          <Grid item xs={12} sm={2}>
-            <TextField
-              name="healthInsuranceCode"
-              label="健保碼"
-              value={currentProduct.healthInsuranceCode}
-              onChange={handleInputChange}
-              fullWidth
-              disabled={saving}
-            />
-          </Grid>
-          <Grid item xs={12} sm={2}>
-            <TextField
-              name="barcode"
-              label="國際條碼"
-              value={currentProduct.barcode}
-              onChange={handleInputChange}
-              fullWidth
-              disabled={saving}
-            />
-          </Grid>
-          <Grid item xs={12} sm={1}>
-            <TextField
-              name="unit"
-              label="單位"
-              value={currentProduct.unit}
-              onChange={handleInputChange}
-              fullWidth
-              required
-              disabled={saving}
-            />
-          </Grid>
-          <Grid item xs={12} sm={1}>
-            <TextField
-              name="purchasePrice"
-              label="進貨價"
-              type="number"
-              value={currentProduct.purchasePrice}
-              onChange={handleInputChange}
-              fullWidth
-              disabled={saving}
-            />
-          </Grid>
-          <Grid item xs={12} sm={1}>
-            <TextField
-              name="sellingPrice"
-              label="售價"
-              type="number"
-              value={currentProduct.sellingPrice}
-              onChange={handleInputChange}
-              fullWidth
-              disabled={saving}
-            />
-          </Grid>
-          <Grid item xs={12} sm={1}>
-            <TextField
-              name="minStock"
-              label="最低庫存"
-              type="number"
-              value={currentProduct.minStock}
-              onChange={handleInputChange}
-              fullWidth
-              disabled={saving}
-            />
-          </Grid>
-          
-          {productType === 'medicine' && (
-            <Grid item xs={12} sm={1}>
-              <TextField
-                name="healthInsurancePrice"
-                label="健保價"
-                type="number"
-                value={currentProduct.healthInsurancePrice}
-                onChange={handleInputChange}
-                fullWidth
-                disabled={saving}
-              />
-            </Grid>
-          )}
-          <Grid item xs={12} sm={1}>
-            <FormControl fullWidth>
-              <InputLabel id="category-label">分類</InputLabel>
-              <Select
-                labelId="category-label"
-                name="category"
-                value={currentProduct.category}
-                onChange={handleInputChange}
-                label="分類"
-                disabled={saving}
-              >
-                <MenuItem value="">
-                  <em>無</em>
-                </MenuItem>
-                {categories.map(category => (
-                  <MenuItem key={category._id} value={category._id}>
-                    {category.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={3}>
-            <TextField
-              name="name"
-              label="名稱"
-              value={currentProduct.name}
-              onChange={handleInputChange}
-              fullWidth
-              required
-              disabled={saving}
-            />
-          </Grid>
-          <Grid item xs={12} sm={3}>
-            <TextField
-              name="subtitle"
-              label="副標題"
-              value={currentProduct.subtitle}
-              onChange={handleInputChange}
-              fullWidth
-              helperText="商品名稱下方的副標題說明"
-              disabled={saving}
-            />
-          </Grid>
-          
-          
-          
-
-          
-          
-          
-          
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel id="supplier-label">供應商</InputLabel>
-              <Select
-                labelId="supplier-label"
-                name="supplier"
-                value={currentProduct.supplier}
-                onChange={handleInputChange}
-                label="供應商"
-                disabled={saving}
-              >
-                <MenuItem value="">
-                  <em>無</em>
-                </MenuItem>
-                {suppliers.map(supplier => (
-                  <MenuItem key={supplier._id} value={supplier._id}>
-                    {supplier.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12}>
+          {/* 左側：描述欄位獨佔 */}
+          <Grid item xs={12} md={4}>
             <TextField
               name="description"
               label="描述"
@@ -572,45 +399,240 @@ const ProductEditPage: React.FC = () => {
               onChange={handleInputChange}
               fullWidth
               multiline
-              rows={3}
+              rows={25}
               disabled={saving}
+              sx={{ 
+                height: '100%',
+                '& .MuiInputBase-root': {
+                  height: '100%',
+                  alignItems: 'flex-start'
+                },
+                '& .MuiInputBase-input': {
+                  height: '100% !important',
+                  overflow: 'auto !important'
+                }
+              }}
             />
           </Grid>
-          <Grid item xs={12}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  name="excludeFromStock"
-                  checked={currentProduct.excludeFromStock ?? false}
-                  onChange={(e) => {
-                    const syntheticEvent = {
-                      target: {
-                        name: 'excludeFromStock',
-                        value: e.target.checked.toString(),
-                        checked: e.target.checked,
-                        type: 'checkbox'
-                      }
-                    } as unknown as ChangeEvent<HTMLInputElement>;
-                    handleInputChange(syntheticEvent);
-                  }}
-                  color="primary"
+          
+          {/* 右側：其他所有欄位 */}
+          <Grid item xs={12} md={8}>
+            <Grid container spacing={3}>
+              <Grid item xs={12} sm={3}>
+                <TextField
+                  name="code"
+                  label="編號"
+                  value={currentProduct.code}
+                  onChange={handleInputChange}
+                  fullWidth
+                  helperText="留空系統自動生成"
                   disabled={saving}
                 />
-              }
-              label="不扣庫存（毛利以數量×(售價-進價)計算）"
-            />
-          </Grid>
+              </Grid>
+              <Grid item xs={12} sm={3}>
+                <TextField
+                  name="shortCode"
+                  label="簡碼"
+                  value={currentProduct.shortCode}
+                  onChange={handleInputChange}
+                  fullWidth
+                  required
+                  disabled={saving}
+                />
+              </Grid>
+              
+             <Grid item xs={12} sm={3}>
+                <FormControl fullWidth>
+                  <InputLabel id="category-label">分類</InputLabel>
+                  <Select
+                    labelId="category-label"
+                    name="category"
+                    value={currentProduct.category}
+                    onChange={handleInputChange}
+                    label="分類"
+                    disabled={saving}
+                  >
+                    <MenuItem value="">
+                      <em>無</em>
+                    </MenuItem>
+                    {categories.map(category => (
+                      <MenuItem key={category._id} value={category._id}>
+                        {category.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+             
+             <Grid item xs={12} sm={3}>
+                <FormControl fullWidth>
+                  <InputLabel id="supplier-label">供應商</InputLabel>
+                  <Select
+                    labelId="supplier-label"
+                    name="supplier"
+                    value={currentProduct.supplier}
+                    onChange={handleInputChange}
+                    label="供應商"
+                    disabled={saving}
+                  >
+                    <MenuItem value="">
+                      <em>無</em>
+                    </MenuItem>
+                    {suppliers.map(supplier => (
+                      <MenuItem key={supplier._id} value={supplier._id}>
+                        {supplier.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+             <Grid item xs={12} sm={6}>
+                <TextField
+                  name="name"
+                  label="名稱"
+                  value={currentProduct.name}
+                  onChange={handleInputChange}
+                  fullWidth
+                  required
+                  disabled={saving}
+                />
+              </Grid>
+              
+              
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  name="subtitle"
+                  label="副標題"
+                  value={currentProduct.subtitle}
+                  onChange={handleInputChange}
+                  fullWidth
+                  helperText="商品名稱下方的副標題說明"
+                  disabled={saving}
+                />
+              </Grid>
+              
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  name="barcode"
+                  label="國際條碼"
+                  value={currentProduct.barcode}
+                  onChange={handleInputChange}
+                  fullWidth
+                  disabled={saving}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  name="healthInsuranceCode"
+                  label="健保碼"
+                  value={currentProduct.healthInsuranceCode}
+                  onChange={handleInputChange}
+                  fullWidth
+                  disabled={saving}
+                />
+              </Grid>
+              
+              {productType === 'medicine' && (
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    name="healthInsurancePrice"
+                    label="健保價"
+                    type="number"
+                    value={currentProduct.healthInsurancePrice}
+                    onChange={handleInputChange}
+                    fullWidth
+                    disabled={saving}
+                  />
+                </Grid>
+              )}
+              
+              
+              
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  name="unit"
+                  label="單位"
+                  value={currentProduct.unit}
+                  onChange={handleInputChange}
+                  fullWidth
+                  required
+                  disabled={saving}
+                />
+              </Grid>
+              
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  name="purchasePrice"
+                  label="進貨價"
+                  type="number"
+                  value={currentProduct.purchasePrice}
+                  onChange={handleInputChange}
+                  fullWidth
+                  disabled={saving}
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  name="sellingPrice"
+                  label="售價"
+                  type="number"
+                  value={currentProduct.sellingPrice}
+                  onChange={handleInputChange}
+                  fullWidth
+                  disabled={saving}
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  name="minStock"
+                  label="最低庫存"
+                  type="number"
+                  value={currentProduct.minStock}
+                  onChange={handleInputChange}
+                  fullWidth
+                  disabled={saving}
+                />
+              </Grid>
+              
+              
+              
+              <Grid item xs={12}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      name="excludeFromStock"
+                      checked={currentProduct.excludeFromStock ?? false}
+                      onChange={(e) => {
+                        const syntheticEvent = {
+                          target: {
+                            name: 'excludeFromStock',
+                            value: e.target.checked.toString(),
+                            checked: e.target.checked,
+                            type: 'checkbox'
+                          }
+                        } as unknown as ChangeEvent<HTMLInputElement>;
+                        handleInputChange(syntheticEvent);
+                      }}
+                      color="primary"
+                      disabled={saving}
+                    />
+                  }
+                  label="不扣庫存（毛利以數量×(售價-進價)計算）"
+                />
+              </Grid>
 
-          {/* 包裝單位配置區塊 */}
-          <Grid item xs={12}>
-            <Divider sx={{ my: 2 }} />
-            <PackageUnitsConfig
-              productId={currentProduct.id || ''}
-              packageUnits={currentProduct.packageUnits || []}
-              onPackageUnitsChange={handlePackageUnitsChange}
-              disabled={saving}
-              baseUnitName={currentProduct.unit || '個'}
-            />
+              {/* 包裝單位配置區塊 */}
+              <Grid item xs={12}>
+                <Divider sx={{ my: 2 }} />
+                <PackageUnitsConfig
+                  productId={currentProduct.id || ''}
+                  packageUnits={currentProduct.packageUnits || []}
+                  onPackageUnitsChange={handlePackageUnitsChange}
+                  disabled={saving}
+                  baseUnitName={currentProduct.unit || '個'}
+                />
+              </Grid>
+            </Grid>
           </Grid>
         </Grid>
       </Paper>
