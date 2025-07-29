@@ -235,7 +235,7 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
               <ProductSummaryDisplay
                 productId={product.id}
                 variant="normal"
-                showEditButton={true}
+                clickable={true}
               />
             </Box>
           </Box>

@@ -119,7 +119,13 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
   const toggleEditMode = useCallback(() => {
     if (!isEditMode) {
       // 進入編輯模式：合併內容
-      const combined = combineSummaryAndDescription(summary, description);
+      let combined = combineSummaryAndDescription(summary, description);
+      
+      // 如果是第一次編輯（摘要和描述都為空），自動加上標題模板
+      if (!summary.trim() && !description.trim()) {
+        combined = '# 重點摘要\n\n\n\n# 詳細內容\n\n';
+      }
+      
       setCombinedContent(combined);
     } else {
       // 退出編輯模式：分離內容
@@ -383,16 +389,6 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
           /* 編輯模式 */
           <Box sx={{ p: 2 }}>
             <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle1" sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-                fontWeight: 'medium',
-                color: 'primary.main'
-              }}>
-                <EditNoteIcon fontSize="small" />
-                編輯模式
-              </Typography>
             </Box>
             <MDEditor
               value={combinedContent}
