@@ -701,21 +701,12 @@ const totalAmount = useMemo(() => {
           
           <Button
             variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={handleAddNewSale}
-            sx={{ mr: 1 }}
-          >
-            新增銷售 {isTestMode && "(模擬)"}
-          </Button>
-          <Button
-            variant="contained"
             color="secondary"
             startIcon={<ViewListIcon />}
             onClick={handleAddNewSaleV2}
             sx={{ mr: 1 }}
           >
-            新增銷售 v2 {isTestMode && "(模擬)"}
+            新增銷售 {isTestMode && "(模擬)"}
           </Button>
           <Button
             variant="outlined"
