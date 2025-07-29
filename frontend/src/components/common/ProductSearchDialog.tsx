@@ -14,7 +14,8 @@ import {
   IconButton,
   InputAdornment,
   CircularProgress,
-  Divider
+  Divider,
+  Tooltip
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -24,6 +25,7 @@ import {
 } from '@mui/icons-material';
 import { Product, Medicine } from '@pharmacy-pos/shared/types/entities';
 import { Package } from '@pharmacy-pos/shared/types/package';
+import useInventoryData from '../../hooks/useInventoryData';
 
 // 聯合類型以支持產品和藥品
 type ProductOrMedicine = Product | Medicine;
@@ -38,6 +40,8 @@ interface ProductSearchDialogProps {
   packages?: Package[];
   onSelectProduct?: (product: ProductOrMedicine) => void;
   onSelectPackage?: (packageItem: Package) => void;
+  onSelectProductNewTab?: (product: ProductOrMedicine) => void;
+  onSelectPackageNewTab?: (packageItem: Package) => void;
   title?: string;
   placeholder?: string;
   maxResults?: number;
@@ -50,6 +54,8 @@ const ProductSearchDialog: React.FC<ProductSearchDialogProps> = ({
   packages = [],
   onSelectProduct,
   onSelectPackage,
+  onSelectProductNewTab,
+  onSelectPackageNewTab,
   title = '搜尋產品',
   placeholder = '輸入產品名稱、代碼、條碼或健保碼...',
   maxResults = 50
@@ -58,6 +64,9 @@ const ProductSearchDialog: React.FC<ProductSearchDialogProps> = ({
   const [filteredItems, setFilteredItems] = useState<SearchItem[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // 使用庫存數據 hook 來獲取實際庫存
+  const { getTotalInventory } = useInventoryData();
 
   // 判斷是否為套餐
   const isPackage = (item: SearchItem): item is Package => {
@@ -90,9 +99,30 @@ const ProductSearchDialog: React.FC<ProductSearchDialogProps> = ({
       pkg.shortCode?.toLowerCase().includes(searchTermLower)
     );
 
-    // 合併結果，套餐優先顯示，限制結果數量
-    const allResults = [...packageResults, ...productResults].slice(0, maxResults);
-    setFilteredItems(allResults);
+    // 合併結果，套餐優先顯示
+    let allResults = [...packageResults, ...productResults];
+    
+    // 對產品結果按庫存排序：有庫存的在前，無庫存的在後
+    const sortedResults = allResults.sort((a, b) => {
+      // 套餐不參與庫存排序，保持在最前面
+      if (isPackage(a) && !isPackage(b)) return -1;
+      if (!isPackage(a) && isPackage(b)) return 1;
+      if (isPackage(a) && isPackage(b)) return 0;
+      
+      // 對產品按庫存排序
+      const stockA = parseInt(getTotalInventory((a as Product)._id)) || 0;
+      const stockB = parseInt(getTotalInventory((b as Product)._id)) || 0;
+      
+      // 有庫存的排在前面，無庫存的排在後面
+      if (stockA > 0 && stockB === 0) return -1;
+      if (stockA === 0 && stockB > 0) return 1;
+      
+      // 同樣都有庫存或都沒庫存時，按庫存數量降序排列
+      return stockB - stockA;
+    });
+    
+    // 限制結果數量
+    setFilteredItems(sortedResults.slice(0, maxResults));
     setLoading(false);
   }, [products, packages, maxResults]);
 
@@ -115,6 +145,20 @@ const ProductSearchDialog: React.FC<ProductSearchDialogProps> = ({
       }
     }
     handleClose();
+  };
+
+  // 處理新分頁開啟項目
+  const handleItemSelectNewTab = (item: SearchItem) => {
+    if (isPackage(item)) {
+      if (onSelectPackageNewTab) {
+        onSelectPackageNewTab(item);
+      }
+    } else {
+      if (onSelectProductNewTab) {
+        onSelectProductNewTab(item);
+      }
+    }
+    // 不關閉對話框，讓用戶可以繼續搜尋
   };
 
   // 處理對話框關閉
@@ -146,11 +190,25 @@ const ProductSearchDialog: React.FC<ProductSearchDialogProps> = ({
 
   // 當對話框打開時自動聚焦搜尋框
   useEffect(() => {
-    if (open && searchInputRef.current) {
-      // 使用 setTimeout 確保對話框完全渲染後再聚焦
+    if (open) {
+      // 使用多重延遲確保對話框完全渲染後再聚焦
+      const focusInput = () => {
+        if (searchInputRef.current) {
+          searchInputRef.current.focus();
+          // 確保游標在輸入框中
+          searchInputRef.current.select();
+        }
+      };
+
+      // 第一次嘗試
+      setTimeout(focusInput, 150);
+      
+      // 如果第一次失敗，再嘗試一次
       setTimeout(() => {
-        searchInputRef.current?.focus();
-      }, 100);
+        if (searchInputRef.current && document.activeElement !== searchInputRef.current) {
+          focusInput();
+        }
+      }, 300);
     }
   }, [open]);
 
@@ -160,7 +218,7 @@ const ProductSearchDialog: React.FC<ProductSearchDialogProps> = ({
     
     return (
       <ListItem key={`${item._id}-${index}`} disablePadding>
-        <ListItemButton onClick={() => handleItemSelect(item)}>
+        <ListItemButton onClick={() => handleItemSelect(item)} sx={{ pr: 1 }}>
           <ListItemText
             primary={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -168,10 +226,10 @@ const ProductSearchDialog: React.FC<ProductSearchDialogProps> = ({
                   {item.name}
                 </Typography>
                 {isPackageItem && (
-                  <Chip 
-                    label="套餐" 
-                    size="small" 
-                    color="primary" 
+                  <Chip
+                    label="套餐"
+                    size="small"
+                    color="primary"
                     variant="outlined"
                   />
                 )}
@@ -180,29 +238,81 @@ const ProductSearchDialog: React.FC<ProductSearchDialogProps> = ({
             secondary={
               <Box sx={{ mt: 0.5 }}>
                 {isPackageItem ? (
-                  <>
-                    <Typography variant="body2" color="text.secondary">
-                      套餐編號: {item.code} | 簡碼: {item.shortCode || 'N/A'}
+                  <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ minWidth: '80px' }}>
+                      編號: {item.code || 'N/A'}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      總價: ${item.totalPrice?.toFixed(0) || 'N/A'} | 包含 {item.items?.length || 0} 項商品
+                    <Typography variant="body2" color="text.secondary" sx={{ minWidth: '80px' }}>
+                      簡碼: {item.shortCode || 'N/A'}
                     </Typography>
-                  </>
+                    <Typography variant="body2" color="text.secondary" sx={{ minWidth: '80px' }}>
+                      總價: ${item.totalPrice?.toFixed(0) || 'N/A'}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ minWidth: '100px' }}>
+                      包含: {item.items?.length || 0} 項商品
+                    </Typography>
+                  </Box>
                 ) : (
-                  <>
-                    <Typography variant="body2" color="text.secondary">
-                      代碼: {item.code || 'N/A'} | 條碼: {item.barcode || 'N/A'}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      健保碼: {('healthInsuranceCode' in item ? item.healthInsuranceCode : 'N/A') || 'N/A'} | 
-                      價格: ${((item as Product).sellingPrice ?? (item as Product).price)?.toFixed(0) || 'N/A'}
-                    </Typography>
-                  </>
+                  (() => {
+                    const product = item as Product;
+                    const actualStock = getTotalInventory(product._id);
+                    const stockDisplay = actualStock === '載入中...' ? '載入中...' : actualStock;
+                    const stockNum = parseInt(actualStock) || 0;
+                    const isOutOfStock = stockNum === 0 && actualStock !== '載入中...';
+                    
+                    return (
+                      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ minWidth: '80px' }}>
+                          代碼: {item.code || 'N/A'}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ minWidth: '100px' }}>
+                          健保碼: {('healthInsuranceCode' in item ? item.healthInsuranceCode : 'N/A') || 'N/A'}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ minWidth: '80px' }}>
+                          價格: ${(product.sellingPrice ?? product.price)?.toFixed(0) || 'N/A'}
+                        </Typography>
+                        <Typography variant="body2" sx={{ minWidth: '60px' }}>
+                          庫存:
+                          <Box
+                            component="span"
+                            sx={{
+                              color: isOutOfStock ? 'error.main' : 'text.secondary',
+                              fontWeight: isOutOfStock ? 'bold' : 'inherit',
+                              ml: 0.5
+                            }}
+                          >
+                            {stockDisplay}
+                          </Box>
+                        </Typography>
+                      </Box>
+                    );
+                  })()
                 )}
               </Box>
             }
           />
         </ListItemButton>
+        {/* 新分頁開啟按鈕 */}
+        <Box sx={{ display: 'flex', alignItems: 'center', pr: 1 }}>
+          <Tooltip title="在新分頁中開啟">
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleItemSelectNewTab(item);
+              }}
+              sx={{
+                color: 'text.secondary',
+                '&:hover': {
+                  color: 'primary.main',
+                  backgroundColor: 'action.hover'
+                }
+              }}
+            >
+              <OpenInNewIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
       </ListItem>
     );
   };

@@ -290,6 +290,19 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     console.log('選擇套餐:', packageItem);
   };
 
+  // 處理產品在新分頁中開啟
+  const handleProductSelectNewTab = (product: any) => {
+    const url = `/products/${product._id}`;
+    window.open(url, '_blank');
+  };
+
+  // 處理套餐在新分頁中開啟
+  const handlePackageSelectNewTab = (packageItem: any) => {
+    // 如果有套餐詳情頁面，可以在這裡實現
+    console.log('在新分頁中開啟套餐:', packageItem);
+    // window.open(`/packages/${packageItem._id}`, '_blank');
+  };
+
   const openPopover = Boolean(anchorEl);
   const popoverId = openPopover ? 'user-popover' : undefined;
 
@@ -669,6 +682,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         products={allProducts}
         onSelectProduct={handleProductSelect}
         onSelectPackage={handlePackageSelect}
+        onSelectProductNewTab={handleProductSelectNewTab}
+        onSelectPackageNewTab={handlePackageSelectNewTab}
         title="搜尋產品"
         placeholder="輸入產品名稱、代碼、條碼或健保碼..."
       />

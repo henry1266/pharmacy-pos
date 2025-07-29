@@ -205,32 +205,16 @@ pnpm run build
 - **註釋原則**: 關鍵邏輯必須有 JSDoc 註釋說明
 
 #### Monorepo 開發原則
+
 1. **模組化設計**: 功能按模組劃分，避免循環依賴
 2. **型別統一**: 所有型別定義統一放在 shared 模組
 3. **工具函數共享**: 通用邏輯提取到 shared/utils
 4. **版本同步**: 使用 workspace 協議管理內部依賴
 5. **建構順序**: shared → backend → frontend
 
-### Git提交規範
-項目採用Conventional Commits規範進行Git提交，格式如下：
-```
-<type>(<scope>): <description>
-
-[optional body]
-
-[optional footer]
-```
-
-常用的type包括：
-- feat: 新功能
-- fix: 錯誤修復
-- docs: 文檔更新
-- style: 代碼格式調整
-- refactor: 代碼重構
-- test: 添加或修改測試
-- chore: 構建過程或輔助工具的變動
 
 ### 避免代碼耦合
+
 為了維持系統的可維護性和可擴展性，開發者應遵循以下原則：
 
 1. **單一責任原則**: 每個組件只負責一件事
@@ -246,6 +230,7 @@ pnpm run build
 ## 使用指南
 
 ### 產品管理
+
 產品管理模組是藥局POS系統的核心功能之一，允許用戶添加、編輯和刪除產品。使用此模組時，請按照以下步驟操作：
 
 1. 在系統導航菜單中選擇「產品管理」
@@ -287,17 +272,20 @@ FIFO功能的主要特點包括：
 ## V2 統一 API 架構
 
 ### 架構概述
+
 藥局POS系統實現了基於 shared 模組的統一 API 客戶端架構，這是系統現代化的重要里程碑。V2 架構將原本分散在各個前端服務中的重複代碼整合到共享模組中，實現了代碼重用和一致性。
 
 ### 核心組件
 
 #### BaseApiClient 基礎架構
+
 - **抽象基類**: 提供通用的 CRUD 操作模板
 - **統一錯誤處理**: 標準化的 `handleApiError` 機制
 - **HttpClient 介面**: 支援依賴注入的 HTTP 客戶端抽象
 - **泛型支援**: 完整的 TypeScript 泛型設計
 
 #### 已實現的 V2 服務
+
 系統已完成所有核心業務服務的 V2 架構實現：
 
 1. **會計服務** - 分類管理、交易記錄
@@ -311,6 +299,7 @@ FIFO功能的主要特點包括：
 9. **員工服務** - 員工管理、權限控制
 
 ### 前端適配器模式
+
 每個前端 V2 服務都採用統一的適配器模式：
 
 ```typescript
@@ -332,77 +321,31 @@ export const getItemById = apiClient.getItemById.bind(apiClient);
 
 ### 架構優勢
 
-#### 代碼減少量
-- **原始服務**: 每個服務約 100-200 行重複的 API 調用代碼
-- **V2 服務**: 每個服務僅需 20-30 行適配器代碼
-- **減少比例**: 約 80-85% 的代碼減少
-
 #### 技術優勢
+
 - **型別安全**: 完整的 TypeScript 支援和編譯時檢查
 - **一致性**: 統一的錯誤處理和響應格式處理
 - **可擴展性**: 支援依賴注入和繼承架構
 - **維護性**: 修改一次，所有服務受益
 
-### 使用範例
-
-```typescript
-// 使用員工服務 V2
-import {
-  getAllEmployees,
-  createEmployee,
-  updateEmployee
-} from '../services/employeeServiceV2';
-
-const EmployeeComponent = () => {
-  const [employees, setEmployees] = useState([]);
-
-  useEffect(() => {
-    const fetchEmployees = async () => {
-      try {
-        const data = await getAllEmployees();
-        setEmployees(data);
-      } catch (error) {
-        console.error('獲取員工失敗:', error);
-      }
-    };
-    
-    fetchEmployees();
-  }, []);
-
-  const handleCreateEmployee = async (employeeData) => {
-    try {
-      const newEmployee = await createEmployee(employeeData);
-      setEmployees(prev => [...prev, newEmployee]);
-    } catch (error) {
-      console.error('創建員工失敗:', error);
-    }
-  };
-
-  // ... 組件渲染邏輯
-};
-```
-
-### 文檔資源
-- **V2 架構總結**: [`docs/V2_ARCHITECTURE_SUMMARY.md`](docs/V2_ARCHITECTURE_SUMMARY.md)
-- **員工服務文檔**: [`docs/employee-service-v2.md`](docs/employee-service-v2.md)
-- **採購訂單服務文檔**: [`docs/purchase-order-service-v2.md`](docs/purchase-order-service-v2.md)
-- **出貨訂單服務文檔**: [`docs/shipping-order-service-v2.md`](docs/shipping-order-service-v2.md)
-
 ## 技術特色
 
 ### Monorepo 架構優勢
+
 - **型別安全**: 前後端共享型別定義，消除型別不一致問題
 - **代碼重用**: 共享工具函數和業務邏輯，減少重複開發
 - **統一管理**: 使用 pnpm workspace 統一管理依賴和建構流程
 - **開發效率**: 一次修改，多處生效，提高開發和維護效率
 
 ### 型別系統設計
+
 - **漸進式型別化**: 支援從 JavaScript 逐步遷移到 TypeScript
 - **嚴格模式**: Shared 模組採用 TypeScript 嚴格模式
 - **型別轉換**: 提供安全的前後端數據轉換工具
 - **自動檢查**: 自動化腳本確保型別一致性
 
 ### 現代化工具鏈
+
 - **pnpm**: 高效能的套件管理器，支援 workspace
 - **TypeScript**: 完整的型別安全保障
 - **CRACO**: 靈活的 Create React App 配置
