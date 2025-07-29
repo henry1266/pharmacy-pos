@@ -33,6 +33,7 @@ import {
 import MDEditor from '@uiw/react-md-editor';
 import '@uiw/react-md-editor/markdown-editor.css';
 import axios from 'axios';
+import '../../styles/force-light-theme.css';
 
 // 版本歷史介面
 interface DescriptionVersion {
@@ -398,6 +399,7 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
               visibleDragbar={false}
               data-color-mode="light"
               height={height}
+              className="force-light-theme"
             />
           </Box>
         ) : (
@@ -420,13 +422,17 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
                 </Box>
                 <MDEditor.Markdown
                   source={summary}
+                  data-color-mode="light"
                   style={{
                     backgroundColor: 'transparent',
-                    padding: '16px',
-                    border: '1px solid #e0e0e0',
-                    borderRadius: '4px',
+                    padding: '0',
+                    border: 'none',
                     color: '#000000'
                   }}
+                  wrapperElement={{
+                    'data-color-mode': 'light'
+                  }}
+                  className="force-light-theme"
                 />
               </Box>
             )}
@@ -456,13 +462,17 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
                 </Box>
                 <MDEditor.Markdown
                   source={description}
+                  data-color-mode="light"
                   style={{
                     backgroundColor: 'transparent',
-                    padding: '16px',
-                    border: '1px solid #e0e0e0',
-                    borderRadius: '4px',
+                    padding: '0',
+                    border: 'none',
                     color: '#000000'
                   }}
+                  wrapperElement={{
+                    'data-color-mode': 'light'
+                  }}
+                  className="force-light-theme"
                 />
               </Box>
             )}

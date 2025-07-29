@@ -1,0 +1,71 @@
+/* 強制覆蓋 MDEditor 深色主題樣式 */
+.force-light-theme,
+.force-light-theme *,
+.force-light-theme .w-md-editor,
+.force-light-theme .w-md-editor-text-pre,
+.force-light-theme .w-md-editor-text-input,
+.force-light-theme .w-md-editor-text-textarea,
+.force-light-theme .w-md-editor-preview,
+.force-light-theme .wmde-markdown,
+.force-light-theme .wmde-markdown-var {
+  background-color: transparent !important;
+  color: #000000 !important;
+}
+
+/* 強制覆蓋所有可能的深色主題背景 */
+.force-light-theme [data-color-mode="dark"],
+.force-light-theme [data-color-mode="dark"] *,
+.force-light-theme .w-md-editor[data-color-mode="dark"],
+.force-light-theme .w-md-editor[data-color-mode="dark"] *,
+.force-light-theme .wmde-markdown[data-color-mode="dark"],
+.force-light-theme .wmde-markdown[data-color-mode="dark"] * {
+  background-color: transparent !important;
+  color: #000000 !important;
+}
+
+/* 強制覆蓋特定的深色主題顏色 */
+.force-light-theme .w-md-editor,
+.force-light-theme .w-md-editor * {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* 確保 Markdown 內容使用正確的顏色 */
+.force-light-theme .wmde-markdown h1,
+.force-light-theme .wmde-markdown h2,
+.force-light-theme .wmde-markdown h3,
+.force-light-theme .wmde-markdown h4,
+.force-light-theme .wmde-markdown h5,
+.force-light-theme .wmde-markdown h6 {
+  color: #000000 !important;
+}
+
+.force-light-theme .wmde-markdown p,
+.force-light-theme .wmde-markdown li,
+.force-light-theme .wmde-markdown span,
+.force-light-theme .wmde-markdown div {
+  color: #000000 !important;
+}
+
+/* 強制覆蓋表格樣式 */
+.force-light-theme .wmde-markdown table,
+.force-light-theme .wmde-markdown table th,
+.force-light-theme .wmde-markdown table td {
+  background-color: transparent !important;
+  color: #000000 !important;
+  border-color: #d0d7de !important;
+}
+
+/* 強制覆蓋代碼塊樣式 */
+.force-light-theme .wmde-markdown pre,
+.force-light-theme .wmde-markdown code {
+  background-color: #f6f8fa !important;
+  color: #000000 !important;
+}
+
+/* 強制覆蓋引用塊樣式 */
+.force-light-theme .wmde-markdown blockquote {
+  background-color: transparent !important;
+  color: #000000 !important;
+  border-left-color: #d0d7de !important;
+}

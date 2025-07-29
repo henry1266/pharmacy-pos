@@ -19,10 +19,13 @@ import {
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
   Description as DescriptionIcon,
-  Close as CloseIcon
+  Close as CloseIcon,
+  Edit as EditIcon
 } from '@mui/icons-material';
 import MDEditor from '@uiw/react-md-editor';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import '../../styles/force-light-theme.css';
 
 // 元件 Props 介面
 interface ProductSummaryDisplayProps {
@@ -44,6 +47,7 @@ const ProductSummaryDisplay: React.FC<ProductSummaryDisplayProps> = ({
   variant = 'normal',
   clickable = true
 }) => {
+  const navigate = useNavigate();
   const [summary, setSummary] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
@@ -377,15 +381,19 @@ const ProductSummaryDisplay: React.FC<ProductSummaryDisplayProps> = ({
                   重點摘要
                 </Typography>
               </Box>
-              <MDEditor.Markdown 
-                source={summary} 
-                style={{ 
+              <MDEditor.Markdown
+                source={summary}
+                data-color-mode="light"
+                style={{
                   backgroundColor: 'transparent',
-                  padding: '16px',
-                  border: '1px solid #e0e0e0',
-                  borderRadius: '4px',
+                  padding: '0',
+                  border: 'none',
                   color: '#000000'
-                }} 
+                }}
+                wrapperElement={{
+                  'data-color-mode': 'light'
+                }}
+                className="force-light-theme"
               />
             </Box>
           )}
@@ -410,15 +418,19 @@ const ProductSummaryDisplay: React.FC<ProductSummaryDisplayProps> = ({
                   詳細內容
                 </Typography>
               </Box>
-              <MDEditor.Markdown 
-                source={description} 
-                style={{ 
+              <MDEditor.Markdown
+                source={description}
+                data-color-mode="light"
+                style={{
                   backgroundColor: 'transparent',
-                  padding: '16px',
-                  border: '1px solid #e0e0e0',
-                  borderRadius: '4px',
+                  padding: '0',
+                  border: 'none',
                   color: '#000000'
-                }} 
+                }}
+                wrapperElement={{
+                  'data-color-mode': 'light'
+                }}
+                className="force-light-theme"
               />
             </Box>
           )}
