@@ -23,11 +23,10 @@ import {
   Save as SaveIcon
 } from '@mui/icons-material';
 import axios from 'axios';
-import MDEditor from '@uiw/react-md-editor';
-import '@uiw/react-md-editor/markdown-editor.css';
 import { getProductCategories } from '../services/productCategoryService';
 import { PackageUnitsConfig } from '../components/package-units';
 import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
+import ProductNoteEditor from '../components/products/ProductNoteEditor';
 import useProductData from '../hooks/useProductData';
 
 // 定義 API 回應格式
@@ -395,25 +394,24 @@ const ProductEditPage: React.FC = () => {
           {/* 左側：描述欄位獨佔 */}
           <Grid item xs={12} lg={4}>
             <Box sx={{ height: '100%', minHeight: '600px' }}>
-              <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 'medium' }}>
-                產品描述
-              </Typography>
-              <MDEditor
-                value={currentProduct.description || ''}
-                onChange={(value) => {
-                  const syntheticEvent = {
+              <ProductNoteEditor
+                productId={currentProduct.id || ''}
+                initialSummary=""
+                initialDescription={currentProduct.description || ''}
+                onNoteChange={(_summary: string, description: string) => {
+                  const descriptionEvent = {
                     target: {
                       name: 'description',
-                      value: value || ''
+                      value: description
                     }
                   } as unknown as ChangeEvent<HTMLInputElement>;
-                  handleInputChange(syntheticEvent);
+                  handleInputChange(descriptionEvent);
                 }}
-                preview="edit"
-                hideToolbar={saving}
-                visibleDragbar={false}
-                data-color-mode="light"
-                height={550}
+                disabled={saving}
+                summaryHeight={250}
+                descriptionHeight={300}
+                showVersionHistory={true}
+                autoSaveInterval={30000}
               />
             </Box>
           </Grid>

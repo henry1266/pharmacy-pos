@@ -10,8 +10,9 @@
     "type-check": "pnpm --filter shared type-check && pnpm --filter backend type-check && pnpm --filter frontend type-check"
   },
   "devDependencies": {
-    "concurrently": "^8.0.1",
     "@types/node": "^22.10.2",
+    "concurrently": "^8.0.1",
+    "ts-node": "^10.9.2",
     "typescript": "^5.7.2"
   }
 }

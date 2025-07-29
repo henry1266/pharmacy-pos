@@ -39,6 +39,7 @@ import overtimeRecordsRoutes from "./routes/overtimeRecords"; // 新增加班記
 import shiftTimeConfigsRoutes from "./routes/shiftTimeConfigs"; // 新增班次時間配置API路由
 import themesRoutes from "./routes/themes"; // 新增主題路由 V2
 import packageUnitsRoutes from "./routes/packageUnits"; // 新增包裝單位路由
+import productDescriptionRoutes from "./routes/productDescriptionRoutes"; // 新增產品描述編輯路由
 // import userThemesRoutes from "./routes/userThemes"; // 已整合到 authRoutes 中
 
 // 新增 accounting2 模組路由 (舊版 - 保留相容性)
@@ -99,6 +100,7 @@ app.use("/api/overtime-records", overtimeRecordsRoutes); // 新增加班記錄  
 app.use("/api/shift-time-configs", shiftTimeConfigsRoutes); // 新增班次時間配置API路由
 app.use("/api/themes", themesRoutes); // 新增主題路由 V2
 app.use("/api", packageUnitsRoutes); // 新增包裝單位路由
+app.use("/api/products", productDescriptionRoutes); // 新增產品描述編輯路由
 
 // 新增 accounting2 模組路由 - 獨立於現有 accounting 模組 (舊版 - 保留相容性)
 app.use("/api/accounting2/accounts", accounts2Routes);
