@@ -97,6 +97,12 @@ const ProductSummaryDisplay: React.FC<ProductSummaryDisplayProps> = ({
     setShowFullDialog(false);
   };
 
+  // 處理編輯筆記按鈕點擊
+  const handleEditNote = () => {
+    setShowFullDialog(false);
+    navigate(`/products/edit/${productId}`);
+  };
+
   // 渲染載入狀態
   if (loading) {
     return (
@@ -177,6 +183,14 @@ const ProductSummaryDisplay: React.FC<ProductSummaryDisplayProps> = ({
           </DialogContent>
           
           <DialogActions>
+            <Button
+              onClick={handleEditNote}
+              variant="contained"
+              startIcon={<EditIcon />}
+              sx={{ mr: 1 }}
+            >
+              編輯筆記
+            </Button>
             <Button onClick={handleCloseDialog}>
               關閉
             </Button>
@@ -450,6 +464,14 @@ const ProductSummaryDisplay: React.FC<ProductSummaryDisplayProps> = ({
         </DialogContent>
         
         <DialogActions>
+          <Button
+            onClick={handleEditNote}
+            variant="contained"
+            startIcon={<EditIcon />}
+            sx={{ mr: 1 }}
+          >
+            編輯筆記
+          </Button>
           <Button onClick={handleCloseDialog}>
             關閉
           </Button>
