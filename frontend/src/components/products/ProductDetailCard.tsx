@@ -13,6 +13,7 @@ import {
 import InventoryList from './InventoryList';
 import { PackageInventoryDisplay } from '../package-units';
 import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
+import ProductSummaryDisplay from './ProductSummaryDisplay';
 
 /**
  * 供應商介面
@@ -221,22 +222,24 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
           )}
         </Paper>
         
-        {/* 備註區塊 */}
-        {product.description && (
-          <Paper sx={{ p: 1, mb: 1, backgroundColor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
-            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'text.primary', minWidth: '40px' }}>
-                備註
-              </Typography>
-              <Typography variant="subtitle2" sx={{ color: 'text.secondary' }}>
-                |
-              </Typography>
-              <Typography variant="body2" sx={{ lineHeight: 1.4, flex: 1 }}>
-                {product.description}
-              </Typography>
+        {/* 重點摘要區塊 */}
+        <Paper sx={{ p: 1, mb: 1, backgroundColor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'text.primary', minWidth: '60px' }}>
+              重點摘要
+            </Typography>
+            <Typography variant="subtitle2" sx={{ color: 'text.secondary' }}>
+              |
+            </Typography>
+            <Box sx={{ flex: 1 }}>
+              <ProductSummaryDisplay
+                productId={product.id}
+                variant="normal"
+                showEditButton={true}
+              />
             </Box>
-          </Paper>
-        )}
+          </Box>
+        </Paper>
 
         {/* 庫存清單區塊 */}
         <Paper sx={{ p: 1, backgroundColor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>

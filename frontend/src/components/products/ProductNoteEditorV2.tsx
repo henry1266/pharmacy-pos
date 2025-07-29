@@ -393,9 +393,6 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
                 <EditNoteIcon fontSize="small" />
                 編輯模式
               </Typography>
-              <Typography variant="caption" color="text.secondary">
-                使用 "# 重點摘要" 和 "# 詳細內容" 標題來分隔不同區域
-              </Typography>
             </Box>
             <MDEditor
               value={combinedContent}
@@ -425,14 +422,15 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
                     重點摘要
                   </Typography>
                 </Box>
-                <MDEditor.Markdown 
-                  source={summary} 
-                  style={{ 
+                <MDEditor.Markdown
+                  source={summary}
+                  style={{
                     backgroundColor: 'transparent',
                     padding: '16px',
                     border: '1px solid #e0e0e0',
-                    borderRadius: '4px'
-                  }} 
+                    borderRadius: '4px',
+                    color: '#000000'
+                  }}
                 />
               </Box>
             )}
@@ -460,14 +458,15 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
                     詳細內容
                   </Typography>
                 </Box>
-                <MDEditor.Markdown 
-                  source={description} 
-                  style={{ 
+                <MDEditor.Markdown
+                  source={description}
+                  style={{
                     backgroundColor: 'transparent',
                     padding: '16px',
                     border: '1px solid #e0e0e0',
-                    borderRadius: '4px'
-                  }} 
+                    borderRadius: '4px',
+                    color: '#000000'
+                  }}
                 />
               </Box>
             )}
