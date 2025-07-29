@@ -493,6 +493,30 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName, p
 
   return (
     <Box sx={{ mt: 2, backgroundColor: 'action.hover', p: 2, borderRadius: 1 }}>
+      {/* 標題與圖表分析按鈕在同一列 */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+          庫存清單
+        </Typography>
+        <Button
+          variant="contained"
+          size="medium"
+          startIcon={<BarChartIcon />}
+          onClick={() => setChartModalOpen(true)}
+          sx={{
+            boxShadow: '0 3px 5px 2px rgba(25, 118, 210, .3)',
+            '&:hover': {
+              background: 'linear-gradient(45deg, #1565c0 30%, #1976d2 90%)',
+            },
+            borderRadius: 2,
+            px: 3,
+            py: 1
+          }}
+        >
+          查看圖表分析
+        </Button>
+      </Box>
+      
       {/* Dashboard 風格的資訊卡片 */}
       <Box sx={{ mb: 3 }}>
         <Grid container spacing={2}>
@@ -589,27 +613,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName, p
           </Grid>
         </Grid>
       </Box>
-      
-      {/* 圖表分析按鈕 - 移至下方 */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-        <Button
-          variant="contained"
-          size="medium"
-          startIcon={<BarChartIcon />}
-          onClick={() => setChartModalOpen(true)}
-          sx={{
-            boxShadow: '0 3px 5px 2px rgba(25, 118, 210, .3)',
-            '&:hover': {
-              background: 'linear-gradient(45deg, #1565c0 30%, #1976d2 90%)',
-            },
-            borderRadius: 2,
-            px: 3,
-            py: 1
-          }}
-        >
-          查看圖表分析
-        </Button>
-      </Box>
+
       
       {/* 圖表懸浮視窗 */}
       <ChartModal
