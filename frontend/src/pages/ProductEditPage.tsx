@@ -389,11 +389,11 @@ const ProductEditPage: React.FC = () => {
         </Alert>
       )}
       
-      {/* 表單內容 - 左右排版 */}
+      {/* 表單內容 - 三欄式排版 */}
       <Paper sx={{ p: 3 }}>
         <Grid container spacing={3}>
           {/* 左側：描述欄位獨佔 */}
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} lg={4}>
             <Box sx={{ height: '100%', minHeight: '600px' }}>
               <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 'medium' }}>
                 產品描述
@@ -418,10 +418,39 @@ const ProductEditPage: React.FC = () => {
             </Box>
           </Grid>
           
-          {/* 右側：其他所有欄位 */}
-          <Grid item xs={12} md={8}>
+          {/* 中間欄：基本資訊欄位 */}
+          <Grid item xs={12} lg={4}>
             <Grid container spacing={3}>
-              <Grid item xs={12} sm={3}>
+              <Grid item xs={12}>
+                <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'medium' }}>
+                  基本資訊
+                </Typography>
+              </Grid>
+              
+              <Grid item xs={12}>
+                <TextField
+                  name="name"
+                  label="名稱"
+                  value={currentProduct.name}
+                  onChange={handleInputChange}
+                  fullWidth
+                  required
+                  disabled={saving}
+                />
+              </Grid>
+              
+              <Grid item xs={12}>
+                <TextField
+                  name="subtitle"
+                  label="副標題"
+                  value={currentProduct.subtitle}
+                  onChange={handleInputChange}
+                  fullWidth
+                  helperText="商品名稱下方的副標題說明"
+                  disabled={saving}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
                 <TextField
                   name="code"
                   label="編號"
@@ -432,7 +461,7 @@ const ProductEditPage: React.FC = () => {
                   disabled={saving}
                 />
               </Grid>
-              <Grid item xs={12} sm={3}>
+              <Grid item xs={12} sm={6}>
                 <TextField
                   name="shortCode"
                   label="簡碼"
@@ -444,7 +473,44 @@ const ProductEditPage: React.FC = () => {
                 />
               </Grid>
               
-             <Grid item xs={12} sm={3}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  name="barcode"
+                  label="國際條碼"
+                  value={currentProduct.barcode}
+                  onChange={handleInputChange}
+                  fullWidth
+                  disabled={saving}
+                />
+              </Grid>
+              
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  name="healthInsuranceCode"
+                  label="健保碼"
+                  value={currentProduct.healthInsuranceCode}
+                  onChange={handleInputChange}
+                  fullWidth
+                  disabled={saving}
+                />
+              </Grid>
+              
+              
+              
+            </Grid>
+          </Grid>
+          
+          {/* 右側欄 */}
+          <Grid item xs={12} lg={4}>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'medium' }}>
+                  進階資訊
+                </Typography>
+              </Grid>
+              
+              
+              <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
                   <InputLabel id="category-label">分類</InputLabel>
                   <Select
@@ -466,8 +532,8 @@ const ProductEditPage: React.FC = () => {
                   </Select>
                 </FormControl>
               </Grid>
-             
-             <Grid item xs={12} sm={3}>
+              
+              <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
                   <InputLabel id="supplier-label">供應商</InputLabel>
                   <Select
@@ -489,69 +555,32 @@ const ProductEditPage: React.FC = () => {
                   </Select>
                 </FormControl>
               </Grid>
-             <Grid item xs={12} sm={6}>
-                <TextField
-                  name="name"
-                  label="名稱"
-                  value={currentProduct.name}
-                  onChange={handleInputChange}
-                  fullWidth
-                  required
-                  disabled={saving}
-                />
-              </Grid>
               
               
               <Grid item xs={12} sm={6}>
                 <TextField
-                  name="subtitle"
-                  label="副標題"
-                  value={currentProduct.subtitle}
+                  name="purchasePrice"
+                  label="進貨價"
+                  type="number"
+                  value={currentProduct.purchasePrice}
                   onChange={handleInputChange}
                   fullWidth
-                  helperText="商品名稱下方的副標題說明"
                   disabled={saving}
                 />
               </Grid>
-              
-              <Grid item xs={12} sm={3}>
+              <Grid item xs={12} sm={6}>
                 <TextField
-                  name="barcode"
-                  label="國際條碼"
-                  value={currentProduct.barcode}
-                  onChange={handleInputChange}
-                  fullWidth
-                  disabled={saving}
-                />
-              </Grid>
-              <Grid item xs={12} sm={3}>
-                <TextField
-                  name="healthInsuranceCode"
-                  label="健保碼"
-                  value={currentProduct.healthInsuranceCode}
+                  name="sellingPrice"
+                  label="售價"
+                  type="number"
+                  value={currentProduct.sellingPrice}
                   onChange={handleInputChange}
                   fullWidth
                   disabled={saving}
                 />
               </Grid>
               
-              {productType === 'medicine' && (
-                <Grid item xs={12} sm={2}>
-                  <TextField
-                    name="healthInsurancePrice"
-                    label="健保價"
-                    type="number"
-                    value={currentProduct.healthInsurancePrice}
-                    onChange={handleInputChange}
-                    fullWidth
-                    disabled={saving}
-                  />
-                </Grid>
-              )}
-              
-              
-              
-              <Grid item xs={12} sm={2}>
+              <Grid item xs={12} sm={6}>
                 <TextField
                   name="unit"
                   label="單位"
@@ -563,29 +592,7 @@ const ProductEditPage: React.FC = () => {
                 />
               </Grid>
               
-              <Grid item xs={12} sm={2}>
-                <TextField
-                  name="purchasePrice"
-                  label="進貨價"
-                  type="number"
-                  value={currentProduct.purchasePrice}
-                  onChange={handleInputChange}
-                  fullWidth
-                  disabled={saving}
-                />
-              </Grid>
-              <Grid item xs={12} sm={2}>
-                <TextField
-                  name="sellingPrice"
-                  label="售價"
-                  type="number"
-                  value={currentProduct.sellingPrice}
-                  onChange={handleInputChange}
-                  fullWidth
-                  disabled={saving}
-                />
-              </Grid>
-              <Grid item xs={12} sm={2}>
+              <Grid item xs={12} sm={6}>
                 <TextField
                   name="minStock"
                   label="最低庫存"
@@ -598,6 +605,20 @@ const ProductEditPage: React.FC = () => {
               </Grid>
               
               
+              
+              {productType === 'medicine' && (
+                <Grid item xs={12}>
+                  <TextField
+                    name="healthInsurancePrice"
+                    label="健保價"
+                    type="number"
+                    value={currentProduct.healthInsurancePrice}
+                    onChange={handleInputChange}
+                    fullWidth
+                    disabled={saving}
+                  />
+                </Grid>
+              )}
               
               <Grid item xs={12}>
                 <FormControlLabel
@@ -623,8 +644,6 @@ const ProductEditPage: React.FC = () => {
                   label="不扣庫存（毛利以數量×(售價-進價)計算）"
                 />
               </Grid>
-
-              {/* 包裝單位配置區塊 */}
               <Grid item xs={12}>
                 <Divider sx={{ my: 2 }} />
                 <PackageUnitsConfig
@@ -637,6 +656,7 @@ const ProductEditPage: React.FC = () => {
               </Grid>
             </Grid>
           </Grid>
+          
         </Grid>
       </Paper>
     </Box>
