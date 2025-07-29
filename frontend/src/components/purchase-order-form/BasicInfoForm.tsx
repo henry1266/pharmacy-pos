@@ -245,22 +245,11 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
             會計科目配對
           </Typography>
           
-          <Grid container spacing={2}>
-            {/* 新的記帳格式選擇 */}
-            <Grid item xs={12}>
-              <AccountingEntrySelector
-                organizationId={formData?.organizationId || ''}
-                selectedAccountIds={formData?.selectedAccountIds || []}
-                onChange={handleAccountingEntryChange || (() => {})}
-                disabled={!formData?.supplier}
-              />
-            </Grid>
-            
             {/* 原有的供應商科目配對 */}
             <Grid item xs={12}>
               <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid #e0e0e0' }}>
                 <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.secondary' }}>
-                  或使用供應商預設科目配對
+                  使用供應商預設科目配對
                 </Typography>
                 <SupplierAccountSelect
                   supplierId={formData?.supplier || ''}
@@ -272,6 +261,20 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
                 />
               </Box>
             </Grid>
+          
+          
+          <Grid container spacing={2}>
+            {/* 新的記帳格式選擇 */}
+            <Grid item xs={12}>
+              <AccountingEntrySelector
+                organizationId={formData?.organizationId || ''}
+                selectedAccountIds={formData?.selectedAccountIds || []}
+                onChange={handleAccountingEntryChange || (() => {})}
+                disabled={!formData?.supplier}
+              />
+            </Grid>
+            
+
           </Grid>
         </CardContent>
       </Card>

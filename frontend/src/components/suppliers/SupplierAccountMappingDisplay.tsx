@@ -147,7 +147,7 @@ const SupplierAccountMappingDisplay: React.FC<SupplierAccountMappingDisplayProps
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
             <AccountBalanceIcon sx={{ mr: 1, fontSize: '1.2rem' }} />
-            會計科目配對
+            會計科目配對12
           </Typography>
           {onEditClick && (
             <Button

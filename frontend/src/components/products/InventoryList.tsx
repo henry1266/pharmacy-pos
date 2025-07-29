@@ -513,42 +513,45 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName, p
             py: 1
           }}
         >
-          查看圖表分析
+          圖表分析
         </Button>
       </Box>
       
       {/* Dashboard 風格的資訊卡片 */}
       <Box sx={{ mb: 3 }}>
-        <Grid container spacing={2}>
+        <Grid container spacing={2} sx={{ height: 'auto' }}>
           <Grid item xs={12} sm={6}>
             <Card
               elevation={2}
               sx={{
                 borderRadius: 2,
+                height: '100px',
+                display: 'flex',
+                flexDirection: 'column',
                 transition: 'transform 0.2s, box-shadow 0.2s',
                 '&:hover': {
-                  transform: 'translateY(-4px)',
+                  transform: 'translateY(-2px)',
                   boxShadow: 4
                 }
               }}
             >
-              <CardContent sx={{ p: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <InventoryIcon color="primary" fontSize="medium" />
-                  <Typography variant="subtitle1" color="text.secondary" fontWeight="medium" sx={{ ml: 1 }}>
+              <CardContent sx={{ p: 1.5, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <InventoryIcon color="primary" fontSize="small" />
+                  <Typography variant="body2" color="text.secondary" fontWeight="medium" sx={{ ml: 1 }}>
                     庫存數量
                   </Typography>
                 </Box>
                 
                 {/* 大包裝顯示為主 */}
                 {packageUnits && packageUnits.length > 0 && currentStock > 0 ? (
-                  <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 2, flexWrap: 'wrap' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, flexWrap: 'wrap' }}>
                     {/* 主要包裝顯示 */}
                     <Typography
-                      variant="h5"
+                      variant="h6"
                       fontWeight="bold"
                       color="primary.main"
-                      sx={{ lineHeight: 1.2 }}
+                      sx={{ lineHeight: 1.1 }}
                     >
                       {(() => {
                         const displayResult = convertToPackageDisplay(currentStock, packageUnits, productUnit || '個');
@@ -558,7 +561,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName, p
                     
                     {/* 總數量為次要資訊 */}
                     <Typography
-                      variant="body2"
+                      variant="caption"
                       color="text.secondary"
                       sx={{ opacity: 0.8 }}
                     >
@@ -568,7 +571,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName, p
                 ) : (
                   /* 沒有包裝單位時的顯示 */
                   <Typography
-                    variant="h5"
+                    variant="h6"
                     fontWeight="bold"
                     color="primary.main"
                   >
@@ -584,25 +587,28 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName, p
               elevation={2}
               sx={{
                 borderRadius: 2,
+                height: '100px',
+                display: 'flex',
+                flexDirection: 'column',
                 transition: 'transform 0.2s, box-shadow 0.2s',
                 '&:hover': {
-                  transform: 'translateY(-4px)',
+                  transform: 'translateY(-2px)',
                   boxShadow: 4
                 }
               }}
             >
-              <CardContent sx={{ p: 2 }}>
+              <CardContent sx={{ p: 1.5, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                   <MonetizationOnIcon
                     sx={{ color: profitLoss >= 0 ? '#00C853' : '#FF1744' }}
-                    fontSize="medium"
+                    fontSize="small"
                   />
-                  <Typography variant="subtitle1" color="text.secondary" fontWeight="medium" sx={{ ml: 1 }}>
+                  <Typography variant="body2" color="text.secondary" fontWeight="medium" sx={{ ml: 1 }}>
                     損益總和
                   </Typography>
                 </Box>
                 <Typography
-                  variant="h5"
+                  variant="h6"
                   fontWeight="bold"
                   sx={{ color: profitLoss >= 0 ? '#00C853' : '#FF1744' }}
                 >

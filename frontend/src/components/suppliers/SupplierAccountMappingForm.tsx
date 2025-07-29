@@ -222,7 +222,7 @@ const SupplierAccountMappingForm: React.FC<SupplierAccountMappingFormProps> = ({
   return (
     <Box>
       <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
-        會計科目配對
+        會計科目配對12
       </Typography>
 
       {error && (
