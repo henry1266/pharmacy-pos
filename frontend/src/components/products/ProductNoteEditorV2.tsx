@@ -22,13 +22,15 @@ import {
   Summarize as SummaryIcon,
   Description as DescriptionIcon,
   Visibility as ViewIcon,
-  EditNote as EditNoteIcon
+  EditNote as EditNoteIcon,
+  LibraryBooks as LibraryBooksIcon
 } from '@mui/icons-material';
 import MDEditor, { commands } from '@uiw/react-md-editor';
 import '@uiw/react-md-editor/markdown-editor.css';
 import axios from 'axios';
 import '../../styles/force-light-theme.css';
 import { prepareMarkdownForDisplay } from '../../utils/markdownUtils';
+import LinkReferenceManager from '../common/LinkReferenceManager';
 
 
 // 元件 Props 介面
@@ -66,6 +68,8 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
   const [snackbarMessage, setSnackbarMessage] = useState<string>('');
   const [showSnackbar, setShowSnackbar] = useState<boolean>(false);
+  const [showLinkManager, setShowLinkManager] = useState<boolean>(false);
+  const [currentEditor, setCurrentEditor] = useState<'summary' | 'description' | null>(null);
 
   // Refs
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -75,8 +79,8 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
   // 消除未使用參數警告（未來可實現自動儲存功能）
   void autoSaveInterval;
 
-  // 自定義 MDEditor 工具列命令
-  const customCommands = [
+  // 基本 MDEditor 工具列命令
+  const baseCommands = [
     commands.bold,
     commands.italic,
     commands.strikethrough,
@@ -184,6 +188,53 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
     // 直接儲存當前的摘要和詳細內容
     saveNote(summary, description, false);
   }, [summary, description, saveNote]);
+
+  // 處理超連結插入
+  const handleInsertLink = useCallback((markdownLink: string) => {
+    if (currentEditor === 'summary') {
+      const newSummary = summary + markdownLink;
+      setSummary(newSummary);
+      setHasUnsavedChanges(
+        newSummary !== lastSavedSummaryRef.current ||
+        description !== lastSavedDescriptionRef.current
+      );
+    } else if (currentEditor === 'description') {
+      const newDescription = description + markdownLink;
+      setDescription(newDescription);
+      setHasUnsavedChanges(
+        summary !== lastSavedSummaryRef.current ||
+        newDescription !== lastSavedDescriptionRef.current
+      );
+    }
+    setShowLinkManager(false);
+  }, [currentEditor, summary, description]);
+
+  // 開啟超連結管理器
+  const handleOpenLinkManager = useCallback((editorType: 'summary' | 'description') => {
+    setCurrentEditor(editorType);
+    setShowLinkManager(true);
+  }, []);
+
+  // 創建自定義超連結管理命令
+  const createLinkManagerCommand = useCallback((editorType: 'summary' | 'description') => ({
+    name: 'linkManager',
+    keyCommand: 'linkManager',
+    buttonProps: {
+      'aria-label': '超連結管理 (Ctrl+Shift+L)',
+      title: '超連結管理'
+    },
+    icon: <LibraryBooksIcon />,
+    execute: () => {
+      handleOpenLinkManager(editorType);
+    }
+  }), [handleOpenLinkManager]);
+
+  // 創建完整的自定義命令列表
+  const createCustomCommands = useCallback((editorType: 'summary' | 'description') => [
+    ...baseCommands.slice(0, 6), // 取前6個基本命令 (bold, italic, strikethrough, hr, divider, link)
+    createLinkManagerCommand(editorType), // 插入超連結管理按鈕
+    ...baseCommands.slice(6) // 取剩餘的命令
+  ], [createLinkManagerCommand]);
 
 
   // 格式化時間
@@ -327,7 +378,7 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
                 data-color-mode="light"
                 height={summary.trim() ? Math.max(150, Math.min(300, summary.split('\n').length * 25 + 100)) : 150}
                 className="force-light-theme"
-                commands={customCommands}
+                commands={createCustomCommands('summary')}
               />
             </Box>
 
@@ -360,7 +411,7 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
                 data-color-mode="light"
                 height={description.trim() ? Math.max(200, Math.min(400, description.split('\n').length * 25 + 100)) : 200}
                 className="force-light-theme"
-                commands={customCommands}
+                commands={createCustomCommands('description')}
               />
             </Box>
           </Box>
@@ -500,14 +551,21 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
         onClose={() => setShowSnackbar(false)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Alert 
-          onClose={() => setShowSnackbar(false)} 
+        <Alert
+          onClose={() => setShowSnackbar(false)}
           severity="success"
           variant="filled"
         >
           {snackbarMessage}
         </Alert>
       </Snackbar>
+
+      {/* 超連結管理器 */}
+      <LinkReferenceManager
+        open={showLinkManager}
+        onClose={() => setShowLinkManager(false)}
+        onInsertLink={handleInsertLink}
+      />
     </Box>
   );
 };
