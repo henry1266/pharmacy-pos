@@ -34,6 +34,7 @@ import MDEditor from '@uiw/react-md-editor';
 import '@uiw/react-md-editor/markdown-editor.css';
 import axios from 'axios';
 import '../../styles/force-light-theme.css';
+import { prepareMarkdownForDisplay } from '../../utils/markdownUtils';
 
 // 版本歷史介面
 interface DescriptionVersion {
@@ -254,7 +255,7 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
         borderColor: 'divider'
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography variant="h6" sx={{ fontWeight: 'medium' }}>
+          <Typography variant="h6" sx={{ fontWeight: 'small' }}>
             筆記
           </Typography>
           
@@ -417,7 +418,7 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
                   </Typography>
                 </Box>
                 <MDEditor.Markdown
-                  source={summary}
+                  source={prepareMarkdownForDisplay(summary)}
                   data-color-mode="light"
                   style={{
                     backgroundColor: 'transparent',
@@ -457,7 +458,7 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
                   </Typography>
                 </Box>
                 <MDEditor.Markdown
-                  source={description}
+                  source={prepareMarkdownForDisplay(description)}
                   data-color-mode="light"
                   style={{
                     backgroundColor: 'transparent',

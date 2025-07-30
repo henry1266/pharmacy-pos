@@ -26,6 +26,7 @@ import MDEditor from '@uiw/react-md-editor';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import '../../styles/force-light-theme.css';
+import { prepareMarkdownForDisplay } from '../../utils/markdownUtils';
 
 // 元件 Props 介面
 interface ProductSummaryDisplayProps {
@@ -396,7 +397,7 @@ const ProductSummaryDisplay: React.FC<ProductSummaryDisplayProps> = ({
                 </Typography>
               </Box>
               <MDEditor.Markdown
-                source={summary}
+                source={prepareMarkdownForDisplay(summary)}
                 data-color-mode="light"
                 style={{
                   backgroundColor: 'transparent',
@@ -433,7 +434,7 @@ const ProductSummaryDisplay: React.FC<ProductSummaryDisplayProps> = ({
                 </Typography>
               </Box>
               <MDEditor.Markdown
-                source={description}
+                source={prepareMarkdownForDisplay(description)}
                 data-color-mode="light"
                 style={{
                   backgroundColor: 'transparent',
