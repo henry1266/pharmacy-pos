@@ -367,6 +367,23 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
                     'data-color-mode': 'light'
                   }}
                   className="force-light-theme"
+                  components={{
+                    a: ({ href, children, ...props }) => (
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          fontWeight: 'bold',
+                          fontStyle: 'italic',
+                          textDecoration: 'underline'
+                        }}
+                        {...props}
+                      >
+                        {children}
+                      </a>
+                    )
+                  }}
                 />
               </Box>
             )}
@@ -407,6 +424,23 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
                     'data-color-mode': 'light'
                   }}
                   className="force-light-theme"
+                  components={{
+                    a: ({ href, children, ...props }) => (
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          fontWeight: 'bold',
+                          fontStyle: 'italic',
+                          textDecoration: 'underline'
+                        }}
+                        {...props}
+                      >
+                        {children}
+                      </a>
+                    )
+                  }}
                 />
               </Box>
             )}

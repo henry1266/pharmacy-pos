@@ -30,12 +30,32 @@ export const convertMarkdownToNewlines = (text: string): string => {
 };
 
 /**
- * 為顯示準備 Markdown 文字（確保換行正確顯示）
+ * 處理超連結，使其使用粗斜體樣式
+ * @param text 包含超連結的文字
+ * @returns 處理後的文字
+ */
+export const processLinksForDisplay = (text: string): string => {
+  if (!text) return text;
+  
+  // 處理 Markdown 格式的超連結 [文字](URL)
+  // 將其轉換為粗斜體樣式的 Markdown 語法
+  return text.replace(
+    /\[([^\]]+)\]\(([^)]+)\)/g,
+    '***[$1]($2)***'
+  );
+};
+
+/**
+ * 為顯示準備 Markdown 文字（確保換行正確顯示並處理超連結）
  * @param text 原始文字
  * @returns 準備好顯示的 Markdown 文字
  */
 export const prepareMarkdownForDisplay = (text: string): string => {
   if (!text) return text;
   
-  return convertNewlinesToMarkdown(text);
+  // 先處理換行，再處理超連結
+  let processedText = convertNewlinesToMarkdown(text);
+  processedText = processLinksForDisplay(processedText);
+  
+  return processedText;
 };
