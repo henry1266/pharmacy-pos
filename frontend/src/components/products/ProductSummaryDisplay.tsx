@@ -97,10 +97,10 @@ const ProductSummaryDisplay: React.FC<ProductSummaryDisplayProps> = ({
     setShowFullDialog(false);
   };
 
-  // 處理編輯筆記按鈕點擊
+  // 處理編輯筆記按鈕點擊 - 開新分頁
   const handleEditNote = () => {
     setShowFullDialog(false);
-    navigate(`/products/edit/${productId}`);
+    window.open(`/products/edit/${productId}`, '_blank');
   };
 
   // 渲染載入狀態

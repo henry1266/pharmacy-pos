@@ -130,8 +130,8 @@ const ProductDetailPage: React.FC = () => {
   };
   
   const handleEdit = (): void => {
-    // 導航到獨立的產品編輯頁面
-    navigate(`/products/edit/${id}`);
+    // 在新分頁中開啟產品編輯頁面
+    window.open(`/products/edit/${id}`, '_blank');
   };
   
   const handleDeleteProduct = async (productId: string): Promise<void> => {

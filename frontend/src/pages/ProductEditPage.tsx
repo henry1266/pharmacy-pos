@@ -212,7 +212,18 @@ const ProductEditPage: React.FC = () => {
   }, [id]);
   
   const handleBack = (): void => {
-    navigate('/products');
+    // 檢查是否在新分頁中開啟
+    if (window.opener) {
+      // 在新分頁中，關閉當前分頁
+      window.close();
+    } else {
+      // 在同一分頁中，導航回商品詳情頁面（如果是編輯模式）或商品列表
+      if (id && id !== 'new') {
+        navigate(`/products/${id}`);
+      } else {
+        navigate('/products');
+      }
+    }
   };
   
   // 處理表單輸入變化
@@ -303,8 +314,19 @@ const ProductEditPage: React.FC = () => {
       const result = await saveProduct(productData, isEditMode);
       
       if (result) {
-        // 保存成功，返回產品列表
-        navigate('/products');
+        // 保存成功後的處理
+        if (window.opener) {
+          // 在新分頁中，關閉當前分頁
+          window.close();
+        } else {
+          // 在同一分頁中，導航到商品詳情頁面
+          const productId = result.id || currentProduct.id;
+          if (productId) {
+            navigate(`/products/${productId}`);
+          } else {
+            navigate('/products');
+          }
+        }
       }
     } catch (err: unknown) {
       console.error('保存產品失敗:', err);
@@ -408,7 +430,6 @@ const ProductEditPage: React.FC = () => {
                   handleInputChange(descriptionEvent);
                 }}
                 disabled={saving}
-                height={550}
                 showVersionHistory={true}
                 autoSaveInterval={30000}
               />

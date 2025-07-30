@@ -93,9 +93,9 @@ const ProductsPage: React.FC = () => {
     resetCsvImport
   } = useCsvImport(0, fetchProducts); // 使用固定值 0，因為不再使用 tabValue
   
-  // 導向編輯產品頁面
+  // 導向編輯產品頁面 - 開新分頁
   function handleEditProduct(id: string): void {
-    navigate(`/products/edit/${id}`);
+    window.open(`/products/edit/${id}`, '_blank');
   }
   
   // 創建表格列定義 - 使用統一的產品列定義
@@ -170,9 +170,9 @@ const ProductsPage: React.FC = () => {
     }
   }, [allProducts]);
   
-  // 導向新增產品頁面
+  // 導向新增產品頁面 - 開新分頁
   const handleAddProduct = (): void => {
-    navigate('/products/edit/new');
+    window.open('/products/edit/new', '_blank');
   };
   
   // 處理CSV匯入對話框
