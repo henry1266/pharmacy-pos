@@ -24,7 +24,7 @@ import {
   Visibility as ViewIcon,
   EditNote as EditNoteIcon
 } from '@mui/icons-material';
-import MDEditor from '@uiw/react-md-editor';
+import MDEditor, { commands } from '@uiw/react-md-editor';
 import '@uiw/react-md-editor/markdown-editor.css';
 import axios from 'axios';
 import '../../styles/force-light-theme.css';
@@ -74,6 +74,32 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
 
   // 消除未使用參數警告（未來可實現自動儲存功能）
   void autoSaveInterval;
+
+  // 自定義 MDEditor 工具列命令
+  const customCommands = [
+    commands.bold,
+    commands.italic,
+    commands.strikethrough,
+    commands.hr,
+    commands.divider,
+    commands.link,
+    commands.unorderedListCommand,
+    commands.orderedListCommand,
+    commands.checkedListCommand,
+    commands.divider,
+    // 自定義維基百科按鈕
+    {
+      name: 'wikipedia',
+      keyCommand: 'wikipedia',
+      buttonProps: { 'aria-label': '開啟維基百科', title: '開啟維基百科' },
+      icon: (
+        <span style={{ fontSize: '12px', fontWeight: 'bold' }}>W</span>
+      ),
+      execute: () => {
+        window.open('https://zh.wikipedia.org/wiki/Wikipedia:%E9%A6%96%E9%A1%B5', '_blank');
+      }
+    }
+  ];
 
 
   // 切換編輯模式
@@ -301,6 +327,7 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
                 data-color-mode="light"
                 height={summary.trim() ? Math.max(150, Math.min(300, summary.split('\n').length * 25 + 100)) : 150}
                 className="force-light-theme"
+                commands={customCommands}
               />
             </Box>
 
@@ -333,6 +360,7 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
                 data-color-mode="light"
                 height={description.trim() ? Math.max(200, Math.min(400, description.split('\n').length * 25 + 100)) : 200}
                 className="force-light-theme"
+                commands={customCommands}
               />
             </Box>
           </Box>
