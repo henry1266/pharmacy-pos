@@ -35,7 +35,7 @@ import {
 } from '@mui/material';
 import MDEditor from '@uiw/react-md-editor';
 import axios from 'axios';
-import { prepareMarkdownForDisplay } from '../../utils/markdownUtils';
+import { prepareMarkdownForDisplay, prepareMarkdownForDisplaySync } from '../../utils/markdownUtils';
 import '../../styles/force-light-theme.css';
 
 // 定義銷售項目的型別
@@ -81,6 +81,8 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
   // 筆記對話框狀態
   const [selectedProductForNote, setSelectedProductForNote] = useState<string | null>(null);
   const [noteData, setNoteData] = useState<{ summary: string; description: string } | null>(null);
+  const [processedSummary, setProcessedSummary] = useState<string>('');
+  const [processedDescription, setProcessedDescription] = useState<string>('');
   const [noteLoading, setNoteLoading] = useState<boolean>(false);
 
   // 處理筆記圖示點擊
@@ -116,6 +118,31 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
       window.open(`/products/edit/${selectedProductForNote}`, '_blank');
     }
   };
+
+  // 處理 Markdown 內容的異步處理
+  useEffect(() => {
+    const processContent = async () => {
+      if (noteData?.summary) {
+        const processed = await prepareMarkdownForDisplay(noteData.summary);
+        setProcessedSummary(processed);
+      } else {
+        setProcessedSummary('');
+      }
+    };
+    processContent();
+  }, [noteData?.summary]);
+
+  useEffect(() => {
+    const processContent = async () => {
+      if (noteData?.description) {
+        const processed = await prepareMarkdownForDisplay(noteData.description);
+        setProcessedDescription(processed);
+      } else {
+        setProcessedDescription('');
+      }
+    };
+    processContent();
+  }, [noteData?.description]);
 
   // 當商品項目增加時，自動滾動到底部
   useEffect(() => {
@@ -486,7 +513,7 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
                   </Typography>
                 </Box>
                 <MDEditor.Markdown
-                  source={prepareMarkdownForDisplay(noteData.summary)}
+                  source={processedSummary}
                   data-color-mode="light"
                   style={{
                     backgroundColor: 'transparent',
@@ -498,6 +525,23 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
                     'data-color-mode': 'light'
                   }}
                   className="force-light-theme"
+                  components={{
+                    a: ({ href, children, ...props }) => (
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          fontWeight: 'bold',
+                          fontStyle: 'italic',
+                          textDecoration: 'underline'
+                        }}
+                        {...props}
+                      >
+                        {children}
+                      </a>
+                    )
+                  }}
                 />
               </Box>
             )}
@@ -523,7 +567,7 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
                   </Typography>
                 </Box>
                 <MDEditor.Markdown
-                  source={prepareMarkdownForDisplay(noteData.description)}
+                  source={processedDescription}
                   data-color-mode="light"
                   style={{
                     backgroundColor: 'transparent',
@@ -535,6 +579,23 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
                     'data-color-mode': 'light'
                   }}
                   className="force-light-theme"
+                  components={{
+                    a: ({ href, children, ...props }) => (
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          fontWeight: 'bold',
+                          fontStyle: 'italic',
+                          textDecoration: 'underline'
+                        }}
+                        {...props}
+                      >
+                        {children}
+                      </a>
+                    )
+                  }}
                 />
               </Box>
             )}

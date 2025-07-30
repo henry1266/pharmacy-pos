@@ -41,6 +41,7 @@ import themesRoutes from "./routes/themes"; // 新增主題路由 V2
 import packageUnitsRoutes from "./routes/packageUnits"; // 新增包裝單位路由
 import productDescriptionRoutes from "./routes/productDescriptionRoutes"; // 新增產品描述編輯路由
 import linkReferencesRoutes from "./routes/linkReferences"; // 新增超連結管理路由
+import linkGlobalUpdateRoutes from "./routes/linkGlobalUpdate"; // 新增全域連結更新路由
 // import userThemesRoutes from "./routes/userThemes"; // 已整合到 authRoutes 中
 
 // 新增 accounting2 模組路由 (舊版 - 保留相容性)
@@ -103,6 +104,7 @@ app.use("/api/themes", themesRoutes); // 新增主題路由 V2
 app.use("/api", packageUnitsRoutes); // 新增包裝單位路由
 app.use("/api/products", productDescriptionRoutes); // 新增產品描述編輯路由
 app.use("/api/link-references", linkReferencesRoutes); // 新增超連結管理路由
+app.use("/api/link-global", linkGlobalUpdateRoutes); // 新增全域連結更新路由
 
 // 新增 accounting2 模組路由 - 獨立於現有 accounting 模組 (舊版 - 保留相容性)
 app.use("/api/accounting2/accounts", accounts2Routes);

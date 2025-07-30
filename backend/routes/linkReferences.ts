@@ -9,6 +9,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
     const {
       search = '',
+      exact = 'false',
       sortBy = 'relevance',
       page = 1,
       limit = 20
@@ -17,21 +18,40 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     const pageNum = parseInt(page as string, 10);
     const limitNum = parseInt(limit as string, 10);
     const skip = (pageNum - 1) * limitNum;
+    const isExactMatch = exact === 'true';
 
-    // 使用模型的靜態方法進行搜尋
-    const links = await LinkReference.searchLinks(search as string, {
-      sortBy: sortBy as string,
-      limit: limitNum,
-      skip
-    });
+    let links;
+    let total;
 
-    // 獲取總數（用於分頁）
-    let searchQuery: any = { isActive: true };
-    if (search && (search as string).trim()) {
-      searchQuery.$text = { $search: (search as string).trim() };
+    if (isExactMatch && search && (search as string).trim()) {
+      // 精確匹配搜尋
+      const searchQuery = {
+        isActive: true,
+        displayText: (search as string).trim()
+      };
+      
+      links = await LinkReference.find(searchQuery)
+        .sort({ usageCount: -1, updatedAt: -1 })
+        .limit(limitNum)
+        .skip(skip);
+      
+      total = await LinkReference.countDocuments(searchQuery);
+    } else {
+      // 使用模型的靜態方法進行搜尋
+      links = await LinkReference.searchLinks(search as string, {
+        sortBy: sortBy as string,
+        limit: limitNum,
+        skip
+      });
+
+      // 獲取總數（用於分頁）
+      let searchQuery: any = { isActive: true };
+      if (search && (search as string).trim()) {
+        searchQuery.$text = { $search: (search as string).trim() };
+      }
+
+      total = await LinkReference.countDocuments(searchQuery);
     }
-
-    const total = await LinkReference.countDocuments(searchQuery);
 
     res.json({
       success: true,

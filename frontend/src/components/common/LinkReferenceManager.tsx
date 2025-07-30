@@ -27,7 +27,9 @@ import {
   Link as LinkIcon,
   TrendingUp as TrendingUpIcon,
   Close as CloseIcon,
-  ContentCopy as ContentCopyIcon
+  ContentCopy as ContentCopyIcon,
+  Update as UpdateIcon,
+  FindReplace as FindReplaceIcon
 } from '@mui/icons-material';
 import axios from 'axios';
 
@@ -65,6 +67,8 @@ const LinkReferenceManager: React.FC<LinkReferenceManagerProps> = ({
   const [editingLink, setEditingLink] = useState<LinkReference | null>(null);
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
+  const [showUsageDialog, setShowUsageDialog] = useState<boolean>(false);
+  const [usageData, setUsageData] = useState<any>(null);
 
   // 新增/編輯表單狀態
   const [formData, setFormData] = useState({
@@ -112,7 +116,7 @@ const LinkReferenceManager: React.FC<LinkReferenceManagerProps> = ({
     return () => clearTimeout(timer);
   }, [searchQuery, open, loadLinks]);
 
-  // 處理表單提交
+  // 處理表單提交（統一使用全域更新）
   const handleSubmit = async () => {
     try {
       setLoading(true);
@@ -123,32 +127,65 @@ const LinkReferenceManager: React.FC<LinkReferenceManagerProps> = ({
         return;
       }
 
-      const url = editingLink 
-        ? `/api/link-references/${editingLink._id}`
-        : '/api/link-references';
-      
-      const method = editingLink ? 'put' : 'post';
-      
-      const submitData = {
-        keyword: formData.displayText, // 使用 displayText 作為 keyword
-        displayText: formData.displayText,
-        url: formData.url
-      };
-      
-      const response = await axios[method](url, submitData);
-
-      if (response.data.success) {
-        setSuccess(editingLink ? '超連結更新成功' : '超連結新增成功');
-        setEditingLink(null);
-        setFormData({
-          displayText: '',
-          url: ''
+      if (editingLink) {
+        // 編輯模式：使用全域更新
+        const response = await axios.post(`/api/link-global/global-update/${editingLink._id}`, {
+          oldDisplayText: editingLink.displayText,
+          newDisplayText: formData.displayText,
+          oldUrl: editingLink.url,
+          newUrl: formData.url
         });
-        loadLinks();
+
+        if (response.data.success) {
+          setSuccess(`全域更新成功！已更新 ${response.data.data.updatedNotesCount} 個產品筆記中的連結`);
+          setEditingLink(null);
+          setFormData({
+            displayText: '',
+            url: ''
+          });
+          loadLinks();
+        }
+      } else {
+        // 新增模式：直接新增
+        const submitData = {
+          keyword: formData.displayText, // 使用 displayText 作為 keyword
+          displayText: formData.displayText,
+          url: formData.url
+        };
+        
+        const response = await axios.post('/api/link-references', submitData);
+
+        if (response.data.success) {
+          setSuccess('超連結新增成功');
+          setFormData({
+            displayText: '',
+            url: ''
+          });
+          loadLinks();
+        }
       }
     } catch (error: any) {
       console.error('儲存超連結失敗:', error);
       setError(error.response?.data?.message || '儲存失敗');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  // 查看連結使用情況
+  const handleViewUsage = async (link: LinkReference) => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`/api/link-global/search-usage/${link._id}`);
+      
+      if (response.data.success) {
+        setUsageData(response.data.data);
+        setShowUsageDialog(true);
+      }
+    } catch (error: any) {
+      console.error('查詢使用情況失敗:', error);
+      setError('查詢使用情況失敗');
     } finally {
       setLoading(false);
     }
@@ -191,11 +228,11 @@ const LinkReferenceManager: React.FC<LinkReferenceManagerProps> = ({
       // 增加使用次數
       await axios.post(`/api/link-references/${link._id}/usage`);
       
-      // 生成 Markdown 連結
-      const markdownLink = `[${link.displayText}](${link.url})`;
+      // 生成可追蹤的連結引用格式，而不是直接的 Markdown 連結
+      const linkReference = `{{linkRef:${link.displayText}}}`;
       
       if (onInsertLink) {
-        onInsertLink(markdownLink);
+        onInsertLink(linkReference);
       }
       
       if (onSelectLink) {
@@ -210,9 +247,9 @@ const LinkReferenceManager: React.FC<LinkReferenceManagerProps> = ({
 
   // 複製連結到剪貼簿
   const handleCopyLink = (link: LinkReference) => {
-    const markdownLink = `[${link.displayText}](${link.url})`;
-    navigator.clipboard.writeText(markdownLink);
-    setSuccess('連結已複製到剪貼簿');
+    const linkReference = `{{linkRef:${link.displayText}}}`;
+    navigator.clipboard.writeText(linkReference);
+    setSuccess('連結引用已複製到剪貼簿');
   };
 
   // 取消編輯
@@ -377,6 +414,17 @@ const LinkReferenceManager: React.FC<LinkReferenceManagerProps> = ({
                 />
                 <ListItemSecondaryAction>
                   <Box sx={{ display: 'flex', gap: 0.5 }}>
+                    <Tooltip title="查看使用情況">
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleViewUsage(link);
+                        }}
+                      >
+                        <FindReplaceIcon />
+                      </IconButton>
+                    </Tooltip>
                     <Tooltip title="複製連結">
                       <IconButton
                         size="small"
@@ -424,6 +472,59 @@ const LinkReferenceManager: React.FC<LinkReferenceManagerProps> = ({
         </Typography>
         <Button onClick={onClose}>關閉</Button>
       </DialogActions>
+
+      {/* 使用情況查看對話框 */}
+      <Dialog
+        open={showUsageDialog}
+        onClose={() => setShowUsageDialog(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          連結使用情況
+        </DialogTitle>
+        <DialogContent>
+          {usageData ? (
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                連結：{usageData.linkInfo?.displayText}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                URL：{usageData.linkInfo?.url}
+              </Typography>
+              
+              {usageData.usage && usageData.usage.length > 0 ? (
+                <Box>
+                  <Typography variant="subtitle1" sx={{ mb: 2 }}>
+                    此連結被 {usageData.usage.length} 個產品筆記使用：
+                  </Typography>
+                  <List>
+                    {usageData.usage.map((item: any, index: number) => (
+                      <ListItem key={index} divider>
+                        <ListItemText
+                          primary={item.productName || `產品 ${item.productId}`}
+                          secondary={`產品ID: ${item.productId} | 使用次數: ${item.count}`}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                </Box>
+              ) : (
+                <Typography color="text.secondary">
+                  此連結目前沒有被任何產品筆記使用。
+                </Typography>
+              )}
+            </Box>
+          ) : (
+            <Typography>載入中...</Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowUsageDialog(false)}>
+            關閉
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Dialog>
   );
 };

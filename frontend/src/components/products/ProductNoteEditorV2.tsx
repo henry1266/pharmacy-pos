@@ -13,7 +13,11 @@ import {
   Tooltip,
   Alert,
   Snackbar,
-  Divider
+  Divider,
+  TextField,
+  FormControlLabel,
+  Checkbox,
+  Grid
 } from '@mui/material';
 import {
   Save as SaveIcon,
@@ -23,13 +27,14 @@ import {
   Description as DescriptionIcon,
   Visibility as ViewIcon,
   EditNote as EditNoteIcon,
-  LibraryBooks as LibraryBooksIcon
+  LibraryBooks as LibraryBooksIcon,
+  TableChart as TableIcon
 } from '@mui/icons-material';
 import MDEditor, { commands } from '@uiw/react-md-editor';
 import '@uiw/react-md-editor/markdown-editor.css';
 import axios from 'axios';
 import '../../styles/force-light-theme.css';
-import { prepareMarkdownForDisplay } from '../../utils/markdownUtils';
+import { prepareMarkdownForDisplay, prepareMarkdownForDisplaySync } from '../../utils/markdownUtils';
 import LinkReferenceManager from '../common/LinkReferenceManager';
 
 
@@ -61,6 +66,8 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
   // 狀態管理
   const [summary, setSummary] = useState<string>(initialSummary);
   const [description, setDescription] = useState<string>(initialDescription);
+  const [processedSummary, setProcessedSummary] = useState<string>('');
+  const [processedDescription, setProcessedDescription] = useState<string>('');
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const [isAutoSaving, setIsAutoSaving] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -69,7 +76,9 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
   const [snackbarMessage, setSnackbarMessage] = useState<string>('');
   const [showSnackbar, setShowSnackbar] = useState<boolean>(false);
   const [showLinkManager, setShowLinkManager] = useState<boolean>(false);
+  const [showTableEditor, setShowTableEditor] = useState<boolean>(false);
   const [currentEditor, setCurrentEditor] = useState<'summary' | 'description' | null>(null);
+  const [tableConfig, setTableConfig] = useState({ rows: 3, cols: 3, hasHeader: true });
 
   // Refs
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -215,6 +224,92 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
     setShowLinkManager(true);
   }, []);
 
+  // 插入表格的函數
+  const insertTable = useCallback((editorType: 'summary' | 'description', rows: number, cols: number, hasHeader: boolean) => {
+    let tableMarkdown = '';
+    
+    if (hasHeader) {
+      // 有標題行的表格
+      const headerRow = '| ' + Array(cols).fill('').map((_, i) => `標題${i + 1}`).join(' | ') + ' |';
+      const separatorRow = '| ' + Array(cols).fill('---').join(' | ') + ' |';
+      const dataRows = Array(rows - 1).fill(0).map((_, rowIndex) =>
+        '| ' + Array(cols).fill('').map((_, colIndex) => `資料${rowIndex + 1}-${colIndex + 1}`).join(' | ') + ' |'
+      );
+      tableMarkdown = [headerRow, separatorRow, ...dataRows].join('\n') + '\n\n';
+    } else {
+      // 無標題行的表格
+      const dataRows = Array(rows).fill(0).map((_, rowIndex) =>
+        '| ' + Array(cols).fill('').map((_, colIndex) => `資料${rowIndex + 1}-${colIndex + 1}`).join(' | ') + ' |'
+      );
+      const separatorRow = '| ' + Array(cols).fill('---').join(' | ') + ' |';
+      tableMarkdown = [dataRows[0], separatorRow, ...dataRows.slice(1)].join('\n') + '\n\n';
+    }
+    
+    // 插入到對應的編輯器
+    if (editorType === 'summary') {
+      const newSummary = summary + tableMarkdown;
+      setSummary(newSummary);
+      setHasUnsavedChanges(
+        newSummary !== lastSavedSummaryRef.current ||
+        description !== lastSavedDescriptionRef.current
+      );
+    } else if (editorType === 'description') {
+      const newDescription = description + tableMarkdown;
+      setDescription(newDescription);
+      setHasUnsavedChanges(
+        summary !== lastSavedSummaryRef.current ||
+        newDescription !== lastSavedDescriptionRef.current
+      );
+    }
+  }, [summary, description]);
+
+  // 開啟表格編輯器
+  const handleOpenTableEditor = useCallback((editorType: 'summary' | 'description') => {
+    setCurrentEditor(editorType);
+    setShowTableEditor(true);
+  }, []);
+
+  // 處理表格插入
+  const handleInsertTable = useCallback(() => {
+    if (currentEditor) {
+      insertTable(currentEditor, tableConfig.rows, tableConfig.cols, tableConfig.hasHeader);
+      setShowTableEditor(false);
+    }
+  }, [currentEditor, tableConfig, insertTable]);
+
+  // 處理表格內容更新
+  const handleTableUpdate = useCallback((editorType: 'summary' | 'description', oldMarkdown: string, newMarkdown: string) => {
+    if (editorType === 'summary') {
+      const newSummary = summary.replace(oldMarkdown, newMarkdown);
+      setSummary(newSummary);
+      setHasUnsavedChanges(
+        newSummary !== lastSavedSummaryRef.current ||
+        description !== lastSavedDescriptionRef.current
+      );
+    } else if (editorType === 'description') {
+      const newDescription = description.replace(oldMarkdown, newMarkdown);
+      setDescription(newDescription);
+      setHasUnsavedChanges(
+        summary !== lastSavedSummaryRef.current ||
+        newDescription !== lastSavedDescriptionRef.current
+      );
+    }
+  }, [summary, description]);
+
+  // 創建表格插入命令
+  const createTableCommand = useCallback((editorType: 'summary' | 'description') => ({
+    name: 'table',
+    keyCommand: 'table',
+    buttonProps: {
+      'aria-label': '插入表格 (Ctrl+Shift+T)',
+      title: '插入表格'
+    },
+    icon: <TableIcon />,
+    execute: () => {
+      handleOpenTableEditor(editorType);
+    }
+  }), [handleOpenTableEditor]);
+
   // 創建自定義超連結管理命令
   const createLinkManagerCommand = useCallback((editorType: 'summary' | 'description') => ({
     name: 'linkManager',
@@ -232,9 +327,10 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
   // 創建完整的自定義命令列表
   const createCustomCommands = useCallback((editorType: 'summary' | 'description') => [
     ...baseCommands.slice(0, 6), // 取前6個基本命令 (bold, italic, strikethrough, hr, divider, link)
+    createTableCommand(editorType), // 插入表格按鈕
     createLinkManagerCommand(editorType), // 插入超連結管理按鈕
     ...baseCommands.slice(6) // 取剩餘的命令
-  ], [createLinkManagerCommand]);
+  ], [createTableCommand, createLinkManagerCommand]);
 
 
   // 格式化時間
@@ -248,6 +344,31 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
       second: '2-digit'
     }).format(new Date(date));
   };
+
+  // 處理 Markdown 內容的異步處理
+  useEffect(() => {
+    const processContent = async () => {
+      if (summary) {
+        const processed = await prepareMarkdownForDisplay(summary);
+        setProcessedSummary(processed);
+      } else {
+        setProcessedSummary('');
+      }
+    };
+    processContent();
+  }, [summary]);
+
+  useEffect(() => {
+    const processContent = async () => {
+      if (description) {
+        const processed = await prepareMarkdownForDisplay(description);
+        setProcessedDescription(processed);
+      } else {
+        setProcessedDescription('');
+      }
+    };
+    processContent();
+  }, [description]);
 
   // 初始化載入筆記
   useEffect(() => {
@@ -376,7 +497,7 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
                 hideToolbar={disabled}
                 visibleDragbar={false}
                 data-color-mode="light"
-                height={summary.trim() ? Math.max(150, Math.min(300, summary.split('\n').length * 25 + 100)) : 150}
+                height={summary.trim() ? Math.max(200, Math.min(400, summary.split('\n').length * 25 + 150)) : 200}
                 className="force-light-theme"
                 commands={createCustomCommands('summary')}
               />
@@ -409,7 +530,7 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
                 hideToolbar={disabled}
                 visibleDragbar={false}
                 data-color-mode="light"
-                height={description.trim() ? Math.max(200, Math.min(400, description.split('\n').length * 25 + 100)) : 200}
+                height={description.trim() ? Math.max(250, Math.min(500, description.split('\n').length * 25 + 150)) : 250}
                 className="force-light-theme"
                 commands={createCustomCommands('description')}
               />
@@ -434,7 +555,7 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
                   </Typography>
                 </Box>
                 <MDEditor.Markdown
-                  source={prepareMarkdownForDisplay(summary)}
+                  source={processedSummary}
                   data-color-mode="light"
                   style={{
                     backgroundColor: 'transparent',
@@ -461,7 +582,7 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
                       >
                         {children}
                       </a>
-                    )
+                    ),
                   }}
                 />
               </Box>
@@ -491,7 +612,7 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
                   </Typography>
                 </Box>
                 <MDEditor.Markdown
-                  source={prepareMarkdownForDisplay(description)}
+                  source={processedDescription}
                   data-color-mode="light"
                   style={{
                     backgroundColor: 'transparent',
@@ -518,7 +639,7 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
                       >
                         {children}
                       </a>
-                    )
+                    ),
                   }}
                 />
               </Box>
@@ -559,6 +680,76 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
           {snackbarMessage}
         </Alert>
       </Snackbar>
+
+      {/* 表格編輯器對話框 */}
+      <Dialog
+        open={showTableEditor}
+        onClose={() => setShowTableEditor(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>插入表格</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={3} sx={{ mt: 1 }}>
+            <Grid item xs={6}>
+              <TextField
+                label="行數"
+                type="number"
+                value={tableConfig.rows}
+                onChange={(e) => setTableConfig({
+                  ...tableConfig,
+                  rows: Math.max(1, Math.min(20, parseInt(e.target.value) || 1))
+                })}
+                inputProps={{ min: 1, max: 20 }}
+                fullWidth
+                size="small"
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <TextField
+                label="列數"
+                type="number"
+                value={tableConfig.cols}
+                onChange={(e) => setTableConfig({
+                  ...tableConfig,
+                  cols: Math.max(1, Math.min(10, parseInt(e.target.value) || 1))
+                })}
+                inputProps={{ min: 1, max: 10 }}
+                fullWidth
+                size="small"
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={tableConfig.hasHeader}
+                    onChange={(e) => setTableConfig({
+                      ...tableConfig,
+                      hasHeader: e.target.checked
+                    })}
+                  />
+                }
+                label="包含標題行"
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Typography variant="body2" color="text.secondary">
+                預覽：{tableConfig.rows} 行 × {tableConfig.cols} 列的表格
+                {tableConfig.hasHeader ? '（含標題行）' : '（無標題行）'}
+              </Typography>
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowTableEditor(false)}>
+            取消
+          </Button>
+          <Button onClick={handleInsertTable} variant="contained">
+            插入表格
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* 超連結管理器 */}
       <LinkReferenceManager

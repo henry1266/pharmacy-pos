@@ -26,7 +26,7 @@ import MDEditor from '@uiw/react-md-editor';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import '../../styles/force-light-theme.css';
-import { prepareMarkdownForDisplay } from '../../utils/markdownUtils';
+import { prepareMarkdownForDisplay, prepareMarkdownForDisplaySync } from '../../utils/markdownUtils';
 
 // 元件 Props 介面
 interface ProductSummaryDisplayProps {
@@ -51,10 +51,37 @@ const ProductSummaryDisplay: React.FC<ProductSummaryDisplayProps> = ({
   const navigate = useNavigate();
   const [summary, setSummary] = useState<string>('');
   const [description, setDescription] = useState<string>('');
+  const [processedSummary, setProcessedSummary] = useState<string>('');
+  const [processedDescription, setProcessedDescription] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<boolean>(false);
   const [showFullDialog, setShowFullDialog] = useState<boolean>(false);
+
+  // 處理 Markdown 內容的異步處理
+  useEffect(() => {
+    const processContent = async () => {
+      if (summary) {
+        const processed = await prepareMarkdownForDisplay(summary);
+        setProcessedSummary(processed);
+      } else {
+        setProcessedSummary('');
+      }
+    };
+    processContent();
+  }, [summary]);
+
+  useEffect(() => {
+    const processContent = async () => {
+      if (description) {
+        const processed = await prepareMarkdownForDisplay(description);
+        setProcessedDescription(processed);
+      } else {
+        setProcessedDescription('');
+      }
+    };
+    processContent();
+  }, [description]);
 
   // 載入產品摘要
   useEffect(() => {
@@ -290,68 +317,104 @@ const ProductSummaryDisplay: React.FC<ProductSummaryDisplayProps> = ({
 
         {/* 摘要內容 */}
         <Collapse in={expanded || !shouldTruncate}>
-          <Typography
-            variant="body2"
+          <Box
             sx={{
               fontSize: styles.fontSize,
               lineHeight: styles.lineHeight,
-              whiteSpace: 'pre-wrap',
-              wordBreak: 'break-word',
-              color: 'text.primary',
-              '& strong': {
-                fontWeight: 600,
-                color: 'primary.main'
-              },
-              '& em': {
-                fontStyle: 'italic',
-                color: 'text.secondary'
-              },
-              '& code': {
-                backgroundColor: 'grey.100',
-                padding: '2px 4px',
-                borderRadius: '4px',
-                fontSize: '0.875em',
-                fontFamily: 'monospace'
+              '& .w-md-editor-text-container .w-md-editor-text': {
+                fontSize: `${styles.fontSize} !important`,
+                lineHeight: `${styles.lineHeight} !important`,
+                color: 'text.primary !important'
               }
             }}
           >
-            {expanded ? summary : displayText}
-          </Typography>
+            <MDEditor.Markdown
+              source={expanded ? processedSummary : (shouldTruncate ? processedSummary.split('\n').slice(0, styles.maxLines).join('\n') + '...' : processedSummary)}
+              data-color-mode="light"
+              style={{
+                backgroundColor: 'transparent',
+                padding: '0',
+                border: 'none',
+                color: '#000000',
+                fontSize: styles.fontSize,
+                lineHeight: styles.lineHeight
+              }}
+              wrapperElement={{
+                'data-color-mode': 'light'
+              }}
+              className="force-light-theme"
+              components={{
+                a: ({ href, children, ...props }) => (
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      fontWeight: 'bold',
+                      fontStyle: 'italic',
+                      textDecoration: 'underline'
+                    }}
+                    {...props}
+                  >
+                    {children}
+                  </a>
+                ),
+              }}
+            />
+          </Box>
         </Collapse>
 
         {/* 截斷狀態下的預覽 */}
         {!expanded && shouldTruncate && (
-          <Typography
-            variant="body2"
+          <Box
             sx={{
               fontSize: styles.fontSize,
               lineHeight: styles.lineHeight,
-              whiteSpace: 'pre-wrap',
-              wordBreak: 'break-word',
-              color: 'text.primary',
               display: '-webkit-box',
               WebkitLineClamp: styles.maxLines,
               WebkitBoxOrient: 'vertical',
               overflow: 'hidden',
-              '& strong': {
-                fontWeight: 600,
-                color: 'primary.main'
-              },
-              '& em': {
-                fontStyle: 'italic',
-                color: 'text.secondary'
-              },
-              '& code': {
-                backgroundColor: 'grey.100',
-                padding: '2px 4px',
-                borderRadius: '4px',
-                fontSize: '0.875em',
-                fontFamily: 'monospace'
+              '& .w-md-editor-text-container .w-md-editor-text': {
+                fontSize: `${styles.fontSize} !important`,
+                lineHeight: `${styles.lineHeight} !important`,
+                color: 'text.primary !important'
               }
             }}
           >
-            {displayText}
-          </Typography>
+            <MDEditor.Markdown
+              source={processedSummary.split('\n').slice(0, styles.maxLines).join('\n') + '...'}
+              data-color-mode="light"
+              style={{
+                backgroundColor: 'transparent',
+                padding: '0',
+                border: 'none',
+                color: '#000000',
+                fontSize: styles.fontSize,
+                lineHeight: styles.lineHeight
+              }}
+              wrapperElement={{
+                'data-color-mode': 'light'
+              }}
+              className="force-light-theme"
+              components={{
+                a: ({ href, children, ...props }) => (
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      fontWeight: 'bold',
+                      fontStyle: 'italic',
+                      textDecoration: 'underline'
+                    }}
+                    {...props}
+                  >
+                    {children}
+                  </a>
+                ),
+              }}
+            />
+          </Box>
         )}
       </Box>
 
@@ -397,7 +460,7 @@ const ProductSummaryDisplay: React.FC<ProductSummaryDisplayProps> = ({
                 </Typography>
               </Box>
               <MDEditor.Markdown
-                source={prepareMarkdownForDisplay(summary)}
+                source={processedSummary}
                 data-color-mode="light"
                 style={{
                   backgroundColor: 'transparent',
@@ -409,6 +472,23 @@ const ProductSummaryDisplay: React.FC<ProductSummaryDisplayProps> = ({
                   'data-color-mode': 'light'
                 }}
                 className="force-light-theme"
+                components={{
+                  a: ({ href, children, ...props }) => (
+                    <a
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        fontWeight: 'bold',
+                        fontStyle: 'italic',
+                        textDecoration: 'underline'
+                      }}
+                      {...props}
+                    >
+                      {children}
+                    </a>
+                  ),
+                }}
               />
             </Box>
           )}
@@ -434,7 +514,7 @@ const ProductSummaryDisplay: React.FC<ProductSummaryDisplayProps> = ({
                 </Typography>
               </Box>
               <MDEditor.Markdown
-                source={prepareMarkdownForDisplay(description)}
+                source={processedDescription}
                 data-color-mode="light"
                 style={{
                   backgroundColor: 'transparent',
@@ -446,6 +526,23 @@ const ProductSummaryDisplay: React.FC<ProductSummaryDisplayProps> = ({
                   'data-color-mode': 'light'
                 }}
                 className="force-light-theme"
+                components={{
+                  a: ({ href, children, ...props }) => (
+                    <a
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        fontWeight: 'bold',
+                        fontStyle: 'italic',
+                        textDecoration: 'underline'
+                      }}
+                      {...props}
+                    >
+                      {children}
+                    </a>
+                  ),
+                }}
               />
             </Box>
           )}
