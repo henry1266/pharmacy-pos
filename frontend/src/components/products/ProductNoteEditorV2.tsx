@@ -10,10 +10,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
   Tooltip,
   Alert,
   Snackbar,
@@ -21,8 +17,6 @@ import {
 } from '@mui/material';
 import {
   Save as SaveIcon,
-  History as HistoryIcon,
-  Restore as RestoreIcon,
   AutoMode as AutoSaveIcon,
   Edit as EditIcon,
   Summarize as SummaryIcon,
@@ -36,14 +30,6 @@ import axios from 'axios';
 import '../../styles/force-light-theme.css';
 import { prepareMarkdownForDisplay } from '../../utils/markdownUtils';
 
-// 版本歷史介面
-interface DescriptionVersion {
-  id: string;
-  content: string;
-  timestamp: Date;
-  autoSaved: boolean;
-  version: number;
-}
 
 // 元件 Props 介面
 interface ProductNoteEditorProps {
@@ -53,7 +39,6 @@ interface ProductNoteEditorProps {
   onNoteChange?: (summary: string, description: string) => void;
   autoSaveInterval?: number; // 自動儲存間隔（毫秒）
   disabled?: boolean;
-  showVersionHistory?: boolean;
 }
 
 /**
@@ -61,10 +46,7 @@ interface ProductNoteEditorProps {
  * 功能：
  * - 檢視/編輯模式切換
  * - 單一編輯框合併編輯
- * - 自動儲存
- * - 版本歷史
  * - 手動儲存
- * - 版本還原
  */
 const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
   productId,
@@ -73,18 +55,15 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
   onNoteChange,
   autoSaveInterval = 30000, // 預設30秒自動儲存 (暫未實現自動儲存)
   disabled = false,
-  showVersionHistory = true
 }) => {
   // 狀態管理
   const [summary, setSummary] = useState<string>(initialSummary);
   const [description, setDescription] = useState<string>(initialDescription);
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
-  const [versions, setVersions] = useState<DescriptionVersion[]>([]);
   const [isAutoSaving, setIsAutoSaving] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
-  const [showVersionDialog, setShowVersionDialog] = useState<boolean>(false);
   const [snackbarMessage, setSnackbarMessage] = useState<string>('');
   const [showSnackbar, setShowSnackbar] = useState<boolean>(false);
 
@@ -128,19 +107,6 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
     }
   }, [productId, initialSummary, initialDescription]);
 
-  // 載入版本歷史
-  const loadVersionHistory = useCallback(async () => {
-    if (!productId) return;
-    
-    try {
-      const response = await axios.get(`/api/products/${productId}/description-versions`);
-      if (response.data.success) {
-        setVersions(response.data.data || []);
-      }
-    } catch (error) {
-      console.error('載入版本歷史失敗:', error);
-    }
-  }, [productId]);
 
   // 儲存筆記
   const saveNote = useCallback(async (summaryContent: string, descriptionContent: string, isAutoSave = false) => {
@@ -169,8 +135,6 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
         setLastSaved(new Date());
         setHasUnsavedChanges(false);
         
-        // 更新版本歷史
-        await loadVersionHistory();
         
         // 顯示儲存成功訊息
         setSnackbarMessage(isAutoSave ? '自動儲存成功' : '儲存成功');
@@ -187,7 +151,7 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
       setIsAutoSaving(false);
       setIsSaving(false);
     }
-  }, [productId, onNoteChange, loadVersionHistory]);
+  }, [productId, onNoteChange]);
 
   // 手動儲存
   const handleManualSave = useCallback(() => {
@@ -195,21 +159,6 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
     saveNote(summary, description, false);
   }, [summary, description, saveNote]);
 
-  // 還原版本
-  const handleRestoreVersion = useCallback(async (version: DescriptionVersion) => {
-    try {
-      setDescription(version.content);
-      setHasUnsavedChanges(true);
-      setShowVersionDialog(false);
-      
-      setSnackbarMessage(`已還原到版本 ${version.version}`);
-      setShowSnackbar(true);
-    } catch (error) {
-      console.error('還原版本失敗:', error);
-      setSnackbarMessage('還原版本失敗');
-      setShowSnackbar(true);
-    }
-  }, []);
 
   // 格式化時間
   const formatTime = (date: Date) => {
@@ -223,13 +172,12 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
     }).format(new Date(date));
   };
 
-  // 初始化載入筆記和版本歷史
+  // 初始化載入筆記
   useEffect(() => {
     if (productId) {
       loadProductNote();
-      loadVersionHistory();
     }
-  }, [productId, loadProductNote, loadVersionHistory]);
+  }, [productId, loadProductNote]);
 
   // 清理定時器
   useEffect(() => {
@@ -316,17 +264,6 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
             </Tooltip>
           )}
           
-          {showVersionHistory && (
-            <Tooltip title="版本歷史">
-              <IconButton
-                onClick={() => setShowVersionDialog(true)}
-                disabled={disabled}
-                size="small"
-              >
-                <HistoryIcon />
-              </IconButton>
-            </Tooltip>
-          )}
         </Box>
       </Box>
 
@@ -493,73 +430,6 @@ const ProductNoteEditorV2: React.FC<ProductNoteEditorProps> = ({
         )}
       </Paper>
 
-      {/* 版本歷史對話框 */}
-      <Dialog
-        open={showVersionDialog}
-        onClose={() => setShowVersionDialog(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>版本歷史</DialogTitle>
-        <DialogContent>
-          {versions.length === 0 ? (
-            <Typography color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>
-              暫無版本歷史
-            </Typography>
-          ) : (
-            <List>
-              {versions.map((version) => (
-                <ListItem key={version.id} divider>
-                  <ListItemText
-                    primary={`版本 ${version.version}`}
-                    secondary={
-                      <Box>
-                        <Typography variant="body2" color="text.secondary">
-                          {formatTime(version.timestamp)}
-                          {version.autoSaved && (
-                            <Chip 
-                              label="自動儲存" 
-                              size="small" 
-                              sx={{ ml: 1 }} 
-                            />
-                          )}
-                        </Typography>
-                        <Typography 
-                          variant="body2" 
-                          sx={{ 
-                            mt: 1, 
-                            maxHeight: 100, 
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis'
-                          }}
-                        >
-                          {version.content.substring(0, 200)}
-                          {version.content.length > 200 && '...'}
-                        </Typography>
-                      </Box>
-                    }
-                  />
-                  <ListItemSecondaryAction>
-                    <Tooltip title="還原此版本">
-                      <IconButton
-                        onClick={() => handleRestoreVersion(version)}
-                        size="small"
-                      >
-                        <RestoreIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </ListItemSecondaryAction>
-                </ListItem>
-              ))}
-            </List>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowVersionDialog(false)}>
-            關閉
-          </Button>
-        </DialogActions>
-      </Dialog>
 
       {/* 通知訊息 */}
       <Snackbar

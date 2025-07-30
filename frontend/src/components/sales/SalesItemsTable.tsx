@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Table,
   TableBody,
@@ -18,8 +18,25 @@ import {
   Remove as RemoveIcon,
   Delete as DeleteIcon,
   Add as AddIcon,
-  SyncAlt as SyncAltIcon // Icon for toggling input mode
+  SyncAlt as SyncAltIcon, // Icon for toggling input mode
+  StickyNote2 as NoteIcon,
+  Description as DescriptionIcon,
+  Summarize as SummaryIcon,
+  Close as CloseIcon,
+  Edit as EditIcon
 } from '@mui/icons-material';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Divider
+} from '@mui/material';
+import MDEditor from '@uiw/react-md-editor';
+import axios from 'axios';
+import { prepareMarkdownForDisplay } from '../../utils/markdownUtils';
+import '../../styles/force-light-theme.css';
 
 // 定義銷售項目的型別
 interface SalesItem {
@@ -60,6 +77,45 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const tableContainerRef = useRef<HTMLDivElement>(null);
+  
+  // 筆記對話框狀態
+  const [selectedProductForNote, setSelectedProductForNote] = useState<string | null>(null);
+  const [noteData, setNoteData] = useState<{ summary: string; description: string } | null>(null);
+  const [noteLoading, setNoteLoading] = useState<boolean>(false);
+
+  // 處理筆記圖示點擊
+  const handleNoteClick = async (event: React.MouseEvent<HTMLElement>, productId: string) => {
+    event.stopPropagation();
+    setSelectedProductForNote(productId);
+    setNoteLoading(true);
+    
+    try {
+      const response = await axios.get(`/api/products/${productId}/description`);
+      if (response.data.success) {
+        const { summary, description } = response.data.data;
+        setNoteData({ summary: summary || '', description: description || '' });
+      }
+    } catch (error) {
+      console.error('載入產品筆記失敗:', error);
+      setNoteData({ summary: '', description: '' });
+    } finally {
+      setNoteLoading(false);
+    }
+  };
+
+  // 關閉筆記對話框
+  const handleNoteDialogClose = () => {
+    setSelectedProductForNote(null);
+    setNoteData(null);
+  };
+
+  // 處理編輯筆記按鈕點擊
+  const handleEditNote = () => {
+    if (selectedProductForNote) {
+      handleNoteDialogClose();
+      window.open(`/products/edit/${selectedProductForNote}`, '_blank');
+    }
+  };
 
   // 當商品項目增加時，自動滾動到底部
   useEffect(() => {
@@ -140,24 +196,46 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
                   {index + 1}
                 </TableCell>
                 <TableCell component="th" scope="row" sx={{ pl: isMobile ? 1 : 2, pr: isMobile ? 0 : 1 }}>
-                  <Box>
-                    <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-                      {item.name}
-                    </Typography>
-                    {item.packageName && (
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          color: 'text.secondary',
-                          fontSize: '0.75rem',
-                          fontStyle: 'italic',
-                          display: 'block',
-                          mt: 0.25
-                        }}
-                      >
-                        來自套餐: {item.packageName}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                        {item.name}
                       </Typography>
-                    )}
+                      {item.packageName && (
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: 'text.secondary',
+                            fontSize: '0.75rem',
+                            fontStyle: 'italic',
+                            display: 'block',
+                            mt: 0.25
+                          }}
+                        >
+                          來自套餐: {item.packageName}
+                        </Typography>
+                      )}
+                    </Box>
+                    {/* 筆記圖示 */}
+                    <IconButton
+                      size="small"
+                      onClick={(e) => handleNoteClick(e, item.product)}
+                      sx={{
+                        color: 'primary.main',
+                        backgroundColor: 'rgba(25, 118, 210, 0.08)',
+                        border: '1px solid rgba(25, 118, 210, 0.2)',
+                        minWidth: '28px',
+                        minHeight: '28px',
+                        '&:hover': {
+                          color: 'primary.dark',
+                          backgroundColor: 'rgba(25, 118, 210, 0.15)',
+                          transform: 'scale(1.1)'
+                        }
+                      }}
+                      title="查看產品筆記"
+                    >
+                      <NoteIcon fontSize="small" />
+                    </IconButton>
                   </Box>
                 </TableCell>
                 {!isMobile && <TableCell align="right" sx={{ px: 1 }}>{item.code}</TableCell>}
@@ -353,6 +431,144 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
         </Box>
       </Box>
     </Paper>
+
+    {/* 產品筆記完整對話框 */}
+    <Dialog
+      open={Boolean(selectedProductForNote)}
+      onClose={handleNoteDialogClose}
+      maxWidth="md"
+      fullWidth
+      PaperProps={{
+        sx: { minHeight: '60vh' }
+      }}
+    >
+      <DialogTitle sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        pb: 1
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <DescriptionIcon color="primary" />
+          <Typography variant="h6">產品筆記</Typography>
+        </Box>
+        <IconButton onClick={handleNoteDialogClose} size="small">
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
+      
+      <DialogContent sx={{ pt: 1 }}>
+        {noteLoading ? (
+          <Box sx={{
+            textAlign: 'center',
+            py: 4,
+            color: 'text.secondary'
+          }}>
+            <Typography variant="body1">
+              載入中...
+            </Typography>
+          </Box>
+        ) : noteData ? (
+          <>
+            {/* 重點摘要區域 */}
+            {noteData.summary.trim() && (
+              <Box sx={{ mb: 3 }}>
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="subtitle1" sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    fontWeight: 'medium',
+                    color: 'primary.main'
+                  }}>
+                    <SummaryIcon fontSize="small" />
+                    重點摘要
+                  </Typography>
+                </Box>
+                <MDEditor.Markdown
+                  source={prepareMarkdownForDisplay(noteData.summary)}
+                  data-color-mode="light"
+                  style={{
+                    backgroundColor: 'transparent',
+                    padding: '0',
+                    border: 'none',
+                    color: '#000000'
+                  }}
+                  wrapperElement={{
+                    'data-color-mode': 'light'
+                  }}
+                  className="force-light-theme"
+                />
+              </Box>
+            )}
+
+            {/* 分隔線 */}
+            {noteData.summary.trim() && noteData.description.trim() && (
+              <Divider sx={{ my: 3 }} />
+            )}
+
+            {/* 詳細內容區域 */}
+            {noteData.description.trim() && (
+              <Box>
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="subtitle1" sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    fontWeight: 'medium',
+                    color: 'secondary.main'
+                  }}>
+                    <DescriptionIcon fontSize="small" />
+                    詳細內容
+                  </Typography>
+                </Box>
+                <MDEditor.Markdown
+                  source={prepareMarkdownForDisplay(noteData.description)}
+                  data-color-mode="light"
+                  style={{
+                    backgroundColor: 'transparent',
+                    padding: '0',
+                    border: 'none',
+                    color: '#000000'
+                  }}
+                  wrapperElement={{
+                    'data-color-mode': 'light'
+                  }}
+                  className="force-light-theme"
+                />
+              </Box>
+            )}
+
+            {/* 空狀態 */}
+            {!noteData.summary.trim() && !noteData.description.trim() && (
+              <Box sx={{
+                textAlign: 'center',
+                py: 4,
+                color: 'text.secondary'
+              }}>
+                <Typography variant="body1">
+                  暫無產品筆記內容
+                </Typography>
+              </Box>
+            )}
+          </>
+        ) : null}
+      </DialogContent>
+      
+      <DialogActions>
+        <Button
+          onClick={handleEditNote}
+          variant="contained"
+          startIcon={<EditIcon />}
+          sx={{ mr: 1 }}
+        >
+          編輯筆記
+        </Button>
+        <Button onClick={handleNoteDialogClose}>
+          關閉
+        </Button>
+      </DialogActions>
+    </Dialog>
   </Box>
   );
 };

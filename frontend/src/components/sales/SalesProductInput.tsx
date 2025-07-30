@@ -9,7 +9,11 @@ import {
   Typography,
   Chip
 } from '@mui/material';
-import { Add as AddIcon } from '@mui/icons-material';
+import {
+  Add as AddIcon,
+  StickyNote2 as NoteIcon
+} from '@mui/icons-material';
+import ProductNotePopover from '../products/ProductNotePopover';
 import { Package } from '@pharmacy-pos/shared/types/package';
 import { Product, Medicine } from '@pharmacy-pos/shared/types/entities';
 
@@ -40,10 +44,27 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
   const [filteredItems, setFilteredItems] = useState<SearchItem[]>([]);
   const isProcessingRef = useRef<boolean>(false);
   const lastSelectedItemRef = useRef<string | null>(null);
+  
+  // 筆記彈窗狀態
+  const [notePopoverAnchor, setNotePopoverAnchor] = useState<HTMLElement | null>(null);
+  const [selectedProductForNote, setSelectedProductForNote] = useState<ProductOrMedicine | null>(null);
 
   // 判斷是否為套餐
   const isPackage = (item: SearchItem): item is Package => {
     return 'totalPrice' in item && 'items' in item;
+  };
+
+  // 處理筆記圖示點擊
+  const handleNoteClick = (event: React.MouseEvent<HTMLElement>, product: ProductOrMedicine) => {
+    event.stopPropagation(); // 防止觸發產品選擇
+    setNotePopoverAnchor(event.currentTarget);
+    setSelectedProductForNote(product);
+  };
+
+  // 關閉筆記彈窗
+  const handleNotePopoverClose = () => {
+    setNotePopoverAnchor(null);
+    setSelectedProductForNote(null);
   };
 
   // 我們使用自定義的 filteredItems 狀態來控制選項，不需要 filterOptions
@@ -171,16 +192,26 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
   };
 
   const renderOption = (props: any, option: SearchItem): React.ReactNode => (
-    <ListItem {...props} key={option._id}>
+    <ListItem
+      {...props}
+      key={option._id}
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        pr: 1 // 確保右側有足夠空間
+      }}
+    >
       <ListItemText
+        sx={{ flex: 1, mr: 1 }}
         primary={
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography sx={{ color: 'black' }}>{option.name}</Typography>
             {isPackage(option) && (
-              <Chip 
-                label="套餐" 
-                size="small" 
-                color="primary" 
+              <Chip
+                label="套餐"
+                size="small"
+                color="primary"
                 variant="outlined"
               />
             )}
@@ -210,170 +241,207 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
           </>
         }
       />
+      {/* 只為產品（非套餐）顯示筆記圖示 */}
+      {!isPackage(option) && (
+        <Box sx={{ flexShrink: 0 }}>
+          <IconButton
+            size="small"
+            onClick={(e) => handleNoteClick(e, option as ProductOrMedicine)}
+            sx={{
+              color: 'primary.main',
+              backgroundColor: 'rgba(25, 118, 210, 0.08)',
+              border: '1px solid rgba(25, 118, 210, 0.2)',
+              minWidth: '32px',
+              minHeight: '32px',
+              '&:hover': {
+                color: 'primary.dark',
+                backgroundColor: 'rgba(25, 118, 210, 0.15)',
+                transform: 'scale(1.1)'
+              }
+            }}
+            title="查看產品筆記"
+          >
+            <NoteIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      )}
     </ListItem>
   );
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-      <Autocomplete
-        freeSolo
-        fullWidth
-        options={filteredItems}
-        getOptionLabel={(option) =>
-          typeof option === 'string' ? option : option.name ?? ''
-        }
-        filterOptions={(options) => options} // 不進行額外過濾，直接使用 filteredItems
-        value={null} // 不設置 value，讓 Autocomplete 自己管理選擇狀態
-        inputValue={barcode}
-        onInputChange={(_event, newValue, reason) => {
-          if (reason === 'input') {
-            setBarcode(newValue);
-            handleBarcodeAutocompleteChange({ target: { value: newValue } } as React.ChangeEvent<HTMLInputElement>);
-          } else if (reason === 'clear') {
-            // 當用戶清空輸入時，確保清空所有狀態
-            setBarcode('');
-            setFilteredItems([]);
-          } else if (reason === 'reset') {
-            // 當選擇項目後重置時，確保清空狀態
-            setBarcode('');
-            setFilteredItems([]);
+    <>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+        <Autocomplete
+          freeSolo
+          fullWidth
+          options={filteredItems}
+          getOptionLabel={(option) =>
+            typeof option === 'string' ? option : option.name ?? ''
           }
-        }}
-        onChange={(_event, newValue) => {
-          // 只處理有效的選擇項目
-          if (!newValue || typeof newValue === 'string') {
-            return;
-          }
-          
-          // 防止重複觸發的嚴格檢查
-          if (isProcessingRef.current) {
-            console.log('onChange blocked - already processing');
-            return;
-          }
-          
-          const itemId = newValue._id;
-          
-          // 檢查是否是重複選擇同一個項目
-          if (lastSelectedItemRef.current === itemId) {
-            console.log('onChange blocked - same item already selected:', itemId);
-            return;
-          }
-          
-          // 立即設置處理標誌和記錄選擇的項目
-          isProcessingRef.current = true;
-          lastSelectedItemRef.current = itemId || null;
-          
-          console.log('Processing selection:', newValue.name, 'ID:', itemId);
-          
-          try {
-            // 立即處理選擇，不使用 setTimeout
-            if (isPackage(newValue)) {
-              if (onSelectPackage) {
-                onSelectPackage(newValue);
-              } else {
-                showSnackbar('套餐選擇功能尚未實作', 'warning');
-              }
-            } else {
-              onSelectProduct(newValue);
+          filterOptions={(options) => options} // 不進行額外過濾，直接使用 filteredItems
+          value={null} // 不設置 value，讓 Autocomplete 自己管理選擇狀態
+          inputValue={barcode}
+          onInputChange={(_event, newValue, reason) => {
+            if (reason === 'input') {
+              setBarcode(newValue);
+              handleBarcodeAutocompleteChange({ target: { value: newValue } } as React.ChangeEvent<HTMLInputElement>);
+            } else if (reason === 'clear') {
+              // 當用戶清空輸入時，確保清空所有狀態
+              setBarcode('');
+              setFilteredItems([]);
+            } else if (reason === 'reset') {
+              // 當選擇項目後重置時，確保清空狀態
+              setBarcode('');
+              setFilteredItems([]);
+            }
+          }}
+          onChange={(_event, newValue) => {
+            // 只處理有效的選擇項目
+            if (!newValue || typeof newValue === 'string') {
+              return;
             }
             
-            // 選擇商品後立即清空所有狀態
-            setBarcode('');
-            setFilteredItems([]);
-            
-            // 重新聚焦到輸入框
-            if (barcodeInputRef.current) {
-              barcodeInputRef.current.focus();
+            // 防止重複觸發的嚴格檢查
+            if (isProcessingRef.current) {
+              console.log('onChange blocked - already processing');
+              return;
             }
-          } catch (error) {
-            console.error('處理選擇項目時發生錯誤:', error);
-            showSnackbar('處理選擇項目時發生錯誤', 'error');
-          } finally {
-            // 延遲重置處理標誌，確保不會立即被重複觸發
-            setTimeout(() => {
-              isProcessingRef.current = false;
-              lastSelectedItemRef.current = null;
-            }, 300);
-          }
-        }}
-        renderInput={(params) => {
-          const { InputLabelProps, ...restParams } = params;
-          return (
-            <TextField
-              {...restParams}
-              {...(barcodeInputRef && { inputRef: barcodeInputRef })}
-              label="掃描條碼 / 輸入產品名稱、代碼、健保碼或套餐"
-              variant="outlined"
-              size="small"
-              onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                
-                // 如果有搜尋結果，直接選擇第一個項目
-                if (filteredItems.length > 0) {
-                  const firstItem = filteredItems[0];
-                  
-                  // 防止重複觸發的檢查
-                  if (isProcessingRef.current) {
-                    return;
-                  }
-                  
-                  const itemId = firstItem?._id;
-                  if (lastSelectedItemRef.current === itemId) {
-                    return;
-                  }
-                  
-                  // 設置處理標誌
-                  isProcessingRef.current = true;
-                  lastSelectedItemRef.current = itemId || null;
-                  
-                  try {
-                    if (firstItem) {
-                      if (isPackage(firstItem)) {
-                        if (onSelectPackage) {
-                          onSelectPackage(firstItem);
-                          showSnackbar(`已選擇：${firstItem.name}`, 'success');
-                        } else {
-                          showSnackbar('套餐選擇功能尚未實作', 'warning');
-                        }
-                      } else {
-                        onSelectProduct(firstItem);
-                        showSnackbar(`已選擇：${firstItem.name}`, 'success');
-                      }
-                    }
-                    
-                    // 清空狀態
-                    setBarcode('');
-                    setFilteredItems([]);
-                    
-                    // 重新聚焦
-                    if (barcodeInputRef.current) {
-                      barcodeInputRef.current.focus();
-                    }
-                  } finally {
-                    // 重置處理標誌
-                    setTimeout(() => {
-                      isProcessingRef.current = false;
-                      lastSelectedItemRef.current = null;
-                    }, 300);
-                  }
+            
+            const itemId = newValue._id;
+            
+            // 檢查是否是重複選擇同一個項目
+            if (lastSelectedItemRef.current === itemId) {
+              console.log('onChange blocked - same item already selected:', itemId);
+              return;
+            }
+            
+            // 立即設置處理標誌和記錄選擇的項目
+            isProcessingRef.current = true;
+            lastSelectedItemRef.current = itemId || null;
+            
+            console.log('Processing selection:', newValue.name, 'ID:', itemId);
+            
+            try {
+              // 立即處理選擇，不使用 setTimeout
+              if (isPackage(newValue)) {
+                if (onSelectPackage) {
+                  onSelectPackage(newValue);
                 } else {
-                  // 沒有搜尋結果，執行提交邏輯
-                  handleBarcodeSubmit();
+                  showSnackbar('套餐選擇功能尚未實作', 'warning');
                 }
+              } else {
+                onSelectProduct(newValue);
               }
-            }}
-            />
-          );
-        }}
-        renderOption={renderOption}
-        ListboxProps={{ style: { maxHeight: 200, overflow: 'auto' } }}
-        sx={{ flexGrow: 1, mr: 1 }}
-      />
-      <IconButton color="primary" onClick={handleBarcodeSubmit} aria-label="添加產品">
-        <AddIcon />
-      </IconButton>
-    </Box>
+              
+              // 選擇商品後立即清空所有狀態
+              setBarcode('');
+              setFilteredItems([]);
+              
+              // 重新聚焦到輸入框
+              if (barcodeInputRef.current) {
+                barcodeInputRef.current.focus();
+              }
+            } catch (error) {
+              console.error('處理選擇項目時發生錯誤:', error);
+              showSnackbar('處理選擇項目時發生錯誤', 'error');
+            } finally {
+              // 延遲重置處理標誌，確保不會立即被重複觸發
+              setTimeout(() => {
+                isProcessingRef.current = false;
+                lastSelectedItemRef.current = null;
+              }, 300);
+            }
+          }}
+          renderInput={(params) => {
+            const { InputLabelProps, ...restParams } = params;
+            return (
+              <TextField
+                {...restParams}
+                {...(barcodeInputRef && { inputRef: barcodeInputRef })}
+                label="掃描條碼 / 輸入產品名稱、代碼、健保碼或套餐"
+                variant="outlined"
+                size="small"
+                onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  
+                  // 如果有搜尋結果，直接選擇第一個項目
+                  if (filteredItems.length > 0) {
+                    const firstItem = filteredItems[0];
+                    
+                    // 防止重複觸發的檢查
+                    if (isProcessingRef.current) {
+                      return;
+                    }
+                    
+                    const itemId = firstItem?._id;
+                    if (lastSelectedItemRef.current === itemId) {
+                      return;
+                    }
+                    
+                    // 設置處理標誌
+                    isProcessingRef.current = true;
+                    lastSelectedItemRef.current = itemId || null;
+                    
+                    try {
+                      if (firstItem) {
+                        if (isPackage(firstItem)) {
+                          if (onSelectPackage) {
+                            onSelectPackage(firstItem);
+                            showSnackbar(`已選擇：${firstItem.name}`, 'success');
+                          } else {
+                            showSnackbar('套餐選擇功能尚未實作', 'warning');
+                          }
+                        } else {
+                          onSelectProduct(firstItem);
+                          showSnackbar(`已選擇：${firstItem.name}`, 'success');
+                        }
+                      }
+                      
+                      // 清空狀態
+                      setBarcode('');
+                      setFilteredItems([]);
+                      
+                      // 重新聚焦
+                      if (barcodeInputRef.current) {
+                        barcodeInputRef.current.focus();
+                      }
+                    } finally {
+                      // 重置處理標誌
+                      setTimeout(() => {
+                        isProcessingRef.current = false;
+                        lastSelectedItemRef.current = null;
+                      }, 300);
+                    }
+                  } else {
+                    // 沒有搜尋結果，執行提交邏輯
+                    handleBarcodeSubmit();
+                  }
+                }
+              }}
+              />
+            );
+          }}
+          renderOption={renderOption}
+          ListboxProps={{ style: { maxHeight: 200, overflow: 'auto' } }}
+          sx={{ flexGrow: 1, mr: 1 }}
+        />
+        <IconButton color="primary" onClick={handleBarcodeSubmit} aria-label="添加產品">
+          <AddIcon />
+        </IconButton>
+      </Box>
+
+      {/* 產品筆記彈窗 */}
+      {selectedProductForNote && (
+        <ProductNotePopover
+          productId={selectedProductForNote._id}
+          productName={selectedProductForNote.name}
+          anchorEl={notePopoverAnchor}
+          open={Boolean(notePopoverAnchor)}
+          onClose={handleNotePopoverClose}
+        />
+      )}
+    </>
   );
 };
 

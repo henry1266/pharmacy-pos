@@ -430,7 +430,6 @@ const ProductEditPage: React.FC = () => {
                   handleInputChange(descriptionEvent);
                 }}
                 disabled={saving}
-                showVersionHistory={true}
                 autoSaveInterval={30000}
               />
             </Box>

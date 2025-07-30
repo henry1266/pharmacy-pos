@@ -492,7 +492,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName, p
   }
 
   return (
-    <Box sx={{ mt: 2, backgroundColor: 'action.hover', p: 2, borderRadius: 1 }}>
+    <Box>
       {/* 標題與圖表分析按鈕在同一列 */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
@@ -518,14 +518,14 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName, p
       </Box>
       
       {/* Dashboard 風格的資訊卡片 */}
-      <Box sx={{ mb: 3 }}>
-        <Grid container spacing={2} sx={{ height: 'auto' }}>
+      <Box>
+        <Grid container spacing={1} sx={{ height: 'auto' }}>
           <Grid item xs={12} sm={6}>
             <Card
-              elevation={2}
+              
               sx={{
                 borderRadius: 2,
-                height: '100px',
+                height: '90px',
                 display: 'flex',
                 flexDirection: 'column',
                 transition: 'transform 0.2s, box-shadow 0.2s',
@@ -584,10 +584,9 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName, p
           
           <Grid item xs={12} sm={6}>
             <Card
-              elevation={2}
               sx={{
                 borderRadius: 2,
-                height: '100px',
+                height: '90px',
                 display: 'flex',
                 flexDirection: 'column',
                 transition: 'transform 0.2s, box-shadow 0.2s',

@@ -81,7 +81,7 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
 }) => {
   if (!product) {
     return (
-      <Paper sx={{ p: 3, textAlign: 'center' }}>
+      <Paper sx={{ p: 1, textAlign: 'center' }}>
         <Typography variant="body1">
           請選擇一個產品查看詳情
         </Typography>
@@ -124,9 +124,18 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
           </Paper>
         }
       />
-      <CardContent sx={{ p: 1.5 }}>
-        {/* 基本資訊區塊 */}
-        <Paper sx={{ p: 1, mb: 1, backgroundColor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+      <CardContent>
+        {/* 庫存清單區塊 */}
+         <Paper sx={{ p: 1.5, mb: 1.5, backgroundColor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+          <InventoryList
+            productId={product.id}
+            productName={product.name}
+            packageUnits={product.packageUnits || []}
+            productUnit={product.unit || '個'}
+          />
+        </Paper>
+        {/* 基本資訊區塊 */}    
+         <Paper sx={{ p: 1.5, mb: 1.5, backgroundColor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
               基本資訊
@@ -241,15 +250,7 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
           </Box>
         </Paper>
 
-        {/* 庫存清單區塊 */}
-        <Paper sx={{ p: 1, backgroundColor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
-          <InventoryList
-            productId={product.id}
-            productName={product.name}
-            packageUnits={product.packageUnits || []}
-            productUnit={product.unit || '個'}
-          />
-        </Paper>
+
       </CardContent>
     </Card>
   );
