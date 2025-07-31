@@ -8,8 +8,7 @@ import {
   getPerformanceStats,
   clearPerformanceMetrics,
   getSlowRequests,
-  getSystemHealth,
-  PerformanceMetrics
+  getSystemHealth
 } from '../performanceMonitor';
 
 // Mock console methods to reduce test output noise
@@ -35,17 +34,17 @@ const createTestApp = () => {
   app.use(performanceMonitor);
   
   // 測試路由
-  app.get('/test/fast', (req, res) => {
+  app.get('/test/fast', (_req, res) => {
     res.json({ success: true, message: '快速回應' });
   });
   
-  app.get('/test/slow', async (req, res) => {
+  app.get('/test/slow', async (_req, res) => {
     // 模擬慢請求
     await new Promise(resolve => setTimeout(resolve, 100));
     res.json({ success: true, message: '慢速回應' });
   });
   
-  app.get('/test/error', (req, res) => {
+  app.get('/test/error', (_req, res) => {
     res.status(500).json({ success: false, message: '錯誤回應' });
   });
   
@@ -53,7 +52,7 @@ const createTestApp = () => {
     res.json({ success: true, data: req.body });
   });
   
-  app.get('/test/memory-intensive', (req, res) => {
+  app.get('/test/memory-intensive', (_req, res) => {
     // 模擬記憶體密集操作
     const largeArray = new Array(1000).fill('test data');
     res.json({ success: true, dataSize: largeArray.length });

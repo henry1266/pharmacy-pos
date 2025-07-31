@@ -8,7 +8,6 @@ import {
   globalErrorHandler,
   handleNotFound,
   catchAsync,
-  validateRequest,
   requirePermission,
   requireRole,
   requireOwnership,
@@ -42,15 +41,15 @@ const createTestApp = () => {
   app.use(express.json());
   
   // 測試路由
-  app.get('/test/success', (req, res) => {
+  app.get('/test/success', (_req, res) => {
     res.json({ success: true, message: '成功' });
   });
   
-  app.get('/test/app-error', (req, res, next) => {
+  app.get('/test/app-error', (_req, _res, next) => {
     next(new AppError('測試應用錯誤', 400, 'TEST_ERROR'));
   });
   
-  app.get('/test/validation-error', (req, res, next) => {
+  app.get('/test/validation-error', (_req, _res, next) => {
     const details = [
       { field: 'name', message: '名稱為必填', value: null },
       { field: 'email', message: '電子郵件格式不正確', value: 'invalid-email' }
@@ -58,36 +57,36 @@ const createTestApp = () => {
     next(new ValidationError('驗證失敗', details));
   });
   
-  app.get('/test/database-error', (req, res, next) => {
+  app.get('/test/database-error', (_req, _res, next) => {
     next(new DatabaseError('資料庫連接失敗'));
   });
   
-  app.get('/test/auth-error', (req, res, next) => {
+  app.get('/test/auth-error', (_req, _res, next) => {
     next(new AuthenticationError('認證失敗'));
   });
   
-  app.get('/test/authz-error', (req, res, next) => {
+  app.get('/test/authz-error', (_req, _res, next) => {
     next(new AuthorizationError('權限不足'));
   });
   
-  app.get('/test/not-found-error', (req, res, next) => {
+  app.get('/test/not-found-error', (_req, _res, next) => {
     next(new NotFoundError('用戶'));
   });
   
-  app.get('/test/conflict-error', (req, res, next) => {
+  app.get('/test/conflict-error', (_req, _res, next) => {
     next(new ConflictError('用戶名已存在'));
   });
   
-  app.get('/test/business-error', (req, res, next) => {
+  app.get('/test/business-error', (_req, _res, next) => {
     next(new BusinessLogicError('業務邏輯錯誤'));
   });
   
-  app.get('/test/health-error', (req, res, next) => {
+  app.get('/test/health-error', (_req, _res, next) => {
     const checks = { database: false, redis: true };
     next(new HealthCheckError('健康檢查失敗', checks));
   });
   
-  app.get('/test/mongoose-validation', (req, res, next) => {
+  app.get('/test/mongoose-validation', (_req, _res, next) => {
     const mongooseError = new mongoose.Error.ValidationError();
     mongooseError.errors = {
       name: {
@@ -104,12 +103,12 @@ const createTestApp = () => {
     next(mongooseError);
   });
   
-  app.get('/test/mongoose-cast', (req, res, next) => {
+  app.get('/test/mongoose-cast', (_req, _res, next) => {
     const castError = new mongoose.Error.CastError('ObjectId', 'invalid-id', 'id');
     next(castError);
   });
   
-  app.get('/test/duplicate-key', (req, res, next) => {
+  app.get('/test/duplicate-key', (_req, _res, next) => {
     const duplicateError = {
       name: 'MongoError',
       code: 11000,
@@ -118,28 +117,28 @@ const createTestApp = () => {
     next(duplicateError);
   });
   
-  app.get('/test/jwt-error', (req, res, next) => {
+  app.get('/test/jwt-error', (_req, _res, next) => {
     const jwtError = new Error('invalid token');
     jwtError.name = 'JsonWebTokenError';
     next(jwtError);
   });
   
-  app.get('/test/jwt-expired', (req, res, next) => {
+  app.get('/test/jwt-expired', (_req, _res, next) => {
     const expiredError = new Error('jwt expired');
     expiredError.name = 'TokenExpiredError';
     next(expiredError);
   });
   
-  app.get('/test/generic-error', (req, res, next) => {
+  app.get('/test/generic-error', (_req, _res, next) => {
     next(new Error('一般錯誤'));
   });
   
-  app.get('/test/async-error', catchAsync(async (req: any, res: any, next: any) => {
+  app.get('/test/async-error', catchAsync(async (_req: any, _res: any, _next: any) => {
     throw new Error('異步錯誤');
   }));
   
   // 模擬用戶中間件
-  app.use('/test/auth', (req: any, res, next) => {
+  app.use('/test/auth', (req: any, _res, next) => {
     const userId = req.headers['x-user-id'] as string;
     const role = req.headers['x-user-role'] as string;
     const permissions = req.headers['x-user-permissions'] as string;
@@ -154,25 +153,25 @@ const createTestApp = () => {
     next();
   });
   
-  app.get('/test/auth/permission', requirePermission('read:users'), (req, res) => {
+  app.get('/test/auth/permission', requirePermission('read:users'), (_req, res) => {
     res.json({ success: true, message: '有權限訪問' });
   });
   
-  app.get('/test/auth/role', requireRole('admin'), (req, res) => {
+  app.get('/test/auth/role', requireRole('admin'), (_req, res) => {
     res.json({ success: true, message: '角色驗證通過' });
   });
   
-  app.get('/test/auth/roles', requireRole(['admin', 'moderator']), (req, res) => {
+  app.get('/test/auth/roles', requireRole(['admin', 'moderator']), (_req, res) => {
     res.json({ success: true, message: '多角色驗證通過' });
   });
   
-  app.get('/test/auth/ownership', requireOwnership(), (req, res) => {
+  app.get('/test/auth/ownership', requireOwnership(), (_req, res) => {
     res.json({ success: true, message: '擁有者驗證通過' });
   });
   
-  app.get('/test/business-rule', 
+  app.get('/test/business-rule',
     validateBusinessRule('test-rule', (data) => data.value > 0, '值必須大於0'),
-    (req, res) => {
+    (_req, res) => {
       res.json({ success: true, message: '業務規則驗證通過' });
     }
   );

@@ -240,17 +240,14 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
 
       {/* 會計科目配對區塊 */}
       <Card>
-        <CardContent sx={{ pb: 1, '&:last-child': { pb: 1 } }}>
-          <Typography variant="h6" gutterBottom>
+        <CardContent sx={{ pb: 1, pt: 1.5, '&:last-child': { pb: 1 } }}>
+          <Typography variant="h6" sx={{ mb: 1 }}>
             會計科目配對
           </Typography>
           
             {/* 原有的供應商科目配對 */}
             <Grid item xs={12}>
-              <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid #e0e0e0' }}>
-                <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.secondary' }}>
-                  使用供應商預設科目配對
-                </Typography>
+              <Box sx={{ mt: 1, pt: 1, borderTop: '1px solid #e0e0e0' }}>
                 <SupplierAccountSelect
                   supplierId={formData?.supplier || ''}
                   selectedAccountIds={formData?.selectedAccountIds || []}
@@ -263,7 +260,7 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
             </Grid>
           
           
-          <Grid container spacing={2}>
+          <Grid container spacing={1.5}>
             {/* 新的記帳格式選擇 */}
             <Grid item xs={12}>
               <AccountingEntrySelector

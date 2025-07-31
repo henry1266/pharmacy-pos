@@ -32,22 +32,22 @@ const createTestApp = () => {
   app.use(express.json());
   
   // 測試路由 - 借貸平衡驗證
-  app.post('/test/double-entry', validateDoubleEntryBalance, (req, res) => {
+  app.post('/test/double-entry', validateDoubleEntryBalance, (_req, res) => {
     res.json({ success: true, message: '借貸平衡驗證通過' });
   });
   
   // 測試路由 - 單筆分錄驗證
-  app.post('/test/single-entry', validateSingleEntry, (req, res) => {
+  app.post('/test/single-entry', validateSingleEntry, (_req, res) => {
     res.json({ success: true, message: '單筆分錄驗證通過' });
   });
   
   // 測試路由 - 交易群組驗證
-  app.post('/test/transaction-group', validateTransactionGroup, (req, res) => {
+  app.post('/test/transaction-group', validateTransactionGroup, (_req, res) => {
     res.json({ success: true, message: '交易群組驗證通過' });
   });
   
   // 測試路由 - 完整交易驗證
-  app.post('/test/complete-transaction', validateCompleteTransaction, (req: any, res: any) => {
+  app.post('/test/complete-transaction', validateCompleteTransaction, (_req: any, res: any) => {
     res.json({ success: true, message: '完整交易驗證通過' });
   });
   

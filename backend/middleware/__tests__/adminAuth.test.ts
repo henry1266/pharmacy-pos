@@ -27,7 +27,7 @@ const createTestApp = () => {
   app.use(express.json());
   
   // 模擬 auth middleware 設置用戶信息
-  app.use((req: any, res, next) => {
+  app.use((req: any, _res, next) => {
     // 可以通過 headers 設置用戶信息來模擬不同情況
     const userId = req.headers['x-user-id'] as string;
     if (userId) {
@@ -46,7 +46,7 @@ const createTestApp = () => {
   });
   
   // 錯誤處理中間件
-  app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     res.status(500).json({
       success: false,
       error: err.message
@@ -336,7 +336,7 @@ describe('AdminAuth Middleware 測試', () => {
       const specialUserId = 'user@#$%^&*()';
       mockUser.findById.mockResolvedValue(null);
 
-      const response = await request(testApp)
+      await request(testApp)
         .get('/admin/protected')
         .set('x-user-id', specialUserId)
         .expect(403);
@@ -348,7 +348,7 @@ describe('AdminAuth Middleware 測試', () => {
       const longUserId = 'a'.repeat(1000);
       mockUser.findById.mockResolvedValue(null);
 
-      const response = await request(testApp)
+      await request(testApp)
         .get('/admin/protected')
         .set('x-user-id', longUserId)
         .expect(403);

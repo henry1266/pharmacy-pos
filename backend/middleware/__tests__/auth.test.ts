@@ -41,7 +41,7 @@ const createTestApp = () => {
   });
   
   // 錯誤處理中間件
-  app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     res.status(500).json({
       success: false,
       error: err.message
