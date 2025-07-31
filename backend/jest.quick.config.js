@@ -16,7 +16,8 @@ module.exports = {
     '**/routes/__tests__/middleware.test.ts',               // 15 個測試
     '**/routes/__tests__/products.shared.test.ts',          // 約 13 個測試
     '**/routes/__tests__/products.simple.test.ts',          // 約 10 個測試
-    '**/routes/__tests__/products.test.skip.ts',            // 20 個測試 (有問題的測試)
+    '**/routes/__tests__/products.test.ts',                 // 20 個測試
+    '**/routes/__tests__/suppliers.test.ts',                // 測試
     '**/services/__tests__/CacheService.test.ts',           // 20 個測試
     '**/services/__tests__/PackageUnitService.test.ts',     // 30 個測試
     '**/services/__tests__/AutoAccountingEntryService.test.ts', // 約 12 個測試
@@ -28,7 +29,6 @@ module.exports = {
     '/node_modules/',
     '/dist/',
     '/uploads/'
-    // 移除 '\\.skip\\.ts$' 以允許執行 products.test.skip.ts
   ],
 
   // 轉換忽略模式
@@ -37,7 +37,7 @@ module.exports = {
   ],
 
   // 關閉覆蓋率收集以加快速度
-  collectCoverage: true,
+  collectCoverage: false,
 
   // 模組名稱映射
   moduleNameMapper: {

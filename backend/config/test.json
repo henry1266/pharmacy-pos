@@ -1,5 +1,5 @@
 {
-  "mongoURI": "mongodb://localhost:27017/pharmacy-pos-test",
+  "mongoURI": "mongodb://192.168.68.79:27017/pharmacy-pos-test",
   "jwtSecret": "test-jwt-secret-key-for-testing-only",
   "port": 3001,
   "nodeEnv": "test",
