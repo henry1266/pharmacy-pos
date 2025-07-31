@@ -357,7 +357,7 @@ router.post(
       if (code?.trim()) {
         const existingProduct = await BaseProduct.findByCode(code.trim());
         if (existingProduct) {
-          res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json({
+          res.status(API_CONSTANTS.HTTP_STATUS.CONFLICT).json({
             success: false,
             message: ERROR_MESSAGES.PRODUCT.CODE_EXISTS,
             timestamp: new Date()
@@ -416,7 +416,7 @@ router.post(
         return;
       }
 
-      res.json({
+      res.status(API_CONSTANTS.HTTP_STATUS.CREATED).json({
         success: true,
         message: '商品創建成功',
         data: savedProduct,
@@ -514,7 +514,7 @@ router.post(
         }
       }
 
-      res.json({
+      res.status(API_CONSTANTS.HTTP_STATUS.CREATED).json({
         success: true,
         message: '藥品創建成功',
         data: savedMedicine,
@@ -843,7 +843,7 @@ async function checkProductCodeExistence(code: string | undefined, res: Response
   if (code?.trim()) {
     const existingProduct = await BaseProduct.findByCode(code.trim());
     if (existingProduct) {
-      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json({
+      res.status(API_CONSTANTS.HTTP_STATUS.CONFLICT).json({
         success: false,
         message: ERROR_MESSAGES.PRODUCT.CODE_EXISTS,
         timestamp: new Date()

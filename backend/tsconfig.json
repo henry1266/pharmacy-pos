@@ -16,7 +16,9 @@
     "baseUrl": "../",
     "paths": {
       "@shared/*": ["./shared/*"],
-      "@shared": ["./shared"]
+      "@shared": ["./shared"],
+      "@pharmacy-pos/shared/*": ["./shared/*"],
+      "@pharmacy-pos/shared": ["./shared/index.ts"]
     },
 
     /* 裝飾器支援 (如使用 TypeORM 等) */
@@ -31,11 +33,10 @@
     "node_modules",
     "dist",
     "coverage",
-    "**/*.test.ts",
-    "**/*.spec.ts",
     "./models/**/*.js",
     "test/test_mongo_connection.ts"
   ],
+  "types": ["jest", "node"],
   "ts-node": {
     "transpileOnly": true,
     "compilerOptions": {
