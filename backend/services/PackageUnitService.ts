@@ -42,14 +42,31 @@ export class PackageUnitService {
       errors.push(`包裝數量重複: ${[...new Set(duplicateValues)].join(', ')}`);
     }
     
-    // 3. 檢查數值合理性
+    // 3. 檢查基礎單位
+    const baseUnits = units.filter(u => u.isBaseUnit);
+    if (baseUnits.length === 0) {
+      errors.push('必須有一個基礎單位');
+    } else if (baseUnits.length > 1) {
+      errors.push('只能有一個基礎單位');
+    } else {
+      // 檢查基礎單位的數值必須為 1
+      const baseUnit = baseUnits[0];
+      if (baseUnit.unitValue !== 1) {
+        errors.push('基礎單位的數值必須為 1');
+      }
+    }
+    
+    // 4. 檢查 unitValue 唯一性（已在前面檢查過，這裡是註釋說明）
+    // unitValue 實際上就是優先級的體現，數值越大優先級越高
+    
+    // 5. 檢查數值合理性
     for (const unit of units) {
       if (!Number.isInteger(unit.unitValue) || unit.unitValue <= 0) {
         errors.push(`單位 "${unit.unitName}" 的數值必須為正整數`);
       }
     }
     
-    // 4. 檢查整除關係（警告）
+    // 6. 檢查整除關係（警告）
     if (errors.length === 0) {
       const sortedUnits = [...units].sort((a, b) => b.unitValue - a.unitValue);
       for (let i = 0; i < sortedUnits.length - 1; i++) {

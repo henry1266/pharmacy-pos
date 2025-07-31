@@ -1,33 +1,23 @@
 import request from 'supertest';
-import express from 'express';
-import mongoose from 'mongoose';
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import salesRouter from '../sales';
+import { createApp } from '../../app';
 import Sale from '../../models/Sale';
 import BaseProduct from '../../models/BaseProduct';
 import Customer from '../../models/Customer';
 import Inventory from '../../models/Inventory';
 import { ProductType } from '@pharmacy-pos/shared/enums';
-
-const app = express();
-app.use(express.json());
-app.use('/api/sales', salesRouter);
+import mongoose from 'mongoose';
 
 describe('Sales API', () => {
-  let mongod: MongoMemoryServer;
+  let app: any;
   let testProduct: any;
   let testCustomer: any;
 
   beforeAll(async () => {
-    mongod = await MongoMemoryServer.create();
-    const uri = mongod.getUri();
-    await mongoose.connect(uri);
+    app = await createApp();
   });
 
   afterAll(async () => {
-    await mongoose.connection.dropDatabase();
-    await mongoose.connection.close();
-    await mongod.stop();
+    // 清理由 test/setup.ts 管理的連接
   });
 
   beforeEach(async () => {
@@ -40,6 +30,7 @@ describe('Sales API', () => {
     // 創建測試產品
     testProduct = await BaseProduct.create({
       code: 'P001',
+      shortCode: 'P001',
       name: '測試產品',
       unit: '個',
       purchasePrice: 50,
@@ -489,6 +480,7 @@ describe('Sales API', () => {
       // 創建不扣庫存的產品
       const noStockProduct = await BaseProduct.create({
         code: 'P002',
+        shortCode: 'P002',
         name: '不扣庫存產品',
         unit: '個',
         purchasePrice: 30,
@@ -500,7 +492,7 @@ describe('Sales API', () => {
 
       const saleData = {
         items: [{
-          product: noStockProduct._id.toString(),
+          product: (noStockProduct as any)._id.toString(),
           quantity: 5,
           price: 50,
           subtotal: 250
@@ -518,8 +510,8 @@ describe('Sales API', () => {
       expect(response.body.success).toBe(true);
 
       // 驗證創建了特殊的庫存記錄
-      const inventoryRecords = await Inventory.find({ 
-        product: noStockProduct._id,
+      const inventoryRecords = await Inventory.find({
+        product: (noStockProduct as any)._id,
         type: 'sale-no-stock'
       });
       expect(inventoryRecords).toHaveLength(1);
@@ -578,7 +570,7 @@ describe('Sales API', () => {
     it('應該處理空的請求體', async () => {
       const response = await request(app)
         .post('/api/sales')
-        .send(null)
+        .send({})
         .expect(400);
 
       expect(response.body.success).toBe(false);

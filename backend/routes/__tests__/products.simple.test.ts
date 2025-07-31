@@ -1,10 +1,11 @@
 import request from 'supertest';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
-import app from '../../server';
+import { createApp } from '../../app';
 
 describe('Products API 簡單測試', () => {
   let mongoServer: MongoMemoryServer;
+  let app: any;
 
   beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create();
@@ -15,6 +16,9 @@ describe('Products API 簡單測試', () => {
     }
     
     await mongoose.connect(mongoUri);
+    
+    // 創建應用程序實例
+    app = createApp();
   });
 
   afterAll(async () => {

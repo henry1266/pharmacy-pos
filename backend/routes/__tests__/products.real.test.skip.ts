@@ -1,13 +1,14 @@
 import request from 'supertest';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
-import app from '../../server';
+import { createApp } from '../../app';
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { ProductType } from '@pharmacy-pos/shared/enums';
 import { ERROR_MESSAGES, API_CONSTANTS } from '@pharmacy-pos/shared/constants';
 
 describe('真實產品 API 測試', () => {
   let mongoServer: MongoMemoryServer;
+  let app: any;
 
   beforeAll(async () => {
     // 增加超時時間以處理 MongoDB 下載
@@ -21,6 +22,9 @@ describe('真實產品 API 測試', () => {
     }
     
     await mongoose.connect(mongoUri);
+    
+    // 創建應用程序實例
+    app = createApp();
   }, 60000);
 
   afterAll(async () => {

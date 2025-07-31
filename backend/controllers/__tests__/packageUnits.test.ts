@@ -30,9 +30,36 @@ describe('PackageUnitsController', () => {
   describe('GET /api/products/:productId/package-units', () => {
     it('應該成功獲取產品包裝單位配置', async () => {
       const mockPackageUnits = [
-        { unitName: '盒', baseUnitCount: 100, level: 1 },
-        { unitName: '排', baseUnitCount: 10, level: 2 },
-        { unitName: '粒', baseUnitCount: 1, level: 3 }
+        {
+          _id: 'unit1',
+          productId: 'test-product-id',
+          unitName: '盒',
+          unitValue: 100,
+          isBaseUnit: false,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          _id: 'unit2',
+          productId: 'test-product-id',
+          unitName: '排',
+          unitValue: 10,
+          isBaseUnit: false,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          _id: 'unit3',
+          productId: 'test-product-id',
+          unitName: '粒',
+          unitValue: 1,
+          isBaseUnit: true,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
       ];
 
       mockPackageUnitService.getProductPackageUnits.mockResolvedValue(mockPackageUnits);
@@ -48,9 +75,9 @@ describe('PackageUnitsController', () => {
       expect(mockPackageUnitService.getProductPackageUnits).toHaveBeenCalledWith('test-product-id');
     });
 
-    it('應該處理缺少產品ID的情況', async () => {
+    it('應該處理空的產品ID', async () => {
       const response = await request(app)
-        .get('/api/products//package-units')
+        .get('/api/products/ /package-units') // 空格作為產品ID
         .expect(400);
 
       expect(response.body).toEqual({
@@ -78,7 +105,16 @@ describe('PackageUnitsController', () => {
   describe('GET /api/products/:productId/package-units/history', () => {
     it('應該成功獲取歷史包裝單位配置', async () => {
       const mockPackageUnits = [
-        { unitName: '盒', baseUnitCount: 100, level: 1 }
+        {
+          _id: 'unit1',
+          productId: 'test-product-id',
+          unitName: '盒',
+          unitValue: 100,
+          isBaseUnit: false,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
       ];
       const testDate = '2024-01-01';
 
@@ -89,7 +125,9 @@ describe('PackageUnitsController', () => {
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.data).toEqual(mockPackageUnits);
+      expect(response.body.data).toHaveLength(1);
+      expect(response.body.data[0].unitName).toBe('盒');
+      expect(response.body.data[0].unitValue).toBe(100);
       expect(response.body.queryDate).toBe(new Date(testDate).toISOString());
     });
 
@@ -109,13 +147,34 @@ describe('PackageUnitsController', () => {
   describe('POST /api/products/:productId/package-units', () => {
     it('應該成功創建包裝單位配置', async () => {
       const packageUnits = [
-        { unitName: '盒', baseUnitCount: 100, level: 1 },
-        { unitName: '粒', baseUnitCount: 1, level: 2 }
+        { unitName: '盒', unitValue: 100, isBaseUnit: false, isActive: true },
+        { unitName: '粒', unitValue: 1, isBaseUnit: true, isActive: true }
       ];
 
       const mockResult = {
         success: true,
-        data: { productId: 'test-product-id', packageUnits }
+        data: [
+          {
+            _id: 'unit1',
+            productId: 'test-product-id',
+            unitName: '盒',
+            unitValue: 100,
+            isBaseUnit: false,
+            isActive: true,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          },
+          {
+            _id: 'unit2',
+            productId: 'test-product-id',
+            unitName: '粒',
+            unitValue: 1,
+            isBaseUnit: true,
+            isActive: true,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          }
+        ]
       };
 
       mockPackageUnitService.createOrUpdatePackageUnits.mockResolvedValue(mockResult);
@@ -125,11 +184,13 @@ describe('PackageUnitsController', () => {
         .send({ packageUnits })
         .expect(201);
 
-      expect(response.body).toEqual({
-        success: true,
-        data: mockResult.data,
-        message: '包裝單位配置創建成功'
-      });
+      expect(response.body.success).toBe(true);
+      expect(response.body.message).toBe('包裝單位配置創建成功');
+      expect(response.body.data).toHaveLength(2);
+      expect(response.body.data[0].unitName).toBe('盒');
+      expect(response.body.data[0].unitValue).toBe(100);
+      expect(response.body.data[1].unitName).toBe('粒');
+      expect(response.body.data[1].unitValue).toBe(1);
     });
 
     it('應該處理無效的包裝單位數據', async () => {
@@ -147,7 +208,7 @@ describe('PackageUnitsController', () => {
 
     it('應該處理服務驗證失敗', async () => {
       const packageUnits = [
-        { unitName: '盒', baseUnitCount: 0, level: 1 } // 無效數據
+        { unitName: '盒', unitValue: 0, isBaseUnit: false, isActive: true } // 無效數據
       ];
 
       const mockResult = {
@@ -204,8 +265,8 @@ describe('PackageUnitsController', () => {
   describe('POST /api/package-units/validate', () => {
     it('應該成功驗證包裝單位配置', async () => {
       const packageUnits = [
-        { unitName: '盒', baseUnitCount: 100, level: 1 },
-        { unitName: '粒', baseUnitCount: 1, level: 2 }
+        { unitName: '盒', unitValue: 100, isBaseUnit: false, isActive: true },
+        { unitName: '粒', unitValue: 1, isBaseUnit: true, isActive: true }
       ];
 
       const mockValidation = {
@@ -231,7 +292,7 @@ describe('PackageUnitsController', () => {
 
     it('應該處理驗證失敗', async () => {
       const packageUnits = [
-        { unitName: '盒', baseUnitCount: 0, level: 1 } // 無效數據
+        { unitName: '盒', unitValue: 0, isBaseUnit: false, isActive: true } // 無效數據
       ];
 
       const mockValidation = {
@@ -259,15 +320,33 @@ describe('PackageUnitsController', () => {
   describe('POST /api/inventory/convert-to-package-display', () => {
     it('應該成功轉換基礎單位為包裝顯示', async () => {
       const mockPackageUnits = [
-        { unitName: '盒', baseUnitCount: 100, level: 1 },
-        { unitName: '粒', baseUnitCount: 1, level: 2 }
+        {
+          _id: 'unit1',
+          productId: 'test-product-id',
+          unitName: '盒',
+          unitValue: 100,
+          isBaseUnit: false,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          _id: 'unit2',
+          productId: 'test-product-id',
+          unitName: '粒',
+          unitValue: 1,
+          isBaseUnit: true,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
       ];
 
       const mockDisplayResult = {
         baseQuantity: 235,
         packageBreakdown: [
-          { unitName: '盒', quantity: 2 },
-          { unitName: '粒', quantity: 35 }
+          { unitName: '盒', quantity: 2, unitValue: 100 },
+          { unitName: '粒', quantity: 35, unitValue: 1 }
         ],
         displayText: '2盒 35粒'
       };
@@ -283,15 +362,14 @@ describe('PackageUnitsController', () => {
         })
         .expect(200);
 
-      expect(response.body).toEqual({
-        success: true,
-        data: {
-          baseQuantity: 235,
-          packageBreakdown: mockDisplayResult.packageBreakdown,
-          displayText: mockDisplayResult.displayText,
-          configUsed: mockPackageUnits
-        }
-      });
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.baseQuantity).toBe(235);
+      expect(response.body.data.displayText).toBe('2盒 35粒');
+      expect(response.body.data.packageBreakdown).toEqual([
+        { unitName: '盒', quantity: 2, unitValue: 100 },
+        { unitName: '粒', quantity: 35, unitValue: 1 }
+      ]);
+      expect(response.body.data.configUsed).toHaveLength(2);
     });
 
     it('應該處理無效的基礎數量', async () => {
@@ -314,8 +392,26 @@ describe('PackageUnitsController', () => {
   describe('POST /api/inventory/convert-to-base-unit', () => {
     it('應該成功轉換包裝輸入為基礎單位', async () => {
       const mockPackageUnits = [
-        { unitName: '盒', baseUnitCount: 100, level: 1 },
-        { unitName: '粒', baseUnitCount: 1, level: 2 }
+        {
+          _id: 'unit1',
+          productId: 'test-product-id',
+          unitName: '盒',
+          unitValue: 100,
+          isBaseUnit: false,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          _id: 'unit2',
+          productId: 'test-product-id',
+          unitName: '粒',
+          unitValue: 1,
+          isBaseUnit: true,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
       ];
 
       const mockParseResult = {

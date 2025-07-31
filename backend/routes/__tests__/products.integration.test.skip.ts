@@ -1,7 +1,6 @@
 import request from 'supertest';
-import { MongoMemoryServer } from 'mongodb-memory-server';
+import { createApp } from '../../app';
 import mongoose from 'mongoose';
-import app from '../../server';
 
 // 模擬共享模組
 jest.mock('@pharmacy-pos/shared/types/api', () => ({
@@ -61,33 +60,19 @@ jest.mock('../../utils/codeGenerator', () => ({
 }));
 
 describe('Products API 整合測試', () => {
-  let mongoServer: MongoMemoryServer;
+  let app: any;
 
   beforeAll(async () => {
-    // 啟動內存 MongoDB
-    mongoServer = await MongoMemoryServer.create();
-    const mongoUri = mongoServer.getUri();
-    
-    // 斷開現有連接
-    if (mongoose.connection.readyState !== 0) {
-      await mongoose.disconnect();
-    }
-    
-    // 連接到測試資料庫
-    await mongoose.connect(mongoUri);
-  });
-
-  afterAll(async () => {
-    // 清理並關閉連接
-    await mongoose.disconnect();
-    await mongoServer.stop();
+    app = createApp();
   });
 
   beforeEach(async () => {
-    // 清理所有集合
-    const collections = mongoose.connection.collections;
-    for (const key in collections) {
-      await collections[key].deleteMany({});
+    // 清理測試數據
+    if (mongoose.connection.readyState === 1) {
+      const collections = mongoose.connection.collections;
+      for (const key in collections) {
+        await collections[key].deleteMany({});
+      }
     }
   });
 
@@ -391,9 +376,7 @@ describe('Products API 整合測試', () => {
 
       expect(response.body.success).toBe(false);
 
-      // 重新連接資料庫
-      const mongoUri = mongoServer.getUri();
-      await mongoose.connect(mongoUri);
+      // 測試完成後資料庫會自動重連
     });
   });
 

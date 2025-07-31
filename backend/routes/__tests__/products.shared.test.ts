@@ -1,13 +1,14 @@
 import request from 'supertest';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
-import app from '../../server';
+import { createApp } from '../../app';
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { ProductType } from '@pharmacy-pos/shared/enums';
 import { ERROR_MESSAGES, API_CONSTANTS } from '@pharmacy-pos/shared/constants';
 
 describe('使用 Shared 模組的產品 API 測試', () => {
   let mongoServer: MongoMemoryServer;
+  let app: any;
 
   beforeAll(async () => {
     jest.setTimeout(60000);
@@ -20,6 +21,9 @@ describe('使用 Shared 模組的產品 API 測試', () => {
     }
     
     await mongoose.connect(mongoUri);
+    
+    // 創建應用程序實例
+    app = createApp();
   }, 60000);
 
   afterAll(async () => {

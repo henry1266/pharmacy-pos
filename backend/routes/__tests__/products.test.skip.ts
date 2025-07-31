@@ -1,32 +1,21 @@
 import request from 'supertest';
-import express from 'express';
-import mongoose from 'mongoose';
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import productsRouter from '../products';
+import { createApp } from '../../app';
 import BaseProduct from '../../models/BaseProduct';
 import { ProductType } from '@pharmacy-pos/shared/enums';
-
-const app = express();
-app.use(express.json());
-app.use('/api/products', productsRouter);
+import mongoose from 'mongoose';
 
 describe('Products API', () => {
-  let mongod: MongoMemoryServer;
+  let app: any;
 
   beforeAll(async () => {
-    mongod = await MongoMemoryServer.create();
-    const uri = mongod.getUri();
-    await mongoose.connect(uri);
-  });
-
-  afterAll(async () => {
-    await mongoose.connection.dropDatabase();
-    await mongoose.connection.close();
-    await mongod.stop();
+    app = createApp();
   });
 
   beforeEach(async () => {
-    await BaseProduct.deleteMany({});
+    // 清理測試數據
+    if (mongoose.connection.readyState === 1) {
+      await BaseProduct.deleteMany({});
+    }
   });
 
   describe('GET /api/products', () => {
@@ -127,7 +116,7 @@ describe('Products API', () => {
         productType: ProductType.PRODUCT,
         isActive: true
       });
-      productId = product._id.toString();
+      productId = (product as any)._id.toString();
     });
 
     it('應該返回指定的產品', async () => {
@@ -281,7 +270,7 @@ describe('Products API', () => {
         productType: ProductType.PRODUCT,
         isActive: true
       });
-      productId = product._id.toString();
+      productId = (product as any)._id.toString();
     });
 
     it('應該更新產品資訊', async () => {
@@ -333,7 +322,7 @@ describe('Products API', () => {
         productType: ProductType.PRODUCT,
         isActive: true
       });
-      productId = product._id.toString();
+      productId = (product as any)._id.toString();
     });
 
     it('應該軟刪除產品', async () => {

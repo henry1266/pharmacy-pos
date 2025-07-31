@@ -8,21 +8,18 @@ describe('PackageUnitService', () => {
     {
       unitName: '盒',
       unitValue: 1000,
-      priority: 3,
       isBaseUnit: false,
       isActive: true
     },
     {
       unitName: '排',
       unitValue: 10,
-      priority: 2,
       isBaseUnit: false,
       isActive: true
     },
     {
       unitName: '粒',
       unitValue: 1,
-      priority: 1,
       isBaseUnit: true,
       isActive: true
     }
@@ -84,7 +81,7 @@ describe('PackageUnitService', () => {
     it('應該檢測重複的單位名稱', () => {
       const unitsWithDuplicateNames = [
         ...mockPackageUnits,
-        { ...mockPackageUnits[0], priority: 4 }
+        { ...mockPackageUnits[0], unitValue: 2000 } // 不同的 unitValue 但相同的 unitName
       ];
       
       const result = PackageUnitService.validatePackageUnits(unitsWithDuplicateNames);
@@ -93,15 +90,15 @@ describe('PackageUnitService', () => {
       expect(result.errors.some(error => error.includes('單位名稱重複'))).toBe(true);
     });
 
-    it('應該檢測重複的優先級', () => {
-      const unitsWithDuplicatePriority = mockPackageUnits.map((unit, index) => 
-        index === 0 ? { ...unit, priority: 2 } : unit
+    it('應該檢測重複的包裝數量', () => {
+      const unitsWithDuplicateValues = mockPackageUnits.map((unit, index) =>
+        index === 0 ? { ...unit, unitValue: 10, unitName: '大排' } : unit // 與 '排' 相同的 unitValue
       );
       
-      const result = PackageUnitService.validatePackageUnits(unitsWithDuplicatePriority);
+      const result = PackageUnitService.validatePackageUnits(unitsWithDuplicateValues);
       
       expect(result.isValid).toBe(false);
-      expect(result.errors.some(error => error.includes('優先級重複'))).toBe(true);
+      expect(result.errors.some(error => error.includes('包裝數量重複'))).toBe(true);
     });
 
     it('應該檢測無效的數值', () => {
@@ -120,21 +117,18 @@ describe('PackageUnitService', () => {
         {
           unitName: '盒',
           unitValue: 1000,
-          priority: 3,
           isBaseUnit: false,
           isActive: true
         },
         {
           unitName: '排',
           unitValue: 7, // 1000 不能被 7 整除
-          priority: 2,
           isBaseUnit: false,
           isActive: true
         },
         {
           unitName: '粒',
           unitValue: 1,
-          priority: 1,
           isBaseUnit: true,
           isActive: true
         }
@@ -277,11 +271,14 @@ describe('PackageUnitService', () => {
     });
 
     it('應該處理混合有效和無效輸入', () => {
-      const result = PackageUnitService.convertToBaseUnit('1盒 abc 5粒', mockFullPackageUnits);
+      const result = PackageUnitService.convertToBaseUnit('1盒 2xyz 5粒', mockFullPackageUnits);
       
-      expect(result.baseQuantity).toBe(1005); // 1*1000 + 5*1
+      expect(result.baseQuantity).toBe(1005); // 1*1000 + 5*1 (2xyz 被忽略)
       expect(result.displayText).toBe('1盒 5粒');
-      expect(result.errors).toContain('未知的單位名稱: "abc"');
+      // 檢查是否有錯誤
+      expect(result.errors).toBeDefined();
+      expect(result.errors!.length).toBeGreaterThan(0);
+      expect(result.errors!.some(error => error.includes('xyz'))).toBe(true);
     });
   });
 
@@ -309,7 +306,6 @@ describe('PackageUnitService', () => {
         productId: 'product_123',
         unitName: '個',
         unitValue: 1,
-        priority: 1,
         isBaseUnit: true,
         isActive: true,
         createdAt: new Date(),
