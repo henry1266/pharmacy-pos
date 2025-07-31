@@ -33,6 +33,66 @@ jest.mock('@pharmacy-pos/shared/constants', () => ({
       NOT_FOUND: 404,
       INTERNAL_SERVER_ERROR: 500
     }
+  },
+  VALIDATION_CONSTANTS: {
+    USERNAME: {
+      MIN_LENGTH: 3,
+      MAX_LENGTH: 50,
+      PATTERN: /^[a-zA-Z0-9_-]+$/
+    },
+    EMAIL: {
+      MAX_LENGTH: 254,
+      PATTERN: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    },
+    PASSWORD: {
+      MIN_LENGTH: 8,
+      MAX_LENGTH: 128
+    },
+    PRODUCT_CODE: {
+      MIN_LENGTH: 1,
+      MAX_LENGTH: 50,
+      PATTERN: /^[A-Za-z0-9\-_]+$/
+    },
+    PRODUCT_NAME: {
+      MIN_LENGTH: 1,
+      MAX_LENGTH: 200
+    },
+    CUSTOMER_NAME: {
+      MIN_LENGTH: 1,
+      MAX_LENGTH: 100
+    },
+    SUPPLIER_NAME: {
+      MIN_LENGTH: 1,
+      MAX_LENGTH: 100
+    },
+    PHONE: {
+      PATTERN: /^[\d\s\-+()]+$/,
+      MIN_LENGTH: 8,
+      MAX_LENGTH: 20
+    },
+    ID_NUMBER: {
+      PATTERN: /^[A-Z][12]\d{8}$/
+    },
+    TAX_ID: {
+      PATTERN: /^\d{8}$/
+    }
+  }
+}));
+
+// 模擬 shared schemas
+jest.mock('@pharmacy-pos/shared/schemas', () => ({
+  Schemas: {
+    Auth: {},
+    Product: {},
+    Customer: {},
+    Supplier: {},
+    Sale: {},
+    PurchaseOrder: {},
+    ShippingOrder: {},
+    Accounting: {},
+    Employee: {},
+    Pagination: {},
+    Query: {}
   }
 }));
 

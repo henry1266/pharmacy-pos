@@ -8,13 +8,15 @@ module.exports = {
   // 根目錄
   rootDir: '.',
 
-  // 只測試特定的檔案 - 增加到約 130+ 個測試
+  // 只測試特定的檔案 - 增加到約 164+ 個測試
   testMatch: [
     '**/routes/__tests__/basic.test.ts',                    // 5 個測試
     '**/routes/__tests__/simple.test.ts',                   // 11 個測試
     '**/routes/__tests__/standalone.test.ts',               // 8 個測試
+    '**/routes/__tests__/middleware.test.ts',               // 15 個測試
     '**/routes/__tests__/products.shared.test.ts',          // 約 13 個測試
     '**/routes/__tests__/products.simple.test.ts',          // 約 10 個測試
+    '**/routes/__tests__/products.test.skip.ts',            // 20 個測試 (有問題的測試)
     '**/services/__tests__/CacheService.test.ts',           // 20 個測試
     '**/services/__tests__/PackageUnitService.test.ts',     // 30 個測試
     '**/services/__tests__/AutoAccountingEntryService.test.ts', // 約 12 個測試
@@ -25,8 +27,8 @@ module.exports = {
   testPathIgnorePatterns: [
     '/node_modules/',
     '/dist/',
-    '/uploads/',
-    '\\.skip\\.ts$'
+    '/uploads/'
+    // 移除 '\\.skip\\.ts$' 以允許執行 products.test.skip.ts
   ],
 
   // 轉換忽略模式

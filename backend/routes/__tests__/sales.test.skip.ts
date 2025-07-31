@@ -14,6 +14,9 @@ describe('Sales API', () => {
 
   beforeAll(async () => {
     app = await createApp();
+    
+    // 設置測試模式環境變數
+    process.env.REACT_APP_TEST_MODE = 'true';
   });
 
   afterAll(async () => {
@@ -41,6 +44,7 @@ describe('Sales API', () => {
 
     // 創建測試客戶
     testCustomer = await Customer.create({
+      code: 'C001',
       name: '測試客戶',
       phone: '0912345678',
       email: 'test@example.com'
@@ -184,6 +188,7 @@ describe('Sales API', () => {
     it('應該創建新的銷售記錄', async () => {
       const response = await request(app)
         .post('/api/sales')
+        .set('Authorization', 'Bearer test-mode-token')
         .send(validSaleData)
         .expect(200);
 
@@ -192,7 +197,7 @@ describe('Sales API', () => {
       expect(response.body.data.saleNumber).toBeDefined();
 
       // 驗證庫存是否正確扣除
-      const inventoryRecords = await Inventory.find({ 
+      const inventoryRecords = await Inventory.find({
         product: testProduct._id,
         type: 'sale'
       });
@@ -208,6 +213,7 @@ describe('Sales API', () => {
 
       const response = await request(app)
         .post('/api/sales')
+        .set('Authorization', 'Bearer test-mode-token')
         .send(saleWithCustomer)
         .expect(200);
 
@@ -218,6 +224,7 @@ describe('Sales API', () => {
     it('應該驗證必填欄位', async () => {
       const response = await request(app)
         .post('/api/sales')
+        .set('Authorization', 'Bearer test-mode-token')
         .send({})
         .expect(400);
 
@@ -237,6 +244,7 @@ describe('Sales API', () => {
 
       const response = await request(app)
         .post('/api/sales')
+        .set('Authorization', 'Bearer test-mode-token')
         .send(invalidSaleData)
         .expect(404);
 
@@ -251,6 +259,7 @@ describe('Sales API', () => {
 
       const response = await request(app)
         .post('/api/sales')
+        .set('Authorization', 'Bearer test-mode-token')
         .send(invalidSaleData)
         .expect(404);
 
@@ -279,6 +288,7 @@ describe('Sales API', () => {
 
       const response = await request(app)
         .post('/api/sales')
+        .set('Authorization', 'Bearer test-mode-token')
         .send(largeSaleData)
         .expect(200);
 
@@ -327,6 +337,7 @@ describe('Sales API', () => {
 
       const response = await request(app)
         .put(`/api/sales/${saleId}`)
+        .set('Authorization', 'Bearer test-mode-token')
         .send(updateData)
         .expect(200);
 
@@ -339,6 +350,7 @@ describe('Sales API', () => {
       const fakeId = new mongoose.Types.ObjectId();
       const response = await request(app)
         .put(`/api/sales/${fakeId}`)
+        .set('Authorization', 'Bearer test-mode-token')
         .send({
           items: [{ product: testProduct._id, quantity: 1, price: 80, subtotal: 80 }],
           totalAmount: 80
@@ -367,6 +379,7 @@ describe('Sales API', () => {
 
       await request(app)
         .put(`/api/sales/${saleId}`)
+        .set('Authorization', 'Bearer test-mode-token')
         .send(updateData)
         .expect(200);
 
@@ -411,6 +424,7 @@ describe('Sales API', () => {
     it('應該刪除銷售記錄', async () => {
       const response = await request(app)
         .delete(`/api/sales/${saleId}`)
+        .set('Authorization', 'Bearer test-mode-token')
         .expect(200);
 
       expect(response.body.success).toBe(true);
@@ -424,10 +438,11 @@ describe('Sales API', () => {
     it('應該恢復庫存', async () => {
       await request(app)
         .delete(`/api/sales/${saleId}`)
+        .set('Authorization', 'Bearer test-mode-token')
         .expect(200);
 
       // 驗證相關的庫存記錄被刪除（恢復庫存）
-      const inventoryRecords = await Inventory.find({ 
+      const inventoryRecords = await Inventory.find({
         saleId: new mongoose.Types.ObjectId(saleId)
       });
       expect(inventoryRecords).toHaveLength(0);
@@ -437,6 +452,7 @@ describe('Sales API', () => {
       const fakeId = new mongoose.Types.ObjectId();
       const response = await request(app)
         .delete(`/api/sales/${fakeId}`)
+        .set('Authorization', 'Bearer test-mode-token')
         .expect(404);
 
       expect(response.body.success).toBe(false);
@@ -468,6 +484,7 @@ describe('Sales API', () => {
 
       const response = await request(app)
         .post('/api/sales')
+        .set('Authorization', 'Bearer test-mode-token')
         .send(saleData)
         .expect(200);
 
@@ -504,6 +521,7 @@ describe('Sales API', () => {
 
       const response = await request(app)
         .post('/api/sales')
+        .set('Authorization', 'Bearer test-mode-token')
         .send(saleData)
         .expect(200);
 
@@ -534,6 +552,7 @@ describe('Sales API', () => {
 
       await request(app)
         .post('/api/sales')
+        .set('Authorization', 'Bearer test-mode-token')
         .send(saleData)
         .expect(200);
 
@@ -547,7 +566,9 @@ describe('Sales API', () => {
   describe('錯誤處理測試', () => {
     it('應該處理資料庫連接錯誤', async () => {
       // 模擬資料庫錯誤
-      jest.spyOn(Sale, 'find').mockRejectedValueOnce(new Error('Database connection failed'));
+      const mockFind = jest.spyOn(Sale, 'find').mockImplementation(() => {
+        throw new Error('Database connection failed');
+      });
 
       const response = await request(app)
         .get('/api/sales')
@@ -556,7 +577,7 @@ describe('Sales API', () => {
       expect(response.body.success).toBe(false);
       
       // 恢復原始方法
-      jest.restoreAllMocks();
+      mockFind.mockRestore();
     });
 
     it('應該處理無效的 ObjectId', async () => {
@@ -570,6 +591,7 @@ describe('Sales API', () => {
     it('應該處理空的請求體', async () => {
       const response = await request(app)
         .post('/api/sales')
+        .set('Authorization', 'Bearer test-mode-token')
         .send({})
         .expect(400);
 

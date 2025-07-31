@@ -24,6 +24,7 @@ describe('Products API', () => {
       await BaseProduct.create([
         {
           code: 'P001',
+          shortCode: 'P001',
           name: '測試產品A',
           unit: '個',
           purchasePrice: 50,
@@ -33,6 +34,7 @@ describe('Products API', () => {
         },
         {
           code: 'M001',
+          shortCode: 'M001',
           name: '測試藥品A',
           unit: '盒',
           purchasePrice: 100,
@@ -42,6 +44,7 @@ describe('Products API', () => {
         },
         {
           code: 'P002',
+          shortCode: 'P002',
           name: '停用產品',
           unit: '個',
           purchasePrice: 30,
@@ -109,6 +112,7 @@ describe('Products API', () => {
     beforeEach(async () => {
       const product = await BaseProduct.create({
         code: 'P001',
+        shortCode: 'P001',
         name: '測試產品',
         unit: '個',
         purchasePrice: 50,
@@ -151,6 +155,7 @@ describe('Products API', () => {
     beforeEach(async () => {
       await BaseProduct.create({
         code: 'P001',
+        shortCode: 'P001',
         name: '測試產品',
         unit: '個',
         purchasePrice: 50,
@@ -190,6 +195,7 @@ describe('Products API', () => {
   describe('POST /api/products/product', () => {
     const validProductData = {
       name: '新產品',
+      shortCode: 'NEW001',
       unit: '個',
       purchasePrice: 50,
       sellingPrice: 80,
@@ -199,8 +205,9 @@ describe('Products API', () => {
     it('應該創建新產品', async () => {
       const response = await request(app)
         .post('/api/products/product')
+        .set('x-auth-token', 'test-mode-token')
         .send(validProductData)
-        .expect(200);
+        .expect(201);
 
       expect(response.body.success).toBe(true);
       expect(response.body.data.name).toBe('新產品');
@@ -210,6 +217,7 @@ describe('Products API', () => {
     it('應該驗證必填欄位', async () => {
       const response = await request(app)
         .post('/api/products/product')
+        .set('x-auth-token', 'test-mode-token')
         .send({})
         .expect(400);
 
@@ -220,6 +228,7 @@ describe('Products API', () => {
     it('應該檢查產品代碼重複', async () => {
       await BaseProduct.create({
         code: 'P001',
+        shortCode: 'P001',
         name: '現有產品',
         unit: '個',
         purchasePrice: 50,
@@ -229,11 +238,12 @@ describe('Products API', () => {
 
       const response = await request(app)
         .post('/api/products/product')
+        .set('x-auth-token', 'test-mode-token')
         .send({
           ...validProductData,
           code: 'P001'
         })
-        .expect(400);
+        .expect(409);
 
       expect(response.body.success).toBe(false);
     });
@@ -249,8 +259,9 @@ describe('Products API', () => {
 
       const response = await request(app)
         .post('/api/products/product')
+        .set('x-auth-token', 'test-mode-token')
         .send(productWithPackageUnits)
-        .expect(200);
+        .expect(201);
 
       expect(response.body.success).toBe(true);
       expect(response.body.data.name).toBe('新產品');
@@ -263,6 +274,7 @@ describe('Products API', () => {
     beforeEach(async () => {
       const product = await BaseProduct.create({
         code: 'P001',
+        shortCode: 'P001',
         name: '原始產品',
         unit: '個',
         purchasePrice: 50,
@@ -276,11 +288,13 @@ describe('Products API', () => {
     it('應該更新產品資訊', async () => {
       const updateData = {
         name: '更新後的產品',
+        unit: '個',
         sellingPrice: 90
       };
 
       const response = await request(app)
         .put(`/api/products/${productId}`)
+        .set('x-auth-token', 'test-mode-token')
         .send(updateData)
         .expect(200);
 
@@ -292,6 +306,7 @@ describe('Products API', () => {
     it('應該驗證更新數據', async () => {
       const response = await request(app)
         .put(`/api/products/${productId}`)
+        .set('x-auth-token', 'test-mode-token')
         .send({ name: '' })
         .expect(400);
 
@@ -302,7 +317,8 @@ describe('Products API', () => {
       const fakeId = new mongoose.Types.ObjectId();
       const response = await request(app)
         .put(`/api/products/${fakeId}`)
-        .send({ name: '測試' })
+        .set('x-auth-token', 'test-mode-token')
+        .send({ name: '測試', unit: '個' })
         .expect(404);
 
       expect(response.body.success).toBe(false);
@@ -315,6 +331,7 @@ describe('Products API', () => {
     beforeEach(async () => {
       const product = await BaseProduct.create({
         code: 'P001',
+        shortCode: 'P001',
         name: '待刪除產品',
         unit: '個',
         purchasePrice: 50,
@@ -328,6 +345,7 @@ describe('Products API', () => {
     it('應該軟刪除產品', async () => {
       const response = await request(app)
         .delete(`/api/products/${productId}`)
+        .set('x-auth-token', 'test-mode-token')
         .expect(200);
 
       expect(response.body.success).toBe(true);
@@ -342,6 +360,7 @@ describe('Products API', () => {
       const fakeId = new mongoose.Types.ObjectId();
       const response = await request(app)
         .delete(`/api/products/${fakeId}`)
+        .set('x-auth-token', 'test-mode-token')
         .expect(404);
 
       expect(response.body.success).toBe(false);

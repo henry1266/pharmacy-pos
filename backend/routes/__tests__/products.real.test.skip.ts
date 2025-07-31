@@ -88,6 +88,7 @@ describe('真實產品 API 測試', () => {
     test('POST /api/products/product 缺少必填欄位應該返回 400', async () => {
       const response = await request(app)
         .post('/api/products/product')
+        .set('Authorization', 'Bearer test-mode-token')
         .send({})
         .expect(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST);
 
@@ -99,6 +100,7 @@ describe('真實產品 API 測試', () => {
     test('POST /api/products/medicine 缺少必填欄位應該返回 400', async () => {
       const response = await request(app)
         .post('/api/products/medicine')
+        .set('Authorization', 'Bearer test-mode-token')
         .send({})
         .expect(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST);
 
@@ -110,16 +112,18 @@ describe('真實產品 API 測試', () => {
     test('POST /api/products/product 有效數據應該創建產品', async () => {
       const productData = {
         code: 'TEST001',
+        shortCode: 'TEST001',
         name: '測試產品',
         unit: '盒',
-        price: 100,
-        cost: 80,
+        purchasePrice: 80,
+        sellingPrice: 100,
         productType: ProductType.PRODUCT,
         description: '這是一個測試產品'
       };
 
       const response = await request(app)
         .post('/api/products/product')
+        .set('Authorization', 'Bearer test-mode-token')
         .send(productData)
         .expect(API_CONSTANTS.HTTP_STATUS.CREATED);
 
@@ -133,20 +137,19 @@ describe('真實產品 API 測試', () => {
     test('POST /api/products/medicine 有效數據應該創建藥品', async () => {
       const medicineData = {
         code: 'MED001',
+        shortCode: 'MED001',
         name: '測試藥品',
         unit: '盒',
-        price: 200,
-        cost: 150,
+        purchasePrice: 150,
+        sellingPrice: 200,
         productType: ProductType.MEDICINE,
-        medicineInfo: {
-          licenseNumber: 'LIC001',
-          ingredients: '測試成分',
-          dosage: '每日三次'
-        }
+        healthInsuranceCode: 'LIC001',
+        healthInsurancePrice: 180
       };
 
       const response = await request(app)
         .post('/api/products/medicine')
+        .set('Authorization', 'Bearer test-mode-token')
         .send(medicineData)
         .expect(API_CONSTANTS.HTTP_STATUS.CREATED);
 
@@ -155,7 +158,6 @@ describe('真實產品 API 測試', () => {
       expect(apiResponse.data).toBeDefined();
       expect(apiResponse.data.code).toBe(medicineData.code);
       expect(apiResponse.data.name).toBe(medicineData.name);
-      expect(apiResponse.data.medicineInfo).toBeDefined();
     });
   });
 
@@ -227,20 +229,24 @@ describe('真實產品 API 測試', () => {
       // 先創建一個產品
       const productData = {
         code: 'DUPLICATE001',
+        shortCode: 'DUPLICATE001',
         name: '重複測試產品',
         unit: '盒',
-        price: 100,
+        purchasePrice: 80,
+        sellingPrice: 100,
         productType: ProductType.PRODUCT
       };
 
       await request(app)
         .post('/api/products/product')
+        .set('Authorization', 'Bearer test-mode-token')
         .send(productData)
         .expect(API_CONSTANTS.HTTP_STATUS.CREATED);
 
       // 嘗試創建相同代碼的產品
       const response = await request(app)
         .post('/api/products/product')
+        .set('Authorization', 'Bearer test-mode-token')
         .send(productData)
         .expect(API_CONSTANTS.HTTP_STATUS.CONFLICT);
 
