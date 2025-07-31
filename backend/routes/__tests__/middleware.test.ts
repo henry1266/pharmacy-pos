@@ -7,17 +7,17 @@ const createTestApp = () => {
   app.use(express.json());
   
   // 測試中間件
-  const testMiddleware = (req: any, res: any, next: any) => {
+  const testMiddleware = (req: express.Request, _res: express.Response, next: express.NextFunction) => {
     (req as any).testData = { processed: true };
     next();
   };
   
-  const errorMiddleware = (req: any, res: any, next: any) => {
+  const errorMiddleware = (_req: express.Request, _res: express.Response, next: express.NextFunction) => {
     const error = new Error('測試錯誤');
     next(error);
   };
   
-  const asyncMiddleware = async (req: any, res: any, next: any) => {
+  const asyncMiddleware = async (req: express.Request, _res: express.Response, next: express.NextFunction) => {
     try {
       await new Promise(resolve => setTimeout(resolve, 10));
       (req as any).asyncData = { processed: true };
@@ -36,7 +36,7 @@ const createTestApp = () => {
     });
   });
   
-  app.get('/test-error', errorMiddleware, (req, res) => {
+  app.get('/test-error', errorMiddleware, (_req, res) => {
     res.json({ success: true });
   });
   
@@ -66,7 +66,7 @@ const createTestApp = () => {
   });
   
   // 錯誤處理中間件
-  app.use((err: any, req: any, res: any, next: any) => {
+  app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     res.status(500).json({
       success: false,
       error: err.message,

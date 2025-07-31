@@ -191,14 +191,14 @@ describe('快取裝飾器', () => {
   class TestService {
     callCount = 0;
 
-    @Cacheable(300, (args) => `test:${args[0]}`)
+    @Cacheable(300, (args: any[]) => `test:${args[0]}`)
     async getData(id: string): Promise<string> {
       this.callCount++;
       return `data-${id}`;
     }
 
     @CacheEvict('test:*')
-    async updateData(id: string): Promise<void> {
+    async updateData(_id: string): Promise<void> {
       // 模擬更新操作
     }
   }
@@ -260,7 +260,6 @@ describe('快取中間件', () => {
     expect(mockNext).toHaveBeenCalled();
 
     // 模擬成功響應
-    const originalJson = mockRes.json;
     const testData = { success: true, data: 'test' };
     mockRes.json(testData);
 

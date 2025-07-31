@@ -37,7 +37,7 @@ module.exports = {
   ],
 
   // 關閉覆蓋率收集以加快速度
-  collectCoverage: false,
+  collectCoverage: true,
 
   // 模組名稱映射
   moduleNameMapper: {

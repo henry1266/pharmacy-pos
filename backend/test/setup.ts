@@ -76,7 +76,7 @@ afterAll(async () => {
 jest.setTimeout(60000);
 
 // 處理未捕獲的異常
-process.on('unhandledRejection', (reason, promise) => {
+process.on('unhandledRejection', (reason, _promise) => {
   console.warn('未處理的 Promise 拒絕:', reason);
 });
 

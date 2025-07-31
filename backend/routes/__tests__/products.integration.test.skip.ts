@@ -416,12 +416,13 @@ describe('Products API 整合測試', () => {
       expect(response.body).toHaveProperty('message', '產品未找到');
     });
 
-    it('應該返回 400 當缺少 ID 參數', async () => {
+    it('應該返回 404 當缺少 ID 參數', async () => {
       const response = await request(app)
         .delete('/api/products/')
         .expect(404); // Express 會返回 404 因為路由不匹配
 
       // 這個測試驗證路由處理
+      expect(response.body.success).toBe(false);
     });
   });
 

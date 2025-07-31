@@ -152,7 +152,7 @@ describe('AutoAccountingEntryService - 記帳格式測試', () => {
     });
 
     test('沒有選擇科目：應返回 false', () => {
-      mockPurchaseOrder.selectedAccountIds = undefined;
+      mockPurchaseOrder.selectedAccountIds = [];
       const result = (AutoAccountingEntryService as any).shouldCreateAutoEntry(mockPurchaseOrder);
       expect(result).toBe(false);
     });

@@ -1,7 +1,5 @@
 import BaseProduct from '../models/BaseProduct';
 import ProductPackageUnit from '../models/ProductPackageUnit';
-import { IBaseProductDocument } from '../src/types/models';
-import { PackageUnitService } from './PackageUnitService';
 
 /**
  * 優化的產品服務
@@ -361,11 +359,11 @@ export class OptimizedProductService {
         }
       },
       {
-        $sort: { stockDifference: -1 }
+        $sort: { stockDifference: -1 as -1 }
       }
     ];
 
-    const lowStockProducts = await BaseProduct.aggregate(pipeline);
+    const lowStockProducts = await BaseProduct.aggregate(pipeline as any);
     
     return {
       products: lowStockProducts,
@@ -456,7 +454,7 @@ export class OptimizedProductService {
         }
       },
       {
-        $sort: { totalRevenue: -1 }
+        $sort: { totalRevenue: -1 as -1 }
       },
       {
         $limit: limit
@@ -468,11 +466,11 @@ export class OptimizedProductService {
         $lookup: {
           from: 'sales',
           let: { productId: '$_id' },
-          pipeline: pipeline,
+          pipeline: pipeline as any,
           as: 'salesData'
         }
       }
-    ]);
+    ] as any);
 
     return stats;
   }

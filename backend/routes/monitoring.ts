@@ -1,4 +1,4 @@
-import express, { Request, Response, Router } from 'express';
+import express, { Request, Response, NextFunction, Router } from 'express';
 import mongoose from 'mongoose';
 import {
   getPerformanceStats,
@@ -25,8 +25,13 @@ router.get('/health', async (_req: Request, res: Response) => {
 
     // 檢查資料庫連接
     try {
-      await mongoose.connection.db.admin().ping();
-      health.database = 'connected';
+      if (mongoose.connection.db) {
+        await mongoose.connection.db.admin().ping();
+        health.database = 'connected';
+      } else {
+        health.database = 'disconnected';
+        health.status = 'error';
+      }
     } catch (error) {
       health.database = 'disconnected';
       health.status = 'error';
@@ -255,25 +260,26 @@ router.get('/database/status', async (_req: Request, res: Response) => {
 });
 
 // 清除性能指標（僅限開發環境）
-router.post('/performance/clear', (_req: Request, res: Response): void => {
+router.post('/performance/clear', (_req: Request, res: Response, _next: NextFunction) => {
   try {
     if (process.env.NODE_ENV !== 'development') {
-      return res.status(403).json({
+      res.status(403).json({
         success: false,
         error: 'This endpoint is only available in development environment',
         timestamp: new Date().toISOString()
       });
+      return;
     }
 
     clearPerformanceMetrics();
     
-    return res.json({
+    res.json({
       success: true,
       message: 'Performance metrics cleared',
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
       timestamp: new Date().toISOString()
@@ -282,14 +288,15 @@ router.post('/performance/clear', (_req: Request, res: Response): void => {
 });
 
 // 記憶體垃圾回收（僅限開發環境）
-router.post('/system/gc', (_req: Request, res: Response): void => {
+router.post('/system/gc', (_req: Request, res: Response, _next: NextFunction) => {
   try {
     if (process.env.NODE_ENV !== 'development') {
-      return res.status(403).json({
+      res.status(403).json({
         success: false,
         error: 'This endpoint is only available in development environment',
         timestamp: new Date().toISOString()
       });
+      return;
     }
 
     const beforeGC = process.memoryUsage();
@@ -298,16 +305,17 @@ router.post('/system/gc', (_req: Request, res: Response): void => {
     if (global.gc) {
       global.gc();
     } else {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         error: 'Garbage collection is not exposed. Run with --expose-gc flag.',
         timestamp: new Date().toISOString()
       });
+      return;
     }
 
     const afterGC = process.memoryUsage();
 
-    return res.json({
+    res.json({
       success: true,
       message: 'Garbage collection completed',
       data: {
@@ -330,7 +338,7 @@ router.post('/system/gc', (_req: Request, res: Response): void => {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
       timestamp: new Date().toISOString()

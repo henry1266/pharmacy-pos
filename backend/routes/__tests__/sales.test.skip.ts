@@ -361,12 +361,6 @@ describe('Sales API', () => {
     });
 
     it('應該更新庫存記錄', async () => {
-      // 記錄更新前的庫存
-      const beforeUpdate = await Inventory.find({ 
-        product: testProduct._id,
-        type: 'sale'
-      });
-
       const updateData = {
         items: [{
           product: testProduct._id.toString(),

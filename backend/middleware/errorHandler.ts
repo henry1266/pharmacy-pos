@@ -299,11 +299,10 @@ export const requireRole = (roles: string | string[]) => {
 };
 
 // 資源擁有者檢查中間件
-export const requireOwnership = (resourceIdParam: string = 'id', _userIdField: string = 'userId') => {
+export const requireOwnership = (_resourceIdParam: string = 'id', _userIdField: string = 'userId') => {
   return async (req: Request, _res: Response, next: NextFunction) => {
     try {
       const user = (req as any).user;
-      const _resourceId = req.params[resourceIdParam];
       
       if (!user) {
         throw new AuthenticationError('請先登入');
@@ -317,6 +316,7 @@ export const requireOwnership = (resourceIdParam: string = 'id', _userIdField: s
       // 檢查資源是否屬於當前用戶
       // 這裡需要根據具體的資源類型來實現檢查邏輯
       // 示例：檢查訂單是否屬於當前用戶
+      // const resourceId = req.params[resourceIdParam];
       
       next();
     } catch (error) {
