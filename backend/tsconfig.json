@@ -11,6 +11,7 @@
     
     /* Node.js 環境設定 */
     "allowJs": true,
+    "isolatedModules": true,
 
     /* 路徑解析 - 後端需要訪問 shared */
     "baseUrl": "../",

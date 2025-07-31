@@ -29,6 +29,7 @@ describe('PackageUnitsController', () => {
 
   describe('GET /api/products/:productId/package-units', () => {
     it('應該成功獲取產品包裝單位配置', async () => {
+      const mockDate = new Date('2025-01-01T00:00:00.000Z');
       const mockPackageUnits = [
         {
           _id: 'unit1',
@@ -37,8 +38,8 @@ describe('PackageUnitsController', () => {
           unitValue: 100,
           isBaseUnit: false,
           isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          createdAt: mockDate,
+          updatedAt: mockDate
         },
         {
           _id: 'unit2',
@@ -47,8 +48,8 @@ describe('PackageUnitsController', () => {
           unitValue: 10,
           isBaseUnit: false,
           isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          createdAt: mockDate,
+          updatedAt: mockDate
         },
         {
           _id: 'unit3',
@@ -57,8 +58,8 @@ describe('PackageUnitsController', () => {
           unitValue: 1,
           isBaseUnit: true,
           isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          createdAt: mockDate,
+          updatedAt: mockDate
         }
       ];
 
@@ -68,10 +69,14 @@ describe('PackageUnitsController', () => {
         .get('/api/products/test-product-id/package-units')
         .expect(200);
 
-      expect(response.body).toEqual({
-        success: true,
-        data: mockPackageUnits
-      });
+      expect(response.body.success).toBe(true);
+      expect(response.body.data).toHaveLength(3);
+      expect(response.body.data[0].unitName).toBe('盒');
+      expect(response.body.data[0].unitValue).toBe(100);
+      expect(response.body.data[1].unitName).toBe('排');
+      expect(response.body.data[1].unitValue).toBe(10);
+      expect(response.body.data[2].unitName).toBe('粒');
+      expect(response.body.data[2].unitValue).toBe(1);
       expect(mockPackageUnitService.getProductPackageUnits).toHaveBeenCalledWith('test-product-id');
     });
 

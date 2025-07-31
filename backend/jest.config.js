@@ -81,7 +81,10 @@ module.exports = {
 
   // 轉換設定
   transform: {
-    '^.+\\.ts$': 'ts-jest'
+    '^.+\\.ts$': ['ts-jest', {
+      useESM: false,
+      isolatedModules: true
+    }]
   },
 
   // 模組檔案副檔名
@@ -90,10 +93,6 @@ module.exports = {
     'js',
     'json'
   ],
-
-  // ts-jest 設定
-  extensionsToTreatAsEsm: ['.ts'],
-  preset: 'ts-jest/presets/default',
 
   // 測試超時時間（毫秒）
   testTimeout: 30000,
@@ -117,13 +116,5 @@ module.exports = {
   maxWorkers: 1,
 
   // 設置檔案
-  setupFilesAfterEnv: ['<rootDir>/test/setup.ts'],
-
-  // 全域設定
-  globals: {
-    'ts-jest': {
-      useESM: false,
-      isolatedModules: true
-    }
-  }
+  setupFilesAfterEnv: ['<rootDir>/test/setup.ts']
 };

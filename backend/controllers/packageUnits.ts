@@ -19,7 +19,7 @@ export class PackageUnitsController {
     try {
       const { productId } = req.params;
       
-      if (!productId) {
+      if (!productId || !productId.trim()) {
         res.status(400).json({
           success: false,
           error: '產品ID不能為空',
@@ -54,7 +54,7 @@ export class PackageUnitsController {
       const { productId } = req.params;
       const { date } = req.query;
       
-      if (!productId) {
+      if (!productId || !productId.trim()) {
         res.status(400).json({
           success: false,
           error: '產品ID不能為空',
@@ -101,7 +101,7 @@ export class PackageUnitsController {
       const { productId } = req.params;
       const { packageUnits } = req.body;
       
-      if (!productId) {
+      if (!productId || !productId.trim()) {
         res.status(400).json({
           success: false,
           error: '產品ID不能為空',
@@ -155,7 +155,7 @@ export class PackageUnitsController {
       const { productId } = req.params;
       const { packageUnits } = req.body;
       
-      if (!productId) {
+      if (!productId || !productId.trim()) {
         res.status(400).json({
           success: false,
           error: '產品ID不能為空',
@@ -208,7 +208,7 @@ export class PackageUnitsController {
     try {
       const { productId } = req.params;
       
-      if (!productId) {
+      if (!productId || !productId.trim()) {
         res.status(400).json({
           success: false,
           error: '產品ID不能為空',
@@ -287,7 +287,7 @@ export class PackageUnitsController {
     try {
       const { productId, baseQuantity, useHistoricalConfig, configDate } = req.body;
       
-      if (!productId) {
+      if (!productId || !productId.trim()) {
         res.status(400).json({
           success: false,
           error: '產品ID不能為空',
@@ -352,7 +352,7 @@ export class PackageUnitsController {
     try {
       const { productId, packageInput } = req.body;
       
-      if (!productId) {
+      if (!productId || !productId.trim()) {
         res.status(400).json({
           success: false,
           error: '產品ID不能為空',

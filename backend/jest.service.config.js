@@ -10,21 +10,9 @@ module.exports = {
 
   // 只測試特定的檔案 - 增加到約 164+ 個測試
   testMatch: [
-    '**/routes/__tests__/basic.test.ts',                    // 5 個測試
-    '**/routes/__tests__/customers.test.ts',               // 15 個測試
-    '**/routes/__tests__/dashboard.test.ts',               // 15 個測試
-    '**/routes/__tests__/inventory.test.ts',               // 15 個測試
-    '**/routes/__tests__/middleware.test.ts',               // 15 個測試
-    '**/routes/__tests__/monitoring.test.ts',          // 測試
-    '**/routes/__tests__/products.real.test.ts',       // 測試
-    '**/routes/__tests__/products.shared.test.ts',          // 約 13 個測試
-    '**/routes/__tests__/products.simple.test.ts',          // 約 10 個測試
-    '**/routes/__tests__/products.test.ts',                 // 20 個測試
-    '**/routes/__tests__/products.integration.test.ts', // 測試
-    '**/routes/__tests__/sales.test.ts',               // 測試
-    '**/routes/__tests__/simple.test.ts',                   // 11 個測試
-    '**/routes/__tests__/standalone.test.ts',               // 8 個測試
-    '**/routes/__tests__/suppliers.test.ts',                // 測試
+    '**/services/__tests__/AutoAccountingEntryService.test.ts',                    // 測試
+    '**/services/__tests__/CacheService.test.ts',                // 測試
+    '**/services/__tests__/PackageUnitService.test.ts',       // 測試
   ],
 
   // 忽略的檔案和目錄
