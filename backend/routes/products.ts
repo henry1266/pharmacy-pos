@@ -891,6 +891,85 @@ async function saveAndPopulateMedicine(medicine: IMedicineDocument, res: Respons
 }
 
 
+// @route   PUT api/products/:id/package-units
+// @desc    更新產品包裝單位
+// @access  Public
+router.put('/:id/package-units', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const productId = req.params.id;
+    const { packageUnits } = req.body;
+
+    if (!productId) {
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json({
+        success: false,
+        message: '缺少產品ID參數',
+        timestamp: new Date()
+      } as ApiResponse);
+      return;
+    }
+
+    // 檢查產品是否存在
+    const existingProduct = await BaseProduct.findById(productId);
+    if (!existingProduct) {
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json({
+        success: false,
+        message: ERROR_MESSAGES.PRODUCT.NOT_FOUND,
+        timestamp: new Date()
+      } as ApiResponse);
+      return;
+    }
+
+    // 處理包裝單位數據
+    try {
+      if (packageUnits && Array.isArray(packageUnits)) {
+        if (packageUnits.length > 0) {
+          await PackageUnitService.createOrUpdatePackageUnits(productId, packageUnits);
+        } else {
+          // 如果包裝單位數組為空，刪除現有的包裝單位
+          await PackageUnitService.deletePackageUnits(productId);
+        }
+      } else {
+        // 如果沒有提供包裝單位數據，刪除現有的包裝單位
+        await PackageUnitService.deletePackageUnits(productId);
+      }
+
+      // 獲取更新後的包裝單位數據
+      const updatedPackageUnits = await PackageUnitService.getProductPackageUnits(productId);
+
+      res.json({
+        success: true,
+        message: '包裝單位更新成功',
+        data: updatedPackageUnits,
+        timestamp: new Date()
+      } as ApiResponse<any>);
+    } catch (packageError) {
+      console.error('更新包裝單位失敗:', packageError);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json({
+        success: false,
+        message: '更新包裝單位失敗',
+        error: packageError instanceof Error ? packageError.message : '未知錯誤',
+        timestamp: new Date()
+      } as ApiResponse);
+    }
+  } catch (err) {
+    console.error('更新包裝單位錯誤:', err);
+    if (err instanceof Error && err.name === 'CastError') {
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json({
+        success: false,
+        message: ERROR_MESSAGES.PRODUCT.NOT_FOUND,
+        timestamp: new Date()
+      } as ApiResponse);
+      return;
+    }
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.INTERNAL_ERROR,
+      error: err instanceof Error ? err.message : '未知錯誤',
+      timestamp: new Date()
+    } as ApiResponse);
+  }
+});
+
 // 臨時測試端點：創建測試數據（僅用於開發測試）
 router.post('/create-test-data', async (_req: Request, res: Response): Promise<void> => {
   try {

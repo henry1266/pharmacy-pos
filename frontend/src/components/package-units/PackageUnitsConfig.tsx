@@ -14,7 +14,9 @@ import {
   Grid,
   Tooltip,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
+  Alert,
+  CircularProgress
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -24,6 +26,7 @@ import {
   Cancel as CancelIcon,
   DragIndicator as DragIcon
 } from '@mui/icons-material';
+import axios from 'axios';
 import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
 import { PackageUnitsConfigProps } from './types';
 import { useUserSettings } from '../../hooks/useUserSettings';
@@ -49,6 +52,9 @@ const PackageUnitsConfig: React.FC<PackageUnitsConfigProps> = ({
   // 狀態管理
   const [editingUnit, setEditingUnit] = useState<ProductPackageUnit | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   // 新增單位的表單狀態
   const [newUnit, setNewUnit] = useState<Partial<ProductPackageUnit>>({
@@ -62,8 +68,64 @@ const PackageUnitsConfig: React.FC<PackageUnitsConfigProps> = ({
     return [...packageUnits].sort((a, b) => b.unitValue - a.unitValue);
   }, [packageUnits]);
 
+  // 保存包裝單位到後端
+  const savePackageUnits = useCallback(async (units: ProductPackageUnit[]) => {
+    if (!productId) {
+      setError('產品ID不能為空');
+      return false;
+    }
+
+    try {
+      setSaving(true);
+      setError(null);
+      setSuccess(null);
+
+      console.log('🔄 開始保存包裝單位:', {
+        productId,
+        units,
+        apiUrl: `/api/products/${productId}/package-units`
+      });
+
+      const response = await axios.put(`/api/products/${productId}/package-units`, {
+        packageUnits: units
+      });
+
+      console.log('✅ API 響應:', response);
+
+      if (response.data.success) {
+        console.log('✅ 保存成功:', response.data);
+        setSuccess('包裝單位保存成功');
+        
+        // 更新父組件狀態，確保其他頁面能看到最新數據
+        if (response.data.data && Array.isArray(response.data.data)) {
+          onPackageUnitsChange(response.data.data);
+        }
+        
+        // 清除成功訊息
+        setTimeout(() => setSuccess(null), 3000);
+        return true;
+      } else {
+        console.error('❌ 保存失敗 - 響應不成功:', response.data);
+        setError(response.data.message || '保存失敗');
+        return false;
+      }
+    } catch (err: any) {
+      console.error('❌ 保存包裝單位失敗:', err);
+      console.error('❌ 錯誤詳情:', {
+        message: err.message,
+        response: err.response,
+        status: err.response?.status,
+        data: err.response?.data
+      });
+      setError(err.response?.data?.message || err.message || '保存包裝單位失敗');
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  }, [productId]);
+
   // 處理新增單位
-  const handleAddUnit = useCallback(() => {
+  const handleAddUnit = useCallback(async () => {
     if (!newUnit.unitName || !newUnit.unitValue) {
       return;
     }
@@ -73,23 +135,28 @@ const PackageUnitsConfig: React.FC<PackageUnitsConfigProps> = ({
       productId: productId || '',
       unitName: newUnit.unitName,
       unitValue: newUnit.unitValue,
-      isBaseUnit: false, // 所有包裝單位都不是基礎單位
+      isBaseUnit: newUnit.unitValue === 1, // 如果數值為1，設為基礎單位
       isActive: true,
       createdAt: new Date(),
       updatedAt: new Date()
     };
 
     const updatedUnits = [...packageUnits, unit];
-    onPackageUnitsChange(updatedUnits);
     
-    // 重置表單
-    setNewUnit({
-      unitName: '',
-      unitValue: 1,
-      isBaseUnit: false
-    });
-    setShowAddDialog(false);
-  }, [newUnit, packageUnits, onPackageUnitsChange, productId]);
+    // 立即保存到後端
+    const saveSuccess = await savePackageUnits(updatedUnits);
+    if (saveSuccess) {
+      onPackageUnitsChange(updatedUnits);
+      
+      // 重置表單
+      setNewUnit({
+        unitName: '',
+        unitValue: 1,
+        isBaseUnit: false
+      });
+      setShowAddDialog(false);
+    }
+  }, [newUnit, packageUnits, onPackageUnitsChange, productId, savePackageUnits]);
 
   // 處理編輯單位
   const handleEditUnit = useCallback((unit: ProductPackageUnit) => {
@@ -97,21 +164,31 @@ const PackageUnitsConfig: React.FC<PackageUnitsConfigProps> = ({
   }, []);
 
   // 處理保存編輯
-  const handleSaveEdit = useCallback(() => {
+  const handleSaveEdit = useCallback(async () => {
     if (!editingUnit) return;
 
-    const updatedUnits = packageUnits.map(unit => 
+    const updatedUnits = packageUnits.map(unit =>
       unit.unitName === editingUnit.unitName ? editingUnit : unit
     );
-    onPackageUnitsChange(updatedUnits);
-    setEditingUnit(null);
-  }, [editingUnit, packageUnits, onPackageUnitsChange]);
+    
+    // 立即保存到後端
+    const saveSuccess = await savePackageUnits(updatedUnits);
+    if (saveSuccess) {
+      onPackageUnitsChange(updatedUnits);
+      setEditingUnit(null);
+    }
+  }, [editingUnit, packageUnits, onPackageUnitsChange, savePackageUnits]);
 
   // 處理刪除單位
-  const handleDeleteUnit = useCallback((unitName: string) => {
+  const handleDeleteUnit = useCallback(async (unitName: string) => {
     const updatedUnits = packageUnits.filter(unit => unit.unitName !== unitName);
-    onPackageUnitsChange(updatedUnits);
-  }, [packageUnits, onPackageUnitsChange]);
+    
+    // 立即保存到後端
+    const saveSuccess = await savePackageUnits(updatedUnits);
+    if (saveSuccess) {
+      onPackageUnitsChange(updatedUnits);
+    }
+  }, [packageUnits, onPackageUnitsChange, savePackageUnits]);
 
 
   // 單位行組件
@@ -263,7 +340,7 @@ const PackageUnitsConfig: React.FC<PackageUnitsConfigProps> = ({
                       <IconButton
                         size={isMobile ? "medium" : "small"}
                         onClick={() => handleEditUnit(unit)}
-                        disabled={disabled}
+                        disabled={disabled || saving}
                         sx={{ minWidth: isMobile ? 44 : 'auto' }}
                       >
                         <EditIcon />
@@ -274,7 +351,7 @@ const PackageUnitsConfig: React.FC<PackageUnitsConfigProps> = ({
                       <IconButton
                         size={isMobile ? "medium" : "small"}
                         onClick={() => handleDeleteUnit(unit.unitName)}
-                        disabled={disabled || !canDelete}
+                        disabled={disabled || !canDelete || saving}
                         color="error"
                         sx={{ minWidth: isMobile ? 44 : 'auto' }}
                       >
@@ -293,6 +370,18 @@ const PackageUnitsConfig: React.FC<PackageUnitsConfigProps> = ({
 
   return (
     <Box>
+      {/* 錯誤和成功訊息 */}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      )}
+      {success && (
+        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess(null)}>
+          {success}
+        </Alert>
+      )}
+
       {/* 標題和操作 */}
       <Box sx={{
         display: 'flex',
@@ -308,13 +397,16 @@ const PackageUnitsConfig: React.FC<PackageUnitsConfigProps> = ({
           sx={{ mb: isMobile ? 1 : 0 }}
         >
           包裝單位配置
+          {saving && (
+            <CircularProgress size={16} sx={{ ml: 1 }} />
+          )}
         </Typography>
         <Button
           variant="contained"
           size={isMobile ? "medium" : "small"}
           onClick={() => setShowAddDialog(true)}
           startIcon={<AddIcon />}
-          disabled={disabled}
+          disabled={disabled || saving}
           fullWidth={isMobile}
         >
           新增單位
@@ -421,14 +513,14 @@ const PackageUnitsConfig: React.FC<PackageUnitsConfigProps> = ({
             onClick={handleAddUnit}
             variant="contained"
             size={isMobile ? "large" : "medium"}
-            disabled={!newUnit.unitName || !newUnit.unitValue}
+            disabled={!newUnit.unitName || !newUnit.unitValue || saving}
             fullWidth={isMobile}
             sx={{
               height: isMobile ? 48 : 'auto',
               fontSize: isMobile ? '1rem' : '0.875rem'
             }}
           >
-            新增
+            {saving ? '保存中...' : '新增'}
           </Button>
         </DialogActions>
       </Dialog>

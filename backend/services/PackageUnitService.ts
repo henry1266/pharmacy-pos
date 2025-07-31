@@ -23,9 +23,15 @@ export class PackageUnitService {
     const errors: string[] = [];
     const warnings: string[] = [];
     
-    if (!Array.isArray(units) || units.length === 0) {
-      errors.push('包裝單位配置不能為空');
+    // 允許空的包裝單位配置
+    if (!Array.isArray(units)) {
+      errors.push('包裝單位配置必須是陣列');
       return { isValid: false, errors, warnings };
+    }
+    
+    if (units.length === 0) {
+      // 空配置是有效的，直接返回成功
+      return { isValid: true, errors: [], warnings: [] };
     }
     
     // 1. 檢查單位名稱唯一性
@@ -42,19 +48,18 @@ export class PackageUnitService {
       errors.push(`包裝數量重複: ${[...new Set(duplicateValues)].join(', ')}`);
     }
     
-    // 3. 檢查基礎單位
+    // 3. 檢查基礎單位（放寬限制）
     const baseUnits = units.filter(u => u.isBaseUnit);
-    if (baseUnits.length === 0) {
-      errors.push('必須有一個基礎單位');
-    } else if (baseUnits.length > 1) {
+    if (baseUnits.length > 1) {
       errors.push('只能有一個基礎單位');
-    } else {
-      // 檢查基礎單位的數值必須為 1
+    } else if (baseUnits.length === 1) {
+      // 如果有基礎單位，檢查其數值
       const baseUnit = baseUnits[0];
       if (baseUnit.unitValue !== 1) {
-        errors.push('基礎單位的數值必須為 1');
+        warnings.push('建議基礎單位的數值設為 1');
       }
     }
+    // 如果沒有基礎單位，系統會自動處理，不報錯
     
     // 4. 檢查 unitValue 唯一性（已在前面檢查過，這裡是註釋說明）
     // unitValue 實際上就是優先級的體現，數值越大優先級越高
