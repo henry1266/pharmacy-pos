@@ -1,3 +1,7 @@
+// 在導入任何模組之前設置環境變數
+process.env.REACT_APP_TEST_MODE = 'true';
+process.env.NODE_ENV = 'test';
+
 import request from 'supertest';
 import { createApp } from '../../app';
 import BaseProduct from '../../models/BaseProduct';

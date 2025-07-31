@@ -12,7 +12,6 @@ module.exports = {
   testMatch: [
     '**/routes/__tests__/basic.test.ts',                    // 5 個測試
     '**/routes/__tests__/customers.test.ts',               // 15 個測試
-    '**/routes/__tests__/customers.test.ts',               // 15 個測試
     '**/routes/__tests__/dashboard.test.ts',               // 15 個測試
     '**/routes/__tests__/inventory.test.ts',               // 15 個測試
     '**/routes/__tests__/middleware.test.ts',               // 15 個測試
