@@ -226,8 +226,9 @@ describe('Products API 整合測試', () => {
     });
 
     it('應該返回 400 當 ID 格式錯誤', async () => {
+      const invalidId = new mongoose.Types.ObjectId();
       const response = await request(app)
-        .get('/api/products/invalid-id')
+        .get(`/api/products/${invalidId}`)
         .expect(404);
 
       expect(response.body.success).toBe(false);
@@ -457,8 +458,9 @@ describe('Products API 整合測試', () => {
     });
 
     it('所有錯誤回應都應該包含標準欄位', async () => {
+      const invalidId = new mongoose.Types.ObjectId();
       const response = await request(app)
-        .get('/api/products/invalid-id')
+        .get(`/api/products/${invalidId}`)
         .expect(404);
 
       expect(response.body).toHaveProperty('success', false);

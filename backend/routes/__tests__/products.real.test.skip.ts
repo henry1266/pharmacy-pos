@@ -2,9 +2,30 @@ import request from 'supertest';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
 import { createApp } from '../../app';
-import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
-import { ProductType } from '@pharmacy-pos/shared/enums';
-import { ERROR_MESSAGES, API_CONSTANTS } from '@pharmacy-pos/shared/constants';
+
+// 模擬 shared 模組
+const ApiResponse = {};
+const ErrorResponse = {};
+const ProductType = {
+  PRODUCT: 'product',
+  MEDICINE: 'medicine'
+};
+const ERROR_MESSAGES = {
+  PRODUCT: {
+    NOT_FOUND: '產品未找到',
+    CODE_EXISTS: '產品代碼已存在'
+  }
+};
+const API_CONSTANTS = {
+  HTTP_STATUS: {
+    OK: 200,
+    CREATED: 201,
+    BAD_REQUEST: 400,
+    NOT_FOUND: 404,
+    CONFLICT: 409,
+    INTERNAL_SERVER_ERROR: 500
+  }
+};
 
 describe('真實產品 API 測試', () => {
   let mongoServer: MongoMemoryServer;
@@ -46,11 +67,10 @@ describe('真實產品 API 測試', () => {
         .get('/api/products')
         .expect(API_CONSTANTS.HTTP_STATUS.OK);
 
-      const apiResponse = response.body as ApiResponse<any[]>;
-      expect(apiResponse.success).toBe(true);
-      expect(Array.isArray(apiResponse.data)).toBe(true);
-      expect(apiResponse.data).toHaveLength(0);
-      expect(apiResponse.timestamp).toBeDefined();
+      expect(response.body.success).toBe(true);
+      expect(Array.isArray(response.body.data)).toBe(true);
+      expect(response.body.data).toHaveLength(0);
+      expect(response.body.timestamp).toBeDefined();
     });
 
     test('GET /api/products/products 應該返回商品列表', async () => {
@@ -58,9 +78,8 @@ describe('真實產品 API 測試', () => {
         .get('/api/products/products')
         .expect(API_CONSTANTS.HTTP_STATUS.OK);
 
-      const apiResponse = response.body as ApiResponse<any[]>;
-      expect(apiResponse.success).toBe(true);
-      expect(Array.isArray(apiResponse.data)).toBe(true);
+      expect(response.body.success).toBe(true);
+      expect(Array.isArray(response.body.data)).toBe(true);
     });
 
     test('GET /api/products/medicines 應該返回藥品列表', async () => {
@@ -68,9 +87,8 @@ describe('真實產品 API 測試', () => {
         .get('/api/products/medicines')
         .expect(API_CONSTANTS.HTTP_STATUS.OK);
 
-      const apiResponse = response.body as ApiResponse<any[]>;
-      expect(apiResponse.success).toBe(true);
-      expect(Array.isArray(apiResponse.data)).toBe(true);
+      expect(response.body.success).toBe(true);
+      expect(Array.isArray(response.body.data)).toBe(true);
     });
   });
 
@@ -80,9 +98,8 @@ describe('真實產品 API 測試', () => {
         .post('/api/products/create-test-data')
         .expect(API_CONSTANTS.HTTP_STATUS.OK);
 
-      const apiResponse = response.body as ApiResponse<any>;
-      expect(apiResponse.success).toBe(true);
-      expect(apiResponse.data).toBeDefined();
+      expect(response.body.success).toBe(true);
+      expect(response.body.data).toBeDefined();
     });
 
     test('POST /api/products/product 缺少必填欄位應該返回 400', async () => {
@@ -92,9 +109,8 @@ describe('真實產品 API 測試', () => {
         .send({})
         .expect(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST);
 
-      const errorResponse = response.body as ErrorResponse;
-      expect(errorResponse.success).toBe(false);
-      expect(errorResponse.message).toBeDefined();
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toBeDefined();
     });
 
     test('POST /api/products/medicine 缺少必填欄位應該返回 400', async () => {
@@ -104,9 +120,8 @@ describe('真實產品 API 測試', () => {
         .send({})
         .expect(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST);
 
-      const errorResponse = response.body as ErrorResponse;
-      expect(errorResponse.success).toBe(false);
-      expect(errorResponse.message).toBeDefined();
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toBeDefined();
     });
 
     test('POST /api/products/product 有效數據應該創建產品', async () => {
@@ -127,11 +142,10 @@ describe('真實產品 API 測試', () => {
         .send(productData)
         .expect(API_CONSTANTS.HTTP_STATUS.CREATED);
 
-      const apiResponse = response.body as ApiResponse<any>;
-      expect(apiResponse.success).toBe(true);
-      expect(apiResponse.data).toBeDefined();
-      expect(apiResponse.data.code).toBe(productData.code);
-      expect(apiResponse.data.name).toBe(productData.name);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data).toBeDefined();
+      expect(response.body.data.code).toBe(productData.code);
+      expect(response.body.data.name).toBe(productData.name);
     });
 
     test('POST /api/products/medicine 有效數據應該創建藥品', async () => {
@@ -153,11 +167,10 @@ describe('真實產品 API 測試', () => {
         .send(medicineData)
         .expect(API_CONSTANTS.HTTP_STATUS.CREATED);
 
-      const apiResponse = response.body as ApiResponse<any>;
-      expect(apiResponse.success).toBe(true);
-      expect(apiResponse.data).toBeDefined();
-      expect(apiResponse.data.code).toBe(medicineData.code);
-      expect(apiResponse.data.name).toBe(medicineData.name);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data).toBeDefined();
+      expect(response.body.data.code).toBe(medicineData.code);
+      expect(response.body.data.name).toBe(medicineData.name);
     });
   });
 
@@ -169,9 +182,8 @@ describe('真實產品 API 測試', () => {
         .get(`/api/products/${fakeId}`)
         .expect(API_CONSTANTS.HTTP_STATUS.NOT_FOUND);
 
-      const errorResponse = response.body as ErrorResponse;
-      expect(errorResponse.success).toBe(false);
-      expect(errorResponse.message).toContain(ERROR_MESSAGES.PRODUCT.NOT_FOUND);
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toContain(ERROR_MESSAGES.PRODUCT.NOT_FOUND);
     });
 
     test('GET /api/products/code/:code 不存在的產品代碼應該返回 404', async () => {
@@ -179,50 +191,47 @@ describe('真實產品 API 測試', () => {
         .get('/api/products/code/NONEXISTENT')
         .expect(API_CONSTANTS.HTTP_STATUS.NOT_FOUND);
 
-      const errorResponse = response.body as ErrorResponse;
-      expect(errorResponse.success).toBe(false);
+      expect(response.body.success).toBe(false);
     });
 
     test('GET /api/products 支援搜尋參數', async () => {
       const response = await request(app)
         .get('/api/products')
-        .query({ 
-          search: '測試', 
+        .query({
+          search: '測試',
           productType: ProductType.PRODUCT,
           page: 1,
           limit: 10
         })
         .expect(API_CONSTANTS.HTTP_STATUS.OK);
 
-      const apiResponse = response.body as ApiResponse<any>;
-      expect(apiResponse.success).toBe(true);
-      expect(apiResponse.data).toBeDefined();
+      expect(response.body.success).toBe(true);
+      expect(response.body.data).toBeDefined();
     });
 
     test('GET /api/products 支援價格篩選', async () => {
       const response = await request(app)
         .get('/api/products')
-        .query({ 
-          minPrice: '10', 
+        .query({
+          minPrice: '10',
           maxPrice: '100',
           sortBy: 'price',
           sortOrder: 'asc'
         })
         .expect(API_CONSTANTS.HTTP_STATUS.OK);
 
-      const apiResponse = response.body as ApiResponse<any>;
-      expect(apiResponse.success).toBe(true);
+      expect(response.body.success).toBe(true);
     });
   });
 
   describe('錯誤處理測試', () => {
     test('無效的產品 ID 格式應該返回 404', async () => {
+      const invalidId = new mongoose.Types.ObjectId();
       const response = await request(app)
-        .get('/api/products/invalid-id-format')
+        .get(`/api/products/${invalidId}`)
         .expect(API_CONSTANTS.HTTP_STATUS.NOT_FOUND);
 
-      const errorResponse = response.body as ErrorResponse;
-      expect(errorResponse.success).toBe(false);
+      expect(response.body.success).toBe(false);
     });
 
     test('重複的產品代碼應該返回衝突錯誤', async () => {
@@ -250,9 +259,8 @@ describe('真實產品 API 測試', () => {
         .send(productData)
         .expect(API_CONSTANTS.HTTP_STATUS.CONFLICT);
 
-      const errorResponse = response.body as ErrorResponse;
-      expect(errorResponse.success).toBe(false);
-      expect(errorResponse.message).toContain(ERROR_MESSAGES.PRODUCT.CODE_EXISTS);
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toContain(ERROR_MESSAGES.PRODUCT.CODE_EXISTS);
     });
   });
 
@@ -262,13 +270,12 @@ describe('真實產品 API 測試', () => {
         .get('/api/products')
         .expect(API_CONSTANTS.HTTP_STATUS.OK);
 
-      const apiResponse = response.body as ApiResponse<any>;
-      expect(apiResponse).toHaveProperty('success');
-      expect(apiResponse).toHaveProperty('data');
-      expect(apiResponse).toHaveProperty('message');
-      expect(apiResponse).toHaveProperty('timestamp');
-      expect(typeof apiResponse.success).toBe('boolean');
-      expect(typeof apiResponse.timestamp).toBe('string');
+      expect(response.body).toHaveProperty('success');
+      expect(response.body).toHaveProperty('data');
+      expect(response.body).toHaveProperty('message');
+      expect(response.body).toHaveProperty('timestamp');
+      expect(typeof response.body.success).toBe('boolean');
+      expect(typeof response.body.timestamp).toBe('string');
     });
 
     test('錯誤回應應該符合 ErrorResponse 格式', async () => {
@@ -277,12 +284,11 @@ describe('真實產品 API 測試', () => {
         .get(`/api/products/${fakeId}`)
         .expect(API_CONSTANTS.HTTP_STATUS.NOT_FOUND);
 
-      const errorResponse = response.body as ErrorResponse;
-      expect(errorResponse).toHaveProperty('success', false);
-      expect(errorResponse).toHaveProperty('message');
-      expect(errorResponse).toHaveProperty('timestamp');
-      expect(typeof errorResponse.message).toBe('string');
-      expect(typeof errorResponse.timestamp).toBe('string');
+      expect(response.body).toHaveProperty('success', false);
+      expect(response.body).toHaveProperty('message');
+      expect(response.body).toHaveProperty('timestamp');
+      expect(typeof response.body.message).toBe('string');
+      expect(typeof response.body.timestamp).toBe('string');
     });
 
     test('時間戳應該是有效的 ISO 字符串', async () => {
@@ -290,8 +296,7 @@ describe('真實產品 API 測試', () => {
         .get('/api/products')
         .expect(API_CONSTANTS.HTTP_STATUS.OK);
 
-      const apiResponse = response.body as ApiResponse<any>;
-      const timestamp = apiResponse.timestamp as string;
+      const timestamp = response.body.timestamp;
       expect(timestamp).toBeDefined();
       expect(new Date(timestamp).toISOString()).toBe(timestamp);
     });

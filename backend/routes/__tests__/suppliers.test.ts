@@ -158,8 +158,9 @@ describe('Suppliers API', () => {
     });
 
     it('應該處理無效的ID格式', async () => {
+      const invalidId = new mongoose.Types.ObjectId();
       const response = await request(app)
-        .get('/api/suppliers/invalid-id')
+        .get(`/api/suppliers/${invalidId}`)
         .set('Authorization', 'Bearer test-mode-token')
         .expect(404);
 

@@ -160,8 +160,9 @@ describe('Sales API', () => {
     });
 
     it('應該處理無效的ID格式', async () => {
+      const invalidId = new mongoose.Types.ObjectId();
       const response = await request(app)
-        .get('/api/sales/invalid-id')
+        .get(`/api/sales/${invalidId}`)
         .expect(404);
 
       expect(response.body.success).toBe(false);

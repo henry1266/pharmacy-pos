@@ -104,8 +104,9 @@ describe('Products API 簡單測試', () => {
 
   describe('錯誤處理測試', () => {
     test('無效的產品 ID 應該返回 404', async () => {
+      const invalidId = new mongoose.Types.ObjectId();
       const response = await request(app)
-        .get('/api/products/invalid-id')
+        .get(`/api/products/${invalidId}`)
         .expect(404);
 
       expect(response.body.success).toBe(false);

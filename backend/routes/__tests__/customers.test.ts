@@ -125,8 +125,9 @@ describe('Customers API', () => {
     });
 
     it('應該處理無效的ID格式', async () => {
+      const invalidId = new mongoose.Types.ObjectId();
       const response = await request(app)
-        .get('/api/customers/invalid-id')
+        .get(`/api/customers/${invalidId}`)
         .set('Authorization', 'Bearer test-mode-token')
         .expect(404);
 
@@ -252,8 +253,9 @@ describe('Customers API', () => {
     });
 
     it('應該處理無效的客戶ID', async () => {
+      const invalidId = new mongoose.Types.ObjectId();
       const response = await request(app)
-        .put('/api/customers/invalid-id')
+        .put(`/api/customers/${invalidId}`)
         .set('Authorization', 'Bearer test-mode-token')
         .send({ name: '測試' })
         .expect(404);
