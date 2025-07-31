@@ -1,3 +1,7 @@
+// 在導入任何模組之前設置環境變數
+process.env.REACT_APP_TEST_MODE = 'true';
+process.env.NODE_ENV = 'test';
+
 import request from 'supertest';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
@@ -186,15 +190,15 @@ describe('使用 Shared 模組的產品 API 測試', () => {
         .send(productData)
         .expect(API_CONSTANTS.HTTP_STATUS.CREATED);
 
-      // 嘗試創建相同代碼的產品，期望返回 500 而不是 409
+      // 嘗試創建相同代碼的產品，期望返回 409 CONFLICT
       const response = await request(app)
         .post('/api/products/product')
         .set('Authorization', 'Bearer test-mode-token') // 使用正確的認證標頭
         .send(productData)
-        .expect(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR);
+        .expect(API_CONSTANTS.HTTP_STATUS.CONFLICT);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.message).toBeDefined();
+      expect(response.body.message).toBe(ERROR_MESSAGES.PRODUCT.CODE_EXISTS);
     });
   });
 

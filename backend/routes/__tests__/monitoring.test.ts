@@ -1,6 +1,5 @@
 import request from 'supertest';
 import { createApp } from '../../app';
-import mongoose from 'mongoose';
 
 describe('Monitoring API', () => {
   let app: any;

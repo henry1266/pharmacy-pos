@@ -53,7 +53,8 @@ const BaseProductSchema = new Schema<IBaseProductDocument>({
   },
   shortCode: {
     type: String,
-    required: true
+    required: false,
+    default: ''
   },
   name: {
     type: String,

@@ -1,7 +1,6 @@
 import request from 'supertest';
 import { createApp } from '../../app';
 import Customer from '../../models/Customer';
-import { ProductType } from '@pharmacy-pos/shared/enums';
 import mongoose from 'mongoose';
 
 describe('Customers API', () => {

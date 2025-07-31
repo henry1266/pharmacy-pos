@@ -53,13 +53,11 @@ const ProductNoteSchema = new Schema<IProductNote>({
   },
   wordCount: {
     type: Number,
-    default: 0,
-    index: true
+    default: 0
   },
   summaryWordCount: {
     type: Number,
-    default: 0,
-    index: true
+    default: 0
   },
   lastEditedBy: {
     type: String,

@@ -5,7 +5,6 @@ import BaseProduct from '../../models/BaseProduct';
 import Customer from '../../models/Customer';
 import Inventory from '../../models/Inventory';
 import { ProductType } from '@pharmacy-pos/shared/enums';
-import mongoose from 'mongoose';
 
 describe('Dashboard API', () => {
   let app: any;

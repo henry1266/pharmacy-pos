@@ -3,29 +3,9 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
 import { createApp } from '../../app';
 
-// 模擬 shared 模組
-const ApiResponse = {};
-const ErrorResponse = {};
-const ProductType = {
-  PRODUCT: 'product',
-  MEDICINE: 'medicine'
-};
-const ERROR_MESSAGES = {
-  PRODUCT: {
-    NOT_FOUND: '產品未找到',
-    CODE_EXISTS: '產品代碼已存在'
-  }
-};
-const API_CONSTANTS = {
-  HTTP_STATUS: {
-    OK: 200,
-    CREATED: 201,
-    BAD_REQUEST: 400,
-    NOT_FOUND: 404,
-    CONFLICT: 409,
-    INTERNAL_SERVER_ERROR: 500
-  }
-};
+// 導入 shared 模組
+import { ProductType } from '../../../shared/enums';
+import { ERROR_MESSAGES, API_CONSTANTS } from '../../../shared/constants';
 
 describe('真實產品 API 測試', () => {
   let mongoServer: MongoMemoryServer;
