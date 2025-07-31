@@ -1,6 +1,6 @@
 import { AccountBalanceService } from '../accountBalanceService';
 import Account2, { IAccount2 } from '../../models/Account2';
-import AccountingEntry, { IAccountingEntry } from '../../models/AccountingEntry';
+import AccountingEntry from '../../models/AccountingEntry';
 import TransactionGroup, { ITransactionGroup } from '../../models/TransactionGroup';
 import mongoose from 'mongoose';
 
@@ -400,7 +400,7 @@ describe('AccountBalanceService', () => {
   describe('generateTrialBalance', () => {
     test('應該生成完整的試算表', async () => {
       // 創建不同類型的科目
-      const liabilityAccount = await Account2.create({
+      await Account2.create({
         code: '2101',
         name: '應付帳款',
         accountType: 'liability',
@@ -475,7 +475,7 @@ describe('AccountBalanceService', () => {
   describe('getAccountTransactionHistory', () => {
     test('應該返回科目的交易歷史', async () => {
       // 創建多筆分錄
-      const entry1 = await AccountingEntry.create({
+      await AccountingEntry.create({
         transactionGroupId: testTransactionGroup._id,
         sequence: 1,
         accountId: testAccount._id,
@@ -486,7 +486,7 @@ describe('AccountBalanceService', () => {
         createdBy: 'test-user'
       });
 
-      const entry2 = await AccountingEntry.create({
+      await AccountingEntry.create({
         transactionGroupId: testTransactionGroup._id,
         sequence: 2,
         accountId: testAccount._id,
