@@ -182,6 +182,7 @@ describe('TransactionService', () => {
       const result = await TransactionService.getTransactionGroups(mockUserId, mockOrganizationId, filters);
 
       // Assert
+      expect(result).toBeDefined();
       expect(MockedTransactionGroupWithEntries.find).toHaveBeenCalledWith({
         createdBy: mockUserId,
         organizationId: mockOrganizationId,
