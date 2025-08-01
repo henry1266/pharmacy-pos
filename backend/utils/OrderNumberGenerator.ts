@@ -45,8 +45,8 @@ class OrderNumberGenerator {
     this.field = options.field;
     this.prefix = options.prefix || '';
     this.useShortYear = options.useShortYear || false;
-    this.sequenceDigits = options.sequenceDigits || 3;
-    this.sequenceStart = options.sequenceStart || 1;
+    this.sequenceDigits = options.sequenceDigits !== undefined ? options.sequenceDigits : 3;
+    this.sequenceStart = options.sequenceStart !== undefined ? options.sequenceStart : 1;
     
     // 驗證必要參數
     if (!this.Model || !this.field) {
@@ -54,7 +54,7 @@ class OrderNumberGenerator {
     }
     
     // 驗證序號位數
-    if (this.sequenceDigits < 1) {
+    if (this.sequenceDigits <= 0) {
       throw new Error('序號位數必須大於0');
     }
   }

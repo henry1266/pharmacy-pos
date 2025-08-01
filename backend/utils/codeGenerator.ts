@@ -32,10 +32,10 @@ export async function generateNextProductCode(): Promise<CodeGenerationResult> {
       };
     }
     
-    // 提取所有數字部分並找到最大值
+    // 提取所有數字部分並找到最大值，過濾掉負數和無效數字
     const numericParts = products
       .map(product => parseInt(product.code.substring(1), 10))
-      .filter(num => !isNaN(num));
+      .filter(num => !isNaN(num) && num > 0);
     
     if (numericParts.length === 0) {
       return {
@@ -108,10 +108,10 @@ export async function generateNextMedicineCode(): Promise<CodeGenerationResult> 
       };
     }
     
-    // 提取所有數字部分並找到最大值
+    // 提取所有數字部分並找到最大值，過濾掉負數和無效數字
     const numericParts = medicines
       .map(medicine => parseInt(medicine.code.substring(1), 10))
-      .filter(num => !isNaN(num));
+      .filter(num => !isNaN(num) && num > 0);
     
     if (numericParts.length === 0) {
       return {
@@ -180,12 +180,12 @@ export async function generateProductCodeByHealthInsurance(hasHealthInsuranceCod
     
     const [products, medicines] = await Promise.all([productQuery, medicineQuery]);
     
-    // 合併兩個結果並提取數字部分
+    // 合併兩個結果並提取數字部分，過濾掉負數和無效數字
     const allNumericParts = [...products, ...medicines]
       .map(item => (item as any).code)
       .filter(code => code && code.startsWith(prefix))
       .map(code => parseInt(code.substring(1), 10))
-      .filter(num => !isNaN(num));
+      .filter(num => !isNaN(num) && num > 0);
     
     // 如果沒有符合格式的產品，從 10001 開始
     if (allNumericParts.length === 0) {

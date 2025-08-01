@@ -203,11 +203,33 @@ function matchOutgoingWithIncoming(remaining: number, stockIn: StockInRecord[], 
   let hasNegativeInventory = false;
   let currentInIndex = inIndex;
   
+  // 檢查是否有可用的庫存
+  let availableStock = 0;
+  for (let i = currentInIndex; i < stockIn.length; i++) {
+    const batch = stockIn[i];
+    if (!batch.remainingQty) batch.remainingQty = batch.quantity;
+    availableStock += batch.remainingQty;
+  }
+  
+  // 如果可用庫存不足，標記為負庫存
+  if (availableStock < remaining) {
+    hasNegativeInventory = true;
+    // 計算實際的負庫存數量
+    const negativeQuantity = remaining - availableStock;
+    // 對於負庫存情況，不進行任何匹配，直接返回空的 costParts
+    return {
+      costParts: [],
+      hasNegativeInventory: true,
+      remaining: negativeQuantity,
+      newInIndex: currentInIndex
+    };
+  }
+  
   while (remaining > 0) {
     // 若還沒進貨或進貨批次都用完，標記為負庫存並跳出循環
     if (currentInIndex >= stockIn.length) {
       hasNegativeInventory = true;
-      break; // 不再拋出錯誤，而是標記為負庫存並繼續處理
+      break;
     }
 
     const batch = stockIn[currentInIndex];
@@ -462,21 +484,62 @@ export const prepareInventoryForFIFO = (inventories: InventoryRecord[]): Prepare
  */
 export const calculateProductFIFO = (inventories: InventoryRecord[]): FIFOCalculationResult => {
   try {
+    // 驗證輸入參數
+    if (!inventories || !Array.isArray(inventories)) {
+      throw new Error('inventories 參數必須是一個陣列');
+    }
+    
     // 準備數據
     const { stockIn, stockOut } = prepareInventoryForFIFO(inventories);
     
-    // 如果沒有出貨記錄，直接返回空結果
+    // 處理「不扣庫存」產品的毛利
+    const noStockProfits = inventories
+      .filter(inv => inv.type === 'sale-no-stock')
+      .map(inv => ({
+        drug_id: inv.product.toString(),
+        saleTime: inv.lastUpdated || new Date(),
+        totalQuantity: Math.abs(inv.quantity || 0),
+        totalCost: (inv.costPrice || 0) * Math.abs(inv.quantity || 0),
+        totalRevenue: inv.totalAmount || 0,
+        grossProfit: inv.grossProfit || 0,
+        profitMargin: inv.totalAmount && inv.totalAmount > 0
+          ? ((inv.grossProfit || 0) / inv.totalAmount * 100).toFixed(2) + '%'
+          : '0.00%',
+        costBreakdown: [] as CostPart[],
+        orderNumber: inv.saleNumber || '未知訂單',
+        orderId: inv.saleId ? inv.saleId.toString() : null,
+        orderType: 'sale' as const,
+        hasNegativeInventory: false,
+        isNoStockSale: true // 標記為不扣庫存銷售
+      }));
+
+    // 如果沒有出貨記錄，但有不扣庫存的銷售，返回不扣庫存的毛利
     if (stockOut.length === 0) {
-      console.log('沒有出貨記錄，返回空結果');
+      console.log('沒有出貨記錄，但有不扣庫存銷售記錄');
+      
+      // 計算不扣庫存銷售的總結
+      const summary = noStockProfits.reduce((sum, item) => {
+        sum.totalCost += item.totalCost;
+        sum.totalRevenue += item.totalRevenue;
+        sum.totalProfit += item.grossProfit;
+        return sum;
+      }, {
+        totalCost: 0,
+        totalRevenue: 0,
+        totalProfit: 0
+      });
+      
+      const averageProfitMargin = summary.totalRevenue > 0
+        ? ((summary.totalProfit / summary.totalRevenue) * 100).toFixed(2) + '%'
+        : '0.00%';
+      
       return {
         success: true,
         fifoMatches: [],
-        profitMargins: [],
+        profitMargins: noStockProfits,
         summary: {
-          totalCost: 0,
-          totalRevenue: 0,
-          totalProfit: 0,
-          averageProfitMargin: '0.00%'
+          ...summary,
+          averageProfitMargin
         }
       };
     }
@@ -508,26 +571,7 @@ export const calculateProductFIFO = (inventories: InventoryRecord[]): FIFOCalcul
     
     const profitMargins = calculateProfitMargins(fifoMatches, sales);
     
-    // 處理「不扣庫存」產品的毛利
-    const noStockProfits = inventories
-      .filter(inv => inv.type === 'sale-no-stock')
-      .map(inv => ({
-        drug_id: inv.product.toString(),
-        saleTime: inv.lastUpdated || new Date(),
-        totalQuantity: Math.abs(inv.quantity || 0),
-        totalCost: (inv.costPrice || 0) * Math.abs(inv.quantity || 0),
-        totalRevenue: inv.totalAmount || 0,
-        grossProfit: inv.grossProfit || 0,
-        profitMargin: inv.totalAmount && inv.totalAmount > 0
-          ? ((inv.grossProfit || 0) / inv.totalAmount * 100).toFixed(2) + '%'
-          : '0.00%',
-        costBreakdown: [] as CostPart[],
-        orderNumber: inv.saleNumber || '未知訂單',
-        orderId: inv.saleId ? inv.saleId.toString() : null,
-        orderType: 'sale' as const,
-        hasNegativeInventory: false,
-        isNoStockSale: true // 標記為不扣庫存銷售
-      }));
+    // 這部分已經移到上面處理了
     
     // 合併 FIFO 毛利和不扣庫存毛利
     const allProfitMargins = [...profitMargins, ...noStockProfits];
