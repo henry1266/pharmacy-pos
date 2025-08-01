@@ -39,7 +39,7 @@ interface FormData {
   supplier?: string; // 供應商ID
   selectedAccountIds?: string[]; // 選中的會計科目ID
   organizationId?: string; // 機構ID
-  accountingEntryType?: 'expense-asset' | 'asset-liability'; // 會計分錄類型
+  accountingEntryType?: 'expense-asset' | 'asset-liability' | undefined; // 會計分錄類型
   [key: string]: any;
 }
 
@@ -267,7 +267,6 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
                 organizationId={formData?.organizationId || ''}
                 selectedAccountIds={formData?.selectedAccountIds || []}
                 onChange={handleAccountingEntryChange || (() => {})}
-                disabled={!formData?.supplier}
                 currentEntryType={formData?.accountingEntryType}
               />
             </Grid>

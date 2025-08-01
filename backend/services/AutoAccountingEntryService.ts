@@ -333,18 +333,33 @@ export class AutoAccountingEntryService {
     
     console.log(`🔍 科目類型分析: expense=${hasExpense}, asset=${hasAsset}, liability=${hasLiability}`);
     
-    // 如果有 expense + asset，使用 expense-asset 格式
-    if (hasExpense && hasAsset) {
-      return 'expense-asset';
-    }
-    
+    // 嚴格根據科目組合判斷，不使用預設值
     // 如果有 asset + liability，使用 asset-liability 格式
-    if (hasAsset && hasLiability) {
+    if (hasAsset && hasLiability && !hasExpense) {
+      console.log(`✅ 判斷為資產-負債格式: 資產科目 + 負債科目`);
       return 'asset-liability';
     }
     
-    // 預設使用 expense-asset 格式
-    return 'expense-asset';
+    // 如果有 expense + asset，使用 expense-asset 格式
+    if (hasExpense && hasAsset) {
+      console.log(`✅ 判斷為支出-資產格式: 支出科目 + 資產科目`);
+      return 'expense-asset';
+    }
+    
+    // 如果只有 asset + liability（即使有其他科目類型），優先使用 asset-liability
+    if (hasAsset && hasLiability) {
+      console.log(`✅ 判斷為資產-負債格式: 包含資產科目 + 負債科目`);
+      return 'asset-liability';
+    }
+    
+    // 如果只有 expense 相關科目，使用 expense-asset 格式
+    if (hasExpense) {
+      console.log(`✅ 判斷為支出-資產格式: 包含支出科目`);
+      return 'expense-asset';
+    }
+    
+    // 如果無法明確判斷，拋出錯誤而不是使用預設值
+    throw new Error(`無法根據科目類型判斷分錄格式: expense=${hasExpense}, asset=${hasAsset}, liability=${hasLiability}`);
   }
 
   /**

@@ -20,7 +20,6 @@ interface AccountingEntrySelectorProps {
   organizationId?: string;
   selectedAccountIds: string[];
   onChange: (accountIds: string[], entryType: 'expense-asset' | 'asset-liability') => void;
-  disabled?: boolean;
   currentEntryType?: 'expense-asset' | 'asset-liability' | undefined; // 新增：當前的會計分錄類型
 }
 
@@ -48,8 +47,8 @@ interface EntryFormat {
 const ENTRY_FORMATS: EntryFormat[] = [
   {
     id: 'expense-asset',
-    name: '支出-資產格式',
-    description: '適用於一般進貨：支出科目(借方) + 資產科目(貸方)',
+    name: '支出消耗模式',
+    description: '支出科目(借方) + 資產科目(貸方)',
     debitType: 'expense',
     creditType: 'asset',
     debitLabel: '支出科目 (借方)',
@@ -58,8 +57,8 @@ const ENTRY_FORMATS: EntryFormat[] = [
   },
   {
     id: 'asset-liability',
-    name: '資產-負債格式',
-    description: '適用於賒購：資產科目(借方) + 負債科目(貸方)',
+    name: '資產庫存模式',
+    description: '資產科目(借方) + 負債科目(貸方)',
     debitType: 'asset',
     creditType: 'liability',
     debitLabel: '資產科目 (借方)',
@@ -72,7 +71,6 @@ const AccountingEntrySelector: React.FC<AccountingEntrySelectorProps> = ({
   organizationId,
   selectedAccountIds,
   onChange,
-  disabled = false,
   currentEntryType
 }) => {
   const [loading, setLoading] = useState(false);
@@ -184,13 +182,13 @@ const AccountingEntrySelector: React.FC<AccountingEntrySelectorProps> = ({
                   .sort((a, b) => a.code.localeCompare(b.code));
   };
 
-  // 處理格式選擇
-  const handleFormatSelect = (format: EntryFormat) => {
-    setSelectedFormat(format);
-    setDebitAccountId('');
-    setCreditAccountId('');
-    onChange([], format.id);
-  };
+  // 格式選擇已改為純顯示，不再處理點擊事件
+  // const handleFormatSelect = (format: EntryFormat) => {
+  //   setSelectedFormat(format);
+  //   setDebitAccountId('');
+  //   setCreditAccountId('');
+  //   onChange([], format.id);
+  // };
 
   // 處理借方科目選擇
   const handleDebitAccountChange = (event: SelectChangeEvent) => {
@@ -264,26 +262,37 @@ const AccountingEntrySelector: React.FC<AccountingEntrySelectorProps> = ({
 
   return (
     <Box>
-      {/* 極簡格式選擇 */}
+      {/* 格式顯示（純顯示，不可點擊） */}
       <Box sx={{ mb: 1 }}>
         <Typography variant="caption" sx={{ mb: 0.5, display: 'block', color: 'text.secondary' }}>
-          記帳格式
+          記帳格式（自動判斷）
         </Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
-          {ENTRY_FORMATS.map((format) => (
+          {selectedFormat && (
             <Chip
-              key={format.id}
-              label={format.name}
-              variant={selectedFormat?.id === format.id ? 'filled' : 'outlined'}
+              key={selectedFormat.id}
+              label={selectedFormat.name}
+              variant="filled"
               size="small"
-              onClick={() => handleFormatSelect(format)}
-              sx={{ fontSize: '0.7rem' }}
+              sx={{
+                fontSize: '0.7rem',
+                cursor: 'default',
+                '&:hover': {
+                  backgroundColor: selectedFormat.id === 'expense-asset' ? 'primary.main' : 'secondary.main'
+                }
+              }}
             />
-          ))}
+          )}
+          {!selectedFormat && (
+            <Typography variant="caption" sx={{ color: 'text.disabled', fontStyle: 'italic' }}>
+              請選擇會計科目以自動判斷格式
+            </Typography>
+          )}
         </Box>
       </Box>
 
-      {/* 使用原本設計的選擇器 */}
+      {/* 借貸欄位已隱藏，改為自動判斷 */}
+      {/*
       {selectedFormat && (
         <Grid container spacing={1}>
           <Grid item xs={6}>
@@ -321,6 +330,7 @@ const AccountingEntrySelector: React.FC<AccountingEntrySelectorProps> = ({
           </Grid>
         </Grid>
       )}
+      */}
     </Box>
   );
 };

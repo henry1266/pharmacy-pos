@@ -407,7 +407,7 @@ const PurchaseOrderFormPage: React.FC = () => {
             console.log('🔍 編輯模式 - 最終 selectedAccountIds:', processedIds);
             return processedIds;
           })(),
-          accountingEntryType: (orderData as any).accountingEntryType || 'expense-asset', // 修復：載入原有的會計分錄類型
+          accountingEntryType: (orderData as any).accountingEntryType, // 修復：載入原有的會計分錄類型，不使用預設值
           items: mappedItems,
           notes: orderData.notes ?? '',
           status: orderData.status ?? 'pending',
@@ -696,10 +696,7 @@ const PurchaseOrderFormPage: React.FC = () => {
           {/* 左側：基本資訊 */}
           <Grid item xs={12} md={3} sx={{ display: 'flex', flexDirection: 'column' }}>
             <BasicInfoForm
-              formData={{
-                ...formData,
-                accountingEntryType: formData.accountingEntryType || 'expense-asset'
-              }}
+              formData={formData}
               handleInputChange={handleFormInputChange}
               handleDateChange={handleDateChange}
               handleSupplierChange={handleSupplierChange}
