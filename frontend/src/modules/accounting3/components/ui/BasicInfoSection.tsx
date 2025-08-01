@@ -303,10 +303,10 @@ export const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
                     disabled={!permissions.canEdit}
                   />
                 }
-                label="啟用資金來源追蹤"
+                label="啟用來源追蹤"
                 disabled={!permissions.canEdit}
               />
-              <Tooltip title="啟用後可以追蹤此交易的資金來源，建立資金流向關聯">
+              <Tooltip title="啟用後可以追蹤此交易的來源，建立流向關聯">
                 <IconButton size="small">
                   <HelpIcon fontSize="small" />
                 </IconButton>
@@ -327,7 +327,7 @@ export const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
                   <Typography variant="subtitle2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <AccountTreeIcon color="primary" />
-                    資金來源追蹤
+                    來源追蹤
                   </Typography>
                   {mode !== 'view' && (
                     <Button
@@ -336,12 +336,12 @@ export const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
                       startIcon={<LinkIcon />}
                       onClick={onOpenFundingSourceDialog}
                     >
-                      選擇資金來源
+                      選擇來源
                     </Button>
                   )}
                 </Box>
 
-                {/* 顯示已選擇的資金來源 - 表格格式 */}
+                {/* 顯示已選擇的來源 - 表格格式 */}
                 {selectedFundingSources.length > 0 ? (
                   <Box sx={{ mt: 2 }}>
                     <Table size="small" sx={{ bgcolor: 'background.paper', borderRadius: 1, overflow: 'hidden' }}>
@@ -412,12 +412,12 @@ export const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
                       </TableBody>
                     </Table>
                     <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                      資金類型: {formData.fundingType === 'extended' ? '延伸使用' : '原始資金'}
+                      類型: {formData.fundingType === 'extended' ? '延伸使用' : '原始資金'}
                     </Typography>
                   </Box>
                 ) : (
                   <Typography variant="body2" color="text.secondary">
-                    尚未選擇資金來源，此交易將標記為「原始資金」
+                    尚未選擇來源
                   </Typography>
                 )}
               </Box>
