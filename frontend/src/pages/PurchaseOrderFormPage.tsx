@@ -407,6 +407,7 @@ const PurchaseOrderFormPage: React.FC = () => {
             console.log('🔍 編輯模式 - 最終 selectedAccountIds:', processedIds);
             return processedIds;
           })(),
+          accountingEntryType: (orderData as any).accountingEntryType || 'expense-asset', // 修復：載入原有的會計分錄類型
           items: mappedItems,
           notes: orderData.notes ?? '',
           status: orderData.status ?? 'pending',

@@ -268,6 +268,7 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
                 selectedAccountIds={formData?.selectedAccountIds || []}
                 onChange={handleAccountingEntryChange || (() => {})}
                 disabled={!formData?.supplier}
+                currentEntryType={formData?.accountingEntryType}
               />
             </Grid>
             

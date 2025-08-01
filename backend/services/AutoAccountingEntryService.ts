@@ -28,8 +28,20 @@ export class AutoAccountingEntryService {
       // 獲取會計科目詳細資訊
       const accounts = await this.getAccountDetails(purchaseOrder.selectedAccountIds!);
       
-      // 根據會計分錄類型決定借貸方向
-      const entryType = purchaseOrder.accountingEntryType || 'expense-asset'; // 預設為支出-資產格式
+      // 根據會計分錄類型決定借貸方向，如果沒有指定則自動推斷
+      let entryType = purchaseOrder.accountingEntryType;
+      
+      // 如果沒有指定分錄類型，根據科目類型自動推斷
+      if (!entryType) {
+        entryType = this.inferEntryTypeFromAccounts(accounts);
+        console.log(`🔍 自動推斷分錄類型: ${entryType}`);
+        
+        // 將推斷的分錄類型回寫到進貨單
+        purchaseOrder.accountingEntryType = entryType;
+        await purchaseOrder.save();
+        console.log(`✅ 已更新進貨單 ${purchaseOrder.poid} 的分錄類型為: ${entryType}`);
+      }
+      
       const { debitAccount, creditAccount } = this.determineDebitCreditAccounts(accounts, entryType);
       
       if (!debitAccount || !creditAccount) {
@@ -307,6 +319,32 @@ export class AutoAccountingEntryService {
       console.error(`❌ 解析進貨單號日期時出錯: ${error}, 使用當前日期`);
       return new Date();
     }
+  }
+
+  /**
+   * 根據科目類型自動推斷分錄類型
+   * @param accounts 會計科目陣列
+   * @returns 推斷的分錄類型
+   */
+  private static inferEntryTypeFromAccounts(accounts: IAccount2[]): 'expense-asset' | 'asset-liability' {
+    const hasExpense = accounts.some(account => account.accountType === 'expense');
+    const hasAsset = accounts.some(account => account.accountType === 'asset');
+    const hasLiability = accounts.some(account => account.accountType === 'liability');
+    
+    console.log(`🔍 科目類型分析: expense=${hasExpense}, asset=${hasAsset}, liability=${hasLiability}`);
+    
+    // 如果有 expense + asset，使用 expense-asset 格式
+    if (hasExpense && hasAsset) {
+      return 'expense-asset';
+    }
+    
+    // 如果有 asset + liability，使用 asset-liability 格式
+    if (hasAsset && hasLiability) {
+      return 'asset-liability';
+    }
+    
+    // 預設使用 expense-asset 格式
+    return 'expense-asset';
   }
 
   /**

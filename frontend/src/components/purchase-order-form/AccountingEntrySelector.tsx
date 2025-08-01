@@ -21,6 +21,7 @@ interface AccountingEntrySelectorProps {
   selectedAccountIds: string[];
   onChange: (accountIds: string[], entryType: 'expense-asset' | 'asset-liability') => void;
   disabled?: boolean;
+  currentEntryType?: 'expense-asset' | 'asset-liability' | undefined; // 新增：當前的會計分錄類型
 }
 
 interface AccountOption {
@@ -71,7 +72,8 @@ const AccountingEntrySelector: React.FC<AccountingEntrySelectorProps> = ({
   organizationId,
   selectedAccountIds,
   onChange,
-  disabled = false
+  disabled = false,
+  currentEntryType
 }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
@@ -133,13 +135,31 @@ const AccountingEntrySelector: React.FC<AccountingEntrySelectorProps> = ({
     fetchAccounts();
   }, [organizationId]);
 
-  // 根據選中的科目推斷格式
+  // 根據當前分錄類型或選中的科目推斷格式
   useEffect(() => {
     if (selectedAccountIds.length === 2 && accounts.length > 0) {
       const account1 = accounts.find(acc => acc._id === selectedAccountIds[0]);
       const account2 = accounts.find(acc => acc._id === selectedAccountIds[1]);
       
       if (account1 && account2) {
+        // 優先使用傳入的 currentEntryType
+        if (currentEntryType) {
+          const format = ENTRY_FORMATS.find(f => f.id === currentEntryType);
+          if (format) {
+            setSelectedFormat(format);
+            // 根據格式設置借貸方科目
+            if (currentEntryType === 'expense-asset') {
+              setDebitAccountId(account1.accountType === 'expense' ? account1._id : account2._id);
+              setCreditAccountId(account1.accountType === 'asset' ? account1._id : account2._id);
+            } else if (currentEntryType === 'asset-liability') {
+              setDebitAccountId(account1.accountType === 'asset' ? account1._id : account2._id);
+              setCreditAccountId(account1.accountType === 'liability' ? account1._id : account2._id);
+            }
+            return; // 使用傳入的類型，不再進行自動推斷
+          }
+        }
+        
+        // 如果沒有傳入 currentEntryType，才進行自動推斷
         // 檢查是否符合支出-資產格式
         if ((account1.accountType === 'expense' && account2.accountType === 'asset') ||
             (account1.accountType === 'asset' && account2.accountType === 'expense')) {
@@ -156,7 +176,7 @@ const AccountingEntrySelector: React.FC<AccountingEntrySelectorProps> = ({
         }
       }
     }
-  }, [selectedAccountIds, accounts]);
+  }, [selectedAccountIds, accounts, currentEntryType]);
 
   // 獲取特定類型的科目
   const getAccountsByType = (accountType: string): AccountOption[] => {

@@ -81,6 +81,7 @@ const calculateHash = (id: string): number => {
 
 // 工具函數：根據記帳格式獲取配置
 const getAccountingConfig = (accountingEntryType?: string, relatedTransactionGroupId?: string) => {
+  // 優先使用明確的 accountingEntryType
   if (accountingEntryType === 'expense-asset') {
     return {
       color: COLORS.EXPENSE_ASSET,
@@ -97,12 +98,13 @@ const getAccountingConfig = (accountingEntryType?: string, relatedTransactionGro
     };
   }
   
+  // 如果沒有明確的 accountingEntryType，但有 relatedTransactionGroupId
+  // 這表示系統已經自動創建了分錄，但前端沒有正確的 accountingEntryType
+  // 這種情況下，我們需要從後端 API 獲取實際的分錄類型，或者使用通用圖示
   if (relatedTransactionGroupId) {
-    const hash = calculateHash(relatedTransactionGroupId);
-    const isGreen = Math.abs(hash) % 2 === 0;
     return {
-      color: isGreen ? COLORS.EXPENSE_ASSET : COLORS.ASSET_LIABILITY,
-      tooltip: isGreen ? TOOLTIPS.EXPENSE_ASSET : TOOLTIPS.ASSET_LIABILITY,
+      color: COLORS.DEFAULT,
+      tooltip: TOOLTIPS.DEFAULT,
       icon: <AccountBalanceIcon fontSize="small" />
     };
   }
