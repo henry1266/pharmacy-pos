@@ -310,94 +310,114 @@ const PurchaseOrderFormPage: React.FC = () => {
   const [selectedSupplier, setSelectedSupplier] = useState<ISupplier | null>(null);
 
   useEffect(() => {
-    if (isEditMode && orderData) {
-      console.log('載入編輯資料:', orderData); // 調試日誌
-      
-      const supplierId = typeof orderData.supplier === 'object' ? orderData.supplier._id : orderData.supplier;
-      
-      // 修復項目資料映射邏輯
-      const mappedItems = Array.isArray(orderData.items)
-        ? orderData.items.map(item => {
-            console.log('處理項目:', item); // 調試日誌
-            
-            // 處理產品資訊
-            let productCode = '';
-            let productName = '';
-            let productId = null;
-            
-            if (item.product) {
-              if (typeof item.product === 'object') {
-                // 產品是完整對象
-                productCode = item.product.code || item.did || '';
-                productName = item.product.name || item.dname || '';
-                productId = item.product._id;
+    const loadEditData = async () => {
+      if (isEditMode && orderData && products) {
+        console.log('載入編輯資料:', orderData); // 調試日誌
+        
+        const supplierId = typeof orderData.supplier === 'object' ? orderData.supplier._id : orderData.supplier;
+        
+        // 修復項目資料映射邏輯
+        const mappedItems = Array.isArray(orderData.items)
+          ? await Promise.all(orderData.items.map(async (item: any) => {
+              console.log('處理項目:', item); // 調試日誌
+              
+              // 處理產品資訊
+              let productCode = '';
+              let productName = '';
+              let productId: string | null = null;
+              let productPackageUnits: any[] = [];
+              
+              if (item.product) {
+                if (typeof item.product === 'object') {
+                  // 產品是完整對象
+                  productCode = item.product.code || item.did || '';
+                  productName = item.product.name || item.dname || '';
+                  productId = item.product._id;
+                  productPackageUnits = item.product.packageUnits || [];
+                } else {
+                  // 產品只是ID字符串，需要從 products 中查找
+                  productId = item.product;
+                  productCode = item.did || '';
+                  productName = item.dname || '';
+                  
+                  // 從已載入的產品列表中查找包裝單位資料
+                  const foundProduct = products?.find((p: any) => p._id === productId);
+                  if (foundProduct) {
+                    productPackageUnits = foundProduct.packageUnits || [];
+                  }
+                }
               } else {
-                // 產品只是ID字符串
-                productId = item.product;
+                // 沒有產品對象，使用項目中的直接欄位
                 productCode = item.did || '';
                 productName = item.dname || '';
+                
+                // 嘗試通過產品代碼查找產品
+                const foundProduct = products?.find((p: any) => p.code === productCode);
+                if (foundProduct) {
+                  productId = foundProduct._id;
+                  productPackageUnits = foundProduct.packageUnits || [];
+                }
               }
-            } else {
-              // 沒有產品對象，使用項目中的直接欄位
-              productCode = item.did || '';
-              productName = item.dname || '';
+              
+              return {
+                did: productCode,
+                dname: productName,
+                dquantity: String(item.dquantity || item.quantity || ''),
+                dtotalCost: String(item.dtotalCost || item.subtotal || ''),
+                batchNumber: item.batchNumber || '', // 加入批號欄位
+                packageQuantity: (item as any).packageQuantity ? String((item as any).packageQuantity) : '', // 加入大包裝數量欄位
+                boxQuantity: (item as any).boxQuantity ? String((item as any).boxQuantity) : '', // 加入盒裝數量欄位
+                product: productId,
+                packageUnits: productPackageUnits // 加入包裝單位資料
+              };
+            }))
+          : [];
+        
+        console.log('映射後的項目:', mappedItems); // 調試日誌
+          
+        setFormData({
+          poid: orderData.poid || orderData.orderNumber || '',
+          pobill: orderData.pobill || '',
+          pobilldate: (() => {
+            let dateToUse = new Date();
+            if (orderData.pobilldate) {
+              dateToUse = new Date(orderData.pobilldate);
+            } else if (orderData.orderDate) {
+              dateToUse = new Date(orderData.orderDate);
             }
+            return dateToUse;
+          })(),
+          posupplier: orderData.posupplier ||
+                     (orderData.supplier && typeof orderData.supplier === 'object' ? orderData.supplier.name : ''),
+          supplier: supplierId,
+          organizationId: orderData.organizationId || '',
+          transactionType: orderData.transactionType || '',
+          selectedAccountIds: (() => {
+            const rawAccountIds = (orderData as any).selectedAccountIds;
+            console.log('🔍 編輯模式 - 原始 selectedAccountIds:', rawAccountIds);
             
-            return {
-              did: productCode,
-              dname: productName,
-              dquantity: String(item.dquantity || item.quantity || ''),
-              dtotalCost: String(item.dtotalCost || item.subtotal || ''),
-              batchNumber: item.batchNumber || '', // 加入批號欄位
-              packageQuantity: (item as any).packageQuantity ? String((item as any).packageQuantity) : '', // 加入大包裝數量欄位
-              boxQuantity: (item as any).boxQuantity ? String((item as any).boxQuantity) : '', // 加入盒裝數量欄位
-              product: productId
-            };
-          })
-        : [];
-        
-      console.log('映射後的項目:', mappedItems); // 調試日誌
-        
-      setFormData({
-        poid: orderData.poid || orderData.orderNumber || '',
-        pobill: orderData.pobill || '',
-        pobilldate: (() => {
-          let dateToUse = new Date();
-          if (orderData.pobilldate) {
-            dateToUse = new Date(orderData.pobilldate);
-          } else if (orderData.orderDate) {
-            dateToUse = new Date(orderData.orderDate);
-          }
-          return dateToUse;
-        })(),
-        posupplier: orderData.posupplier ||
-                   (orderData.supplier && typeof orderData.supplier === 'object' ? orderData.supplier.name : ''),
-        supplier: supplierId,
-        organizationId: orderData.organizationId || '',
-        transactionType: orderData.transactionType || '',
-        selectedAccountIds: (() => {
-          const rawAccountIds = (orderData as any).selectedAccountIds;
-          console.log('🔍 編輯模式 - 原始 selectedAccountIds:', rawAccountIds);
-          
-          if (!rawAccountIds) return [];
-          
-          const processedIds = rawAccountIds.map((account: any) => {
-            const id = typeof account === 'string' ? account : account._id || account.id;
-            console.log('🔍 編輯模式 - 處理會計科目 ID:', { original: account, processed: id });
-            return id;
-          });
-          
-          console.log('🔍 編輯模式 - 最終 selectedAccountIds:', processedIds);
-          return processedIds;
-        })(),
-        items: mappedItems,
-        notes: orderData.notes ?? '',
-        status: orderData.status ?? 'pending',
-        paymentStatus: orderData.paymentStatus || '未付',
-        multiplierMode: ''
-      });
-    }
-  }, [isEditMode, orderData]);
+            if (!rawAccountIds) return [];
+            
+            const processedIds = rawAccountIds.map((account: any) => {
+              const id = typeof account === 'string' ? account : account._id || account.id;
+              console.log('🔍 編輯模式 - 處理會計科目 ID:', { original: account, processed: id });
+              return id;
+            });
+            
+            console.log('🔍 編輯模式 - 最終 selectedAccountIds:', processedIds);
+            return processedIds;
+          })(),
+          items: mappedItems,
+          notes: orderData.notes ?? '',
+          status: orderData.status ?? 'pending',
+          paymentStatus: orderData.paymentStatus || '未付',
+          multiplierMode: ''
+        });
+      }
+    };
+    
+    loadEditData();
+  }, [isEditMode, orderData, products]);
 
   useEffect(() => {
     if (isEditMode && orderDataLoaded && suppliersLoaded && formData.supplier && suppliers && suppliers.length > 0) {
