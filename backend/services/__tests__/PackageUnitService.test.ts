@@ -43,7 +43,7 @@ describe('PackageUnitService', () => {
       expect(result.warnings).toHaveLength(0);
     });
 
-    it('應該檢測缺少基礎單位的錯誤', () => {
+    it('應該允許沒有基礎單位的配置', () => {
       const unitsWithoutBase = mockPackageUnits.map(unit => ({
         ...unit,
         isBaseUnit: false
@@ -51,8 +51,8 @@ describe('PackageUnitService', () => {
       
       const result = PackageUnitService.validatePackageUnits(unitsWithoutBase);
       
-      expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('必須有一個基礎單位');
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toHaveLength(0);
     });
 
     it('應該檢測多個基礎單位的錯誤', () => {
@@ -67,15 +67,15 @@ describe('PackageUnitService', () => {
       expect(result.errors).toContain('只能有一個基礎單位');
     });
 
-    it('應該檢測基礎單位數值不為1的錯誤', () => {
-      const unitsWithWrongBaseValue = mockPackageUnits.map(unit => 
+    it('應該對基礎單位數值不為1產生警告', () => {
+      const unitsWithWrongBaseValue = mockPackageUnits.map(unit =>
         unit.isBaseUnit ? { ...unit, unitValue: 5 } : unit
       );
       
       const result = PackageUnitService.validatePackageUnits(unitsWithWrongBaseValue);
       
-      expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('基礎單位的數值必須為 1');
+      expect(result.isValid).toBe(true);
+      expect(result.warnings).toContain('建議基礎單位的數值設為 1');
     });
 
     it('應該檢測重複的單位名稱', () => {

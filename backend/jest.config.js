@@ -57,10 +57,10 @@ module.exports = {
   // 覆蓋率閾值 - 設定合理的目標
   coverageThreshold: {
     global: {
-      branches: 20,
-      functions: 30,
-      lines: 30,
-      statements: 30
+      branches: 30,
+      functions: 40,
+      lines: 40,
+      statements: 40
     }
   },
 
