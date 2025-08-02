@@ -405,7 +405,7 @@ export class OrganizationHierarchyBuilder {
    */
   private static createOrganizationNode(org: any, accountTypeNodes: any[]): any {
     return {
-      _id: `org_${org._id}`,
+      _id: `${org._id}`,
       name: org.name,
       code: org.code || org.name,
       accountType: 'organization' as any,
@@ -430,7 +430,7 @@ export class OrganizationHierarchyBuilder {
    */
   private static createEmptyOrganizationNode(org: any): any {
     return {
-      _id: `org_${org._id}`,
+      _id: `${org._id}`,
       name: org.name,
       code: org.code || org.name,
       accountType: 'organization' as any,

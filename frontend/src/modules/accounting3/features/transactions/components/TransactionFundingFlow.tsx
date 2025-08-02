@@ -820,6 +820,126 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
     );
   };
 
+  // 🆕 渲染付款流向詳情
+  const renderPaymentFlowSection = () => {
+    const transactionAny = transaction as any;
+    if (transactionAny.transactionType !== 'payment' || !transactionAny.paymentInfo) {
+      return null;
+    }
+
+    return (
+      <FlowSection
+        title="付款明細"
+        count={transactionAny.paymentInfo.payableTransactions?.length || 0}
+        statusChip={
+          <Chip
+            label={`${transactionAny.paymentInfo.paymentMethod} 付款`}
+            color="info"
+            size="small"
+          />
+        }
+      >
+        <TransactionTable>
+          {transactionAny.paymentInfo.payableTransactions?.map((payment: any, index: number) => (
+            <TableRow key={index}>
+              <TableCell>
+                <Button
+                  variant="text"
+                  size="small"
+                  onClick={() => navigate(`/accounting3/transaction/${payment.transactionId}`)}
+                >
+                  查看應付帳款
+                </Button>
+              </TableCell>
+              <TableCell>
+                <Typography variant="body2">
+                  付款金額: {formatAmount(payment.paidAmount)}
+                </Typography>
+                {payment.remainingAmount && payment.remainingAmount > 0 && (
+                  <Typography variant="caption" color="warning.main">
+                    剩餘: {formatAmount(payment.remainingAmount)}
+                  </Typography>
+                )}
+              </TableCell>
+              <TableCell>
+                <Chip
+                  label={!payment.remainingAmount || payment.remainingAmount === 0 ? '已付清' : '部分付款'}
+                  color={!payment.remainingAmount || payment.remainingAmount === 0 ? 'success' : 'warning'}
+                  size="small"
+                />
+              </TableCell>
+            </TableRow>
+          )) || []}
+        </TransactionTable>
+      </FlowSection>
+    );
+  };
+
+  // 🆕 渲染應付帳款狀態
+  const renderPayableStatusSection = () => {
+    const transactionAny = transaction as any;
+    if (transactionAny.transactionType !== 'purchase' || !transactionAny.payableInfo) {
+      return null;
+    }
+
+    return (
+      <FlowSection
+        title="付款狀態"
+        statusChip={
+          <Chip
+            label={transactionAny.payableInfo.isPaidOff ? '已付清' : '未付清'}
+            color={transactionAny.payableInfo.isPaidOff ? 'success' : 'warning'}
+            size="small"
+          />
+        }
+      >
+        <Box sx={{ p: 2 }}>
+          <Typography variant="body2" gutterBottom>
+            總金額: {formatAmount(transaction.totalAmount || 0)}
+          </Typography>
+          <Typography variant="body2" gutterBottom>
+            已付金額: {formatAmount(transactionAny.payableInfo.totalPaidAmount || 0)}
+          </Typography>
+          <Typography variant="body2" gutterBottom>
+            剩餘金額: {formatAmount((transaction.totalAmount || 0) - (transactionAny.payableInfo.totalPaidAmount || 0))}
+          </Typography>
+          
+          {transactionAny.payableInfo.paymentHistory && transactionAny.payableInfo.paymentHistory.length > 0 && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                付款歷史 ({transactionAny.payableInfo.paymentHistory.length} 筆)
+              </Typography>
+              <TransactionTable>
+                {transactionAny.payableInfo.paymentHistory.map((history: any, index: number) => (
+                  <TableRow key={index}>
+                    <TableCell>
+                      <Button
+                        variant="text"
+                        size="small"
+                        onClick={() => navigate(`/accounting3/transaction/${history.paymentTransactionId}`)}
+                      >
+                        查看付款交易
+                      </Button>
+                    </TableCell>
+                    <TableCell>
+                      {formatAmount(history.paidAmount)}
+                    </TableCell>
+                    <TableCell>
+                      {formatDate(history.paymentDate)}
+                    </TableCell>
+                    <TableCell>
+                      {history.paymentMethod || '-'}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TransactionTable>
+            </Box>
+          )}
+        </Box>
+      </FlowSection>
+    );
+  };
+
   // 渲染流向詳情
   const renderReferencedByInfo = () => {
     if (!transaction.referencedByInfo || transaction.referencedByInfo.length === 0) {
@@ -858,6 +978,12 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
         </Typography>
         <Divider sx={{ mb: 2 }} />
         
+        {/* 🆕 付款交易特殊顯示 */}
+        {renderPaymentFlowSection()}
+        
+        {/* 🆕 應付帳款狀態顯示 */}
+        {renderPayableStatusSection()}
+
         {/* 兩欄式佈局 */}
         <Grid container spacing={2}>
           {/* 左欄：來源區塊 */}

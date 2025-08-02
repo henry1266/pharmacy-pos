@@ -394,24 +394,42 @@ export class TransactionService {
    * @private
    */
   private static async validateEntries(entries: any[], userId: string): Promise<void> {
-    const accountIds = entries.map(entry => 
-      typeof entry.accountId === 'string' ? entry.accountId : entry.accountId?._id
-    ).filter(Boolean);
+    console.log('🔍 開始驗證分錄資料:', entries.length, '筆分錄');
+    
+    const accountIds = entries.map((entry, index) => {
+      const accountId = typeof entry.accountId === 'string' ? entry.accountId : entry.accountId?._id;
+      console.log(`分錄 ${index + 1}: accountId = ${accountId}, debit = ${entry.debitAmount}, credit = ${entry.creditAmount}`);
+      return accountId;
+    }).filter(Boolean);
+
+    console.log('📋 提取的科目 ID:', accountIds);
 
     if (accountIds.length === 0) {
       throw new Error('分錄必須指定會計科目');
     }
 
+    // 去重處理，避免重複查詢
+    const uniqueAccountIds = [...new Set(accountIds)];
+    console.log('🔄 去重後的科目 ID:', uniqueAccountIds);
+
     // 驗證會計科目是否存在
     const accounts = await Account2.find({
-      _id: { $in: accountIds },
+      _id: { $in: uniqueAccountIds },
       createdBy: userId,
       isActive: true
     });
 
-    if (accounts.length !== accountIds.length) {
+    console.log('✅ 找到的有效科目:', accounts.length, '個');
+    console.log('📊 有效科目詳情:', accounts.map(a => ({ id: (a._id as any).toString(), code: a.code, name: a.name })));
+
+    if (accounts.length !== uniqueAccountIds.length) {
       const existingAccountIds = accounts.map(a => (a._id as any).toString());
-      const missingAccountIds = accountIds.filter(id => !existingAccountIds.includes(id));
+      const missingAccountIds = uniqueAccountIds.filter(id => !existingAccountIds.includes(id?.toString()));
+      
+      console.error('❌ 缺少的科目 ID:', missingAccountIds);
+      console.error('📋 現有科目 ID:', existingAccountIds);
+      console.error('🔍 查詢條件:', { uniqueAccountIds, userId });
+      
       throw new Error(`以下會計科目不存在或無權限存取: ${missingAccountIds.join(', ')}`);
     }
 
@@ -432,6 +450,8 @@ export class TransactionService {
         throw new Error('分錄不能同時有借方和貸方金額');
       }
     }
+
+    console.log('✅ 分錄驗證完成');
   }
 
   /**
@@ -651,6 +671,403 @@ export class TransactionService {
       };
     } catch (error) {
       console.error('取得交易統計資訊錯誤:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 🆕 取得可付款的應付帳款
+   * @param userId 使用者ID
+   * @param organizationId 機構ID（可選）
+   * @param excludePaidOff 是否排除已付清的項目
+   * @returns 應付帳款列表
+   */
+  static async getPayableTransactions(
+    userId: string,
+    organizationId?: string,
+    excludePaidOff: boolean = true
+  ): Promise<Array<{
+    _id: string;
+    groupNumber: string;
+    description: string;
+    totalAmount: number;
+    paidAmount: number;
+    remainingAmount: number;
+    dueDate?: Date;
+    supplierInfo?: {
+      supplierId: string;
+      supplierName: string;
+    };
+    isPaidOff: boolean;
+    paymentHistory: Array<{
+      paymentTransactionId: string;
+      paidAmount: number;
+      paymentDate: Date;
+      paymentMethod?: string;
+    }>;
+    transactionDate: Date;
+  }>> {
+    try {
+      // 首先查找所有應付帳款相關的科目（負債類科目）
+      const payableAccounts = await Account2.find({
+        createdBy: userId,
+        accountType: 'liability', // 所有負債類科目都可能是應付帳款
+        isActive: true,
+        ...(organizationId ? { organizationId } : {})
+      }).lean();
+
+      console.log(`🔍 找到 ${payableAccounts.length} 個應付帳款科目:`, payableAccounts.map(a => `${a.code} - ${a.name}`));
+
+      if (payableAccounts.length === 0) {
+        console.log('⚠️ 沒有找到應付帳款科目，返回空列表');
+        return [];
+      }
+
+      const payableAccountIds = payableAccounts.map(a => a._id.toString());
+
+      // 查找包含應付帳款科目的交易（貸方有金額的交易表示應付帳款）
+      const query: any = {
+        createdBy: userId,
+        status: 'confirmed',
+        'entries': {
+          $elemMatch: {
+            'accountId': { $in: payableAccountIds },
+            'creditAmount': { $gt: 0 } // 應付帳款在貸方
+          }
+        },
+        ...(organizationId ? { organizationId } : {})
+      };
+
+      const transactions = await TransactionGroupWithEntries.find(query)
+        .populate('entries.accountId', 'name code accountType')
+        .lean();
+
+      console.log(`📋 找到 ${transactions.length} 筆包含應付帳款科目的交易`);
+
+      // 計算每筆交易的付款狀態
+      const payableTransactions = [];
+
+      for (const transaction of transactions) {
+        // 計算應付帳款金額（從貸方分錄中計算）
+        const payableEntries = transaction.entries?.filter((entry: any) =>
+          payableAccountIds.includes(entry.accountId?._id?.toString() || entry.accountId?.toString()) &&
+          entry.creditAmount > 0
+        ) || [];
+
+        const payableAmount = payableEntries.reduce((sum: number, entry: any) => sum + (entry.creditAmount || 0), 0);
+        
+        if (payableAmount <= 0) {
+          continue; // 跳過沒有應付金額的交易
+        }
+
+        // 計算已付金額
+        const paidAmount = await this.calculatePaidAmount(transaction._id.toString(), userId);
+        const remainingAmount = Math.max(0, payableAmount - paidAmount);
+        const isPaidOff = remainingAmount <= 0;
+
+        // 如果設定排除已付清且此筆已付清，則跳過
+        if (excludePaidOff && isPaidOff) {
+          continue;
+        }
+
+        // 嘗試從交易描述或分錄中提取供應商資訊
+        let supplierInfo = undefined;
+        if (transaction.payableInfo) {
+          supplierInfo = {
+            supplierId: transaction.payableInfo.supplierId?.toString() || '',
+            supplierName: transaction.payableInfo.supplierName || ''
+          };
+        } else {
+          // 如果沒有 payableInfo，從應付帳款分錄中找到對應的廠商子科目
+          const payableAccount = payableAccounts.find(acc =>
+            payableAccountIds.includes(acc._id.toString()) &&
+            payableEntries.some((entry: any) =>
+              (entry.accountId?._id?.toString() || entry.accountId?.toString()) === acc._id.toString()
+            )
+          );
+          
+          // 優先使用廠商子科目，而不是主科目「應付帳款」
+          if (payableAccount && payableAccount.name !== '應付帳款') {
+            supplierInfo = {
+              supplierId: payableAccount._id.toString(), // 使用廠商子科目的 ID
+              supplierName: payableAccount.name // 使用廠商子科目的名稱（如「嘉鏵」）
+            };
+          }
+        }
+        
+        payableTransactions.push({
+          _id: transaction._id.toString(),
+          groupNumber: transaction.groupNumber,
+          description: transaction.description,
+          totalAmount: payableAmount, // 使用計算出的應付金額
+          paidAmount,
+          remainingAmount,
+          ...(transaction.payableInfo?.dueDate && { dueDate: transaction.payableInfo.dueDate }),
+          ...(supplierInfo && { supplierInfo }),
+          isPaidOff,
+          paymentHistory: (transaction.payableInfo?.paymentHistory || []).map((history: any) => ({
+            paymentTransactionId: history.paymentTransactionId.toString(),
+            paidAmount: history.paidAmount,
+            paymentDate: history.paymentDate,
+            ...(history.paymentMethod && { paymentMethod: history.paymentMethod })
+          })),
+          transactionDate: transaction.transactionDate
+        });
+      }
+
+      // 排序：未付清的在前，按到期日排序
+      payableTransactions.sort((a, b) => {
+        if (a.isPaidOff !== b.isPaidOff) {
+          return a.isPaidOff ? 1 : -1;
+        }
+        if (a.dueDate && b.dueDate) {
+          return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+        }
+        return new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime();
+      });
+
+      console.log(`📋 查詢應付帳款: 找到 ${payableTransactions.length} 筆，未付清 ${payableTransactions.filter(p => !p.isPaidOff).length} 筆`);
+      return payableTransactions;
+    } catch (error) {
+      console.error('取得應付帳款錯誤:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 🆕 計算交易的已付金額
+   * @param transactionId 交易ID
+   * @param userId 使用者ID
+   * @returns 已付金額
+   */
+  static async calculatePaidAmount(transactionId: string, userId: string): Promise<number> {
+    try {
+      // 查找所有引用此交易的付款交易
+      const paymentTransactions = await TransactionGroupWithEntries.find({
+        createdBy: userId,
+        status: 'confirmed',
+        transactionType: 'payment',
+        'paymentInfo.payableTransactions.transactionId': transactionId
+      }).lean();
+
+      let totalPaidAmount = 0;
+      
+      paymentTransactions.forEach(payment => {
+        const payableTransaction = payment.paymentInfo?.payableTransactions?.find(
+          p => p.transactionId?.toString() === transactionId
+        );
+        if (payableTransaction) {
+          totalPaidAmount += payableTransaction.paidAmount;
+        }
+      });
+
+      return totalPaidAmount;
+    } catch (error) {
+      console.error('計算已付金額錯誤:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * 🆕 建立付款交易
+   * @param paymentData 付款資料
+   * @param userId 使用者ID
+   * @returns 付款交易
+   */
+  static async createPaymentTransaction(
+    paymentData: {
+      description: string;
+      transactionDate: Date;
+      paymentMethod: string;
+      totalAmount: number;
+      entries: Array<{
+        sequence: number;
+        accountId: string;
+        debitAmount: number;
+        creditAmount: number;
+        description: string;
+        sourceTransactionId?: string;
+      }>;
+      linkedTransactionIds: string[];
+      organizationId?: string;
+      paymentInfo: {
+        paymentMethod: string;
+        payableTransactions: Array<{
+          transactionId: string;
+          paidAmount: number;
+          remainingAmount?: number;
+        }>;
+      };
+    },
+    userId: string
+  ): Promise<ITransactionGroupWithEntries> {
+    try {
+      // 驗證付款資料
+      const validationResult = await this.validatePaymentTransaction(paymentData, userId);
+      if (!validationResult.isValid) {
+        throw new Error(`付款資料驗證失敗: ${validationResult.errors.join(', ')}`);
+      }
+
+      // 建立付款交易
+      const paymentTransaction = await this.createTransactionGroup({
+        ...paymentData,
+        transactionType: 'payment',
+        fundingType: 'transfer',
+        linkedTransactionIds: paymentData.linkedTransactionIds,
+        paymentInfo: paymentData.paymentInfo
+      }, userId, paymentData.organizationId);
+
+      // 更新相關應付帳款的付款狀態
+      for (const payableTransaction of paymentData.paymentInfo.payableTransactions) {
+        await this.updatePayablePaymentStatus(payableTransaction.transactionId, userId);
+      }
+
+      console.log(`✅ 付款交易建立成功: ${paymentTransaction.groupNumber}`);
+      return paymentTransaction;
+    } catch (error) {
+      console.error('建立付款交易錯誤:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 🆕 驗證付款交易資料
+   * @param paymentData 付款資料
+   * @param userId 使用者ID
+   * @returns 驗證結果
+   */
+  static async validatePaymentTransaction(
+    paymentData: any,
+    userId: string
+  ): Promise<{ isValid: boolean; errors: string[] }> {
+    const errors: string[] = [];
+
+    try {
+      // 驗證基本資料
+      if (!paymentData.description) {
+        errors.push('付款描述不能為空');
+      }
+      if (!paymentData.paymentMethod) {
+        errors.push('付款方式不能為空');
+      }
+      if (!paymentData.entries || paymentData.entries.length < 2) {
+        errors.push('付款交易至少需要兩筆分錄');
+      }
+      if (!paymentData.paymentInfo?.payableTransactions?.length) {
+        errors.push('必須指定要付款的應付帳款');
+      }
+
+      // 驗證應付帳款是否存在且可付款
+      if (paymentData.paymentInfo?.payableTransactions) {
+        for (const payable of paymentData.paymentInfo.payableTransactions) {
+          const transaction = await TransactionGroupWithEntries.findOne({
+            _id: payable.transactionId,
+            createdBy: userId,
+            status: 'confirmed'
+            // 移除 transactionType 限制，因為應付帳款可能沒有設定此欄位
+          });
+
+          if (!transaction) {
+            errors.push(`應付帳款 ${payable.transactionId} 不存在或無權限存取`);
+            continue;
+          }
+
+          // 驗證這筆交易確實包含應付帳款科目
+          const payableAccounts = await Account2.find({
+            createdBy: userId,
+            accountType: 'liability',
+            isActive: true
+          }).lean();
+          
+          const payableAccountIds = payableAccounts.map(a => a._id.toString());
+          const hasPayableEntry = transaction.entries?.some((entry: any) =>
+            payableAccountIds.includes(entry.accountId?.toString()) && entry.creditAmount > 0
+          );
+
+          if (!hasPayableEntry) {
+            errors.push(`交易 ${payable.transactionId} 不包含應付帳款科目`);
+            continue;
+          }
+
+          // 計算應付金額（從貸方分錄中計算）
+          const payableEntries = transaction.entries?.filter((entry: any) =>
+            payableAccountIds.includes(entry.accountId?.toString()) && entry.creditAmount > 0
+          ) || [];
+          
+          const payableAmount = payableEntries.reduce((sum: number, entry: any) => sum + (entry.creditAmount || 0), 0);
+
+          // 檢查付款金額是否超過剩餘應付金額
+          const paidAmount = await this.calculatePaidAmount(payable.transactionId, userId);
+          const remainingAmount = payableAmount - paidAmount;
+          
+          if (payable.paidAmount > remainingAmount) {
+            errors.push(`付款金額 ${payable.paidAmount} 超過剩餘應付金額 ${remainingAmount}`);
+          }
+        }
+      }
+
+      // 驗證借貸平衡
+      if (paymentData.entries) {
+        const totalDebit = paymentData.entries.reduce((sum: number, entry: any) => sum + (entry.debitAmount || 0), 0);
+        const totalCredit = paymentData.entries.reduce((sum: number, entry: any) => sum + (entry.creditAmount || 0), 0);
+        
+        if (Math.abs(totalDebit - totalCredit) > 0.01) {
+          errors.push(`借貸不平衡：借方 ${totalDebit}，貸方 ${totalCredit}`);
+        }
+      }
+
+      return {
+        isValid: errors.length === 0,
+        errors
+      };
+    } catch (error) {
+      console.error('驗證付款交易錯誤:', error);
+      return {
+        isValid: false,
+        errors: ['驗證過程發生錯誤']
+      };
+    }
+  }
+
+  /**
+   * 🆕 更新應付帳款的付款狀態
+   * @param payableTransactionId 應付帳款交易ID
+   * @param userId 使用者ID
+   */
+  static async updatePayablePaymentStatus(
+    payableTransactionId: string,
+    userId: string
+  ): Promise<void> {
+    try {
+      const paidAmount = await this.calculatePaidAmount(payableTransactionId, userId);
+      
+      const payableTransaction = await TransactionGroupWithEntries.findOne({
+        _id: payableTransactionId,
+        createdBy: userId
+      });
+
+      if (payableTransaction) {
+        const isPaidOff = paidAmount >= payableTransaction.totalAmount;
+        
+        // 初始化 payableInfo 如果不存在
+        if (!payableTransaction.payableInfo) {
+          payableTransaction.payableInfo = {
+            totalPaidAmount: 0,
+            isPaidOff: false,
+            paymentHistory: []
+          };
+        }
+        
+        payableTransaction.payableInfo.totalPaidAmount = paidAmount;
+        payableTransaction.payableInfo.isPaidOff = isPaidOff;
+        payableTransaction.updatedAt = new Date();
+        
+        await payableTransaction.save();
+
+        console.log(`✅ 更新應付帳款狀態: ${payableTransaction.groupNumber} - ${isPaidOff ? '已付清' : '部分付款'} (${paidAmount}/${payableTransaction.totalAmount})`);
+      }
+    } catch (error) {
+      console.error('更新應付帳款狀態錯誤:', error);
       throw error;
     }
   }

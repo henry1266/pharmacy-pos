@@ -25,6 +25,31 @@ export interface IFundingSourceUsage {
   description?: string;                                    // 使用說明
 }
 
+// 付款資訊介面
+export interface IPaymentInfo {
+  paymentMethod: string;      // 付款方式
+  payableTransactions: Array<{
+    transactionId: mongoose.Types.ObjectId | string;
+    paidAmount: number;
+    remainingAmount?: number;
+  }>;
+}
+
+// 應付帳款資訊介面
+export interface IPayableInfo {
+  supplierId?: mongoose.Types.ObjectId | string;
+  supplierName?: string;
+  dueDate?: Date;
+  totalPaidAmount: number;
+  isPaidOff: boolean;
+  paymentHistory: Array<{
+    paymentTransactionId: mongoose.Types.ObjectId | string;
+    paidAmount: number;
+    paymentDate: Date;
+    paymentMethod?: string;
+  }>;
+}
+
 // 更新後的交易群組介面
 export interface ITransactionGroupWithEntries extends Document {
   groupNumber: string;        // 交易群組編號 (如: TXN-20250102-001)
@@ -36,6 +61,9 @@ export interface ITransactionGroupWithEntries extends Document {
   totalAmount: number;        // 交易總金額
   status: 'draft' | 'confirmed' | 'cancelled';
   
+  // 🆕 交易類型
+  transactionType: 'purchase' | 'payment' | 'general';
+  
   // 資金來源追蹤功能
   linkedTransactionIds: (mongoose.Types.ObjectId | string)[]; // 被延伸使用的交易ID陣列（保留向後相容）
   sourceTransactionId?: mongoose.Types.ObjectId | string;     // 此交易的資金來源交易ID
@@ -44,6 +72,12 @@ export interface ITransactionGroupWithEntries extends Document {
   // 🆕 精確資金來源使用追蹤
   fundingSourceUsages?: IFundingSourceUsage[];                // 資金來源使用明細
   
+  // 🆕 付款相關資訊
+  paymentInfo?: IPaymentInfo;                                  // 付款交易資訊
+  
+  // 🆕 應付帳款相關資訊
+  payableInfo?: IPayableInfo;                                  // 應付帳款資訊
+  
   // 內嵌分錄陣列 - 新增的核心欄位
   entries: IEmbeddedAccountingEntry[];
   
@@ -51,6 +85,101 @@ export interface ITransactionGroupWithEntries extends Document {
   createdAt: Date;
   updatedAt: Date;
 }
+
+// 付款歷史子文檔 Schema
+const PaymentHistorySchema: Schema = new Schema({
+  paymentTransactionId: {
+    type: Schema.Types.ObjectId,
+    ref: 'TransactionGroupWithEntries',
+    required: true
+  },
+  paidAmount: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  paymentDate: {
+    type: Date,
+    required: true
+  },
+  paymentMethod: {
+    type: String,
+    trim: true,
+    maxlength: 50
+  }
+}, {
+  _id: false,
+  timestamps: false
+});
+
+// 應付帳款資訊子文檔 Schema
+const PayableInfoSchema: Schema = new Schema({
+  supplierId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Supplier',
+    default: null
+  },
+  supplierName: {
+    type: String,
+    trim: true,
+    maxlength: 100
+  },
+  dueDate: {
+    type: Date,
+    default: null
+  },
+  totalPaidAmount: {
+    type: Number,
+    required: true,
+    default: 0,
+    min: 0
+  },
+  isPaidOff: {
+    type: Boolean,
+    required: true,
+    default: false
+  },
+  paymentHistory: [PaymentHistorySchema]
+}, {
+  _id: false,
+  timestamps: false
+});
+
+// 付款交易子文檔 Schema
+const PayableTransactionSchema: Schema = new Schema({
+  transactionId: {
+    type: Schema.Types.ObjectId,
+    ref: 'TransactionGroupWithEntries',
+    required: true
+  },
+  paidAmount: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  remainingAmount: {
+    type: Number,
+    default: 0,
+    min: 0
+  }
+}, {
+  _id: false,
+  timestamps: false
+});
+
+// 付款資訊子文檔 Schema
+const PaymentInfoSchema: Schema = new Schema({
+  paymentMethod: {
+    type: String,
+    required: true,
+    trim: true,
+    maxlength: 50
+  },
+  payableTransactions: [PayableTransactionSchema]
+}, {
+  _id: false,
+  timestamps: false
+});
 
 // 資金來源使用明細子文檔 Schema
 const FundingSourceUsageSchema: Schema = new Schema({
@@ -169,6 +298,15 @@ const TransactionGroupWithEntriesSchema: Schema = new Schema({
     enum: ['draft', 'confirmed', 'cancelled'],
     default: 'draft'
   },
+  
+  // 🆕 交易類型
+  transactionType: {
+    type: String,
+    required: true,
+    enum: ['purchase', 'payment', 'general'],
+    default: 'general'
+  },
+  
   // 資金來源追蹤欄位
   linkedTransactionIds: [{
     type: Schema.Types.ObjectId,
@@ -188,6 +326,18 @@ const TransactionGroupWithEntriesSchema: Schema = new Schema({
   
   // 🆕 精確資金來源使用追蹤
   fundingSourceUsages: [FundingSourceUsageSchema],
+  
+  // 🆕 付款相關資訊
+  paymentInfo: {
+    type: PaymentInfoSchema,
+    default: null
+  },
+  
+  // 🆕 應付帳款相關資訊
+  payableInfo: {
+    type: PayableInfoSchema,
+    default: null
+  },
   
   // 內嵌分錄陣列 - 核心新增欄位
   entries: {
@@ -224,6 +374,14 @@ TransactionGroupWithEntriesSchema.index({ linkedTransactionIds: 1 });
 TransactionGroupWithEntriesSchema.index({ sourceTransactionId: 1 });
 TransactionGroupWithEntriesSchema.index({ fundingType: 1, transactionDate: -1 });
 TransactionGroupWithEntriesSchema.index({ sourceTransactionId: 1, fundingType: 1 });
+
+// 🆕 交易類型和付款相關索引
+TransactionGroupWithEntriesSchema.index({ transactionType: 1, status: 1 });
+TransactionGroupWithEntriesSchema.index({ transactionType: 1, transactionDate: -1 });
+TransactionGroupWithEntriesSchema.index({ 'payableInfo.isPaidOff': 1, transactionType: 1 });
+TransactionGroupWithEntriesSchema.index({ 'payableInfo.supplierId': 1, transactionType: 1 });
+TransactionGroupWithEntriesSchema.index({ 'payableInfo.dueDate': 1, 'payableInfo.isPaidOff': 1 });
+TransactionGroupWithEntriesSchema.index({ 'paymentInfo.paymentMethod': 1, transactionType: 1 });
 
 // 內嵌分錄相關索引
 TransactionGroupWithEntriesSchema.index({ 'entries.accountId': 1, transactionDate: -1 });

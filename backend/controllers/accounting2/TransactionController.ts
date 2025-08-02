@@ -842,6 +842,193 @@ export class TransactionController {
       });
     }
   }
+
+  /**
+   * 🆕 取得可付款的應付帳款列表
+   * GET /api/accounting2/transactions/payables
+   */
+  static async getPayableTransactions(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id || req.query.userId as string;
+      
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          message: '未提供使用者身份'
+        });
+        return;
+      }
+
+      const { organizationId, excludePaidOff = 'true' } = req.query;
+
+      const payableTransactions = await TransactionService.getPayableTransactions(
+        userId,
+        organizationId as string,
+        excludePaidOff === 'true'
+      );
+
+      res.json({
+        success: true,
+        data: payableTransactions,
+        meta: {
+          total: payableTransactions.length,
+          unpaidCount: payableTransactions.filter(p => !p.isPaidOff).length,
+          totalUnpaidAmount: payableTransactions
+            .filter(p => !p.isPaidOff)
+            .reduce((sum, p) => sum + p.remainingAmount, 0)
+        }
+      });
+    } catch (error) {
+      console.error('取得應付帳款錯誤:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : '取得應付帳款失敗'
+      });
+    }
+  }
+
+  /**
+   * 🆕 建立付款交易
+   * POST /api/accounting2/transactions/payment
+   */
+  static async createPaymentTransaction(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id || req.body.userId;
+      
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          message: '未提供使用者身份'
+        });
+        return;
+      }
+
+      const paymentData = req.body;
+
+      // 驗證必要欄位
+      if (!paymentData.paymentMethod) {
+        res.status(400).json({
+          success: false,
+          message: '缺少付款方式'
+        });
+        return;
+      }
+
+      if (!paymentData.paymentInfo?.payableTransactions?.length) {
+        res.status(400).json({
+          success: false,
+          message: '必須指定要付款的應付帳款'
+        });
+        return;
+      }
+
+      if (!paymentData.entries || paymentData.entries.length < 2) {
+        res.status(400).json({
+          success: false,
+          message: '付款交易至少需要兩筆分錄'
+        });
+        return;
+      }
+
+      // 建立付款交易
+      const paymentTransaction = await TransactionService.createPaymentTransaction(paymentData, userId);
+
+      console.log(`✅ 付款交易建立成功: ${paymentTransaction.groupNumber}`);
+      
+      res.status(201).json({
+        success: true,
+        message: '付款交易建立成功',
+        data: paymentTransaction
+      });
+    } catch (error) {
+      console.error('建立付款交易錯誤:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : '建立付款交易失敗'
+      });
+    }
+  }
+
+  /**
+   * 🆕 取得應付帳款的付款歷史
+   * GET /api/accounting2/transactions/:id/payment-history
+   */
+  static async getPaymentHistory(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const userId = req.user?.id || req.query.userId as string;
+      
+      if (!id) {
+        res.status(400).json({
+          success: false,
+          message: '缺少交易ID'
+        });
+        return;
+      }
+      
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          message: '未提供使用者身份'
+        });
+        return;
+      }
+
+      // 查找所有引用此交易的付款交易
+      const paymentTransactions = await TransactionService.getTransactionGroups(
+        userId,
+        undefined,
+        {
+          page: 1,
+          limit: 1000
+        }
+      );
+
+      const paymentHistory = paymentTransactions.transactions
+        .filter(transaction =>
+          transaction.transactionType === 'payment' &&
+          transaction.paymentInfo?.payableTransactions?.some(p => p.transactionId?.toString() === id)
+        )
+        .map(payment => {
+          const payableTransaction = payment.paymentInfo?.payableTransactions?.find(
+            p => p.transactionId?.toString() === id
+          );
+          
+          return {
+            paymentTransactionId: (payment as any)._id.toString(),
+            groupNumber: payment.groupNumber,
+            description: payment.description,
+            paymentDate: payment.transactionDate,
+            paymentMethod: payment.paymentInfo?.paymentMethod,
+            paidAmount: payableTransaction?.paidAmount || 0,
+            status: payment.status
+          };
+        })
+        .sort((a, b) => new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime());
+
+      const totalPaidAmount = paymentHistory
+        .filter(p => p.status === 'confirmed')
+        .reduce((sum, p) => sum + p.paidAmount, 0);
+
+      res.json({
+        success: true,
+        data: {
+          paymentHistory,
+          summary: {
+            totalPayments: paymentHistory.length,
+            totalPaidAmount,
+            confirmedPayments: paymentHistory.filter(p => p.status === 'confirmed').length
+          }
+        }
+      });
+    } catch (error) {
+      console.error('取得付款歷史錯誤:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : '取得付款歷史失敗'
+      });
+    }
+  }
 }
 
 export default TransactionController;

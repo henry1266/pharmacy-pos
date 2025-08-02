@@ -42,6 +42,7 @@ import AccountTypeSettingsPage from './pages/settings/AccountTypeSettingsPage';
 
 import OrganizationPage from './modules/accounting3/pages/OrganizationPage';
 import OrganizationFormPage from './modules/accounting3/pages/OrganizationFormPage';
+import PaymentManagementPage from './modules/accounting3/pages/PaymentManagementPage';
 
 // 員工管理頁面元件
   import { EmployeeBasicInfoPage, EmployeeListPage, EmployeeSchedulingPage, OvertimeManagementPage } from './modules/employees';
@@ -112,6 +113,10 @@ const AppRouter: React.FC = () => {
       <Route path="/accounting3/organizations" element={<OrganizationPage />} />
       <Route path="/accounting3/organizations/new" element={<OrganizationFormPage />} />
       <Route path="/accounting3/organizations/:id/edit" element={<OrganizationFormPage />} />
+      
+      {/* Accounting3 付款管理路由 */}
+      <Route path="/accounting3/payments" element={<PaymentManagementPage />} />
+      <Route path="/accounting3/payments/:organizationId" element={<PaymentManagementPage />} />
       
       {/* Settings routes (assuming they require login) */}
       <Route path="/settings" element={<SettingsPage />} /> {/* Add the theme settings route */}
