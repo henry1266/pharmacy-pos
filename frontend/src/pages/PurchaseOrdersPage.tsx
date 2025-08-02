@@ -427,6 +427,11 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
     }
   };
 
+  // 計算總金額 - 移到組件頂部，在所有條件語句之前
+  const totalAmount = React.useMemo(() => {
+    return filteredRows.reduce((sum, row) => sum + (row.totalAmount || 0), 0);
+  }, [filteredRows]);
+
   // Supplier header rendering remains the same
   const renderSupplierHeader = () => (
     <SupplierCheckboxFilter
@@ -436,7 +441,7 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
     />
   );
 
-  // --- Render --- 
+  // --- Render ---
   if (loading && !purchaseOrders) { // Show loading only on initial load
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
@@ -447,67 +452,95 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
   }
 
   return (
-    <Box>
-      <Typography variant="h5" component="h5" gutterBottom>
-        進貨單管理
-      </Typography>
+    <Box sx={{ p: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Typography variant="h5" component="h1">
+            進貨單管理
+          </Typography>
+          {/* 總金額顯示 */}
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            backgroundColor: 'primary.main',
+            color: 'primary.contrastText',
+            px: 2,
+            py: 1,
+            borderRadius: 2,
+            minWidth: 'fit-content'
+          }}>
+            <Typography variant="caption" sx={{ fontSize: '0.8rem', mr: 1 }}>
+              總計
+            </Typography>
+            <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
+              ${totalAmount.toLocaleString()}
+            </Typography>
+          </Box>
+          {/* 筆數統計 */}
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            backgroundColor: 'secondary.main',
+            color: 'secondary.contrastText',
+            px: 2,
+            py: 1,
+            borderRadius: 2,
+            minWidth: 'fit-content'
+          }}>
+            <Typography variant="caption" sx={{ fontSize: '0.8rem', mr: 1 }}>
+              筆數
+            </Typography>
+            <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
+              {filteredRows.length}
+            </Typography>
+          </Box>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {/* 搜尋區域 */}
+          <TextField
+            size="small"
+            placeholder="搜索進貨單（單號、供應商、日期、ID）"
+            name="searchTerm"
+            value={hookSearchParams.searchTerm || ''}
+            onChange={hookHandleInputChange}
+            sx={{ minWidth: 300 }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              )
+            }}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleLocalSearch}
+          >
+            搜尋
+          </Button>
+          <Button
+            variant="outlined"
+            color="secondary"
+            onClick={handleLocalClearSearch}
+          >
+            清除
+          </Button>
+        </Box>
+      </Box>
 
       <Card sx={{ mb: 3, px: 2, mx: 1 }}>
         <CardContent>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="h6">進貨單列表</Typography>
-            <Box>
-              <Button
-                variant="outlined"
-                startIcon={<FilterListIcon />}
-                onClick={() => setShowFilters(!showFilters)}
-                sx={{ mr: 1 }}
-              >
-                {showFilters ? '隱藏篩選' : '顯示篩選'}
-              </Button>
-            </Box>
-          </Box>
-
           {showFilters && (
-            <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
-              <TextField
-                fullWidth
-                placeholder="搜索進貨單（單號、供應商、日期、ID）"
-                name="searchTerm"
-                value={hookSearchParams.searchTerm || ''}
-                onChange={hookHandleInputChange}
-                variant="outlined"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon />
-                    </InputAdornment>
-                  )
-                }}
-              />
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleLocalSearch}
-              >
-                搜尋
-              </Button>
-              <Button
-                variant="outlined"
-                color="secondary"
-                onClick={handleLocalClearSearch}
-              >
-                清除
-              </Button>
+            <Box sx={{ mb: 2 }}>
+              {filteredRows.length > 0 && (
+                <FilterPriceSummary
+                  filteredRows={filteredRows}
+                  totalAmountField="totalAmount"
+                  title="篩選結果"
+                />
+              )}
             </Box>
-          )}
-
-          {filteredRows.length > 0 && (
-            <FilterPriceSummary
-              filteredRows={filteredRows}
-              totalAmountField="totalAmount"
-              title="篩選結果"
-            />
           )}
 
           <PurchaseOrdersTable
