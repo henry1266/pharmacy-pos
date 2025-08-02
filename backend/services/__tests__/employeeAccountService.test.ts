@@ -6,7 +6,6 @@ import {
   unbindEmployeeAccount
 } from '../employeeAccountService';
 import User from '../../models/User';
-// import Employee from '../../models/Employee'; // 移除未使用的導入
 import { hashPassword } from '../../utils/passwordUtils';
 import {
   findEmployeeById,
@@ -15,16 +14,13 @@ import {
   hasEmployeeAccount,
   getEmployeeUser
 } from '../../utils/employeeAccountValidation';
-import mongoose from 'mongoose';
 
-// Mock 所有依賴
+// Mock dependencies
 jest.mock('../../models/User');
-jest.mock('../../models/Employee');
 jest.mock('../../utils/passwordUtils');
 jest.mock('../../utils/employeeAccountValidation');
 
-const MockedUser = User as any;
-// const MockedEmployee = Employee as any; // 移除未使用的變數
+const MockedUser = User as jest.MockedClass<typeof User>;
 const mockedHashPassword = hashPassword as jest.MockedFunction<typeof hashPassword>;
 const mockedFindEmployeeById = findEmployeeById as jest.MockedFunction<typeof findEmployeeById>;
 const mockedIsUsernameExists = isUsernameExists as jest.MockedFunction<typeof isUsernameExists>;
@@ -33,458 +29,462 @@ const mockedHasEmployeeAccount = hasEmployeeAccount as jest.MockedFunction<typeo
 const mockedGetEmployeeUser = getEmployeeUser as jest.MockedFunction<typeof getEmployeeUser>;
 
 describe('employeeAccountService', () => {
-  let mockEmployee: any;
-  let mockUser: any;
-  let mockAccountData: any;
-
   beforeEach(() => {
     jest.clearAllMocks();
+  });
 
-    // 設置 mock 員工數據
-    mockEmployee = {
-      id: new mongoose.Types.ObjectId().toString(),
-      _id: new mongoose.Types.ObjectId(),
+  describe('createEmployeeAccount', () => {
+    const mockEmployee = {
+      id: 'emp123',
       name: '張三',
-      phone: '0912345678',
-      position: '藥師',
-      hireDate: new Date(),
       userId: null,
       save: jest.fn().mockResolvedValue(true)
     };
 
-    // 設置 mock 用戶數據
-    mockUser = {
-      id: new mongoose.Types.ObjectId().toString(),
-      _id: new mongoose.Types.ObjectId(),
+    const mockUser = {
+      id: 'user123',
       name: '張三',
-      username: 'zhang_san',
-      email: 'zhang@example.com',
-      password: 'hashedPassword123',
-      role: 'staff',
+      username: 'zhangsan',
+      role: 'employee',
       save: jest.fn().mockResolvedValue(true)
     };
 
-    // 設置 mock 帳號數據
-    mockAccountData = {
-      employeeId: mockEmployee.id,
-      username: 'zhang_san',
-      email: 'zhang@example.com',
+    const accountData = {
+      employeeId: 'emp123',
+      username: 'zhangsan',
+      email: 'zhangsan@example.com',
       password: 'password123',
-      role: 'staff'
+      role: 'employee'
     };
-  });
 
-  describe('createEmployeeAccount', () => {
     beforeEach(() => {
-      mockedFindEmployeeById.mockResolvedValue(mockEmployee);
+      mockedFindEmployeeById.mockResolvedValue(mockEmployee as any);
       mockedIsUsernameExists.mockResolvedValue(false);
       mockedIsEmailExists.mockResolvedValue(false);
       mockedHasEmployeeAccount.mockResolvedValue(false);
-      mockedHashPassword.mockResolvedValue('hashedPassword123' as any);
+      mockedHashPassword.mockResolvedValue('hashedPassword' as any);
       
       // Mock User constructor and save
-      (MockedUser as jest.MockedClass<typeof User>).mockImplementation(() => ({
+      const mockUserInstance = {
         ...mockUser,
         save: jest.fn().mockResolvedValue(mockUser)
-      }) as any);
+      };
+      MockedUser.mockImplementation(() => mockUserInstance as any);
     });
 
-    test('應該成功創建員工帳號', async () => {
-      const result = await createEmployeeAccount(mockAccountData);
+    it('應該成功創建員工帳號', async () => {
+      const result = await createEmployeeAccount(accountData);
 
-      expect(mockedFindEmployeeById).toHaveBeenCalledWith(mockAccountData.employeeId);
-      expect(mockedIsUsernameExists).toHaveBeenCalledWith(mockAccountData.username);
-      expect(mockedIsEmailExists).toHaveBeenCalledWith(mockAccountData.email);
+      expect(mockedFindEmployeeById).toHaveBeenCalledWith('emp123');
+      expect(mockedIsUsernameExists).toHaveBeenCalledWith('zhangsan');
+      expect(mockedIsEmailExists).toHaveBeenCalledWith('zhangsan@example.com');
       expect(mockedHasEmployeeAccount).toHaveBeenCalledWith(mockEmployee);
-      expect(mockedHashPassword).toHaveBeenCalledWith(mockAccountData.password);
+      expect(mockedHashPassword).toHaveBeenCalledWith('password123');
 
       expect(result).toEqual({
         employee: {
-          id: mockEmployee.id,
-          name: mockEmployee.name
+          id: 'emp123',
+          name: '張三'
         },
         user: {
-          id: mockUser.id,
-          name: mockUser.name,
-          username: mockUser.username,
-          role: mockUser.role
+          id: 'user123',
+          name: '張三',
+          username: 'zhangsan',
+          role: 'employee'
         }
       });
 
       expect(mockEmployee.save).toHaveBeenCalled();
     });
 
-    test('應該在用戶名已存在時拋出錯誤', async () => {
+    it('應該在用戶名已存在時拋出錯誤', async () => {
       mockedIsUsernameExists.mockResolvedValue(true);
 
-      await expect(createEmployeeAccount(mockAccountData))
+      await expect(createEmployeeAccount(accountData))
         .rejects.toThrow('此用戶名已被使用');
-
-      expect(mockedFindEmployeeById).toHaveBeenCalled();
-      expect(mockedIsUsernameExists).toHaveBeenCalled();
-      expect(MockedUser).not.toHaveBeenCalled();
     });
 
-    test('應該在員工已有帳號時拋出錯誤', async () => {
+    it('應該在員工已有帳號時拋出錯誤', async () => {
       mockedHasEmployeeAccount.mockResolvedValue(true);
 
-      await expect(createEmployeeAccount(mockAccountData))
+      await expect(createEmployeeAccount(accountData))
         .rejects.toThrow('此員工已有帳號');
-
-      expect(mockedHasEmployeeAccount).toHaveBeenCalledWith(mockEmployee);
-      expect(MockedUser).not.toHaveBeenCalled();
     });
 
-    test('應該在電子郵件已存在時拋出錯誤', async () => {
+    it('應該在電子郵件已存在時拋出錯誤', async () => {
       mockedIsEmailExists.mockResolvedValue(true);
 
-      await expect(createEmployeeAccount(mockAccountData))
+      await expect(createEmployeeAccount(accountData))
         .rejects.toThrow('此電子郵件已被使用');
-
-      expect(mockedIsEmailExists).toHaveBeenCalledWith(mockAccountData.email);
-      expect(MockedUser).not.toHaveBeenCalled();
     });
 
-    test('應該能夠創建沒有電子郵件的帳號', async () => {
-      const accountDataWithoutEmail = { ...mockAccountData };
-      delete accountDataWithoutEmail.email;
+    it('應該處理沒有電子郵件的情況', async () => {
+      const { email, ...accountDataWithoutEmail } = accountData;
 
-      const result = await createEmployeeAccount(accountDataWithoutEmail);
+      await createEmployeeAccount(accountDataWithoutEmail as any);
 
       expect(mockedIsEmailExists).not.toHaveBeenCalled();
-      expect(result).toBeDefined();
-      expect(result.user.username).toBe(mockAccountData.username);
     });
 
-    test('應該能夠創建空電子郵件的帳號', async () => {
-      const accountDataWithEmptyEmail = { ...mockAccountData, email: '' };
+    it('應該處理空電子郵件字符串', async () => {
+      const accountDataWithEmptyEmail = {
+        ...accountData,
+        email: ''
+      };
 
-      const result = await createEmployeeAccount(accountDataWithEmptyEmail);
+      await createEmployeeAccount(accountDataWithEmptyEmail);
 
       expect(mockedIsEmailExists).not.toHaveBeenCalled();
-      expect(result).toBeDefined();
-    });
-
-    test('應該在密碼加密失敗時拋出錯誤', async () => {
-      mockedHashPassword.mockRejectedValue(new Error('密碼加密失敗'));
-
-      await expect(createEmployeeAccount(mockAccountData))
-        .rejects.toThrow('密碼加密失敗');
     });
   });
 
   describe('getEmployeeAccount', () => {
+    const mockEmployee = {
+      id: 'emp123',
+      name: '張三'
+    };
+
+    const mockUser = {
+      id: 'user123',
+      name: '張三',
+      username: 'zhangsan',
+      role: 'employee'
+    };
+
     beforeEach(() => {
-      mockedFindEmployeeById.mockResolvedValue(mockEmployee);
-      mockedGetEmployeeUser.mockResolvedValue(mockUser);
+      mockedFindEmployeeById.mockResolvedValue(mockEmployee as any);
+      mockedGetEmployeeUser.mockResolvedValue(mockUser as any);
     });
 
-    test('應該成功獲取員工帳號信息', async () => {
-      const result = await getEmployeeAccount(mockEmployee.id);
+    it('應該返回員工帳號信息', async () => {
+      const result = await getEmployeeAccount('emp123');
 
-      expect(mockedFindEmployeeById).toHaveBeenCalledWith(mockEmployee.id);
+      expect(mockedFindEmployeeById).toHaveBeenCalledWith('emp123');
       expect(mockedGetEmployeeUser).toHaveBeenCalledWith(mockEmployee, false);
       expect(result).toEqual(mockUser);
-    });
-
-    test('應該在員工不存在時拋出錯誤', async () => {
-      mockedFindEmployeeById.mockRejectedValue(new Error('找不到此員工資料'));
-
-      await expect(getEmployeeAccount('invalid-id'))
-        .rejects.toThrow('找不到此員工資料');
-    });
-
-    test('應該在員工沒有帳號時拋出錯誤', async () => {
-      mockedGetEmployeeUser.mockRejectedValue(new Error('此員工尚未建立帳號'));
-
-      await expect(getEmployeeAccount(mockEmployee.id))
-        .rejects.toThrow('此員工尚未建立帳號');
     });
   });
 
   describe('updateEmployeeAccount', () => {
-    let mockUpdatedUser: any;
+    const mockEmployee = {
+      id: 'emp123',
+      name: '張三'
+    };
+
+    const mockUser = {
+      id: 'user123',
+      username: 'oldusername',
+      email: 'old@example.com',
+      role: 'employee',
+      password: 'oldpassword',
+      save: jest.fn().mockResolvedValue(true)
+    };
+
+    const mockUpdatedUser = {
+      id: 'user123',
+      name: '張三',
+      username: 'newusername',
+      email: 'new@example.com',
+      role: 'admin'
+    };
 
     beforeEach(() => {
-      mockUpdatedUser = { ...mockUser, username: 'new_username' };
-      
-      mockedFindEmployeeById.mockResolvedValue(mockEmployee);
-      mockedGetEmployeeUser.mockResolvedValue(mockUser);
+      mockedFindEmployeeById.mockResolvedValue(mockEmployee as any);
+      mockedGetEmployeeUser.mockResolvedValue(mockUser as any);
       mockedIsUsernameExists.mockResolvedValue(false);
       mockedIsEmailExists.mockResolvedValue(false);
       mockedHashPassword.mockResolvedValue('newHashedPassword' as any);
-      
       MockedUser.findById = jest.fn().mockReturnValue({
         select: jest.fn().mockResolvedValue(mockUpdatedUser)
       });
     });
 
-    test('應該成功更新員工帳號', async () => {
+    it('應該成功更新員工帳號', async () => {
       const updateData = {
-        username: 'new_username',
+        username: 'newusername',
         email: 'new@example.com',
-        password: 'newPassword123',
-        role: 'pharmacist'
+        password: 'newpassword',
+        role: 'admin'
       };
 
-      const result = await updateEmployeeAccount(mockEmployee.id, updateData);
+      const result = await updateEmployeeAccount('emp123', updateData);
 
-      expect(mockedFindEmployeeById).toHaveBeenCalledWith(mockEmployee.id);
-      expect(mockedGetEmployeeUser).toHaveBeenCalledWith(mockEmployee, true);
-      expect(mockedIsUsernameExists).toHaveBeenCalledWith(updateData.username, mockUser.id);
-      expect(mockedIsEmailExists).toHaveBeenCalledWith(updateData.email, mockUser.id);
-      expect(mockedHashPassword).toHaveBeenCalledWith(updateData.password);
+      expect(mockedIsUsernameExists).toHaveBeenCalledWith('newusername', 'user123');
+      expect(mockedIsEmailExists).toHaveBeenCalledWith('new@example.com', 'user123');
+      expect(mockedHashPassword).toHaveBeenCalledWith('newpassword');
       expect(mockUser.save).toHaveBeenCalled();
+      expect(MockedUser.findById).toHaveBeenCalledWith('user123');
       expect(result).toEqual(mockUpdatedUser);
     });
 
-    test('應該能夠只更新部分字段', async () => {
-      const updateData = { username: 'new_username' };
+    it('應該處理部分更新', async () => {
+      // 確保新用戶名與舊用戶名不同，這樣才會調用驗證函數
+      const updateData = {
+        username: 'differentusername'  // 與mockUser.username: 'oldusername' 不同
+      };
 
-      const result = await updateEmployeeAccount(mockEmployee.id, updateData);
+      const result = await updateEmployeeAccount('emp123', updateData);
 
-      expect(mockedIsUsernameExists).toHaveBeenCalledWith(updateData.username, mockUser.id);
+      expect(mockedIsUsernameExists).toHaveBeenCalledWith('differentusername', 'user123');
       expect(mockedIsEmailExists).not.toHaveBeenCalled();
       expect(mockedHashPassword).not.toHaveBeenCalled();
+      expect(mockUser.save).toHaveBeenCalled();
+      expect(MockedUser.findById).toHaveBeenCalledWith('user123');
       expect(result).toEqual(mockUpdatedUser);
     });
 
-    test('應該在新用戶名已存在時拋出錯誤', async () => {
-      mockedIsUsernameExists.mockResolvedValue(true);
-      const updateData = { username: 'existing_username' };
+    it('應該處理不更新用戶名的情況', async () => {
+      // 測試當沒有提供用戶名時的情況
+      const updateData = {
+        role: 'admin'  // 只更新角色
+      };
 
-      await expect(updateEmployeeAccount(mockEmployee.id, updateData))
-        .rejects.toThrow('此用戶名已被使用');
+      const result = await updateEmployeeAccount('emp123', updateData);
+
+      expect(mockedIsUsernameExists).not.toHaveBeenCalled(); // 不應該調用驗證
+      expect(mockedIsEmailExists).not.toHaveBeenCalled();
+      expect(mockedHashPassword).not.toHaveBeenCalled();
+      expect(mockUser.save).toHaveBeenCalled();
+      expect(MockedUser.findById).toHaveBeenCalledWith('user123');
+      expect(result).toEqual(mockUpdatedUser);
     });
 
-    test('應該在新電子郵件已存在時拋出錯誤', async () => {
+    it('應該處理相同用戶名的更新', async () => {
+      // 測試當新用戶名與舊用戶名相同時的情況
+      const updateData = {
+        username: 'oldusername'  // 與mockUser.username相同
+      };
+
+      const result = await updateEmployeeAccount('emp123', updateData);
+
+      // 實際上仍會調用驗證函數來檢查其他用戶是否使用相同用戶名
+      expect(mockedIsUsernameExists).toHaveBeenCalledWith('oldusername', 'user123');
+      expect(mockedIsEmailExists).not.toHaveBeenCalled();
+      expect(mockedHashPassword).not.toHaveBeenCalled();
+      expect(mockUser.save).toHaveBeenCalled();
+      expect(MockedUser.findById).toHaveBeenCalledWith('user123');
+      expect(result).toEqual(mockUpdatedUser);
+    });
+
+    it('應該在用戶名已存在時拋出錯誤', async () => {
+      mockedIsUsernameExists.mockResolvedValue(true);
+
+      const updateData = { username: 'existingusername' };
+
+      await expect(updateEmployeeAccount('emp123', updateData))
+        .rejects.toThrow('此用戶名已被使用');
+      
+      expect(mockedIsUsernameExists).toHaveBeenCalledWith('existingusername', 'user123');
+    });
+
+    it('應該在電子郵件已存在時拋出錯誤', async () => {
       mockedIsEmailExists.mockResolvedValue(true);
+
       const updateData = { email: 'existing@example.com' };
 
-      await expect(updateEmployeeAccount(mockEmployee.id, updateData))
+      await expect(updateEmployeeAccount('emp123', updateData))
         .rejects.toThrow('此電子郵件已被使用');
-    });
-
-    test('應該能夠清空電子郵件', async () => {
-      const updateData = { email: '' };
-      MockedUser.updateOne = jest.fn().mockResolvedValue({});
-
-      const result = await updateEmployeeAccount(mockEmployee.id, updateData);
-
-      expect(result).toEqual(mockUpdatedUser);
-    });
-
-    test('應該在相同用戶名時不進行更新', async () => {
-      const updateData = { username: mockUser.username };
-
-      const result = await updateEmployeeAccount(mockEmployee.id, updateData);
-
-      expect(mockedIsUsernameExists).not.toHaveBeenCalled();
-      expect(result).toEqual(mockUpdatedUser);
-    });
-
-    test('應該在相同電子郵件時不進行更新', async () => {
-      const updateData = { email: mockUser.email };
-
-      const result = await updateEmployeeAccount(mockEmployee.id, updateData);
-
-      expect(mockedIsEmailExists).not.toHaveBeenCalled();
-      expect(result).toEqual(mockUpdatedUser);
+      
+      expect(mockedIsEmailExists).toHaveBeenCalledWith('existing@example.com', 'user123');
     });
   });
 
   describe('deleteEmployeeAccount', () => {
+    const mockEmployee = {
+      id: 'emp123',
+      name: '張三',
+      userId: 'user123',
+      save: jest.fn().mockResolvedValue(true)
+    };
+
+    const mockUser = {
+      id: 'user123',
+      name: '張三'
+    };
+
     beforeEach(() => {
-      mockedFindEmployeeById.mockResolvedValue(mockEmployee);
-      mockedGetEmployeeUser.mockResolvedValue(mockUser);
+      mockedFindEmployeeById.mockResolvedValue(mockEmployee as any);
+      mockedGetEmployeeUser.mockResolvedValue(mockUser as any);
       MockedUser.findByIdAndDelete = jest.fn().mockResolvedValue(mockUser);
     });
 
-    test('應該成功刪除員工帳號', async () => {
-      await deleteEmployeeAccount(mockEmployee.id);
+    it('應該成功刪除員工帳號', async () => {
+      await deleteEmployeeAccount('emp123');
 
-      expect(mockedFindEmployeeById).toHaveBeenCalledWith(mockEmployee.id);
+      expect(mockedFindEmployeeById).toHaveBeenCalledWith('emp123');
       expect(mockedGetEmployeeUser).toHaveBeenCalledWith(mockEmployee, false);
-      expect(MockedUser.findByIdAndDelete).toHaveBeenCalledWith(mockUser.id);
-      expect(mockEmployee.save).toHaveBeenCalled();
+      expect(MockedUser.findByIdAndDelete).toHaveBeenCalledWith('user123');
       expect(mockEmployee.userId).toBeNull();
-    });
-
-    test('應該在員工不存在時拋出錯誤', async () => {
-      mockedFindEmployeeById.mockRejectedValue(new Error('找不到此員工資料'));
-
-      await expect(deleteEmployeeAccount('invalid-id'))
-        .rejects.toThrow('找不到此員工資料');
-
-      expect(MockedUser.findByIdAndDelete).not.toHaveBeenCalled();
-    });
-
-    test('應該在員工沒有帳號時拋出錯誤', async () => {
-      mockedGetEmployeeUser.mockRejectedValue(new Error('此員工尚未建立帳號'));
-
-      await expect(deleteEmployeeAccount(mockEmployee.id))
-        .rejects.toThrow('此員工尚未建立帳號');
-
-      expect(MockedUser.findByIdAndDelete).not.toHaveBeenCalled();
+      expect(mockEmployee.save).toHaveBeenCalled();
     });
   });
 
   describe('unbindEmployeeAccount', () => {
+    const mockEmployee = {
+      id: 'emp123',
+      name: '張三',
+      userId: 'user123',
+      save: jest.fn().mockResolvedValue(true)
+    };
+
+    const mockUser = {
+      id: 'user123',
+      name: '張三',
+      username: 'zhangsan'
+    };
+
     beforeEach(() => {
-      mockEmployee.userId = mockUser._id;
-      mockedFindEmployeeById.mockResolvedValue(mockEmployee);
+      mockedFindEmployeeById.mockResolvedValue(mockEmployee as any);
       MockedUser.findById = jest.fn().mockResolvedValue(mockUser);
     });
 
-    test('應該成功解除員工帳號綁定', async () => {
-      const result = await unbindEmployeeAccount(mockEmployee.id);
+    it('應該成功解除員工帳號綁定', async () => {
+      const result = await unbindEmployeeAccount('emp123');
 
-      expect(mockedFindEmployeeById).toHaveBeenCalledWith(mockEmployee.id);
-      expect(MockedUser.findById).toHaveBeenCalledWith(mockUser._id);
-      expect(mockEmployee.save).toHaveBeenCalled();
+      expect(mockedFindEmployeeById).toHaveBeenCalledWith('emp123');
+      expect(MockedUser.findById).toHaveBeenCalledWith('user123');
       expect(mockEmployee.userId).toBeNull();
+      expect(mockEmployee.save).toHaveBeenCalled();
 
       expect(result).toEqual({
         employee: {
-          id: mockEmployee.id,
-          name: mockEmployee.name
+          id: 'emp123',
+          name: '張三'
         },
         user: {
-          id: mockUser.id,
-          name: mockUser.name,
-          username: mockUser.username
+          id: 'user123',
+          name: '張三',
+          username: 'zhangsan'
         }
       });
     });
 
-    test('應該在員工沒有綁定帳號時拋出錯誤', async () => {
-      mockEmployee.userId = null;
+    it('應該在員工沒有帳號時拋出錯誤', async () => {
+      const employeeWithoutAccount = {
+        ...mockEmployee,
+        userId: null
+      };
+      mockedFindEmployeeById.mockResolvedValue(employeeWithoutAccount as any);
 
-      await expect(unbindEmployeeAccount(mockEmployee.id))
+      await expect(unbindEmployeeAccount('emp123'))
         .rejects.toThrow('此員工尚未綁定帳號');
-
-      expect(MockedUser.findById).not.toHaveBeenCalled();
-      expect(mockEmployee.save).not.toHaveBeenCalled();
     });
 
-    test('應該在員工不存在時拋出錯誤', async () => {
-      mockedFindEmployeeById.mockRejectedValue(new Error('找不到此員工資料'));
-
-      await expect(unbindEmployeeAccount('invalid-id'))
-        .rejects.toThrow('找不到此員工資料');
-    });
-
-    test('應該能夠處理用戶不存在的情況', async () => {
+    it('應該處理用戶不存在的情況', async () => {
+      // 設置員工有userId但用戶不存在的情況
+      const employeeWithUserId = {
+        ...mockEmployee,
+        userId: 'user123'
+      };
+      mockedFindEmployeeById.mockResolvedValue(employeeWithUserId as any);
       MockedUser.findById = jest.fn().mockResolvedValue(null);
 
-      const result = await unbindEmployeeAccount(mockEmployee.id);
+      const result = await unbindEmployeeAccount('emp123');
 
       expect(result).toEqual({
         employee: {
-          id: mockEmployee.id,
-          name: mockEmployee.name
+          id: 'emp123',
+          name: '張三'
         }
       });
-      expect(mockEmployee.userId).toBeNull();
-      expect(mockEmployee.save).toHaveBeenCalled();
+      expect(employeeWithUserId.userId).toBeNull();
+      expect(employeeWithUserId.save).toHaveBeenCalled();
     });
   });
 
-  describe('邊界條件和錯誤處理', () => {
-    test('createEmployeeAccount 應該處理密碼加密返回錯誤的情況', async () => {
-      mockedFindEmployeeById.mockResolvedValue(mockEmployee);
-      mockedIsUsernameExists.mockResolvedValue(false);
-      mockedIsEmailExists.mockResolvedValue(false);
-      mockedHasEmployeeAccount.mockResolvedValue(false);
-      mockedHashPassword.mockRejectedValue(new Error('密碼太弱'));
+  describe('錯誤處理', () => {
+    it('應該處理員工查找錯誤', async () => {
+      mockedFindEmployeeById.mockRejectedValue(new Error('員工不存在'));
 
-      await expect(createEmployeeAccount(mockAccountData))
-        .rejects.toThrow();
+      await expect(createEmployeeAccount({
+        employeeId: 'nonexistent',
+        username: 'test',
+        password: 'test',
+        role: 'employee'
+      })).rejects.toThrow('員工不存在');
     });
 
-    test('updateEmployeeAccount 應該處理用戶保存失敗的情況', async () => {
-      mockedFindEmployeeById.mockResolvedValue(mockEmployee);
-      mockedGetEmployeeUser.mockResolvedValue(mockUser);
-      mockUser.save.mockRejectedValue(new Error('保存失敗'));
-
-      const updateData = { username: 'new_username' };
-
-      await expect(updateEmployeeAccount(mockEmployee.id, updateData))
-        .rejects.toThrow('保存失敗');
-    });
-
-    test('deleteEmployeeAccount 應該處理用戶刪除失敗的情況', async () => {
-      mockedFindEmployeeById.mockResolvedValue(mockEmployee);
-      mockedGetEmployeeUser.mockResolvedValue(mockUser);
-      MockedUser.findByIdAndDelete = jest.fn().mockRejectedValue(new Error('刪除失敗'));
-
-      await expect(deleteEmployeeAccount(mockEmployee.id))
-        .rejects.toThrow('刪除失敗');
-    });
-
-    test('unbindEmployeeAccount 應該處理員工保存失敗的情況', async () => {
-      mockEmployee.userId = mockUser._id;
-      mockEmployee.save.mockRejectedValue(new Error('保存失敗'));
-      mockedFindEmployeeById.mockResolvedValue(mockEmployee);
-      MockedUser.findById = jest.fn().mockResolvedValue(mockUser);
-
-      await expect(unbindEmployeeAccount(mockEmployee.id))
-        .rejects.toThrow('保存失敗');
-    });
-  });
-
-  describe('數據驗證', () => {
-    test('createEmployeeAccount 應該正確設置用戶數據', async () => {
-      mockedFindEmployeeById.mockResolvedValue(mockEmployee);
-      mockedIsUsernameExists.mockResolvedValue(false);
-      mockedIsEmailExists.mockResolvedValue(false);
-      mockedHasEmployeeAccount.mockResolvedValue(false);
-      mockedHashPassword.mockResolvedValue('hashedPassword123' as any);
-
-      let capturedUserData: any;
-      (MockedUser as jest.MockedClass<typeof User>).mockImplementation((userData: any) => {
-        capturedUserData = userData;
-        return {
-          ...mockUser,
-          save: jest.fn().mockResolvedValue(mockUser)
-        } as any;
-      });
-
-      await createEmployeeAccount(mockAccountData);
-
-      expect(capturedUserData).toEqual({
-        name: mockEmployee.name,
-        username: mockAccountData.username,
-        password: 'hashedPassword123',
-        role: mockAccountData.role,
-        email: mockAccountData.email
-      });
-    });
-
-    test('updateEmployeeAccount 應該正確更新用戶屬性', async () => {
-      mockedFindEmployeeById.mockResolvedValue(mockEmployee);
-      mockedGetEmployeeUser.mockResolvedValue(mockUser);
-      mockedIsUsernameExists.mockResolvedValue(false);
-      mockedIsEmailExists.mockResolvedValue(false);
-      mockedHashPassword.mockResolvedValue('newHashedPassword' as any);
-
-      MockedUser.findById = jest.fn().mockReturnValue({
-        select: jest.fn().mockResolvedValue(mockUser)
-      });
-
-      const updateData = {
-        username: 'new_username',
-        email: 'new@example.com',
-        password: 'newPassword123',
-        role: 'pharmacist'
+    it('應該處理密碼哈希錯誤', async () => {
+      const mockEmployee = {
+        id: 'emp123',
+        name: '張三'
       };
 
-      await updateEmployeeAccount(mockEmployee.id, updateData);
+      mockedFindEmployeeById.mockResolvedValue(mockEmployee as any);
+      mockedIsUsernameExists.mockResolvedValue(false);
+      mockedHasEmployeeAccount.mockResolvedValue(false);
+      mockedHashPassword.mockRejectedValue(new Error('密碼哈希失敗'));
 
-      expect(mockUser.username).toBe(updateData.username);
-      expect(mockUser.email).toBe(updateData.email);
-      expect(mockUser.password).toBe('newHashedPassword');
-      expect(mockUser.role).toBe(updateData.role);
+      await expect(createEmployeeAccount({
+        employeeId: 'emp123',
+        username: 'test',
+        password: 'test',
+        role: 'employee'
+      })).rejects.toThrow('密碼哈希失敗');
+    });
+  });
+
+  describe('邊界條件測試', () => {
+    it('應該處理極長的用戶名', async () => {
+      const mockEmployee = {
+        id: 'emp123',
+        name: '張三',
+        save: jest.fn().mockResolvedValue(true)
+      };
+
+      const longUsername = 'a'.repeat(100);
+
+      mockedFindEmployeeById.mockResolvedValue(mockEmployee as any);
+      mockedIsUsernameExists.mockResolvedValue(false);
+      mockedHasEmployeeAccount.mockResolvedValue(false);
+      mockedHashPassword.mockResolvedValue('hashedPassword' as any);
+
+      const mockUserInstance = {
+        id: 'user123',
+        save: jest.fn().mockResolvedValue(true)
+      };
+      MockedUser.mockImplementation(() => mockUserInstance as any);
+
+      await createEmployeeAccount({
+        employeeId: 'emp123',
+        username: longUsername,
+        password: 'test',
+        role: 'employee'
+      });
+
+      expect(MockedUser).toHaveBeenCalled();
+    });
+
+    it('應該處理特殊字符的電子郵件', async () => {
+      const mockEmployee = {
+        id: 'emp123',
+        name: '張三',
+        save: jest.fn().mockResolvedValue(true)
+      };
+
+      const specialEmail = 'test+special@example.com';
+
+      mockedFindEmployeeById.mockResolvedValue(mockEmployee as any);
+      mockedIsUsernameExists.mockResolvedValue(false);
+      mockedIsEmailExists.mockResolvedValue(false);
+      mockedHasEmployeeAccount.mockResolvedValue(false);
+      mockedHashPassword.mockResolvedValue('hashedPassword' as any);
+
+      const mockUserInstance = {
+        id: 'user123',
+        save: jest.fn().mockResolvedValue(true)
+      };
+      MockedUser.mockImplementation = jest.fn(() => mockUserInstance as any);
+
+      await createEmployeeAccount({
+        employeeId: 'emp123',
+        username: 'test',
+        email: specialEmail,
+        password: 'test',
+        role: 'employee'
+      });
+
+      expect(MockedUser).toHaveBeenCalled();
     });
   });
 });

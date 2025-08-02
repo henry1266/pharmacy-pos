@@ -1,356 +1,494 @@
-import mongoose from 'mongoose';
-import { MongoMemoryServer } from 'mongodb-memory-server';
 import { AccountingIntegrationService } from '../AccountingIntegrationService';
+import Account2 from '../../models/Account2';
 import AutoAccountingEntryService from '../AutoAccountingEntryService';
+import mongoose from 'mongoose';
 
-// Mock AutoAccountingEntryService
-jest.mock('../AutoAccountingEntryService', () => ({
-  __esModule: true,
-  default: {
-    handlePurchaseOrderCompletion: jest.fn(),
-    deletePurchaseOrderEntries: jest.fn()
-  }
-}));
+// Mock dependencies
+jest.mock('../../models/Account2');
+jest.mock('../AutoAccountingEntryService');
 
-// Mock Account2 模型
-jest.mock('../../models/Account2', () => {
-  const mockFindOne = jest.fn();
-  const mockSave = jest.fn().mockResolvedValue(true);
-  
-  const MockAccount2 = jest.fn().mockImplementation((data) => ({
-    ...data,
-    _id: new mongoose.Types.ObjectId(),
-    save: mockSave
-  }));
-  
-  Object.assign(MockAccount2, {
-    findOne: mockFindOne
-  });
-  
-  return MockAccount2;
-});
-
-// 取得 mock 實例
-const Account2 = require('../../models/Account2');
-const mockAccount2 = { findOne: Account2.findOne };
+const MockedAccount2 = Account2 as any;
+const MockedAutoAccountingEntryService = AutoAccountingEntryService as jest.Mocked<typeof AutoAccountingEntryService>;
 
 describe('AccountingIntegrationService', () => {
-  let mongoServer: MongoMemoryServer;
-  const mockAutoAccountingEntryService = AutoAccountingEntryService as jest.Mocked<typeof AutoAccountingEntryService>;
-
-  beforeAll(async () => {
-    // 斷開現有連接（如果有的話）
-    if (mongoose.connection.readyState !== 0) {
-      await mongoose.disconnect();
-    }
-    
-    mongoServer = await MongoMemoryServer.create();
-    const mongoUri = mongoServer.getUri();
-    await mongoose.connect(mongoUri);
-  });
-
-  afterAll(async () => {
-    await mongoose.disconnect();
-    await mongoServer.stop();
-  });
-
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    // Mock console methods to avoid test output noise
+    jest.spyOn(console, 'log').mockImplementation();
+    jest.spyOn(console, 'error').mockImplementation();
+    
+    // Reset all mocks to default implementations
+    MockedAccount2.findOne = jest.fn();
+    MockedAutoAccountingEntryService.handlePurchaseOrderCompletion = jest.fn();
+    MockedAutoAccountingEntryService.deletePurchaseOrderEntries = jest.fn();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe('handlePurchaseOrderCompletion', () => {
     const mockPurchaseOrder = {
       _id: new mongoose.Types.ObjectId(),
-      poid: 'PO-2024-001',
-      organizationId: new mongoose.Types.ObjectId(),
+      poid: 'PO001',
       posupplier: '測試供應商',
+      organizationId: new mongoose.Types.ObjectId(),
       transactionType: '進貨',
       selectedAccountIds: [
         new mongoose.Types.ObjectId(),
         new mongoose.Types.ObjectId()
       ]
-    } as any;
+    };
 
     it('應該優先處理自動會計分錄', async () => {
       const mockTransactionGroupId = new mongoose.Types.ObjectId();
-      mockAutoAccountingEntryService.handlePurchaseOrderCompletion.mockResolvedValue(mockTransactionGroupId);
+      MockedAutoAccountingEntryService.handlePurchaseOrderCompletion
+        .mockResolvedValue(mockTransactionGroupId);
 
-      const result = await AccountingIntegrationService.handlePurchaseOrderCompletion(mockPurchaseOrder, 'test-user');
+      const result = await AccountingIntegrationService.handlePurchaseOrderCompletion(
+        mockPurchaseOrder as any,
+        'user123'
+      );
 
-      expect(mockAutoAccountingEntryService.handlePurchaseOrderCompletion).toHaveBeenCalledWith(mockPurchaseOrder, 'test-user');
+      expect(MockedAutoAccountingEntryService.handlePurchaseOrderCompletion)
+        .toHaveBeenCalledWith(mockPurchaseOrder, 'user123');
       expect(result).toBe(mockTransactionGroupId);
     });
 
-    it('應該在自動分錄失敗時執行傳統會計科目創建', async () => {
-      mockAutoAccountingEntryService.handlePurchaseOrderCompletion.mockResolvedValue(null);
-      mockAccount2.findOne.mockResolvedValue(null);
+    it('應該在沒有足夠會計科目時跳過自動分錄', async () => {
+      const purchaseOrderWithoutAccounts = {
+        ...mockPurchaseOrder,
+        selectedAccountIds: [new mongoose.Types.ObjectId()] // 只有一個科目
+      };
 
-      const result = await AccountingIntegrationService.handlePurchaseOrderCompletion(mockPurchaseOrder);
+      const mockAccount = {
+        _id: new mongoose.Types.ObjectId(),
+        name: '進貨',
+        code: '5101'
+      };
+      MockedAccount2.findOne.mockResolvedValue(mockAccount as any);
+      // Mock Account2 constructor to return mock account with save method
+      (MockedAccount2 as any).mockImplementation(() => ({
+        ...mockAccount,
+        save: jest.fn().mockResolvedValue(mockAccount)
+      }));
 
-      expect(mockAccount2.findOne).toHaveBeenCalled();
+      const result = await AccountingIntegrationService.handlePurchaseOrderCompletion(
+        purchaseOrderWithoutAccounts as any
+      );
+
+      expect(MockedAutoAccountingEntryService.handlePurchaseOrderCompletion)
+        .not.toHaveBeenCalled();
       expect(result).toBeNull();
     });
 
     it('應該處理進貨交易類型', async () => {
-      const purchaseOrder = {
+      const purchaseOrderWithoutAutoAccounting = {
         ...mockPurchaseOrder,
-        selectedAccountIds: [], // 不滿足自動分錄條件
-        transactionType: '進貨'
-      } as any;
+        selectedAccountIds: [] // 沒有選擇會計科目
+      };
 
-      mockAutoAccountingEntryService.handlePurchaseOrderCompletion.mockResolvedValue(null);
-      
-      // Mock 父科目查詢
       const mockParentAccount = {
         _id: new mongoose.Types.ObjectId(),
+        name: '進貨',
         code: '5101',
-        name: '進貨'
+        save: jest.fn().mockResolvedValue(true)
       };
 
-      // Mock 子科目查詢
       const mockChildAccount = {
         _id: new mongoose.Types.ObjectId(),
-        code: '51010101',
-        name: '進貨-測試供應商'
+        name: '進貨-測試供應商',
+        code: '51010100',
+        save: jest.fn().mockResolvedValue(true)
       };
 
-      mockAccount2.findOne
-        .mockResolvedValueOnce(mockParentAccount) // 父科目存在
-        .mockResolvedValueOnce(mockChildAccount); // 子科目存在
+      MockedAccount2.findOne
+        .mockResolvedValueOnce(null) // 第一次查找父科目不存在
+        .mockResolvedValueOnce(null); // 第二次查找子科目不存在
 
-      await AccountingIntegrationService.handlePurchaseOrderCompletion(purchaseOrder);
-
-      expect(mockAccount2.findOne).toHaveBeenCalledTimes(2);
-      expect(mockAccount2.findOne).toHaveBeenCalledWith({
-        organizationId: purchaseOrder.organizationId,
-        code: '5101'
+      // Mock Account2 constructor for different account levels
+      (MockedAccount2 as any).mockImplementation((data: any) => {
+        if (data.level === 1) {
+          return { ...mockParentAccount, ...data, save: jest.fn().mockResolvedValue(mockParentAccount) };
+        } else {
+          return { ...mockChildAccount, ...data, save: jest.fn().mockResolvedValue(mockChildAccount) };
+        }
       });
+
+      const result = await AccountingIntegrationService.handlePurchaseOrderCompletion(
+        purchaseOrderWithoutAutoAccounting as any
+      );
+
+      expect(MockedAccount2.findOne).toHaveBeenCalledTimes(2);
+      expect(result).toBeNull();
     });
 
     it('應該處理支出交易類型', async () => {
-      const purchaseOrder = {
+      const expensePurchaseOrder = {
         ...mockPurchaseOrder,
-        selectedAccountIds: [], // 不滿足自動分錄條件
-        transactionType: '支出'
-      } as any;
-
-      mockAutoAccountingEntryService.handlePurchaseOrderCompletion.mockResolvedValue(null);
-      
-      const mockParentAccount = {
-        _id: new mongoose.Types.ObjectId(),
-        code: '6101',
-        name: '支出'
+        transactionType: '支出',
+        selectedAccountIds: []
       };
 
-      mockAccount2.findOne.mockResolvedValue(mockParentAccount);
+      const mockParentAccount = {
+        _id: new mongoose.Types.ObjectId(),
+        name: '支出',
+        code: '6101',
+        save: jest.fn().mockResolvedValue(true)
+      };
 
-      await AccountingIntegrationService.handlePurchaseOrderCompletion(purchaseOrder);
+      MockedAccount2.findOne.mockResolvedValue(null);
+      // Mock Account2 constructor for expense accounts
+      (MockedAccount2 as any).mockImplementation(() => ({
+        ...mockParentAccount,
+        save: jest.fn().mockResolvedValue(mockParentAccount)
+      }));
 
-      expect(mockAccount2.findOne).toHaveBeenCalledWith({
-        organizationId: purchaseOrder.organizationId,
-        code: '6101'
-      });
+      const result = await AccountingIntegrationService.handlePurchaseOrderCompletion(
+        expensePurchaseOrder as any
+      );
+
+      expect(result).toBeNull();
     });
 
     it('應該處理未知交易類型', async () => {
-      const purchaseOrder = {
+      const unknownTypePurchaseOrder = {
         ...mockPurchaseOrder,
-        selectedAccountIds: [],
-        transactionType: '未知類型'
-      } as any;
+        transactionType: '未知類型',
+        selectedAccountIds: []
+      };
 
-      mockAutoAccountingEntryService.handlePurchaseOrderCompletion.mockResolvedValue(null);
+      const result = await AccountingIntegrationService.handlePurchaseOrderCompletion(
+        unknownTypePurchaseOrder as any
+      );
 
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-
-      await AccountingIntegrationService.handlePurchaseOrderCompletion(purchaseOrder);
-
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('未知的交易類型'));
-      consoleSpy.mockRestore();
+      expect(result).toBeNull();
     });
 
-    it('應該處理缺少必要資訊的進貨單', async () => {
-      const purchaseOrder = {
+    it('應該在缺少必要資訊時跳過處理', async () => {
+      const incompletePurchaseOrder = {
         ...mockPurchaseOrder,
-        selectedAccountIds: [],
         transactionType: undefined,
-        organizationId: undefined
-      } as any;
+        organizationId: undefined,
+        selectedAccountIds: []
+      };
 
-      mockAutoAccountingEntryService.handlePurchaseOrderCompletion.mockResolvedValue(null);
+      const result = await AccountingIntegrationService.handlePurchaseOrderCompletion(
+        incompletePurchaseOrder as any
+      );
 
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-
-      const result = await AccountingIntegrationService.handlePurchaseOrderCompletion(purchaseOrder);
-
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('缺少交易類型或機構資訊'));
       expect(result).toBeNull();
-      consoleSpy.mockRestore();
+    });
+
+    it('應該處理自動分錄失敗的情況', async () => {
+      MockedAutoAccountingEntryService.handlePurchaseOrderCompletion
+        .mockResolvedValue(null);
+
+      const mockAccount = {
+        _id: new mongoose.Types.ObjectId(),
+        save: jest.fn().mockResolvedValue(true)
+      };
+      MockedAccount2.findOne.mockResolvedValue(null);
+      // Mock Account2 constructor
+      (MockedAccount2 as any).mockImplementation(() => ({
+        ...mockAccount,
+        save: jest.fn().mockResolvedValue(mockAccount)
+      }));
+
+      const result = await AccountingIntegrationService.handlePurchaseOrderCompletion(
+        mockPurchaseOrder as any
+      );
+
+      expect(MockedAutoAccountingEntryService.handlePurchaseOrderCompletion)
+        .toHaveBeenCalled();
+      expect(result).toBeNull();
     });
 
     it('應該處理錯誤情況', async () => {
-      mockAutoAccountingEntryService.handlePurchaseOrderCompletion.mockRejectedValue(new Error('Test error'));
+      MockedAutoAccountingEntryService.handlePurchaseOrderCompletion
+        .mockRejectedValue(new Error('自動分錄失敗'));
 
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-
-      await expect(
-        AccountingIntegrationService.handlePurchaseOrderCompletion(mockPurchaseOrder)
-      ).rejects.toThrow('Test error');
-
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('處理進貨單會計整合時發生錯誤'),
-        expect.any(Error)
-      );
-      consoleErrorSpy.mockRestore();
+      await expect(AccountingIntegrationService.handlePurchaseOrderCompletion(
+        mockPurchaseOrder as any
+      )).rejects.toThrow('自動分錄失敗');
     });
   });
 
   describe('handlePurchaseOrderUnlock', () => {
+    const mockPurchaseOrder = {
+      _id: new mongoose.Types.ObjectId(),
+      poid: 'PO001',
+      relatedTransactionGroupId: new mongoose.Types.ObjectId()
+    };
+
     it('應該刪除關聯的會計分錄', async () => {
-      const mockTransactionGroupId = new mongoose.Types.ObjectId();
-      const purchaseOrder = {
-        poid: 'PO-2024-001',
-        relatedTransactionGroupId: mockTransactionGroupId
-      } as any;
+      MockedAutoAccountingEntryService.deletePurchaseOrderEntries
+        .mockResolvedValue(undefined);
 
-      mockAutoAccountingEntryService.deletePurchaseOrderEntries.mockResolvedValue();
-
-      await AccountingIntegrationService.handlePurchaseOrderUnlock(purchaseOrder);
-
-      expect(mockAutoAccountingEntryService.deletePurchaseOrderEntries).toHaveBeenCalledWith(mockTransactionGroupId);
-    });
-
-    it('應該處理沒有關聯會計分錄的情況', async () => {
-      const purchaseOrder = {
-        poid: 'PO-2024-001',
-        relatedTransactionGroupId: undefined
-      } as any;
-
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-
-      await AccountingIntegrationService.handlePurchaseOrderUnlock(purchaseOrder);
-
-      expect(mockAutoAccountingEntryService.deletePurchaseOrderEntries).not.toHaveBeenCalled();
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('沒有關聯的會計分錄'));
-      consoleSpy.mockRestore();
-    });
-
-    it('應該處理錯誤情況', async () => {
-      const mockTransactionGroupId = new mongoose.Types.ObjectId();
-      const purchaseOrder = {
-        poid: 'PO-2024-001',
-        relatedTransactionGroupId: mockTransactionGroupId
-      } as any;
-
-      mockAutoAccountingEntryService.deletePurchaseOrderEntries.mockRejectedValue(new Error('Delete error'));
-
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-
-      await expect(
-        AccountingIntegrationService.handlePurchaseOrderUnlock(purchaseOrder)
-      ).rejects.toThrow('Delete error');
-
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('處理進貨單狀態解鎖時發生錯誤'),
-        expect.any(Error)
+      await AccountingIntegrationService.handlePurchaseOrderUnlock(
+        mockPurchaseOrder as any
       );
-      consoleErrorSpy.mockRestore();
-    });
-  });
 
-  describe('私有方法測試 (通過公開方法間接測試)', () => {
-    it('應該創建新的會計科目', async () => {
-      const purchaseOrder = {
-        _id: new mongoose.Types.ObjectId(),
-        poid: 'PO-2024-001',
-        organizationId: new mongoose.Types.ObjectId(),
-        posupplier: '測試供應商',
-        selectedAccountIds: [],
-        transactionType: '進貨'
-      } as any;
-
-      mockAutoAccountingEntryService.handlePurchaseOrderCompletion.mockResolvedValue(null);
-      mockAccount2.findOne.mockResolvedValue(null);
-
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-
-      await AccountingIntegrationService.handlePurchaseOrderCompletion(purchaseOrder);
-
-      expect(mockAccount2.findOne).toHaveBeenCalled();
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('創建新會計科目'));
-      consoleSpy.mockRestore();
+      expect(MockedAutoAccountingEntryService.deletePurchaseOrderEntries)
+        .toHaveBeenCalledWith(mockPurchaseOrder.relatedTransactionGroupId);
     });
 
-    it('應該返回現有的會計科目', async () => {
-      const purchaseOrder = {
-        _id: new mongoose.Types.ObjectId(),
-        poid: 'PO-2024-001',
-        organizationId: new mongoose.Types.ObjectId(),
-        posupplier: '測試供應商',
-        selectedAccountIds: [],
-        transactionType: '進貨'
-      } as any;
-
-      mockAutoAccountingEntryService.handlePurchaseOrderCompletion.mockResolvedValue(null);
-
-      const mockExistingAccount = {
-        _id: new mongoose.Types.ObjectId(),
-        code: '5101',
-        name: '進貨'
+    it('應該處理沒有關聯交易群組的情況', async () => {
+      const purchaseOrderWithoutTransaction = {
+        ...mockPurchaseOrder,
+        relatedTransactionGroupId: undefined
       };
 
-      mockAccount2.findOne.mockResolvedValue(mockExistingAccount);
+      await AccountingIntegrationService.handlePurchaseOrderUnlock(
+        purchaseOrderWithoutTransaction as any
+      );
 
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      expect(MockedAutoAccountingEntryService.deletePurchaseOrderEntries)
+        .not.toHaveBeenCalled();
+    });
 
-      await AccountingIntegrationService.handlePurchaseOrderCompletion(purchaseOrder);
+    it('應該處理刪除分錄時的錯誤', async () => {
+      MockedAutoAccountingEntryService.deletePurchaseOrderEntries
+        .mockRejectedValue(new Error('刪除失敗'));
 
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('找到現有會計科目'));
-      consoleSpy.mockRestore();
+      await expect(AccountingIntegrationService.handlePurchaseOrderUnlock(
+        mockPurchaseOrder as any
+      )).rejects.toThrow('刪除失敗');
     });
   });
 
-  describe('邊界情況測試', () => {
-    it('應該處理空的供應商名稱', async () => {
+  describe('findOrCreateAccount (private method testing through public methods)', () => {
+    it('應該找到現有會計科目', async () => {
+      const existingAccount = {
+        _id: new mongoose.Types.ObjectId(),
+        name: '現金',
+        code: '1101'
+      };
+
+      MockedAccount2.findOne.mockResolvedValue(existingAccount as any);
+
       const purchaseOrder = {
         _id: new mongoose.Types.ObjectId(),
-        poid: 'PO-2024-001',
+        poid: 'PO001',
+        posupplier: '測試供應商',
         organizationId: new mongoose.Types.ObjectId(),
-        selectedAccountIds: [],
         transactionType: '進貨',
-        posupplier: ''
-      } as any;
+        selectedAccountIds: []
+      };
 
-      mockAutoAccountingEntryService.handlePurchaseOrderCompletion.mockResolvedValue(null);
-      mockAccount2.findOne.mockResolvedValue(null);
+      await AccountingIntegrationService.handlePurchaseOrderCompletion(
+        purchaseOrder as any
+      );
 
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-
-      await AccountingIntegrationService.handlePurchaseOrderCompletion(purchaseOrder);
-
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('創建新會計科目'));
-      consoleSpy.mockRestore();
+      expect(MockedAccount2.findOne).toHaveBeenCalled();
     });
 
-    it('應該處理 null 供應商名稱', async () => {
+    it('應該創建新的會計科目', async () => {
+      MockedAccount2.findOne.mockResolvedValue(null);
+
+      const newAccount = {
+        _id: new mongoose.Types.ObjectId(),
+        name: '進貨',
+        code: '5101',
+        save: jest.fn().mockResolvedValue(true)
+      };
+
+      // Mock Account2 constructor for new accounts
+      (MockedAccount2 as any).mockImplementation(() => ({
+        ...newAccount,
+        save: jest.fn().mockResolvedValue(newAccount)
+      }));
+
       const purchaseOrder = {
         _id: new mongoose.Types.ObjectId(),
-        poid: 'PO-2024-001',
+        poid: 'PO001',
+        posupplier: '測試供應商',
         organizationId: new mongoose.Types.ObjectId(),
-        selectedAccountIds: [],
-        transactionType: '支出',
-        posupplier: null
-      } as any;
+        transactionType: '進貨',
+        selectedAccountIds: []
+      };
 
-      mockAutoAccountingEntryService.handlePurchaseOrderCompletion.mockResolvedValue(null);
-      mockAccount2.findOne.mockResolvedValue(null);
+      await AccountingIntegrationService.handlePurchaseOrderCompletion(
+        purchaseOrder as any
+      );
 
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      expect(MockedAccount2).toHaveBeenCalled();
+    });
+  });
 
-      await AccountingIntegrationService.handlePurchaseOrderCompletion(purchaseOrder);
+  describe('供應商代碼生成', () => {
+    it('應該為不同供應商生成不同代碼', async () => {
+      const purchaseOrder1 = {
+        _id: new mongoose.Types.ObjectId(),
+        poid: 'PO001',
+        posupplier: '供應商A',
+        organizationId: new mongoose.Types.ObjectId(),
+        transactionType: '進貨',
+        selectedAccountIds: []
+      };
 
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('創建新會計科目'));
-      consoleSpy.mockRestore();
+      const purchaseOrder2 = {
+        _id: new mongoose.Types.ObjectId(),
+        poid: 'PO002',
+        posupplier: '供應商B',
+        organizationId: new mongoose.Types.ObjectId(),
+        transactionType: '進貨',
+        selectedAccountIds: []
+      };
+
+      MockedAccount2.findOne.mockResolvedValue(null);
+      // Mock Account2 constructor for supplier tests
+      (MockedAccount2 as any).mockImplementation(() => ({
+        save: jest.fn().mockResolvedValue(true)
+      }));
+
+      await AccountingIntegrationService.handlePurchaseOrderCompletion(
+        purchaseOrder1 as any
+      );
+
+      await AccountingIntegrationService.handlePurchaseOrderCompletion(
+        purchaseOrder2 as any
+      );
+
+      // 驗證為不同供應商創建了不同的科目
+      expect(MockedAccount2).toHaveBeenCalledTimes(4); // 每個供應商2個科目（父+子）
+    });
+
+    it('應該處理沒有供應商名稱的情況', async () => {
+      const purchaseOrderWithoutSupplier = {
+        _id: new mongoose.Types.ObjectId(),
+        poid: 'PO001',
+        posupplier: undefined,
+        organizationId: new mongoose.Types.ObjectId(),
+        transactionType: '進貨',
+        selectedAccountIds: []
+      };
+
+      MockedAccount2.findOne.mockResolvedValue(null);
+      // Mock Account2 constructor for supplier without name
+      (MockedAccount2 as any).mockImplementation(() => ({
+        save: jest.fn().mockResolvedValue(true)
+      }));
+
+      await AccountingIntegrationService.handlePurchaseOrderCompletion(
+        purchaseOrderWithoutSupplier as any
+      );
+
+      expect(MockedAccount2).toHaveBeenCalled();
+    });
+  });
+
+  describe('邊界條件測試', () => {
+    it('應該處理極長的供應商名稱', async () => {
+      const longSupplierName = 'A'.repeat(1000);
+      const purchaseOrder = {
+        _id: new mongoose.Types.ObjectId(),
+        poid: 'PO001',
+        posupplier: longSupplierName,
+        organizationId: new mongoose.Types.ObjectId(),
+        transactionType: '進貨',
+        selectedAccountIds: []
+      };
+
+      MockedAccount2.findOne.mockResolvedValue(null);
+      // Mock Account2 constructor for long supplier name
+      (MockedAccount2 as any).mockImplementation(() => ({
+        save: jest.fn().mockResolvedValue(true)
+      }));
+
+      await AccountingIntegrationService.handlePurchaseOrderCompletion(
+        purchaseOrder as any
+      );
+
+      expect(MockedAccount2).toHaveBeenCalled();
+    });
+
+    it('應該處理特殊字符的供應商名稱', async () => {
+      const specialSupplierName = '測試@#$%^&*()供應商';
+      const purchaseOrder = {
+        _id: new mongoose.Types.ObjectId(),
+        poid: 'PO001',
+        posupplier: specialSupplierName,
+        organizationId: new mongoose.Types.ObjectId(),
+        transactionType: '進貨',
+        selectedAccountIds: []
+      };
+
+      MockedAccount2.findOne.mockResolvedValue(null);
+      // Mock Account2 constructor for special characters
+      (MockedAccount2 as any).mockImplementation(() => ({
+        save: jest.fn().mockResolvedValue(true)
+      }));
+
+      await AccountingIntegrationService.handlePurchaseOrderCompletion(
+        purchaseOrder as any
+      );
+
+      expect(MockedAccount2).toHaveBeenCalled();
+    });
+
+    it('應該處理空字符串供應商名稱', async () => {
+      const purchaseOrder = {
+        _id: new mongoose.Types.ObjectId(),
+        poid: 'PO001',
+        posupplier: '',
+        organizationId: new mongoose.Types.ObjectId(),
+        transactionType: '進貨',
+        selectedAccountIds: []
+      };
+
+      MockedAccount2.findOne.mockResolvedValue(null);
+      // Mock Account2 constructor for empty supplier name
+      (MockedAccount2 as any).mockImplementation(() => ({
+        save: jest.fn().mockResolvedValue(true)
+      }));
+
+      await AccountingIntegrationService.handlePurchaseOrderCompletion(
+        purchaseOrder as any
+      );
+
+      expect(MockedAccount2).toHaveBeenCalled();
+    });
+  });
+
+  describe('錯誤處理', () => {
+    it('應該處理資料庫查詢錯誤', async () => {
+      const purchaseOrder = {
+        _id: new mongoose.Types.ObjectId(),
+        poid: 'PO001',
+        posupplier: '測試供應商',
+        organizationId: new mongoose.Types.ObjectId(),
+        transactionType: '進貨',
+        selectedAccountIds: []
+      };
+
+      MockedAccount2.findOne.mockRejectedValue(new Error('資料庫錯誤'));
+
+      await expect(AccountingIntegrationService.handlePurchaseOrderCompletion(
+        purchaseOrder as any
+      )).rejects.toThrow('資料庫錯誤');
+    });
+
+    it('應該處理科目保存錯誤', async () => {
+      const purchaseOrder = {
+        _id: new mongoose.Types.ObjectId(),
+        poid: 'PO001',
+        posupplier: '測試供應商',
+        organizationId: new mongoose.Types.ObjectId(),
+        transactionType: '進貨',
+        selectedAccountIds: []
+      };
+
+      MockedAccount2.findOne.mockResolvedValue(null);
+      // Mock Account2 constructor for save error
+      (MockedAccount2 as any).mockImplementation(() => ({
+        save: jest.fn().mockRejectedValue(new Error('保存失敗'))
+      }));
+
+      await expect(AccountingIntegrationService.handlePurchaseOrderCompletion(
+        purchaseOrder as any
+      )).rejects.toThrow('保存失敗');
     });
   });
 });

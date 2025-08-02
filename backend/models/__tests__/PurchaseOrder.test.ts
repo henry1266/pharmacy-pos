@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import PurchaseOrder, { IPurchaseOrder, IPurchaseOrderItem } from '../PurchaseOrder';
+import PurchaseOrder, { IPurchaseOrder } from '../PurchaseOrder';
 
 describe('PurchaseOrder Model', () => {
   beforeEach(async () => {

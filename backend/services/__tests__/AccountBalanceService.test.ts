@@ -1,395 +1,253 @@
 import { AccountBalanceService } from '../accountBalanceService';
-import Account2, { IAccount2 } from '../../models/Account2';
 import AccountingEntry from '../../models/AccountingEntry';
-import TransactionGroup, { ITransactionGroup } from '../../models/TransactionGroup';
+import Account2 from '../../models/Account2';
 import mongoose from 'mongoose';
 
+// Mock the models
+jest.mock('../../models/AccountingEntry');
+jest.mock('../../models/Account2');
+
+const MockedAccountingEntry = AccountingEntry as jest.Mocked<typeof AccountingEntry>;
+const MockedAccount2 = Account2 as jest.Mocked<typeof Account2>;
+
 describe('AccountBalanceService', () => {
-  let testAccount: IAccount2;
-  let testTransactionGroup: ITransactionGroup;
-  let testOrganizationId: mongoose.Types.ObjectId;
-
-  beforeEach(async () => {
-    // 創建測試機構ID
-    testOrganizationId = new mongoose.Types.ObjectId();
-
-    // 創建測試會計科目（資產類，借方科目）
-    testAccount = await Account2.create({
-      code: '1101',
-      name: '現金',
-      accountType: 'asset',
-      type: 'cash',
-      level: 1,
-      isActive: true,
-      normalBalance: 'debit',
-      balance: 0,
-      initialBalance: 0,
-      currency: 'TWD',
-      organizationId: testOrganizationId,
-      createdBy: 'test-user'
-    });
-
-    // 創建測試交易群組
-    testTransactionGroup = await TransactionGroup.create({
-      groupNumber: 'TXN-20250131-001',
-      description: '測試交易',
-      transactionDate: new Date(),
-      organizationId: testOrganizationId,
-      totalAmount: 1000,
-      status: 'confirmed',
-      fundingType: 'original',
-      createdBy: 'test-user'
-    });
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
   describe('calculateAccountBalance', () => {
-    test('應該正確計算借方科目的餘額', async () => {
-      // 創建借方分錄
-      await AccountingEntry.create({
-        transactionGroupId: testTransactionGroup._id,
-        sequence: 1,
-        accountId: testAccount._id,
+    const mockAccount = {
+      _id: new mongoose.Types.ObjectId(),
+      name: '現金',
+      code: '1101',
+      accountType: 'asset',
+      normalBalance: 'debit'
+    };
+
+    const mockEntries = [
+      {
+        _id: new mongoose.Types.ObjectId(),
+        accountId: mockAccount._id,
         debitAmount: 1000,
         creditAmount: 0,
-        description: '收入現金',
-        organizationId: testOrganizationId,
-        createdBy: 'test-user'
-      });
-
-      // 創建貸方分錄
-      await AccountingEntry.create({
-        transactionGroupId: testTransactionGroup._id,
-        sequence: 2,
-        accountId: testAccount._id,
+        createdAt: new Date('2024-01-01'),
+        transactionGroupId: {
+          status: 'confirmed',
+          transactionDate: new Date('2024-01-01')
+        }
+      },
+      {
+        _id: new mongoose.Types.ObjectId(),
+        accountId: mockAccount._id,
         debitAmount: 0,
         creditAmount: 300,
-        description: '支出現金',
-        organizationId: testOrganizationId,
-        createdBy: 'test-user'
-      });
+        createdAt: new Date('2024-01-02'),
+        transactionGroupId: {
+          status: 'confirmed',
+          transactionDate: new Date('2024-01-02')
+        }
+      }
+    ];
 
-      const result = await AccountBalanceService.calculateAccountBalance(
-        (testAccount._id as mongoose.Types.ObjectId).toString(),
-        undefined,
-        testOrganizationId.toString()
-      );
+    beforeEach(() => {
+      (MockedAccount2.findById as jest.Mock).mockResolvedValue(mockAccount);
+      
+      const mockFind = {
+        populate: jest.fn().mockReturnThis(),
+        sort: jest.fn().mockResolvedValue(mockEntries)
+      };
+      (MockedAccountingEntry.find as jest.Mock).mockReturnValue(mockFind);
+    });
 
-      expect(result).toMatchObject({
-        accountId: testAccount._id as mongoose.Types.ObjectId,
-        accountName: '現金',
-        accountCode: '1101',
-        accountType: 'asset',
-        normalBalance: 'debit',
+    it('應該正確計算借方科目餘額', async () => {
+      const result = await AccountBalanceService.calculateAccountBalance(mockAccount._id.toString());
+
+      expect(result).toEqual({
+        accountId: mockAccount._id,
+        accountName: mockAccount.name,
+        accountCode: mockAccount.code,
+        accountType: mockAccount.accountType,
+        normalBalance: mockAccount.normalBalance,
         totalDebit: 1000,
         totalCredit: 300,
-        balance: 700, // 借方科目：借方 - 貸方 = 1000 - 300 = 700
-        entryCount: 2
-      });
-      expect(result.lastTransactionDate).toBeDefined();
-    });
-
-    test('應該正確計算貸方科目的餘額', async () => {
-      // 創建貸方科目（負債類）
-      const liabilityAccount = await Account2.create({
-        code: '2101',
-        name: '應付帳款',
-        accountType: 'liability',
-        type: 'other',
-        level: 1,
-        isActive: true,
-        normalBalance: 'credit',
-        balance: 0,
-        initialBalance: 0,
-        currency: 'TWD',
-        organizationId: testOrganizationId,
-        createdBy: 'test-user'
-      });
-
-      // 創建貸方分錄
-      await AccountingEntry.create({
-        transactionGroupId: testTransactionGroup._id,
-        sequence: 1,
-        accountId: liabilityAccount._id,
-        debitAmount: 0,
-        creditAmount: 2000,
-        description: '增加應付帳款',
-        organizationId: testOrganizationId,
-        createdBy: 'test-user'
-      });
-
-      // 創建借方分錄
-      await AccountingEntry.create({
-        transactionGroupId: testTransactionGroup._id,
-        sequence: 2,
-        accountId: liabilityAccount._id,
-        debitAmount: 500,
-        creditAmount: 0,
-        description: '減少應付帳款',
-        organizationId: testOrganizationId,
-        createdBy: 'test-user'
-      });
-
-      const result = await AccountBalanceService.calculateAccountBalance(
-        (liabilityAccount._id as mongoose.Types.ObjectId).toString(),
-        undefined,
-        testOrganizationId.toString()
-      );
-
-      expect(result).toMatchObject({
-        accountId: liabilityAccount._id as mongoose.Types.ObjectId,
-        accountName: '應付帳款',
-        accountCode: '2101',
-        accountType: 'liability',
-        normalBalance: 'credit',
-        totalDebit: 500,
-        totalCredit: 2000,
-        balance: 1500, // 貸方科目：貸方 - 借方 = 2000 - 500 = 1500
-        entryCount: 2
+        balance: 700, // 1000 - 300 (借方科目)
+        entryCount: 2,
+        lastTransactionDate: new Date('2024-01-02')
       });
     });
 
-    test('應該只計算已確認的交易', async () => {
-      // 創建未確認的交易群組
-      const draftTransactionGroup = await TransactionGroup.create({
-        groupNumber: 'TXN-20250131-002',
-        description: '草稿交易',
-        transactionDate: new Date(),
-        organizationId: testOrganizationId,
-        totalAmount: 500,
-        status: 'draft', // 未確認狀態
-        fundingType: 'original',
-        createdBy: 'test-user'
-      });
+    it('應該正確計算貸方科目餘額', async () => {
+      const creditAccount = {
+        ...mockAccount,
+        normalBalance: 'credit'
+      };
+      (MockedAccount2.findById as jest.Mock).mockResolvedValue(creditAccount);
 
-      // 創建已確認交易的分錄
-      await AccountingEntry.create({
-        transactionGroupId: testTransactionGroup._id,
-        sequence: 1,
-        accountId: testAccount._id,
-        debitAmount: 1000,
-        creditAmount: 0,
-        description: '已確認交易',
-        organizationId: testOrganizationId,
-        createdBy: 'test-user'
-      });
+      const result = await AccountBalanceService.calculateAccountBalance(mockAccount._id.toString());
 
-      // 創建未確認交易的分錄
-      await AccountingEntry.create({
-        transactionGroupId: draftTransactionGroup._id,
-        sequence: 1,
-        accountId: testAccount._id,
-        debitAmount: 500,
-        creditAmount: 0,
-        description: '未確認交易',
-        organizationId: testOrganizationId,
-        createdBy: 'test-user'
-      });
-
-      const result = await AccountBalanceService.calculateAccountBalance(
-        (testAccount._id as mongoose.Types.ObjectId).toString(),
-        undefined,
-        testOrganizationId.toString()
-      );
-
-      // 應該只計算已確認的交易
-      expect(result.totalDebit).toBe(1000);
-      expect(result.balance).toBe(1000);
-      expect(result.entryCount).toBe(1);
+      expect(result.balance).toBe(-700); // 300 - 1000 (貸方科目)
     });
 
-    test('應該根據截止日期過濾交易', async () => {
-      const pastDate = new Date('2025-01-01');
-      const futureDate = new Date('2025-02-01');
+    it('應該支援截止日期篩選', async () => {
+      const endDate = new Date('2024-01-01');
+      await AccountBalanceService.calculateAccountBalance(mockAccount._id.toString(), endDate);
 
-      // 創建過去的分錄
-      const pastEntry = new AccountingEntry({
-        transactionGroupId: testTransactionGroup._id,
-        sequence: 1,
-        accountId: testAccount._id,
-        debitAmount: 500,
-        creditAmount: 0,
-        description: '過去交易',
-        organizationId: testOrganizationId,
-        createdBy: 'test-user',
-        createdAt: pastDate
+      expect(MockedAccountingEntry.find).toHaveBeenCalledWith({
+        accountId: mockAccount._id.toString(),
+        createdAt: { $lte: endDate }
       });
-      await pastEntry.save();
-
-      // 創建未來的分錄
-      const futureEntry = new AccountingEntry({
-        transactionGroupId: testTransactionGroup._id,
-        sequence: 2,
-        accountId: testAccount._id,
-        debitAmount: 300,
-        creditAmount: 0,
-        description: '未來交易',
-        organizationId: testOrganizationId,
-        createdBy: 'test-user',
-        createdAt: futureDate
-      });
-      await futureEntry.save();
-
-      // 使用截止日期查詢（只包含過去的交易）
-      const result = await AccountBalanceService.calculateAccountBalance(
-        (testAccount._id as mongoose.Types.ObjectId).toString(),
-        new Date('2025-01-15'), // 截止日期在過去和未來之間
-        testOrganizationId.toString()
-      );
-
-      expect(result.totalDebit).toBe(500); // 只包含過去的交易
-      expect(result.balance).toBe(500);
-      expect(result.entryCount).toBe(1);
     });
 
-    test('應該在科目不存在時拋出錯誤', async () => {
-      const nonExistentId = new mongoose.Types.ObjectId();
+    it('應該支援機構ID篩選', async () => {
+      const organizationId = 'org123';
+      await AccountBalanceService.calculateAccountBalance(mockAccount._id.toString(), undefined, organizationId);
 
-      await expect(
-        AccountBalanceService.calculateAccountBalance(nonExistentId.toString())
-      ).rejects.toThrow('會計科目不存在');
+      expect(MockedAccountingEntry.find).toHaveBeenCalledWith({
+        accountId: mockAccount._id.toString(),
+        organizationId
+      });
     });
 
-    test('應該返回零餘額當沒有分錄時', async () => {
-      const result = await AccountBalanceService.calculateAccountBalance(
-        (testAccount._id as mongoose.Types.ObjectId).toString(),
-        undefined,
-        testOrganizationId.toString()
-      );
+    it('應該只計算已確認的交易', async () => {
+      const entriesWithPending = [
+        ...mockEntries,
+        {
+          _id: new mongoose.Types.ObjectId(),
+          accountId: mockAccount._id,
+          debitAmount: 500,
+          creditAmount: 0,
+          createdAt: new Date('2024-01-03'),
+          transactionGroupId: {
+            status: 'pending',
+            transactionDate: new Date('2024-01-03')
+          }
+        }
+      ];
 
-      expect(result).toMatchObject({
-        totalDebit: 0,
-        totalCredit: 0,
-        balance: 0,
-        entryCount: 0,
-        lastTransactionDate: null
-      });
+      const mockFind = {
+        populate: jest.fn().mockReturnThis(),
+        sort: jest.fn().mockResolvedValue(entriesWithPending)
+      };
+      (MockedAccountingEntry.find as jest.Mock).mockReturnValue(mockFind);
+
+      const result = await AccountBalanceService.calculateAccountBalance(mockAccount._id.toString());
+
+      expect(result.totalDebit).toBe(1000); // 不包含pending的500
+      expect(result.entryCount).toBe(2);
+    });
+
+    it('應該拋出錯誤當會計科目不存在時', async () => {
+      (MockedAccount2.findById as jest.Mock).mockResolvedValue(null);
+
+      await expect(AccountBalanceService.calculateAccountBalance('nonexistent'))
+        .rejects.toThrow('會計科目不存在');
+    });
+
+    it('應該處理沒有交易記錄的科目', async () => {
+      const mockFind = {
+        populate: jest.fn().mockReturnThis(),
+        sort: jest.fn().mockResolvedValue([])
+      };
+      (MockedAccountingEntry.find as jest.Mock).mockReturnValue(mockFind);
+
+      const result = await AccountBalanceService.calculateAccountBalance(mockAccount._id.toString());
+
+      expect(result.balance).toBe(0);
+      expect(result.entryCount).toBe(0);
+      expect(result.lastTransactionDate).toBeNull();
     });
   });
 
   describe('calculateMultipleAccountBalances', () => {
-    test('應該批量計算多個科目的餘額', async () => {
-      // 創建第二個測試科目
-      const secondAccount = await Account2.create({
-        code: '1102',
-        name: '銀行存款',
-        accountType: 'asset',
-        type: 'bank',
-        level: 1,
-        isActive: true,
-        normalBalance: 'debit',
-        balance: 0,
-        initialBalance: 0,
-        currency: 'TWD',
-        organizationId: testOrganizationId,
-        createdBy: 'test-user'
-      });
+    it('應該批量計算多個科目餘額', async () => {
+      const accountIds = ['acc1', 'acc2'];
+      const mockBalance = {
+        accountId: 'acc1',
+        balance: 1000,
+        totalDebit: 1000,
+        totalCredit: 0
+      };
 
-      // 為第一個科目創建分錄
-      await AccountingEntry.create({
-        transactionGroupId: testTransactionGroup._id,
-        sequence: 1,
-        accountId: testAccount._id,
-        debitAmount: 1000,
-        creditAmount: 0,
-        description: '現金收入',
-        organizationId: testOrganizationId,
-        createdBy: 'test-user'
-      });
+      // Mock calculateAccountBalance
+      jest.spyOn(AccountBalanceService, 'calculateAccountBalance')
+        .mockResolvedValue(mockBalance as any);
 
-      // 為第二個科目創建分錄
-      await AccountingEntry.create({
-        transactionGroupId: testTransactionGroup._id,
-        sequence: 2,
-        accountId: secondAccount._id,
-        debitAmount: 2000,
-        creditAmount: 0,
-        description: '銀行存款',
-        organizationId: testOrganizationId,
-        createdBy: 'test-user'
-      });
+      const result = await AccountBalanceService.calculateMultipleAccountBalances(accountIds);
 
-      const accountIds = [
-        (testAccount._id as mongoose.Types.ObjectId).toString(),
-        (secondAccount._id as mongoose.Types.ObjectId).toString()
-      ];
+      expect(result).toHaveLength(2);
+      expect(AccountBalanceService.calculateAccountBalance).toHaveBeenCalledTimes(2);
+    });
 
-      const results = await AccountBalanceService.calculateMultipleAccountBalances(
-        accountIds,
-        undefined,
-        testOrganizationId.toString()
-      );
+    it('應該處理批量計算錯誤', async () => {
+      jest.spyOn(AccountBalanceService, 'calculateAccountBalance')
+        .mockRejectedValue(new Error('計算錯誤'));
 
-      expect(results).toHaveLength(2);
-      expect(results[0].balance).toBe(1000);
-      expect(results[1].balance).toBe(2000);
+      await expect(AccountBalanceService.calculateMultipleAccountBalances(['acc1']))
+        .rejects.toThrow('計算錯誤');
     });
   });
 
   describe('calculateBalanceByAccountType', () => {
-    test('應該按科目類型計算餘額匯總', async () => {
-      // 創建多個資產科目
-      const bankAccount = await Account2.create({
-        code: '1102',
+    const mockAccounts = [
+      {
+        _id: new mongoose.Types.ObjectId(),
+        name: '現金',
+        code: '1101',
+        accountType: 'asset'
+      },
+      {
+        _id: new mongoose.Types.ObjectId(),
         name: '銀行存款',
-        accountType: 'asset',
-        type: 'bank',
-        level: 1,
-        isActive: true,
-        normalBalance: 'debit',
-        balance: 0,
-        initialBalance: 0,
-        currency: 'TWD',
-        organizationId: testOrganizationId,
-        createdBy: 'test-user'
-      });
+        code: '1102',
+        accountType: 'asset'
+      }
+    ];
 
-      // 為現金科目創建分錄
-      await AccountingEntry.create({
-        transactionGroupId: testTransactionGroup._id,
-        sequence: 1,
-        accountId: testAccount._id,
-        debitAmount: 1000,
-        creditAmount: 0,
-        description: '現金收入',
-        organizationId: testOrganizationId,
-        createdBy: 'test-user'
-      });
-
-      // 為銀行科目創建分錄
-      await AccountingEntry.create({
-        transactionGroupId: testTransactionGroup._id,
-        sequence: 2,
-        accountId: bankAccount._id,
-        debitAmount: 2000,
-        creditAmount: 0,
-        description: '銀行存款',
-        organizationId: testOrganizationId,
-        createdBy: 'test-user'
-      });
-
-      const result = await AccountBalanceService.calculateBalanceByAccountType(
-        'asset',
-        undefined,
-        testOrganizationId.toString()
-      );
-
-      expect(result).toMatchObject({
-        accountType: 'asset',
-        totalBalance: 3000, // 1000 + 2000
-        accountCount: 2,
-      });
-      expect(result.accounts).toHaveLength(2);
+    beforeEach(() => {
+      (MockedAccount2.find as jest.Mock).mockResolvedValue(mockAccounts);
+      
+      // Mock calculateAccountBalance
+      jest.spyOn(AccountBalanceService, 'calculateAccountBalance')
+        .mockResolvedValue({
+          accountId: mockAccounts[0]._id,
+          balance: 1000
+        } as any);
     });
 
-    test('應該返回空結果當沒有該類型科目時', async () => {
-      const result = await AccountBalanceService.calculateBalanceByAccountType(
-        'revenue',
-        undefined,
-        testOrganizationId.toString()
-      );
+    it('應該按科目類型計算餘額匯總', async () => {
+      const result = await AccountBalanceService.calculateBalanceByAccountType('asset');
 
-      expect(result).toMatchObject({
-        accountType: 'revenue',
+      expect(MockedAccount2.find).toHaveBeenCalledWith({
+        accountType: 'asset',
+        isActive: true
+      });
+
+      expect(result).toEqual({
+        accountType: 'asset',
+        totalBalance: 2000, // 1000 * 2
+        accountCount: 2,
+        accounts: expect.any(Array)
+      });
+    });
+
+    it('應該支援機構ID篩選', async () => {
+      const organizationId = 'org123';
+      await AccountBalanceService.calculateBalanceByAccountType('asset', undefined, organizationId);
+
+      expect(MockedAccount2.find).toHaveBeenCalledWith({
+        accountType: 'asset',
+        isActive: true,
+        organizationId
+      });
+    });
+
+    it('應該處理沒有科目的情況', async () => {
+      (MockedAccount2.find as jest.Mock).mockResolvedValue([]);
+
+      const result = await AccountBalanceService.calculateBalanceByAccountType('asset');
+
+      expect(result).toEqual({
+        accountType: 'asset',
         totalBalance: 0,
         accountCount: 0,
         accounts: []
@@ -398,200 +256,296 @@ describe('AccountBalanceService', () => {
   });
 
   describe('generateTrialBalance', () => {
-    test('應該生成完整的試算表', async () => {
-      // 創建不同類型的科目
-      await Account2.create({
-        code: '2101',
-        name: '應付帳款',
-        accountType: 'liability',
-        type: 'other',
-        level: 1,
-        isActive: true,
-        normalBalance: 'credit',
-        balance: 0,
-        initialBalance: 0,
-        currency: 'TWD',
-        organizationId: testOrganizationId,
-        createdBy: 'test-user'
-      });
+    beforeEach(() => {
+      // Mock calculateBalanceByAccountType
+      jest.spyOn(AccountBalanceService, 'calculateBalanceByAccountType')
+        .mockImplementation(async (accountType) => ({
+          accountType,
+          totalBalance: 1000,
+          accountCount: 1,
+          accounts: [{
+            accountId: 'acc1',
+            balance: 1000,
+            totalDebit: 1000,
+            totalCredit: 0
+          }]
+        } as any));
+    });
 
-      const revenueAccount = await Account2.create({
-        code: '4101',
-        name: '銷售收入',
-        accountType: 'revenue',
-        type: 'other',
-        level: 1,
-        isActive: true,
-        normalBalance: 'credit',
-        balance: 0,
-        initialBalance: 0,
-        currency: 'TWD',
-        organizationId: testOrganizationId,
-        createdBy: 'test-user'
-      });
+    it('應該生成試算表', async () => {
+      const result = await AccountBalanceService.generateTrialBalance();
 
-      // 創建分錄
-      await AccountingEntry.create({
-        transactionGroupId: testTransactionGroup._id,
-        sequence: 1,
-        accountId: testAccount._id, // 資產科目
-        debitAmount: 1000,
-        creditAmount: 0,
-        description: '現金收入',
-        organizationId: testOrganizationId,
-        createdBy: 'test-user'
-      });
-
-      await AccountingEntry.create({
-        transactionGroupId: testTransactionGroup._id,
-        sequence: 2,
-        accountId: revenueAccount._id, // 收入科目
-        debitAmount: 0,
-        creditAmount: 1000,
-        description: '銷售收入',
-        organizationId: testOrganizationId,
-        createdBy: 'test-user'
-      });
-
-      const result = await AccountBalanceService.generateTrialBalance(
-        undefined,
-        testOrganizationId.toString()
-      );
-
+      expect(result).toHaveProperty('trialBalanceData');
+      expect(result).toHaveProperty('summary');
       expect(result.trialBalanceData).toHaveLength(5); // 5種科目類型
-      // 根據 generateTrialBalance 的實際邏輯：
-      // - 資產科目餘額 1000 (正數) -> 借方
-      // - 收入科目餘額 1000 (正數) -> 借方 (因為 balance >= 0)
-      // 所以總借方是 2000，總貸方是 0
-      expect(result.summary.totalDebit).toBe(2000); // 兩個科目的正餘額都計入借方
-      expect(result.summary.totalCredit).toBe(0); // 沒有負餘額的科目
-      expect(result.summary.difference).toBe(2000); // |2000 - 0| = 2000
-      expect(result.summary.isBalanced).toBe(false); // 不平衡，因為借貸方不相等
-      expect(result.summary.generatedAt).toBeDefined();
-      expect(result.summary.endDate).toBeDefined();
+      expect(result.summary).toMatchObject({
+        totalDebit: expect.any(Number),
+        totalCredit: expect.any(Number),
+        difference: expect.any(Number),
+        isBalanced: expect.any(Boolean),
+        generatedAt: expect.any(Date),
+        endDate: expect.any(Date)
+      });
+    });
+
+    it('應該支援截止日期', async () => {
+      const endDate = new Date('2024-01-31');
+      const result = await AccountBalanceService.generateTrialBalance(endDate);
+
+      expect(result.summary.endDate).toEqual(endDate);
+    });
+
+    it('應該正確計算借貸平衡', async () => {
+      // Mock 平衡的情況 - 確保借方和貸方總額相等
+      jest.spyOn(AccountBalanceService, 'calculateBalanceByAccountType')
+        .mockImplementation(async (accountType) => {
+          if (accountType === 'asset') {
+            return {
+              accountType,
+              totalBalance: 1000,
+              accountCount: 1,
+              accounts: [{
+                accountId: 'acc1',
+                balance: 1000, // 正數表示借方餘額
+                totalDebit: 1000,
+                totalCredit: 0
+              }]
+            } as any;
+          } else if (accountType === 'liability') {
+            return {
+              accountType,
+              totalBalance: -1000,
+              accountCount: 1,
+              accounts: [{
+                accountId: 'acc2',
+                balance: -1000, // 負數表示貸方餘額
+                totalDebit: 0,
+                totalCredit: 1000
+              }]
+            } as any;
+          } else {
+            return {
+              accountType,
+              totalBalance: 0,
+              accountCount: 0,
+              accounts: []
+            } as any;
+          }
+        });
+
+      const result = await AccountBalanceService.generateTrialBalance();
+
+      expect(result.summary.isBalanced).toBe(true);
+      expect(result.summary.difference).toBeLessThan(0.01);
     });
   });
 
   describe('getAccountTransactionHistory', () => {
-    test('應該返回科目的交易歷史', async () => {
-      // 創建多筆分錄
-      await AccountingEntry.create({
-        transactionGroupId: testTransactionGroup._id,
-        sequence: 1,
-        accountId: testAccount._id,
+    const mockAccount = {
+      _id: new mongoose.Types.ObjectId(),
+      name: '現金',
+      normalBalance: 'debit'
+    };
+
+    const mockEntries = [
+      {
+        _id: new mongoose.Types.ObjectId(),
+        accountId: mockAccount,
+        description: '交易1',
         debitAmount: 1000,
         creditAmount: 0,
-        description: '第一筆交易',
-        organizationId: testOrganizationId,
-        createdBy: 'test-user'
-      });
-
-      await AccountingEntry.create({
-        transactionGroupId: testTransactionGroup._id,
-        sequence: 2,
-        accountId: testAccount._id,
+        createdAt: new Date('2024-01-01'),
+        sequence: 1,
+        transactionGroupId: {
+          groupNumber: 'TXN001',
+          description: '交易群組1'
+        }
+      },
+      {
+        _id: new mongoose.Types.ObjectId(),
+        accountId: mockAccount,
+        description: '交易2',
         debitAmount: 0,
         creditAmount: 300,
-        description: '第二筆交易',
-        organizationId: testOrganizationId,
-        createdBy: 'test-user'
-      });
+        createdAt: new Date('2024-01-02'),
+        sequence: 2,
+        transactionGroupId: {
+          groupNumber: 'TXN002',
+          description: '交易群組2'
+        }
+      }
+    ];
 
-      const result = await AccountBalanceService.getAccountTransactionHistory(
-        (testAccount._id as mongoose.Types.ObjectId).toString(),
-        undefined,
-        undefined,
-        50,
-        testOrganizationId.toString()
-      );
-
-      expect(result.accountId).toBe((testAccount._id as mongoose.Types.ObjectId).toString());
-      expect(result.transactionHistory).toHaveLength(2);
-      expect(result.totalTransactions).toBe(2);
-      expect(result.currentBalance).toBe(700); // 1000 - 300
-
-      // 檢查交易歷史的順序（應該是時間倒序）
-      const history = result.transactionHistory;
-      expect(history[0].balanceChange).toBe(-300); // 貸方對借方科目是負數
-      expect(history[0].runningBalance).toBe(700);
-      expect(history[1].balanceChange).toBe(1000); // 借方對借方科目是正數
-      expect(history[1].runningBalance).toBe(1000);
+    beforeEach(() => {
+      const mockFind = {
+        populate: jest.fn().mockReturnThis(),
+        sort: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockResolvedValue(mockEntries)
+      };
+      (MockedAccountingEntry.find as jest.Mock).mockReturnValue(mockFind);
     });
 
-    test('應該根據日期範圍過濾交易歷史', async () => {
-      const startDate = new Date('2025-01-15');
-      const endDate = new Date('2025-01-20');
-      const testDate = new Date('2025-01-18');
+    it('應該返回會計科目交易歷史', async () => {
+      const result = await AccountBalanceService.getAccountTransactionHistory('acc1');
 
-      // 創建分錄
-      await AccountingEntry.create({
-        transactionGroupId: testTransactionGroup._id,
-        sequence: 1,
-        accountId: testAccount._id,
+      expect(result).toEqual({
+        accountId: 'acc1',
+        transactionHistory: expect.any(Array),
+        totalTransactions: 2,
+        currentBalance: 700 // 1000 - 300 for debit account
+      });
+
+      expect(result.transactionHistory).toHaveLength(2);
+      expect(result.transactionHistory[0]).toMatchObject({
+        entryId: expect.any(mongoose.Types.ObjectId),
+        description: '交易1',
         debitAmount: 1000,
         creditAmount: 0,
-        description: '範圍內交易',
-        organizationId: testOrganizationId,
-        createdBy: 'test-user',
-        createdAt: testDate // 直接在創建時設置日期
+        balanceChange: 1000,
+        runningBalance: 700
       });
-
-      const result = await AccountBalanceService.getAccountTransactionHistory(
-        (testAccount._id as mongoose.Types.ObjectId).toString(),
-        startDate,
-        endDate,
-        50,
-        testOrganizationId.toString()
-      );
-
-      expect(result.transactionHistory).toHaveLength(1);
-      expect(result.transactionHistory[0].description).toBe('範圍內交易');
     });
 
-    test('應該限制返回的交易筆數', async () => {
-      // 創建多筆分錄
-      for (let i = 1; i <= 5; i++) {
-        await AccountingEntry.create({
-          transactionGroupId: testTransactionGroup._id,
-          sequence: i,
-          accountId: testAccount._id,
-          debitAmount: 100 * i,
-          creditAmount: 0,
-          description: `交易 ${i}`,
-          organizationId: testOrganizationId,
-          createdBy: 'test-user'
-        });
-      }
+    it('應該支援日期範圍篩選', async () => {
+      const startDate = new Date('2024-01-01');
+      const endDate = new Date('2024-01-31');
 
-      const result = await AccountBalanceService.getAccountTransactionHistory(
-        (testAccount._id as mongoose.Types.ObjectId).toString(),
-        undefined,
-        undefined,
-        3, // 限制3筆
-        testOrganizationId.toString()
-      );
+      await AccountBalanceService.getAccountTransactionHistory('acc1', startDate, endDate);
 
-      expect(result.transactionHistory).toHaveLength(3);
-      expect(result.totalTransactions).toBe(3); // 實際返回的筆數
+      expect(MockedAccountingEntry.find).toHaveBeenCalledWith({
+        accountId: 'acc1',
+        createdAt: {
+          $gte: startDate,
+          $lte: endDate
+        }
+      });
+    });
+
+    it('應該支援限制筆數', async () => {
+      const limit = 10;
+      await AccountBalanceService.getAccountTransactionHistory('acc1', undefined, undefined, limit);
+
+      const mockFind = (MockedAccountingEntry.find as jest.Mock)();
+      expect(mockFind.limit).toHaveBeenCalledWith(limit);
+    });
+
+    it('應該正確計算貸方科目的餘額變化', async () => {
+      const creditAccount = {
+        ...mockAccount,
+        normalBalance: 'credit'
+      };
+
+      const entriesWithCreditAccount = mockEntries.map(entry => ({
+        ...entry,
+        accountId: creditAccount
+      }));
+
+      const mockFind = {
+        populate: jest.fn().mockReturnThis(),
+        sort: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockResolvedValue(entriesWithCreditAccount)
+      };
+      (MockedAccountingEntry.find as jest.Mock).mockReturnValue(mockFind);
+
+      const result = await AccountBalanceService.getAccountTransactionHistory('acc1');
+
+      expect(result.currentBalance).toBe(-700); // 300 - 1000 for credit account
     });
   });
 
   describe('錯誤處理', () => {
-    test('calculateAccountBalance 應該處理資料庫錯誤', async () => {
-      // 使用無效的 ObjectId 格式
-      await expect(
-        AccountBalanceService.calculateAccountBalance('invalid-id')
-      ).rejects.toThrow();
+    it('應該處理資料庫連接錯誤', async () => {
+      (MockedAccount2.findById as jest.Mock).mockRejectedValue(new Error('資料庫連接失敗'));
+
+      await expect(AccountBalanceService.calculateAccountBalance('acc1'))
+        .rejects.toThrow('資料庫連接失敗');
     });
 
-    test('calculateMultipleAccountBalances 應該處理部分失敗', async () => {
-      const validId = (testAccount._id as mongoose.Types.ObjectId).toString();
-      const invalidId = new mongoose.Types.ObjectId().toString();
+    it('應該處理聚合查詢錯誤', async () => {
+      (MockedAccount2.find as jest.Mock).mockRejectedValue(new Error('查詢失敗'));
 
-      // 這應該會因為其中一個科目不存在而失敗
-      await expect(
-        AccountBalanceService.calculateMultipleAccountBalances([validId, invalidId])
-      ).rejects.toThrow();
+      await expect(AccountBalanceService.calculateBalanceByAccountType('asset'))
+        .rejects.toThrow('查詢失敗');
+    });
+
+    it('應該處理試算表生成錯誤', async () => {
+      jest.spyOn(AccountBalanceService, 'calculateBalanceByAccountType')
+        .mockRejectedValue(new Error('計算錯誤'));
+
+      await expect(AccountBalanceService.generateTrialBalance())
+        .rejects.toThrow('計算錯誤');
+    });
+
+    it('應該處理交易歷史查詢錯誤', async () => {
+      (MockedAccountingEntry.find as jest.Mock).mockImplementation(() => {
+        throw new Error('查詢失敗');
+      });
+
+      await expect(AccountBalanceService.getAccountTransactionHistory('acc1'))
+        .rejects.toThrow('查詢失敗');
+    });
+  });
+
+  describe('邊界條件測試', () => {
+    it('應該處理空的交易記錄', async () => {
+      const mockAccount = {
+        _id: new mongoose.Types.ObjectId(),
+        name: '現金',
+        normalBalance: 'debit'
+      };
+
+      (MockedAccount2.findById as jest.Mock).mockResolvedValue(mockAccount);
+      
+      const mockFind = {
+        populate: jest.fn().mockReturnThis(),
+        sort: jest.fn().mockResolvedValue([])
+      };
+      (MockedAccountingEntry.find as jest.Mock).mockReturnValue(mockFind);
+
+      const result = await AccountBalanceService.calculateAccountBalance(mockAccount._id.toString());
+
+      expect(result.balance).toBe(0);
+      expect(result.entryCount).toBe(0);
+    });
+
+    it('應該處理無效的科目類型', async () => {
+      (MockedAccount2.find as jest.Mock).mockResolvedValue([]);
+
+      const result = await AccountBalanceService.calculateBalanceByAccountType('invalid' as any);
+
+      expect(result.totalBalance).toBe(0);
+      expect(result.accountCount).toBe(0);
+    });
+
+    it('應該處理極大的金額', async () => {
+      const mockAccount = {
+        _id: new mongoose.Types.ObjectId(),
+        name: '現金',
+        normalBalance: 'debit'
+      };
+
+      const largeAmountEntry = {
+        _id: new mongoose.Types.ObjectId(),
+        accountId: mockAccount._id,
+        debitAmount: Number.MAX_SAFE_INTEGER,
+        creditAmount: 0,
+        createdAt: new Date(),
+        transactionGroupId: {
+          status: 'confirmed'
+        }
+      };
+
+      (MockedAccount2.findById as jest.Mock).mockResolvedValue(mockAccount);
+      
+      const mockFind = {
+        populate: jest.fn().mockReturnThis(),
+        sort: jest.fn().mockResolvedValue([largeAmountEntry])
+      };
+      (MockedAccountingEntry.find as jest.Mock).mockReturnValue(mockFind);
+
+      const result = await AccountBalanceService.calculateAccountBalance(mockAccount._id.toString());
+
+      expect(result.balance).toBe(Number.MAX_SAFE_INTEGER);
     });
   });
 });

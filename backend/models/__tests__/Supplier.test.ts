@@ -1,4 +1,4 @@
-import Supplier, { ISupplier, ISupplierDocument } from '../Supplier';
+import Supplier, { ISupplier } from '../Supplier';
 
 describe('Supplier Model', () => {
   beforeEach(async () => {
@@ -506,7 +506,7 @@ describe('Supplier Model', () => {
     });
 
     it('應該處理供應商資訊的批量更新', async () => {
-      const suppliers = await Supplier.create([
+      await Supplier.create([
         {
           code: 'SUP_BATCH1',
           shortCode: 'SB1',

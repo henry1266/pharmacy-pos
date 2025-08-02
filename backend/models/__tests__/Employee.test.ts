@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import Employee, { IEmployee, IEmployeeDocument } from '../Employee';
+import Employee, { IEmployee } from '../Employee';
 
 describe('Employee Model', () => {
   beforeEach(async () => {
