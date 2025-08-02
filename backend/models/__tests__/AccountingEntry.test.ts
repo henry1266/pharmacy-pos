@@ -646,7 +646,7 @@ describe('AccountingEntry Model', () => {
       const org1Id = new mongoose.Types.ObjectId();
       const org2Id = new mongoose.Types.ObjectId();
       
-      const entries = await AccountingEntry.create([
+      await AccountingEntry.create([
         {
           transactionGroupId: new mongoose.Types.ObjectId(),
           sequence: 1,
@@ -718,7 +718,7 @@ describe('AccountingEntry Model', () => {
     });
 
     it('應該處理極長的資金路徑', async () => {
-      const longFundingPath = Array.from({ length: 100 }, (_, i) => 
+      const longFundingPath = Array.from({ length: 100 }, () =>
         new mongoose.Types.ObjectId().toString()
       );
       
