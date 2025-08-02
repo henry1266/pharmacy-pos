@@ -529,37 +529,35 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
         </Box>
       </Box>
 
-      <Card sx={{ mb: 3, px: 2, mx: 1 }}>
-        <CardContent>
-          {showFilters && (
-            <Box sx={{ mb: 2 }}>
-              {filteredRows.length > 0 && (
-                <FilterPriceSummary
-                  filteredRows={filteredRows}
-                  totalAmountField="totalAmount"
-                  title="篩選結果"
-                />
-              )}
-            </Box>
-          )}
+      <Box sx={{
+        width: '100%',
+        position: 'relative',
+        minHeight: '70vh',
+        height: '100%',
+        bgcolor: 'background.paper',
+        borderRadius: 1,
+        border: 1,
+        borderColor: 'divider',
+        boxShadow: 1,
+        overflow: 'hidden'
+      }}>
 
-          <PurchaseOrdersTable
-            purchaseOrders={purchaseOrders as unknown as PurchaseOrder[]}
-            filteredRows={filteredRows}
-            paginationModel={paginationModel}
-            setPaginationModel={setPaginationModel}
-            loading={loading}
-            handleView={handleView}
-            handleEdit={handleEdit}
-            handleDeleteClick={handleDeleteClick}
-            handlePreviewMouseEnter={handlePreviewMouseEnter}
-            handlePreviewMouseLeave={handlePreviewMouseLeave}
-            renderSupplierHeader={renderSupplierHeader}
-            handleUnlock={handleUnlock}
-            handleViewAccountingEntry={handleViewAccountingEntry}
-          />
-        </CardContent>
-      </Card>
+        <PurchaseOrdersTable
+          purchaseOrders={purchaseOrders as unknown as PurchaseOrder[]}
+          filteredRows={filteredRows}
+          paginationModel={paginationModel}
+          setPaginationModel={setPaginationModel}
+          loading={loading}
+          handleView={handleView}
+          handleEdit={handleEdit}
+          handleDeleteClick={handleDeleteClick}
+          handlePreviewMouseEnter={handlePreviewMouseEnter}
+          handlePreviewMouseLeave={handlePreviewMouseLeave}
+          renderSupplierHeader={renderSupplierHeader}
+          handleUnlock={handleUnlock}
+          handleViewAccountingEntry={handleViewAccountingEntry}
+        />
+      </Box>
 
       {previewAnchorEl && (
         <Popper

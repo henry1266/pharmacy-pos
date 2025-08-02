@@ -9,12 +9,17 @@ import {
   Fab,
   Snackbar,
   Alert,
-  Popover
+  Popover,
+  TextField,
+  InputAdornment,
+  CircularProgress
 } from '@mui/material';
 import {
   Add as AddIcon,
   FilterList as FilterListIcon,
-  CloudUpload as CloudUploadIcon
+  CloudUpload as CloudUploadIcon,
+  Search as SearchIcon,
+  CalculateOutlined
 } from '@mui/icons-material';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAppDispatch } from '../hooks/redux';
@@ -351,6 +356,38 @@ const ShippingOrdersPage: React.FC = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
   }, []);
 
+  // 計算總金額和筆數
+  const totalAmount = useMemo(() => {
+    return filteredRows.reduce((sum, row) => sum + (row.totalAmount || 0), 0);
+  }, [filteredRows]);
+
+  // 計算毛利相關狀態
+  const [calculatingProfit, setCalculatingProfit] = useState(false);
+  const [calculatedProfit, setCalculatedProfit] = useState<number | null>(null);
+
+  // 處理計算毛利按鈕點擊
+  const handleCalculateProfitClick = useCallback(async () => {
+    if (!calculateBatchFifoProfit || filteredRows.length === 0) return;
+    
+    try {
+      setCalculatingProfit(true);
+      // 獲取所有出貨單ID
+      const ids = filteredRows.map(row => row._id);
+      // 調用計算毛利函數
+      const profit = await calculateBatchFifoProfit(ids);
+      setCalculatedProfit(profit);
+    } catch (error) {
+      console.error('計算毛利失敗:', error);
+      setSnackbar({
+        open: true,
+        message: '計算毛利失敗',
+        severity: 'error'
+      });
+    } finally {
+      setCalculatingProfit(false);
+    }
+  }, [calculateBatchFifoProfit, filteredRows]);
+
   // --- Supplier Header Renderer ---
   const renderSupplierHeader = useCallback((): React.ReactNode => {
     return (
@@ -363,10 +400,117 @@ const ShippingOrdersPage: React.FC = () => {
   }, [suppliers, selectedSuppliers, handleSupplierFilterChange]);
 
   return (
-    <Box>
-      <Typography variant="h4" component="h1" gutterBottom>
-        出貨單管理
-      </Typography>
+    <Box sx={{ p: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Typography variant="h5" component="h1">
+            出貨單管理
+          </Typography>
+          {/* 總金額顯示 */}
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            backgroundColor: 'primary.main',
+            color: 'primary.contrastText',
+            px: 2,
+            py: 1,
+            borderRadius: 2,
+            minWidth: 'fit-content'
+          }}>
+            <Typography variant="caption" sx={{ fontSize: '0.8rem', mr: 1 }}>
+              總計
+            </Typography>
+            <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
+              ${totalAmount.toLocaleString()}
+            </Typography>
+          </Box>
+          {/* 筆數統計 */}
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            backgroundColor: 'secondary.main',
+            color: 'secondary.contrastText',
+            px: 2,
+            py: 1,
+            borderRadius: 2,
+            minWidth: 'fit-content'
+          }}>
+            <Typography variant="caption" sx={{ fontSize: '0.8rem', mr: 1 }}>
+              筆數
+            </Typography>
+            <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
+              {filteredRows.length}
+            </Typography>
+          </Box>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {/* 計算毛利按鈕 */}
+          {filteredRows.length > 0 && (
+            <Button
+              variant="outlined"
+              color="primary"
+              size="small"
+              startIcon={calculatingProfit ? <CircularProgress size={16} /> : <CalculateOutlined />}
+              onClick={handleCalculateProfitClick}
+              disabled={calculatingProfit || filteredRows.length === 0}
+              sx={{ mr: 1 }}
+            >
+              {calculatingProfit ? '計算中...' : '計算毛利'}
+            </Button>
+          )}
+          {/* 顯示計算結果 */}
+          {calculatedProfit !== null && (
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              backgroundColor: calculatedProfit >= 0 ? 'success.main' : 'error.main',
+              color: 'white',
+              px: 2,
+              py: 1,
+              borderRadius: 2,
+              minWidth: 'fit-content',
+              mr: 1
+            }}>
+              <Typography variant="caption" sx={{ fontSize: '0.8rem', mr: 1 }}>
+                毛利
+              </Typography>
+              <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
+                ${calculatedProfit.toLocaleString()}
+              </Typography>
+            </Box>
+          )}
+          {/* 搜尋區域 */}
+          <TextField
+            size="small"
+            placeholder="搜尋出貨單"
+            name="searchTerm"
+            value={searchParams.searchTerm || ''}
+            onChange={handleInputChange}
+            sx={{ minWidth: 300 }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              )
+            }}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSearchWithUrlUpdate}
+          >
+            搜尋
+          </Button>
+          <Button
+            variant="outlined"
+            color="secondary"
+            onClick={handleClearSearchWithUrlUpdate}
+          >
+            清除
+          </Button>
+        </Box>
+      </Box>
 
       {/* 匯入選項區塊 - 當showImportOptions為true時顯示 */}
       {showImportOptions && (
@@ -387,57 +531,44 @@ const ShippingOrdersPage: React.FC = () => {
         />
       )}
 
-      <Card sx={{ mb: 3, px: 2, mx: 1 }}>
-        <CardContent>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="h6">出貨單列表</Typography>
-            <Box>
-              <Button
-                variant="outlined"
-                startIcon={<FilterListIcon />}
-                onClick={() => setShowFilters(prev => !prev)}
-                sx={{ mr: 1 }}
-              >
-                {showFilters ? '隱藏搜索' : '顯示搜索'}
-              </Button>
-            </Box>
-          </Box>
-
-          {showFilters && (
+      <Box sx={{
+        width: '100%',
+        position: 'relative',
+        minHeight: '70vh',
+        height: '100%',
+        bgcolor: 'background.paper',
+        borderRadius: 1,
+        border: 1,
+        borderColor: 'divider',
+        boxShadow: 1,
+        overflow: 'hidden'
+      }}>
+        {showFilters && (
+          <Box sx={{ mb: 2, p: 2 }}>
             <ShippingOrdersFilter
               searchParams={searchParams}
               handleInputChange={handleInputChange}
               handleSearch={handleSearchWithUrlUpdate}
               handleClearSearch={handleClearSearchWithUrlUpdate}
             />
-          )}
+          </Box>
+        )}
 
-          {filteredRows.length > 0 && (
-            <FilterPriceSummary
-              filteredRows={filteredRows}
-              totalAmountField="totalAmount"
-              totalProfitField="totalProfit"
-              title="篩選結果"
-              showProfit={true}
-              onCalculateProfit={calculateBatchFifoProfit}
-            />
-          )}
 
-          <ShippingOrdersTable
-            filteredRows={filteredRows}
-            paginationModel={paginationModel}
-            setPaginationModel={setPaginationModel}
-            loading={listLoading}
-            handleView={handleView}
-            handleEdit={handleEdit}
-            handleDeleteClick={handleDeleteClick}
-            handlePreviewMouseEnter={handlePreviewMouseEnter}
-            handlePreviewMouseLeave={handlePreviewMouseLeave}
-            renderSupplierHeader={renderSupplierHeader}
-            handleUnlock={handleUnlock}
-          />
-        </CardContent>
-      </Card>
+        <ShippingOrdersTable
+          filteredRows={filteredRows}
+          paginationModel={paginationModel}
+          setPaginationModel={setPaginationModel}
+          loading={listLoading}
+          handleView={handleView}
+          handleEdit={handleEdit}
+          handleDeleteClick={handleDeleteClick}
+          handlePreviewMouseEnter={handlePreviewMouseEnter}
+          handlePreviewMouseLeave={handlePreviewMouseLeave}
+          renderSupplierHeader={renderSupplierHeader}
+          handleUnlock={handleUnlock}
+        />
+      </Box>
 
       {/* 使用 Popover 組件實現預覽功能 */}
       <Popover

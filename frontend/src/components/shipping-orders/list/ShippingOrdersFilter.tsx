@@ -37,7 +37,7 @@ const ShippingOrdersFilter: FC<ShippingOrdersFilterProps> = ({
     <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
       <TextField
         fullWidth
-        placeholder="搜索出貨單（單號、供應商、日期、ID）"
+        placeholder="搜尋出貨單"
         name="searchTerm"
         value={searchParams.searchTerm}
         onChange={handleInputChange}
