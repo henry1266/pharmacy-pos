@@ -250,6 +250,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         { text: '會計列表', path: '/accounting3/transaction', icon: <CategoryIcon fontSize="small" sx={{ ml: 1 }} /> },
         { text: '會計科目', path: '/accounting3/accounts' },
         { text: '機構管理', path: '/accounting3/organizations', icon: <BusinessIcon fontSize="small" sx={{ ml: 1 }} />, adminOnly: true },
+        { text: '結帳管理', path: '/accounting3/payments', icon: <BusinessIcon fontSize="small" sx={{ ml: 1 }} />, adminOnly: true },
       ]
     },
     { text: '報表功能', icon: <BarChartIcon />, path: '/reports', adminOnly: true },

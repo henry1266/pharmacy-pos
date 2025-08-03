@@ -16,7 +16,6 @@ import {
 } from '@mui/material';
 import {
   Add as AddIcon,
-  FilterList as FilterListIcon,
   CloudUpload as CloudUploadIcon,
   Search as SearchIcon,
   CalculateOutlined
@@ -41,7 +40,6 @@ import ShippingOrdersFilter from '../components/shipping-orders/list/ShippingOrd
 import CsvImportDialog from '../components/shipping-orders/import/CsvImportDialog';
 import ShippingOrderImportOptions from '../components/shipping-orders/import/ShippingOrderImportOptions';
 import GenericConfirmDialog from '../components/common/GenericConfirmDialog';
-import FilterPriceSummary from '../components/common/FilterPriceSummary';
 
 // 使用通用類型定義
 interface ShippingOrder {

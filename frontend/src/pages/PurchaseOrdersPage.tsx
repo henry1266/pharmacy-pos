@@ -16,7 +16,6 @@ import {
 } from '@mui/material';
 import {
   Add as AddIcon,
-  FilterList as FilterListIcon,
   CloudUpload as CloudUploadIcon,
   Search as SearchIcon
 } from '@mui/icons-material';
@@ -37,10 +36,8 @@ import { deletePurchaseOrder, searchPurchaseOrders, fetchPurchaseOrders, API_BAS
 import PurchaseOrderPreview from '../components/purchase-orders/PurchaseOrderPreview';
 import SupplierCheckboxFilter from '../components/filters/SupplierCheckboxFilter';
 import PurchaseOrdersTable from '../components/purchase-orders/PurchaseOrdersTable';
-import PurchaseOrdersFilter from '../components/purchase-orders/PurchaseOrdersFilter';
 import CsvImportDialog from '../components/purchase-orders/CsvImportDialog';
 import GenericConfirmDialog from '../components/common/GenericConfirmDialog';
-import FilterPriceSummary from '../components/common/FilterPriceSummary';
 
 // 定義介面
 interface PurchaseOrdersPageProps {

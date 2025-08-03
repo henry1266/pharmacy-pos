@@ -257,13 +257,15 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ organizationId }) => {
             上一步
           </Button>
           
-          <Button
-            variant="contained"
-            onClick={handleNext}
-            disabled={loading || (activeStep === 0 && selectedPayables.length === 0)}
-          >
-            {activeStep === steps.length - 2 ? '建立付款' : '下一步'}
-          </Button>
+          {activeStep !== steps.length - 2 && (
+            <Button
+              variant="contained"
+              onClick={handleNext}
+              disabled={loading || (activeStep === 0 && selectedPayables.length === 0)}
+            >
+              下一步
+            </Button>
+          )}
         </Box>
       )}
     </Box>
