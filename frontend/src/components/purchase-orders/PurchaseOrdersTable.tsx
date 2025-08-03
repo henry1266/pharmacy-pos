@@ -31,6 +31,8 @@ interface PurchaseOrder {
   relatedTransactionGroupId?: string;
   accountingEntryType?: 'expense-asset' | 'asset-liability';
   selectedAccountIds?: string[];
+  // 付款狀態相關欄位
+  hasPaidAmount?: boolean;
 }
 
 // 定義表格行數據的介面
@@ -119,9 +121,12 @@ const PurchaseOrdersTable: FC<PurchaseOrdersTableProps> = ({
         // 調試日誌
         console.log('🔍 DataGrid row data:', {
           poid: params.row.poid,
+          _id: params.row._id,
           relatedTransactionGroupId: params.row.relatedTransactionGroupId,
           accountingEntryType: params.row.accountingEntryType,
-          selectedAccountIds: params.row.selectedAccountIds
+          selectedAccountIds: params.row.selectedAccountIds,
+          hasPaidAmount: params.row.hasPaidAmount,
+          status: params.row.status
         });
         
         return (
@@ -139,14 +144,16 @@ const PurchaseOrdersTable: FC<PurchaseOrdersTableProps> = ({
             {...(params.row.relatedTransactionGroupId && handleViewAccountingEntry && {
               onViewAccountingEntry: () => handleViewAccountingEntry(params.row.relatedTransactionGroupId!)
             })}
+            hasPaidAmount={params.row.hasPaidAmount}
+            purchaseOrderId={params.row._id}
           />
         );
       }
     }
   ];
   
-  // 為DataGrid準備行數據
-  const rows: PurchaseOrderRow[] = purchaseOrders.map(po => ({
+  // 為DataGrid準備行數據 - 優先使用 filteredRows，如果為空則從 purchaseOrders 創建
+  const rows: PurchaseOrderRow[] = filteredRows.length > 0 ? filteredRows : purchaseOrders.map(po => ({
     id: po._id, // DataGrid需要唯一的id字段
     _id: po._id, // 保留原始_id用於操作
     poid: po.poid,
@@ -159,7 +166,9 @@ const PurchaseOrdersTable: FC<PurchaseOrdersTableProps> = ({
     // 會計分錄相關欄位
     relatedTransactionGroupId: po.relatedTransactionGroupId || '',
     accountingEntryType: po.accountingEntryType || 'expense-asset',
-    selectedAccountIds: po.selectedAccountIds || []
+    selectedAccountIds: po.selectedAccountIds || [],
+    // 付款狀態
+    hasPaidAmount: po.hasPaidAmount || false
   }));
   
   // 創建骨架屏載入效果
@@ -229,7 +238,7 @@ const PurchaseOrdersTable: FC<PurchaseOrdersTableProps> = ({
           borderRadius: 1
         }}>
           <DataGrid
-            rows={filteredRows.length > 0 ? filteredRows : rows}
+            rows={rows}
             columns={columns}
             checkboxSelection={false}
             disableSelectionOnClick

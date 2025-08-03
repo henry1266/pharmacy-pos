@@ -50,6 +50,7 @@ interface PayableTransactionInfo {
     paymentMethod?: string;
   }>;
   transactionDate: Date;
+  status?: 'draft' | 'confirmed' | 'cancelled'; // 新增交易狀態
 }
 
 // 付款交易資料介面

@@ -68,6 +68,8 @@ interface PurchaseOrder {
   relatedTransactionGroupId?: string;
   accountingEntryType?: 'expense-asset' | 'asset-liability';
   selectedAccountIds?: string[];
+  // 付款狀態相關欄位
+  hasPaidAmount?: boolean;
   items?: Array<{
     did: string;
     dname: string;
@@ -91,6 +93,8 @@ interface FilteredRow {
   relatedTransactionGroupId?: string;
   accountingEntryType?: 'expense-asset' | 'asset-liability';
   selectedAccountIds?: string[];
+  // 付款狀態相關欄位
+  hasPaidAmount?: boolean;
 }
 
 interface Supplier {
@@ -161,6 +165,87 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
   const [csvImportSuccess, setCsvImportSuccess] = useState<boolean>(false);
   const [csvTabValue, setCsvTabValue] = useState<number>(0);
   const [paginationModel, setPaginationModel] = useState<PaginationModel>({ pageSize: 50, page: 0 });
+  const [paymentStatusMap, setPaymentStatusMap] = useState<Map<string, boolean>>(new Map());
+  const [isCheckingPaymentStatus, setIsCheckingPaymentStatus] = useState<boolean>(false);
+
+  // 檢查進貨單付款狀態的函數
+  const checkPaymentStatus = useCallback(async (purchaseOrderId: string): Promise<boolean> => {
+    try {
+      console.log('🔍 檢查進貨單付款狀態:', purchaseOrderId);
+      const response = await axios.get(`${API_BASE_URL}/accounting2/transactions/purchase-order/${purchaseOrderId}/payment-status`);
+      console.log('✅ 付款狀態檢查結果:', response.data);
+      return response.data.hasPaidAmount || false;
+    } catch (error) {
+      console.error('❌ 檢查付款狀態失敗:', error);
+      return false;
+    }
+  }, []);
+
+  // 批量檢查付款狀態 - 使用批量 API 優化性能
+  const checkAllPaymentStatuses = async (purchaseOrders: PurchaseOrder[]) => {
+    if (isCheckingPaymentStatus) {
+      console.log('⏸️ 付款狀態檢查已在進行中，跳過此次調用');
+      return;
+    }
+    
+    setIsCheckingPaymentStatus(true);
+    console.log('🔄 開始批量檢查付款狀態，進貨單數量:', purchaseOrders.length);
+    
+    try {
+      const statusMap = new Map<string, boolean>();
+      
+      // 提取所有進貨單 ID
+      const purchaseOrderIds = purchaseOrders.map(po => po._id);
+      
+      // 使用批量 API 一次性檢查所有進貨單的付款狀態
+      const response = await axios.post(`${API_BASE_URL}/accounting2/transactions/purchase-orders/batch-payment-status`, {
+        purchaseOrderIds
+      });
+      
+      if (response.data.success) {
+        // 處理批量查詢結果
+        const paymentStatuses = response.data.data;
+        console.log('🔍 批量 API 返回的原始數據:', response.data);
+        console.log('🔍 付款狀態數組:', paymentStatuses);
+        
+        paymentStatuses.forEach((status: { purchaseOrderId: string; hasPaidAmount: boolean }) => {
+          console.log(`🔍 設置付款狀態: ${status.purchaseOrderId} -> ${status.hasPaidAmount}`);
+          statusMap.set(status.purchaseOrderId, status.hasPaidAmount);
+        });
+        
+        console.log('✅ 批量付款狀態檢查完成:', paymentStatuses);
+        console.log('🗺️ 最終的付款狀態映射:', Array.from(statusMap.entries()));
+        setPaymentStatusMap(statusMap);
+      } else {
+        throw new Error(response.data.message || '批量檢查付款狀態失敗');
+      }
+    } catch (error) {
+      console.error('❌ 批量檢查付款狀態失敗:', error);
+      // 如果批量 API 失敗，回退到逐一檢查（但限制數量避免當機）
+      if (purchaseOrders.length <= 50) {
+        console.log('🔄 回退到逐一檢查付款狀態');
+        const statusMap = new Map<string, boolean>();
+        const promises = purchaseOrders.map(async (po) => {
+          try {
+            const hasPaidAmount = await checkPaymentStatus(po._id);
+            statusMap.set(po._id, hasPaidAmount);
+            return { id: po._id, hasPaidAmount };
+          } catch (err) {
+            console.error(`檢查進貨單 ${po._id} 付款狀態失敗:`, err);
+            statusMap.set(po._id, false);
+            return { id: po._id, hasPaidAmount: false };
+          }
+        });
+        
+        await Promise.all(promises);
+        setPaymentStatusMap(statusMap);
+      } else {
+        console.warn('⚠️ 進貨單數量過多，跳過付款狀態檢查以避免性能問題');
+      }
+    } finally {
+      setIsCheckingPaymentStatus(false);
+    }
+  };
 
   // Snackbar handler using useCallback
   const showSnackbar = useCallback((message: string, severity: SnackbarState['severity'] = 'success') => {
@@ -173,6 +258,15 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
       showSnackbar(error, 'error');
     }
   }, [error, showSnackbar]);
+
+  // 當進貨單數據載入完成後，檢查付款狀態 - 使用批量 API 優化性能
+  useEffect(() => {
+    if (purchaseOrders && purchaseOrders.length > 0 && !loading && !isCheckingPaymentStatus) {
+      console.log('📊 進貨單數據載入完成，開始批量檢查付款狀態');
+      checkAllPaymentStatuses(purchaseOrders as PurchaseOrder[]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [purchaseOrders, loading]);
 
   // 根據路由參數設置初始供應商篩選
   useEffect(() => {
@@ -190,7 +284,7 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
   useEffect(() => {
     try {
       // 首先將 hook 中的 filteredRows 轉換為本地的 FilteredRow 類型
-      // 確保 pobilldate 是字符串類型，並包含會計分錄欄位
+      // 確保 pobilldate 是字符串類型，並包含會計分錄欄位和付款狀態
       const rows = hookFilteredRows.map(row => ({
         id: row.id,
         _id: row._id,
@@ -204,7 +298,9 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
         // 會計分錄相關欄位
         relatedTransactionGroupId: (row as any).relatedTransactionGroupId,
         accountingEntryType: (row as any).accountingEntryType,
-        selectedAccountIds: (row as any).selectedAccountIds
+        selectedAccountIds: (row as any).selectedAccountIds,
+        // 付款狀態
+        hasPaidAmount: paymentStatusMap.get(row._id) || false
       })) as FilteredRow[];
       
       // 然後根據本地選擇的供應商進一步過濾
@@ -235,17 +331,20 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
           // 會計分錄相關欄位
           relatedTransactionGroupId: (po as any).relatedTransactionGroupId,
           accountingEntryType: (po as any).accountingEntryType,
-          selectedAccountIds: (po as any).selectedAccountIds
+          selectedAccountIds: (po as any).selectedAccountIds,
+          // 付款狀態
+          hasPaidAmount: paymentStatusMap.get(po._id) || false
         }));
         setFilteredRows(formattedRows);
       }
       
       console.log('過濾後的進貨單數量:', filteredBySupplier.length);
       console.log('搜尋詞:', hookSearchParams.searchTerm);
+      console.log('付款狀態映射:', Array.from(paymentStatusMap.entries()));
     } catch (err) {
       console.error('過濾進貨單時出錯:', err);
     }
-  }, [hookFilteredRows, purchaseOrders, selectedSuppliers, hookSearchParams.searchTerm]);
+  }, [hookFilteredRows, purchaseOrders, selectedSuppliers, hookSearchParams.searchTerm, paymentStatusMap]);
 
   // --- Event Handlers --- (Refactored to use front-end filtering)
 

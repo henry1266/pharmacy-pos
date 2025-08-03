@@ -33,6 +33,9 @@ router.get('/:id/balance', TransactionController.calculateTransactionBalance);
 // 🆕 GET /api/accounting2/transactions/:id/payment-history - 取得應付帳款的付款歷史
 router.get('/:id/payment-history', TransactionController.getPaymentHistory);
 
+// 🆕 GET /api/accounting2/transactions/purchase-order/:id/payment-status - 檢查進貨單付款狀態
+router.get('/purchase-order/:id/payment-status', TransactionController.checkPurchaseOrderPaymentStatus);
+
 // GET /api/accounting2/transactions/:id - 取得單一交易群組
 router.get('/:id', TransactionController.getTransactionById);
 
@@ -47,6 +50,9 @@ router.post('/batch', TransactionController.batchCreateTransactions);
 
 // 🆕 POST /api/accounting2/transactions/payment - 建立付款交易
 router.post('/payment', TransactionController.createPaymentTransaction);
+
+// 🆕 POST /api/accounting2/transactions/purchase-orders/batch-payment-status - 批量檢查進貨單付款狀態
+router.post('/purchase-orders/batch-payment-status', TransactionController.batchCheckPurchaseOrderPaymentStatus);
 
 // POST /api/accounting2/transactions/validate - 驗證交易完整性
 router.post('/validate', TransactionController.validateTransactions);

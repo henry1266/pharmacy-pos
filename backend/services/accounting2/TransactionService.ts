@@ -726,9 +726,10 @@ export class TransactionService {
       const payableAccountIds = payableAccounts.map(a => a._id.toString());
 
       // 查找包含應付帳款科目的交易（貸方有金額的交易表示應付帳款）
+      // 修改：包含 draft 和 confirmed 狀態的交易，讓編輯中的交易也能顯示
       const query: any = {
         createdBy: userId,
-        status: 'confirmed',
+        status: { $in: ['draft', 'confirmed'] }, // 包含草稿和已確認的交易
         'entries': {
           $elemMatch: {
             'accountId': { $in: payableAccountIds },
@@ -772,26 +773,53 @@ export class TransactionService {
 
         // 嘗試從交易描述或分錄中提取供應商資訊
         let supplierInfo = undefined;
-        if (transaction.payableInfo) {
+        
+        // 優先使用交易中的 payableInfo
+        if (transaction.payableInfo && transaction.payableInfo.supplierName) {
           supplierInfo = {
             supplierId: transaction.payableInfo.supplierId?.toString() || '',
             supplierName: transaction.payableInfo.supplierName || ''
           };
         } else {
           // 如果沒有 payableInfo，從應付帳款分錄中找到對應的廠商子科目
-          const payableAccount = payableAccounts.find(acc =>
-            payableAccountIds.includes(acc._id.toString()) &&
-            payableEntries.some((entry: any) =>
-              (entry.accountId?._id?.toString() || entry.accountId?.toString()) === acc._id.toString()
-            )
-          );
+          // 找到所有相關的應付帳款分錄
+          const relevantPayableEntries = payableEntries.filter((entry: any) => {
+            const entryAccountId = entry.accountId?._id?.toString() || entry.accountId?.toString();
+            return payableAccountIds.includes(entryAccountId);
+          });
           
-          // 優先使用廠商子科目，而不是主科目「應付帳款」
-          if (payableAccount && payableAccount.name !== '應付帳款') {
-            supplierInfo = {
-              supplierId: payableAccount._id.toString(), // 使用廠商子科目的 ID
-              supplierName: payableAccount.name // 使用廠商子科目的名稱（如「嘉鏵」）
-            };
+          // 從這些分錄中找到對應的廠商子科目
+          for (const entry of relevantPayableEntries) {
+            // 安全地提取 accountId，使用 any 類型避免 TypeScript 錯誤
+            const entryAccountId = (entry.accountId as any)?._id?.toString() || (entry.accountId as any)?.toString() || '';
+            if (!entryAccountId) continue; // 跳過沒有 accountId 的分錄
+            
+            const payableAccount = payableAccounts.find(acc => acc._id.toString() === entryAccountId);
+            
+            // 優先使用廠商子科目，而不是主科目「應付帳款」
+            if (payableAccount && payableAccount.name !== '應付帳款' && !payableAccount.name.startsWith('應付帳款-')) {
+              supplierInfo = {
+                supplierId: payableAccount._id.toString(), // 使用廠商子科目的 ID
+                supplierName: payableAccount.name // 使用廠商子科目的名稱（如「嘉鏵」）
+              };
+              break; // 找到第一個符合條件的就停止
+            }
+          }
+          
+          // 如果還是沒找到，嘗試從交易描述中提取
+          if (!supplierInfo && transaction.description) {
+            // 可以在這裡加入從描述中提取供應商名稱的邏輯
+            // 例如：如果描述格式是 "供應商名稱 - 其他描述"
+            const descriptionParts = transaction.description.split(' - ');
+            if (descriptionParts.length > 1) {
+              const potentialSupplierName = descriptionParts[0].trim();
+              if (potentialSupplierName && potentialSupplierName !== '應付帳款') {
+                supplierInfo = {
+                  supplierId: '', // 沒有具體的 ID
+                  supplierName: potentialSupplierName
+                };
+              }
+            }
           }
         }
         
@@ -843,9 +871,10 @@ export class TransactionService {
   static async calculatePaidAmount(transactionId: string, userId: string): Promise<number> {
     try {
       // 查找所有引用此交易的付款交易
+      // 修改：計算所有狀態（draft 和 confirmed）的付款交易，讓建立付款後應付帳款立即從列表消失
       const paymentTransactions = await TransactionGroupWithEntries.find({
         createdBy: userId,
-        status: 'confirmed',
+        status: { $in: ['draft', 'confirmed'] }, // 計算草稿和已確認的付款交易
         transactionType: 'payment',
         'paymentInfo.payableTransactions.transactionId': transactionId
       }).lean();
@@ -861,6 +890,7 @@ export class TransactionService {
         }
       });
 
+      console.log(`💰 計算已付金額: 交易 ${transactionId}, 所有付款 ${paymentTransactions.length} 筆, 總已付金額 ${totalPaidAmount}`);
       return totalPaidAmount;
     } catch (error) {
       console.error('計算已付金額錯誤:', error);
@@ -909,12 +939,14 @@ export class TransactionService {
       }
 
       // 建立付款交易
+      // 修改：付款交易建立後自動確認，並讓應付帳款從列表消失
       const paymentTransaction = await this.createTransactionGroup({
         ...paymentData,
         transactionType: 'payment',
         fundingType: 'transfer',
         linkedTransactionIds: paymentData.linkedTransactionIds,
-        paymentInfo: paymentData.paymentInfo
+        paymentInfo: paymentData.paymentInfo,
+        status: 'confirmed' // 自動確認狀態
       }, userId, paymentData.organizationId);
 
       // 更新相關應付帳款的付款狀態
@@ -1069,6 +1101,202 @@ export class TransactionService {
     } catch (error) {
       console.error('更新應付帳款狀態錯誤:', error);
       throw error;
+    }
+  }
+
+  /**
+   * 🆕 檢查進貨單是否有付款記錄
+   * @param purchaseOrderId 進貨單ID或相關交易ID
+   * @param userId 使用者ID
+   * @returns 付款狀態資訊
+   */
+  static async checkPurchaseOrderPaymentStatus(
+    purchaseOrderId: string,
+    userId: string
+  ): Promise<{
+    hasPaidAmount: boolean;
+    paidAmount: number;
+    totalAmount: number;
+    isPaidOff: boolean;
+    paymentTransactions: Array<{
+      transactionId: string;
+      groupNumber: string;
+      paidAmount: number;
+      paymentDate: Date;
+      status: string;
+    }>;
+  }> {
+    try {
+      // 查找與此進貨單相關的應付帳款交易
+      const payableTransactions = await this.getPayableTransactions(userId, undefined, false);
+      
+      // 找到對應的應付帳款記錄
+      const relatedPayable = payableTransactions.find(p =>
+        p._id === purchaseOrderId ||
+        p.groupNumber.includes(purchaseOrderId) ||
+        purchaseOrderId.includes(p._id)
+      );
+
+      if (!relatedPayable) {
+        return {
+          hasPaidAmount: false,
+          paidAmount: 0,
+          totalAmount: 0,
+          isPaidOff: false,
+          paymentTransactions: []
+        };
+      }
+
+      // 查找所有引用此交易的付款交易
+      const paymentTransactions = await TransactionGroupWithEntries.find({
+        createdBy: userId,
+        status: { $in: ['draft', 'confirmed'] },
+        transactionType: 'payment',
+        'paymentInfo.payableTransactions.transactionId': relatedPayable._id
+      }).lean();
+
+      const paymentDetails = paymentTransactions.map(payment => {
+        const payableTransaction = payment.paymentInfo?.payableTransactions?.find(
+          p => p.transactionId?.toString() === relatedPayable._id
+        );
+        
+        return {
+          transactionId: payment._id.toString(),
+          groupNumber: payment.groupNumber || '',
+          paidAmount: payableTransaction?.paidAmount || 0,
+          paymentDate: payment.transactionDate || payment.createdAt,
+          status: payment.status
+        };
+      });
+
+      const totalPaidAmount = paymentDetails.reduce((sum, p) => sum + p.paidAmount, 0);
+      const hasPaidAmount = totalPaidAmount > 0;
+      const isPaidOff = totalPaidAmount >= relatedPayable.totalAmount;
+
+      console.log(`💰 檢查進貨單付款狀態: ${purchaseOrderId}, 已付金額: ${totalPaidAmount}, 總金額: ${relatedPayable.totalAmount}`);
+
+      return {
+        hasPaidAmount,
+        paidAmount: totalPaidAmount,
+        totalAmount: relatedPayable.totalAmount,
+        isPaidOff,
+        paymentTransactions: paymentDetails
+      };
+    } catch (error) {
+      console.error('檢查進貨單付款狀態錯誤:', error);
+      return {
+        hasPaidAmount: false,
+        paidAmount: 0,
+        totalAmount: 0,
+        isPaidOff: false,
+        paymentTransactions: []
+      };
+    }
+  }
+
+  /**
+   * 🆕 批量檢查多個進貨單的付款狀態
+   * @param purchaseOrderIds 進貨單ID陣列
+   * @param userId 使用者ID
+   * @returns 付款狀態映射 { [purchaseOrderId]: boolean }
+   */
+  static async batchCheckPurchaseOrderPaymentStatus(
+    purchaseOrderIds: string[],
+    userId: string
+  ): Promise<{ [key: string]: boolean }> {
+    try {
+      console.log('🔍 批量檢查進貨單付款狀態，數量:', purchaseOrderIds.length);
+      
+      // 建立付款狀態映射
+      const paymentStatusMap: { [key: string]: boolean } = {};
+      
+      // 初始化所有進貨單為未付款
+      purchaseOrderIds.forEach(id => {
+        paymentStatusMap[id] = false;
+      });
+      
+      // 首先需要找到進貨單對應的交易 ID
+      // 這需要查詢進貨單數據庫來獲取 relatedTransactionGroupId
+      const PurchaseOrder = require('../../models/PurchaseOrder').default;
+      const purchaseOrders = await PurchaseOrder.find({
+        _id: { $in: purchaseOrderIds }
+      }).lean();
+      
+      console.log(`📋 找到進貨單: ${purchaseOrders.length} 筆`);
+      
+      // 提取所有相關的交易 ID
+      const relatedTransactionIds = purchaseOrders
+        .filter((po: any) => po.relatedTransactionGroupId)
+        .map((po: any) => po.relatedTransactionGroupId.toString());
+      
+      console.log(`🔗 相關交易 ID: ${relatedTransactionIds.length} 筆`);
+      
+      if (relatedTransactionIds.length === 0) {
+        console.log('❌ 沒有找到相關的交易 ID');
+        return paymentStatusMap;
+      }
+      
+      // 查找所有付款交易
+      const paymentTransactions = await TransactionGroupWithEntries.find({
+        createdBy: userId,
+        status: { $in: ['draft', 'confirmed'] },
+        transactionType: 'payment',
+        'paymentInfo.payableTransactions.transactionId': {
+          $in: relatedTransactionIds
+        }
+      }).lean();
+      
+      console.log(`💰 找到付款交易: ${paymentTransactions.length} 筆`);
+      
+      // 處理每個進貨單
+      for (const purchaseOrder of purchaseOrders) {
+        const purchaseOrderId = purchaseOrder._id.toString();
+        const relatedTransactionId = purchaseOrder.relatedTransactionGroupId?.toString();
+        
+        console.log(`🔍 檢查進貨單: ${purchaseOrderId}, 相關交易: ${relatedTransactionId}`);
+        
+        if (!relatedTransactionId) {
+          console.log(`❌ 進貨單 ${purchaseOrderId} 沒有相關交易 ID`);
+          continue;
+        }
+        
+        // 查找引用此交易的付款交易
+        const relatedPayments = paymentTransactions.filter(payment =>
+          payment.paymentInfo?.payableTransactions?.some(
+            (p: any) => p.transactionId?.toString() === relatedTransactionId
+          )
+        );
+        
+        console.log(`💰 找到相關付款交易: ${relatedPayments.length} 筆`);
+        
+        if (relatedPayments.length > 0) {
+          // 計算總付款金額
+          const totalPaidAmount = relatedPayments.reduce((sum, payment) => {
+            const payableTransaction = payment.paymentInfo?.payableTransactions?.find(
+              (p: any) => p.transactionId?.toString() === relatedTransactionId
+            );
+            return sum + (payableTransaction?.paidAmount || 0);
+          }, 0);
+          
+          console.log(`💵 進貨單 ${purchaseOrderId} 總付款金額: ${totalPaidAmount}`);
+          paymentStatusMap[purchaseOrderId] = totalPaidAmount > 0;
+        } else {
+          console.log(`❌ 進貨單 ${purchaseOrderId} 沒有找到付款交易`);
+        }
+      }
+      
+      console.log('✅ 批量付款狀態檢查完成:', paymentStatusMap);
+      
+      return paymentStatusMap;
+    } catch (error) {
+      console.error('❌ 批量檢查進貨單付款狀態失敗:', error);
+      
+      // 返回所有為 false 的映射
+      const errorMap: { [key: string]: boolean } = {};
+      purchaseOrderIds.forEach(id => {
+        errorMap[id] = false;
+      });
+      return errorMap;
     }
   }
 }

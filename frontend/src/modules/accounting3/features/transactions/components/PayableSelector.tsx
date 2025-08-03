@@ -51,6 +51,7 @@ interface PayableTransactionInfo {
     paymentMethod?: string;
   }>;
   transactionDate: Date;
+  status?: 'draft' | 'confirmed' | 'cancelled'; // 新增交易狀態
 }
 
 interface PayableSelectorProps {
@@ -259,7 +260,8 @@ export const PayableSelector: React.FC<PayableSelectorProps> = ({
                     <TableCell align="right">已付金額</TableCell>
                     <TableCell align="right">剩餘金額</TableCell>
                     <TableCell>到期狀態</TableCell>
-                    <TableCell>狀態</TableCell>
+                    <TableCell>付款狀態</TableCell>
+                    <TableCell>交易狀態</TableCell>
                     <TableCell>操作</TableCell>
                   </TableRow>
                 </TableHead>
@@ -348,6 +350,22 @@ export const PayableSelector: React.FC<PayableSelectorProps> = ({
                         </TableCell>
                         
                         <TableCell>
+                          <Chip
+                            label={
+                              payable.status === 'draft' ? '編輯中' :
+                              payable.status === 'confirmed' ? '已確認' :
+                              payable.status === 'cancelled' ? '已取消' : '未知'
+                            }
+                            color={
+                              payable.status === 'draft' ? 'info' :
+                              payable.status === 'confirmed' ? 'success' :
+                              payable.status === 'cancelled' ? 'error' : 'default'
+                            }
+                            size="small"
+                          />
+                        </TableCell>
+                        
+                        <TableCell>
                           {payable.paymentHistory.length > 0 && (
                             <Tooltip title={`已有 ${payable.paymentHistory.length} 筆付款記錄`} arrow>
                               <IconButton size="small">
@@ -362,7 +380,7 @@ export const PayableSelector: React.FC<PayableSelectorProps> = ({
                   
                   {filteredPayables.length === 0 && !loading && (
                     <TableRow>
-                      <TableCell colSpan={10} align="center" sx={{ py: 4 }}>
+                      <TableCell colSpan={11} align="center" sx={{ py: 4 }}>
                         <Typography variant="body2" color="text.secondary">
                           {searchTerm ? '沒有符合搜尋條件的應付帳款' : '沒有可用的應付帳款'}
                         </Typography>

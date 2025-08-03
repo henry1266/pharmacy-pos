@@ -43,9 +43,9 @@ import { calculateUnitPrice, formatAmount } from './utils';
 
 // 常數定義
 const COLORS = {
-  EXPENSE_ASSET: '#e49227ff',    // 綠色 - 支出-資產格式
-  ASSET_LIABILITY: '#10ad5fff',  // 橙色 - 資產-負債格式
-  DEFAULT: '#e91e63'           // 粉紅色 - 預設
+  EXPENSE_ASSET: '#d33737ff',    // 綠色 - 支出-資產格式
+  ASSET_LIABILITY: '#2a74b1ff',  // 橙色 - 資產-負債格式
+  DEFAULT: '#696969ff'           // 粉紅色 - 預設
 } as const;
 
 const TOOLTIPS = {
@@ -273,13 +273,28 @@ export const ActionButtons: FC<ActionButtonsProps> = ({
   onUnlock,
   relatedTransactionGroupId,
   accountingEntryType,
-  onViewAccountingEntry
+  onViewAccountingEntry,
+  hasPaidAmount = false, // 新增：是否有付款記錄
+  purchaseOrderId // 新增：進貨單ID（保留供未來擴展使用）
 }) => {
   const isCompleted = status === 'completed';
   const hasAccountingEntry = !!relatedTransactionGroupId;
   
+  // 調試日誌
+  console.log('🔧 ActionButtons 渲染:', {
+    purchaseOrderId,
+    status,
+    isCompleted,
+    hasPaidAmount,
+    hasAccountingEntry
+  });
+  
   // 使用統一的配置函數
   const accountingConfig = getAccountingConfig(accountingEntryType, relatedTransactionGroupId);
+  
+  // 避免 TypeScript 未使用變數警告
+  // purchaseOrderId 保留供未來功能擴展使用
+  void purchaseOrderId;
 
   return (
     <Box>
@@ -292,6 +307,24 @@ export const ActionButtons: FC<ActionButtonsProps> = ({
       >
         <VisibilityIcon fontSize="small" />
       </IconButton>
+      
+      {/* 付款狀態指示器 - 顯示 $ 符號表示已付款 */}
+      {hasPaidAmount && (
+        <IconButton
+          size="small"
+          disabled
+          title="已有付款記錄"
+          sx={{
+            color: '#4caf50 !important', // 綠色
+            cursor: 'default',
+            '&:hover': { backgroundColor: 'transparent' }
+          }}
+        >
+          <Typography variant="body2" sx={{ fontWeight: 'bold', fontSize: '16px' }}>
+            $
+          </Typography>
+        </IconButton>
+      )}
       
       {/* 會計分錄圖示 - 只有在有分錄時才顯示 */}
       {hasAccountingEntry && onViewAccountingEntry && (
@@ -307,15 +340,15 @@ export const ActionButtons: FC<ActionButtonsProps> = ({
         />
       )}
       
-      {isCompleted && onUnlock ? (
-        // 已完成狀態：只顯示鎖符號
+      {isCompleted && onUnlock && !hasPaidAmount ? (
+        // 已完成狀態且沒有付款記錄：顯示解鎖按鈕
         <ActionIconButton
           icon={<LockIcon fontSize="small" />}
           onClick={onUnlock}
           title="點擊解鎖並改為待處理"
         />
-      ) : !isCompleted ? (
-        // 待處理或其他狀態：顯示編輯和刪除按鈕
+      ) : !isCompleted && !hasPaidAmount ? (
+        // 待處理或其他狀態且沒有付款記錄：顯示編輯和刪除按鈕
         <>
           <ActionIconButton
             icon={<EditIcon fontSize="small" />}
@@ -327,6 +360,9 @@ export const ActionButtons: FC<ActionButtonsProps> = ({
             disabled={isDeleteDisabled}
           />
         </>
+      ) : hasPaidAmount ? (
+        // 有付款記錄：隱藏解鎖按鈕，避免修改
+        null
       ) : null}
     </Box>
   );
@@ -475,7 +511,9 @@ ActionButtons.propTypes = createPropTypes({
   onUnlock: PropTypes.func,
   relatedTransactionGroupId: PropTypes.string,
   accountingEntryType: PropTypes.oneOf(['expense-asset', 'asset-liability']),
-  onViewAccountingEntry: PropTypes.func
+  onViewAccountingEntry: PropTypes.func,
+  hasPaidAmount: PropTypes.bool,
+  purchaseOrderId: PropTypes.string
 });
 
 FileUpload.propTypes = createPropTypes({

@@ -1029,6 +1029,102 @@ export class TransactionController {
       });
     }
   }
+
+  /**
+   * 🆕 檢查進貨單付款狀態
+   * GET /api/accounting2/transactions/purchase-order/:id/payment-status
+   */
+  static async checkPurchaseOrderPaymentStatus(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const userId = req.user?.id || req.query.userId as string;
+      
+      if (!id) {
+        res.status(400).json({
+          success: false,
+          message: '缺少進貨單ID'
+        });
+        return;
+      }
+      
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          message: '未提供使用者身份'
+        });
+        return;
+      }
+
+      const paymentStatus = await TransactionService.checkPurchaseOrderPaymentStatus(id, userId);
+
+      res.json({
+        success: true,
+        data: paymentStatus
+      });
+    } catch (error) {
+      console.error('檢查進貨單付款狀態錯誤:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : '檢查進貨單付款狀態失敗'
+      });
+    }
+  }
+
+  /**
+   * 🆕 批量檢查進貨單付款狀態
+   * POST /api/accounting2/transactions/purchase-orders/batch-payment-status
+   */
+  static async batchCheckPurchaseOrderPaymentStatus(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id || req.body.userId;
+      
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          message: '未提供使用者身份'
+        });
+        return;
+      }
+
+      const { purchaseOrderIds } = req.body;
+
+      if (!Array.isArray(purchaseOrderIds) || purchaseOrderIds.length === 0) {
+        res.status(400).json({
+          success: false,
+          message: '請提供有效的進貨單ID陣列'
+        });
+        return;
+      }
+
+      const paymentStatusMap = await TransactionService.batchCheckPurchaseOrderPaymentStatus(
+        purchaseOrderIds,
+        userId
+      );
+
+      // 轉換為前端期望的格式
+      const paymentStatuses = purchaseOrderIds.map(purchaseOrderId => ({
+        purchaseOrderId,
+        hasPaidAmount: paymentStatusMap[purchaseOrderId] || false
+      }));
+
+      console.log('🔍 批量付款狀態檢查結果:', paymentStatuses);
+
+      res.json({
+        success: true,
+        data: paymentStatuses,
+        meta: {
+          total: purchaseOrderIds.length,
+          processed: paymentStatuses.length
+        }
+      });
+    } catch (error) {
+      console.error('批量檢查進貨單付款狀態錯誤:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : '批量檢查進貨單付款狀態失敗'
+      });
+    }
+  }
 }
 
 export default TransactionController;

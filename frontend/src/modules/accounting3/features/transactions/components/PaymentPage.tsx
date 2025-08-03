@@ -36,6 +36,7 @@ interface PayableTransactionInfo {
     paymentMethod?: string;
   }>;
   transactionDate: Date;
+  status?: 'draft' | 'confirmed' | 'cancelled'; // 新增交易狀態
 }
 
 // 付款交易資料介面
@@ -211,13 +212,6 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ organizationId }) => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        應付帳款付款
-      </Typography>
-      
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-        選擇要付款的應付帳款，系統將自動建立付款交易並更新相關狀態
-      </Typography>
 
       {/* 步驟指示器 */}
       <Stepper activeStep={activeStep} sx={{ mb: 4 }}>

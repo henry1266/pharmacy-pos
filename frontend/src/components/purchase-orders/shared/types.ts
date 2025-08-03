@@ -125,6 +125,8 @@ export interface ActionButtonsProps extends AccountingEntryProps {
   status?: string;
   onUnlock?: () => void;
   onViewAccountingEntry?: () => void;
+  hasPaidAmount?: boolean; // 新增：是否有付款記錄
+  purchaseOrderId?: string; // 新增：進貨單ID
 }
 
 // 檔案上傳 Props
