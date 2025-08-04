@@ -32,7 +32,13 @@ import { Organization } from '@pharmacy-pos/shared/types/organization';
 // 導入服務
 import { accounting3Service } from '../services/accounting3Service';
 import { useAppSelector, useAppDispatch } from '../../../hooks/redux';
-import { fetchOrganizations2 } from '../../../redux/actions';
+import {
+  fetchOrganizations2,
+  deleteTransactionGroupWithEntries,
+  confirmTransactionGroupWithEntries,
+  unlockTransactionGroupWithEntries,
+  fetchTransactionGroupsWithEntries
+} from '../../../redux/actions';
 
 /**
  * 科目管理頁面
@@ -57,6 +63,7 @@ export const AccountsManagementPage: React.FC = () => {
   const [selectedAccount, setSelectedAccount] = useState<Account3 | null>(null); // 選中的科目
   const [formLoading, setFormLoading] = useState(false);
   const [hierarchyKey, setHierarchyKey] = useState(0); // 用於強制重新載入階層
+  const [transactionListKey, setTransactionListKey] = useState(0); // 用於強制重新載入交易列表
   
   // 通知狀態
   const [snackbar, setSnackbar] = useState<{
@@ -217,6 +224,85 @@ export const AccountsManagementPage: React.FC = () => {
     setParentAccount(null); // 清除父科目資訊
   };
 
+  // 處理交易確認
+  const handleTransactionConfirm = async (transactionId: string) => {
+    if (window.confirm('確定要確認這筆交易嗎？確認後將無法直接編輯。')) {
+      try {
+        console.log('🔄 確認交易:', transactionId);
+        await dispatch(confirmTransactionGroupWithEntries(transactionId) as any);
+        showSnackbar('交易已成功確認', 'success');
+        
+        // 參考 purchase-orders 的做法，重新載入 Redux 資料
+        dispatch(fetchTransactionGroupsWithEntries() as any);
+        
+        // 也重新載入階層以更新科目餘額
+        setTimeout(() => {
+          setHierarchyKey(prev => prev + 1);
+        }, 500);
+      } catch (error) {
+        console.error('確認交易失敗:', error);
+        showSnackbar('確認交易失敗', 'error');
+      }
+    }
+  };
+
+  // 處理交易解鎖
+  const handleTransactionUnlock = async (transactionId: string) => {
+    if (window.confirm('確定要解鎖這筆交易嗎？解鎖後交易將回到草稿狀態。')) {
+      try {
+        console.log('🔓 解鎖交易:', transactionId);
+        await dispatch(unlockTransactionGroupWithEntries(transactionId) as any);
+        showSnackbar('交易已成功解鎖', 'success');
+        
+        // 參考 purchase-orders 的做法，重新載入 Redux 資料
+        dispatch(fetchTransactionGroupsWithEntries() as any);
+        
+        // 也重新載入階層以更新科目餘額
+        setTimeout(() => {
+          setHierarchyKey(prev => prev + 1);
+        }, 500);
+      } catch (error) {
+        console.error('解鎖交易失敗:', error);
+        showSnackbar('解鎖交易失敗', 'error');
+      }
+    }
+  };
+
+  // 處理交易刪除
+  const handleTransactionDelete = async (transactionId: string) => {
+    if (window.confirm('確定要刪除這筆交易嗎？此操作無法復原。')) {
+      try {
+        console.log('🗑️ 刪除交易:', transactionId);
+        await dispatch(deleteTransactionGroupWithEntries(transactionId) as any);
+        showSnackbar('交易已成功刪除', 'success');
+        
+        // 參考 purchase-orders 的做法，重新載入 Redux 資料
+        dispatch(fetchTransactionGroupsWithEntries() as any);
+        
+        // 也重新載入階層以更新科目餘額
+        setTimeout(() => {
+          setHierarchyKey(prev => prev + 1);
+        }, 500);
+      } catch (error) {
+        console.error('刪除交易失敗:', error);
+        showSnackbar('刪除交易失敗', 'error');
+      }
+    }
+  };
+
+  // 處理交易複製
+  const handleTransactionCopy = (transaction: any) => {
+    console.log('📋 複製交易:', transaction);
+    // 導航到複製頁面
+    const transactionId = typeof transaction._id === 'string' ? transaction._id :
+                         transaction._id?.$oid || String(transaction._id);
+    if (transactionId) {
+      navigate(`/accounting3/transaction/${transactionId}/copy?returnTo=${encodeURIComponent('/accounting3/accounts')}`);
+    } else {
+      showSnackbar('無法複製交易：交易 ID 無效', 'error');
+    }
+  };
+
   return (
     <Container maxWidth="xl" sx={{ py: 2 }}>
       {/* 麵包屑導航 */}
@@ -350,7 +436,7 @@ export const AccountsManagementPage: React.FC = () => {
               
               if (transactionId && isValidObjectId(transactionId)) {
                 console.log('✅ 導航到編輯頁面:', `/accounting3/transaction/${transactionId}/edit`);
-                navigate(`/accounting3/transaction/${transactionId}/edit`);
+                navigate(`/accounting3/transaction/${transactionId}/edit?returnTo=${encodeURIComponent('/accounting3/accounts')}`);
               } else {
                 console.error('❌ 交易 ID 無效或格式錯誤:', {
                   transaction,
@@ -362,10 +448,14 @@ export const AccountsManagementPage: React.FC = () => {
                 showSnackbar(`無法編輯交易：交易 ID 無效 (${transactionId})`, 'error');
               }
             }}
+            onTransactionConfirm={handleTransactionConfirm}
+            onTransactionUnlock={handleTransactionUnlock}
+            onTransactionDelete={handleTransactionDelete}
+            onTransactionCopy={handleTransactionCopy}
             onAddTransaction={(accountId) => {
               console.log('為科目新增交易:', accountId);
               // 導航到新增交易頁面，並預設選中的科目
-              navigate(`/accounting3/transaction/new?defaultAccountId=${accountId}`);
+              navigate(`/accounting3/transaction/new?defaultAccountId=${accountId}&returnTo=${encodeURIComponent('/accounting3/accounts')}`);
             }}
           />
         </Box>

@@ -19,6 +19,7 @@ import { AccountTransactionListStatisticsCards as TransactionStatisticsCards } f
 import { AccountTransactionListDetailDialog as TransactionDetailDialog } from './AccountTransactionListDetailDialog';
 import { AccountTransactionListTable as TransactionTable } from './AccountTransactionListTable';
 import { ExtendedTransactionGroupWithEntries } from './types';
+import { useAppSelector } from '../../../../../../hooks/redux';
 
 interface AccountTransactionListProps {
   selectedAccount: Account2 | null;
@@ -53,6 +54,9 @@ export const AccountTransactionList: React.FC<AccountTransactionListProps> = ({
   const [transactionDetailOpen, setTransactionDetailOpen] = useState(false);
   const [selectedTransactionForDetail, setSelectedTransactionForDetail] = useState<ExtendedTransactionGroupWithEntries | null>(null);
 
+  // 監聽 Redux 狀態變化
+  const { transactionGroups } = useAppSelector(state => state.transactionGroupWithEntries);
+
   // 載入選中科目的交易
   useEffect(() => {
     if (selectedAccount) {
@@ -60,7 +64,7 @@ export const AccountTransactionList: React.FC<AccountTransactionListProps> = ({
     } else {
       setTransactions([]);
     }
-  }, [selectedAccount]);
+  }, [selectedAccount, transactionGroups]);
 
   const loadAccountTransactions = async (accountId: string) => {
     setLoading(true);
