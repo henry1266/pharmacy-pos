@@ -7,7 +7,24 @@ import {
   PackageStats
 } from '../../../shared/types/package';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+// 動態決定 API 基礎 URL
+const getApiBaseUrl = () => {
+  // 優先使用環境變數
+  if (process.env.REACT_APP_API_URL) {
+    return process.env.REACT_APP_API_URL;
+  }
+  
+  // 如果在開發環境，使用當前主機的 IP
+  if (process.env.NODE_ENV === 'development') {
+    const currentHost = window.location.hostname;
+    return `http://${currentHost}:5000/api`;
+  }
+  
+  // 生產環境預設
+  return '/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // 創建 axios 實例
 const packageApi = axios.create({
