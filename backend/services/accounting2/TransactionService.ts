@@ -990,8 +990,7 @@ export class TransactionService {
       // 🆕 更新相關進貨單的付款狀態
       await this.updateRelatedPurchaseOrderPaymentStatus(
         paymentData.paymentInfo.payableTransactions.map(p => p.transactionId),
-        statusDescription,
-        userId
+        statusDescription
       );
 
       console.log(`✅ 付款交易建立成功: ${paymentTransaction.groupNumber} - ${statusDescription}`);
@@ -1348,8 +1347,7 @@ export class TransactionService {
    */
   static async updateRelatedPurchaseOrderPaymentStatus(
     transactionIds: string[],
-    paymentStatus: string,
-    userId: string
+    paymentStatus: string
   ): Promise<void> {
     try {
       console.log(`🔄 更新進貨單付款狀態: ${transactionIds.length} 筆交易, 狀態: ${paymentStatus}`);

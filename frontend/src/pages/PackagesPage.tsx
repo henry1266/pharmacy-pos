@@ -98,23 +98,53 @@ const PackagesPage: React.FC = () => {
   };
 
   const handleDeleteConfirm = async () => {
+    console.log('handleDeleteConfirm 被調用');
+    console.log('packageToDelete:', packageToDelete);
+    
     if (packageToDelete) {
-      try {
-        await deletePackage(packageToDelete._id!);
-        setDeleteDialogOpen(false);
-        setPackageToDelete(null);
-      } catch (error) {
-        console.error('刪除套餐失敗:', error);
+      // 處理不同的 ID 格式
+      let packageId: string | undefined;
+      
+      if (typeof packageToDelete._id === 'string') {
+        packageId = packageToDelete._id;
+      } else if (packageToDelete._id && typeof packageToDelete._id === 'object' && '$oid' in packageToDelete._id) {
+        // 處理 MongoDB ObjectId 格式 {"$oid": "..."}
+        packageId = (packageToDelete._id as any).$oid;
+      } else if ((packageToDelete as any).id) {
+        // 備用：檢查是否有 id 欄位
+        packageId = (packageToDelete as any).id;
       }
+      
+      console.log('解析出的 packageId:', packageId);
+      
+      if (packageId) {
+        try {
+          await deletePackage(packageId);
+          setDeleteDialogOpen(false);
+          setPackageToDelete(null);
+        } catch (error) {
+          console.error('刪除套餐失敗:', error);
+          const errorMessage = error instanceof Error ? error.message : '刪除套餐失敗';
+          alert(`刪除失敗: ${errorMessage}`);
+        }
+      } else {
+        console.error('無法解析套餐 ID:', packageToDelete);
+        alert('無法解析套餐 ID，無法刪除');
+      }
+    } else {
+      console.error('packageToDelete 為空');
+      alert('無效的套餐資料，無法刪除');
     }
   };
 
   // 處理切換啟用狀態
   const handleToggleActive = async (pkg: Package) => {
-    try {
-      await togglePackageActive(pkg._id!);
-    } catch (error) {
-      console.error('切換套餐狀態失敗:', error);
+    if (pkg._id) {
+      try {
+        await togglePackageActive(pkg._id);
+      } catch (error) {
+        console.error('切換套餐狀態失敗:', error);
+      }
     }
   };
 
@@ -136,9 +166,9 @@ const PackagesPage: React.FC = () => {
   const handleSavePackage = async (packageData: PackageCreateRequest | PackageUpdateRequest) => {
     setFormLoading(true);
     try {
-      if (editMode && selectedPackage) {
+      if (editMode && selectedPackage && selectedPackage._id) {
         // 更新套餐
-        await PackageService.updatePackage(selectedPackage._id!, packageData as PackageUpdateRequest);
+        await PackageService.updatePackage(selectedPackage._id, packageData as PackageUpdateRequest);
       } else {
         // 新增套餐
         await PackageService.createPackage(packageData as PackageCreateRequest);
@@ -438,9 +468,9 @@ const PackagesPage: React.FC = () => {
                 
                 {pkg.tags && pkg.tags.length > 0 && (
                   <Box mt={1}>
-                    {pkg.tags.slice(0, 2).map((tag, index) => (
+                    {pkg.tags.slice(0, 2).map((tag) => (
                       <Chip
-                        key={index}
+                        key={`${pkg._id}-tag-${tag}`}
                         label={tag}
                         size="small"
                         variant="outlined"
@@ -449,6 +479,7 @@ const PackagesPage: React.FC = () => {
                     ))}
                     {pkg.tags.length > 2 && (
                       <Chip
+                        key={`${pkg._id}-more-tags`}
                         label={`+${pkg.tags.length - 2}`}
                         size="small"
                         variant="outlined"

@@ -308,7 +308,7 @@ export const Accounting3TransactionPage: React.FC = () => {
           linkedTransactionIds: data.linkedTransactionIds || [],
           sourceTransactionId: data.sourceTransactionId,
           fundingType: data.fundingType || 'original',
-          status: 'draft' // 預設狀態
+          status: copyingTransaction ? 'confirmed' : 'draft' // 複製模式下設為已確認，否則為草稿
         } as Omit<TransactionGroupWithEntries, '_id' | 'createdAt' | 'updatedAt'>;
         
         console.log('📊 [Accounting3] 轉換後的 API 資料:', {
@@ -318,7 +318,9 @@ export const Accounting3TransactionPage: React.FC = () => {
             debitAmount: entry.debitAmount,
             creditAmount: entry.creditAmount,
             description: entry.description
-          }))
+          })),
+          isCopyMode: !!copyingTransaction,
+          statusReason: copyingTransaction ? '複製模式：自動設為已確認' : '新建模式：設為草稿'
         });
         
         return converted;
@@ -374,7 +376,7 @@ export const Accounting3TransactionPage: React.FC = () => {
         const createResult = await dispatch(createTransactionGroupWithEntries(apiData) as any);
         console.log('✅ [Accounting3] 建立操作完成:', createResult);
         
-        showSnackbar(copyingTransaction ? '交易已成功複製' : '交易已成功建立', 'success');
+        showSnackbar(copyingTransaction ? '交易已成功複製並確認' : '交易已成功建立', 'success');
         
         setDialogOpen(false);
         setEditingTransaction(null);

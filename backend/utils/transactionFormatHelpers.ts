@@ -247,7 +247,8 @@ export const buildTransactionGroupData = (
     invoiceNo,
     linkedTransactionIds,
     sourceTransactionId,
-    fundingType = 'original'
+    fundingType = 'original',
+    status = 'draft'
   } = body;
 
   const transactionGroupData: any = {
@@ -257,7 +258,7 @@ export const buildTransactionGroupData = (
     totalAmount,
     receiptUrl,
     invoiceNo,
-    status: 'draft',
+    status: status, // 使用前端傳來的狀態，預設為 'draft'
     createdBy: userId,
     fundingType,
     entries: embeddedEntries,

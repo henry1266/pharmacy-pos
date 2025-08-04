@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import { Package } from '../models/Package';
 import { Product, Medicine } from '../models/BaseProduct';
 import {
@@ -67,7 +68,15 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
 // 根據 ID 獲取單一套餐
 router.get('/:id', async (req: Request, res: Response): Promise<void> => {
   try {
-    const packageDoc = await Package.findById(req.params.id);
+    const { id } = req.params;
+    
+    // 驗證 ID 格式
+    if (!id || id === 'undefined' || !mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).json({ message: '無效的套餐 ID' });
+      return;
+    }
+
+    const packageDoc = await Package.findById(id);
     if (!packageDoc) {
       res.status(404).json({ message: '找不到指定的套餐' });
       return;
@@ -160,12 +169,19 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
 // 更新套餐
 router.put('/:id', async (req: Request, res: Response): Promise<void> => {
   try {
+    const { id } = req.params;
     const packageData: PackageUpdateRequest = req.body;
+
+    // 驗證 ID 格式
+    if (!id || id === 'undefined' || !mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).json({ message: '無效的套餐 ID' });
+      return;
+    }
 
     // 驗證必要欄位
     if (!packageData.name || !packageData.items || packageData.items.length === 0) {
-      res.status(400).json({ 
-        message: '套餐名稱和產品項目為必填欄位，且至少需要一個產品項目' 
+      res.status(400).json({
+        message: '套餐名稱和產品項目為必填欄位，且至少需要一個產品項目'
       });
       return;
     }
@@ -202,7 +218,7 @@ router.put('/:id', async (req: Request, res: Response): Promise<void> => {
     }
 
     const updatedPackage = await Package.findByIdAndUpdate(
-      req.params.id,
+      id,
       {
         shortCode: packageData.shortCode,
         name: packageData.name,
@@ -233,7 +249,15 @@ router.put('/:id', async (req: Request, res: Response): Promise<void> => {
 // 刪除套餐
 router.delete('/:id', async (req: Request, res: Response): Promise<void> => {
   try {
-    const deletedPackage = await Package.findByIdAndDelete(req.params.id);
+    const { id } = req.params;
+    
+    // 驗證 ID 格式
+    if (!id || id === 'undefined' || !mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).json({ message: '無效的套餐 ID' });
+      return;
+    }
+
+    const deletedPackage = await Package.findByIdAndDelete(id);
     if (!deletedPackage) {
       res.status(404).json({ message: '找不到指定的套餐' });
       return;
@@ -251,7 +275,15 @@ router.delete('/:id', async (req: Request, res: Response): Promise<void> => {
 // 切換套餐啟用狀態
 router.patch('/:id/toggle-active', async (req: Request, res: Response): Promise<void> => {
   try {
-    const packageDoc = await Package.findById(req.params.id);
+    const { id } = req.params;
+    
+    // 驗證 ID 格式
+    if (!id || id === 'undefined' || !mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).json({ message: '無效的套餐 ID' });
+      return;
+    }
+
+    const packageDoc = await Package.findById(id);
     if (!packageDoc) {
       res.status(404).json({ message: '找不到指定的套餐' });
       return;
