@@ -257,11 +257,6 @@ export const PayableSelector: React.FC<PayableSelectorProps> = ({
                     <TableCell>描述</TableCell>
                     <TableCell>供應商</TableCell>
                     <TableCell align="right">應付金額</TableCell>
-                    <TableCell align="right">已付金額</TableCell>
-                    <TableCell align="right">剩餘金額</TableCell>
-                    <TableCell>到期狀態</TableCell>
-                    <TableCell>付款狀態</TableCell>
-                    <TableCell>交易狀態</TableCell>
                     <TableCell>操作</TableCell>
                   </TableRow>
                 </TableHead>
@@ -313,57 +308,9 @@ export const PayableSelector: React.FC<PayableSelectorProps> = ({
                           {formatAmount(payable.totalAmount)}
                         </TableCell>
                         
-                        <TableCell align="right">
-                          {formatAmount(payable.paidAmount)}
-                        </TableCell>
                         
-                        <TableCell align="right">
-                          <Typography 
-                            variant="body2"
-                            color={payable.remainingAmount > 0 ? 'error' : 'success'}
-                            fontWeight="medium"
-                          >
-                            {formatAmount(payable.remainingAmount)}
-                          </Typography>
-                        </TableCell>
                         
-                        <TableCell>
-                          {payable.dueDate ? (
-                            <Chip
-                              label={dueStatus.label}
-                              color={dueStatus.color}
-                              size="small"
-                            />
-                          ) : (
-                            <Typography variant="caption" color="text.secondary">
-                              無到期日
-                            </Typography>
-                          )}
-                        </TableCell>
                         
-                        <TableCell>
-                          <Chip
-                            label={payable.isPaidOff ? '已付清' : '未付清'}
-                            color={payable.isPaidOff ? 'success' : 'warning'}
-                            size="small"
-                          />
-                        </TableCell>
-                        
-                        <TableCell>
-                          <Chip
-                            label={
-                              payable.status === 'draft' ? '編輯中' :
-                              payable.status === 'confirmed' ? '已確認' :
-                              payable.status === 'cancelled' ? '已取消' : '未知'
-                            }
-                            color={
-                              payable.status === 'draft' ? 'info' :
-                              payable.status === 'confirmed' ? 'success' :
-                              payable.status === 'cancelled' ? 'error' : 'default'
-                            }
-                            size="small"
-                          />
-                        </TableCell>
                         
                         <TableCell>
                           {payable.paymentHistory.length > 0 && (

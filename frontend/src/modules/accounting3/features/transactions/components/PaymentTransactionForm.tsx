@@ -77,6 +77,7 @@ interface PaymentTransactionData {
       remainingAmount?: number;
     }>;
   };
+  paymentAccountId: string; // 新增：付款帳戶ID
 }
 
 // 帳戶選項介面
@@ -85,6 +86,7 @@ interface AccountOption {
   name: string;
   code: string;
   accountType: string;
+  type: string; // 新增：帳戶類型 (cash, bank, etc.)
 }
 
 interface PaymentTransactionFormProps {
@@ -105,14 +107,28 @@ const formatAmount = (amount: number): string => {
   }).format(amount);
 };
 
-// 付款方式選項
-const PAYMENT_METHODS = [
-  { value: 'bank_transfer', label: '銀行轉帳' },
-  { value: 'cash', label: '現金' },
-  { value: 'check', label: '支票' },
-  { value: 'credit_card', label: '信用卡' },
-  { value: 'other', label: '其他' }
-];
+// 根據帳戶類型自動決定付款方式
+const getPaymentMethodByAccountType = (accountType: string): string => {
+  switch (accountType) {
+    case 'bank':
+      return 'bank_transfer';
+    case 'cash':
+      return 'cash';
+    default:
+      return 'other';
+  }
+};
+
+const getPaymentMethodLabel = (accountType: string): string => {
+  switch (accountType) {
+    case 'bank':
+      return '銀行轉帳';
+    case 'cash':
+      return '現金付款';
+    default:
+      return '其他付款';
+  }
+};
 
 export const PaymentTransactionForm: React.FC<PaymentTransactionFormProps> = ({
   selectedPayables,
@@ -123,7 +139,6 @@ export const PaymentTransactionForm: React.FC<PaymentTransactionFormProps> = ({
 }) => {
   const [paymentAccount, setPaymentAccount] = useState<string>('');
   const [paymentDate, setPaymentDate] = useState<Date>(new Date());
-  const [paymentMethod, setPaymentMethod] = useState<string>('bank_transfer');
   const [description, setDescription] = useState<string>('');
   const [accounts, setAccounts] = useState<AccountOption[]>([]);
   const [payableAccounts, setPayableAccounts] = useState<AccountOption[]>([]);
@@ -147,7 +162,8 @@ export const PaymentTransactionForm: React.FC<PaymentTransactionFormProps> = ({
             _id: account._id,
             name: account.name,
             code: account.code,
-            accountType: account.accountType
+            accountType: account.accountType,
+            type: account.type || 'other' // 添加 type 欄位
           }));
         
         // 過濾出負債類帳戶作為應付帳款科目
@@ -157,7 +173,8 @@ export const PaymentTransactionForm: React.FC<PaymentTransactionFormProps> = ({
             _id: account._id,
             name: account.name,
             code: account.code,
-            accountType: account.accountType
+            accountType: account.accountType,
+            type: account.type || 'other' // 添加 type 欄位
           }));
         
         setAccounts(assetAccounts);
@@ -189,10 +206,26 @@ export const PaymentTransactionForm: React.FC<PaymentTransactionFormProps> = ({
     }
   }, [selectedPayables]);
 
-  // 獲取選中帳戶的名稱
+  // 獲取選中帳戶的名稱和類型
   const getAccountName = (accountId: string): string => {
     const account = accounts.find(a => a._id === accountId);
     return account ? `${account.code} - ${account.name}` : '';
+  };
+
+  // 獲取選中帳戶的類型
+  const getSelectedAccountType = (): string => {
+    const account = accounts.find(a => a._id === paymentAccount);
+    return account?.type || 'other';
+  };
+
+  // 根據選中帳戶類型獲取付款方式
+  const getPaymentMethod = (): string => {
+    return getPaymentMethodByAccountType(getSelectedAccountType());
+  };
+
+  // 根據選中帳戶類型獲取付款方式標籤
+  const getPaymentMethodDisplayLabel = (): string => {
+    return getPaymentMethodLabel(getSelectedAccountType());
   };
 
   // 直接使用交易記錄中的廠商子科目 ID
@@ -273,6 +306,9 @@ export const PaymentTransactionForm: React.FC<PaymentTransactionFormProps> = ({
         sourceTransactionId: data.sourceTransactionIds[0] // 使用第一筆作為主要來源
       }));
 
+      const paymentMethod = getPaymentMethod();
+      const paymentMethodLabel = getPaymentMethodDisplayLabel();
+
       const paymentData: PaymentTransactionData = {
         description: description || generateDefaultDescription(),
         transactionDate: paymentDate,
@@ -287,7 +323,7 @@ export const PaymentTransactionForm: React.FC<PaymentTransactionFormProps> = ({
             accountId: paymentAccount,
             debitAmount: 0,
             creditAmount: totalPaymentAmount,
-            description: `付款 - ${PAYMENT_METHODS.find(m => m.value === paymentMethod)?.label}`
+            description: `付款 - ${paymentMethodLabel}`
           }
         ],
         linkedTransactionIds: selectedPayables.map(p => p._id),
@@ -299,7 +335,8 @@ export const PaymentTransactionForm: React.FC<PaymentTransactionFormProps> = ({
             paidAmount: p.remainingAmount,
             remainingAmount: 0
           }))
-        }
+        },
+        paymentAccountId: paymentAccount // 新增：付款帳戶ID
       };
 
       console.log('💰 提交付款交易:', paymentData);
@@ -345,14 +382,8 @@ export const PaymentTransactionForm: React.FC<PaymentTransactionFormProps> = ({
           )}
 
           <Grid container spacing={3}>
-            {/* 付款基本資訊 */}
-            <Grid item xs={12}>
-              <Typography variant="subtitle2" gutterBottom>
-                付款資訊
-              </Typography>
-            </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={3}>
               <FormControl fullWidth disabled={loading}>
                 <InputLabel>付款帳戶</InputLabel>
                 <Select
@@ -376,7 +407,7 @@ export const PaymentTransactionForm: React.FC<PaymentTransactionFormProps> = ({
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={3}>
               <DatePicker
                 label="付款日期"
                 value={paymentDate}
@@ -388,24 +419,9 @@ export const PaymentTransactionForm: React.FC<PaymentTransactionFormProps> = ({
               />
             </Grid>
 
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth disabled={loading}>
-                <InputLabel>付款方式</InputLabel>
-                <Select
-                  value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                  label="付款方式"
-                >
-                  {PAYMENT_METHODS.map((method) => (
-                    <MenuItem key={method.value} value={method.value}>
-                      {method.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
+            {/* 付款方式欄位已移除，根據帳戶類型自動決定 */}
 
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={3}>
               <TextField
                 fullWidth
                 label="付款總金額"
@@ -415,14 +431,13 @@ export const PaymentTransactionForm: React.FC<PaymentTransactionFormProps> = ({
               />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid item xs={12} md={3}>
               <TextField
                 fullWidth
                 label="付款說明"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                multiline
-                rows={3}
+
                 disabled={loading}
                 helperText="可選，系統會自動生成預設說明"
               />
@@ -445,9 +460,8 @@ export const PaymentTransactionForm: React.FC<PaymentTransactionFormProps> = ({
                       <TableCell>供應商</TableCell>
                       <TableCell>描述</TableCell>
                       <TableCell align="right">應付金額</TableCell>
-                      <TableCell align="right">已付金額</TableCell>
-                      <TableCell align="right">本次付款</TableCell>
-                      <TableCell>狀態</TableCell>
+                      
+                      
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -463,21 +477,8 @@ export const PaymentTransactionForm: React.FC<PaymentTransactionFormProps> = ({
                         <TableCell align="right">
                           {formatAmount(payable.totalAmount)}
                         </TableCell>
-                        <TableCell align="right">
-                          {formatAmount(payable.paidAmount)}
-                        </TableCell>
-                        <TableCell align="right">
-                          <Typography variant="body2" fontWeight="medium" color="primary">
-                            {formatAmount(payable.remainingAmount)}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Chip
-                            label="將付清"
-                            color="success"
-                            size="small"
-                          />
-                        </TableCell>
+
+
                       </TableRow>
                     ))}
                   </TableBody>
@@ -499,9 +500,6 @@ export const PaymentTransactionForm: React.FC<PaymentTransactionFormProps> = ({
                 </Typography>
                 <Typography variant="body2">
                   付款帳戶: {paymentAccount ? getAccountName(paymentAccount) : '請選擇'}
-                </Typography>
-                <Typography variant="body2">
-                  付款方式: {PAYMENT_METHODS.find(m => m.value === paymentMethod)?.label}
                 </Typography>
               </Box>
             </Grid>

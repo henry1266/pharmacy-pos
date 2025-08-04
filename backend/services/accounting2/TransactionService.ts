@@ -928,6 +928,7 @@ export class TransactionService {
           remainingAmount?: number;
         }>;
       };
+      paymentAccountId: string; // 新增：付款帳戶ID
     },
     userId: string
   ): Promise<ITransactionGroupWithEntries> {
@@ -938,15 +939,47 @@ export class TransactionService {
         throw new Error(`付款資料驗證失敗: ${validationResult.errors.join(', ')}`);
       }
 
+      // 🆕 根據付款帳戶類型決定交易狀態
+      const paymentAccount = await Account2.findOne({
+        _id: paymentData.paymentAccountId,
+        createdBy: userId,
+        isActive: true
+      });
+
+      if (!paymentAccount) {
+        throw new Error('付款帳戶不存在或無權限存取');
+      }
+
+      // 根據帳戶類型設定交易狀態和描述
+      let transactionStatus: 'draft' | 'confirmed';
+      let statusDescription: string;
+
+      switch (paymentAccount.type) {
+        case 'bank':
+          transactionStatus = 'confirmed'; // 銀行帳戶：已匯款
+          statusDescription = '已匯款';
+          break;
+        case 'cash':
+          transactionStatus = 'confirmed'; // 現金帳戶：已下收
+          statusDescription = '已下收';
+          break;
+        default:
+          transactionStatus = 'confirmed'; // 其他類型：預設已確認
+          statusDescription = '已付款';
+          break;
+      }
+
+      console.log(`💰 付款帳戶類型: ${paymentAccount.type} (${paymentAccount.name}), 狀態: ${statusDescription}`);
+
       // 建立付款交易
-      // 修改：付款交易建立後自動確認，並讓應付帳款從列表消失
       const paymentTransaction = await this.createTransactionGroup({
         ...paymentData,
+        description: `${paymentData.description} - ${statusDescription}`, // 在描述中加入狀態
         transactionType: 'payment',
         fundingType: 'transfer',
         linkedTransactionIds: paymentData.linkedTransactionIds,
         paymentInfo: paymentData.paymentInfo,
-        status: 'confirmed' // 自動確認狀態
+        status: transactionStatus
       }, userId, paymentData.organizationId);
 
       // 更新相關應付帳款的付款狀態
@@ -954,7 +987,14 @@ export class TransactionService {
         await this.updatePayablePaymentStatus(payableTransaction.transactionId, userId);
       }
 
-      console.log(`✅ 付款交易建立成功: ${paymentTransaction.groupNumber}`);
+      // 🆕 更新相關進貨單的付款狀態
+      await this.updateRelatedPurchaseOrderPaymentStatus(
+        paymentData.paymentInfo.payableTransactions.map(p => p.transactionId),
+        statusDescription,
+        userId
+      );
+
+      console.log(`✅ 付款交易建立成功: ${paymentTransaction.groupNumber} - ${statusDescription}`);
       return paymentTransaction;
     } catch (error) {
       console.error('建立付款交易錯誤:', error);
@@ -1297,6 +1337,44 @@ export class TransactionService {
         errorMap[id] = false;
       });
       return errorMap;
+    }
+  }
+
+  /**
+   * 🆕 更新相關進貨單的付款狀態
+   * @param transactionIds 交易ID陣列
+   * @param paymentStatus 付款狀態 ('已下收' | '已匯款')
+   * @param userId 使用者ID
+   */
+  static async updateRelatedPurchaseOrderPaymentStatus(
+    transactionIds: string[],
+    paymentStatus: string,
+    userId: string
+  ): Promise<void> {
+    try {
+      console.log(`🔄 更新進貨單付款狀態: ${transactionIds.length} 筆交易, 狀態: ${paymentStatus}`);
+      
+      // 查找與這些交易相關的進貨單
+      const PurchaseOrder = require('../../models/PurchaseOrder').default;
+      const purchaseOrders = await PurchaseOrder.find({
+        relatedTransactionGroupId: { $in: transactionIds }
+      });
+
+      console.log(`📋 找到相關進貨單: ${purchaseOrders.length} 筆`);
+
+      // 更新每個進貨單的付款狀態
+      for (const purchaseOrder of purchaseOrders) {
+        purchaseOrder.paymentStatus = paymentStatus;
+        purchaseOrder.updatedAt = new Date();
+        await purchaseOrder.save();
+        
+        console.log(`✅ 更新進貨單付款狀態: ${purchaseOrder.poid} -> ${paymentStatus}`);
+      }
+
+      console.log(`✅ 進貨單付款狀態更新完成: ${purchaseOrders.length} 筆`);
+    } catch (error) {
+      console.error('❌ 更新進貨單付款狀態失敗:', error);
+      // 不拋出錯誤，避免影響付款交易的建立
     }
   }
 }
