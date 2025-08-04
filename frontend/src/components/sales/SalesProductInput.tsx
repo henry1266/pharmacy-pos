@@ -365,58 +365,11 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
                 if (e.key === 'Enter') {
                   e.preventDefault();
                   
-                  // 如果有搜尋結果，直接選擇第一個項目
-                  if (filteredItems.length > 0) {
-                    const firstItem = filteredItems[0];
-                    
-                    // 防止重複觸發的檢查
-                    if (isProcessingRef.current) {
-                      return;
-                    }
-                    
-                    const itemId = firstItem?._id;
-                    if (lastSelectedItemRef.current === itemId) {
-                      return;
-                    }
-                    
-                    // 設置處理標誌
-                    isProcessingRef.current = true;
-                    lastSelectedItemRef.current = itemId || null;
-                    
-                    try {
-                      if (firstItem) {
-                        if (isPackage(firstItem)) {
-                          if (onSelectPackage) {
-                            onSelectPackage(firstItem);
-                            showSnackbar(`已選擇：${firstItem.name}`, 'success');
-                          } else {
-                            showSnackbar('套餐選擇功能尚未實作', 'warning');
-                          }
-                        } else {
-                          onSelectProduct(firstItem);
-                          showSnackbar(`已選擇：${firstItem.name}`, 'success');
-                        }
-                      }
-                      
-                      // 清空狀態
-                      setBarcode('');
-                      setFilteredItems([]);
-                      
-                      // 重新聚焦
-                      if (barcodeInputRef.current) {
-                        barcodeInputRef.current.focus();
-                      }
-                    } finally {
-                      // 重置處理標誌
-                      setTimeout(() => {
-                        isProcessingRef.current = false;
-                        lastSelectedItemRef.current = null;
-                      }, 300);
-                    }
-                  } else {
-                    // 沒有搜尋結果，執行提交邏輯
+                  // 如果沒有搜尋結果，執行提交邏輯
+                  if (filteredItems.length === 0) {
                     handleBarcodeSubmit();
                   }
+                  // 如果有搜尋結果，讓 Autocomplete 的內建邏輯處理
                 }
               }}
               />
@@ -434,8 +387,8 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
       {/* 產品筆記彈窗 */}
       {selectedProductForNote && (
         <ProductNotePopover
-          productId={selectedProductForNote._id}
-          productName={selectedProductForNote.name}
+          productId={selectedProductForNote._id!}
+          productName={selectedProductForNote.name!}
           anchorEl={notePopoverAnchor}
           open={Boolean(notePopoverAnchor)}
           onClose={handleNotePopoverClose}
