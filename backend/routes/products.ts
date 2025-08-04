@@ -366,12 +366,16 @@ router.post(
         }
       }
 
-      // 根據是否有健保代碼生成產品代碼
+      // 根據是否有健保代碼生成產品代碼和判斷產品類型
       const hasHealthInsurance = !!(healthInsuranceCode?.trim());
       const generatedCode = code?.trim() || (await generateProductCodeByHealthInsurance(hasHealthInsurance)).code;
+      
+      // 根據健保碼自動判斷產品類型
+      const autoProductType = hasHealthInsurance ? ProductType.MEDICINE : ProductType.PRODUCT;
 
-      // 創建商品
-      const product = new Product({
+      // 創建產品（根據類型決定使用 Product 或 Medicine 模型）
+      const ProductModel = autoProductType === ProductType.MEDICINE ? Medicine : Product;
+      const productData: any = {
         code: generatedCode,
         shortCode: req.body.shortCode?.trim() ?? '',
         name,
@@ -386,9 +390,16 @@ router.post(
         barcode,
         healthInsuranceCode: healthInsuranceCode?.trim() || '',
         excludeFromStock: excludeFromStock === true || excludeFromStock === 'true',
-        productType: ProductType.PRODUCT,
+        productType: autoProductType,
         isActive: true
-      });
+      };
+      
+      // 如果是藥品類型，添加健保價格
+      if (autoProductType === ProductType.MEDICINE) {
+        productData.healthInsurancePrice = req.body.healthInsurancePrice ? parseFloat(req.body.healthInsurancePrice) : 0;
+      }
+      
+      const product = new ProductModel(productData);
 
       await product.save();
 
@@ -403,9 +414,9 @@ router.post(
       }
 
       // 重新查詢以獲取完整的關聯資料
-      const savedProduct = await Product.findById(product._id)
+      const savedProduct = await ProductModel.findById(product._id)
         .populate('category', 'name')
-        .populate('supplier', 'name') as IProductDocument | null;
+        .populate('supplier', 'name');
 
       if (!savedProduct) {
         res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
@@ -416,12 +427,13 @@ router.post(
         return;
       }
 
+      const successMessage = autoProductType === ProductType.MEDICINE ? '藥品創建成功' : '商品創建成功';
       res.status(API_CONSTANTS.HTTP_STATUS.CREATED).json({
         success: true,
-        message: '商品創建成功',
+        message: successMessage,
         data: savedProduct,
         timestamp: new Date()
-      } as ApiResponse<IProductDocument>);
+      } as ApiResponse<any>);
     } catch (err) {
       console.error('創建商品錯誤:', err);
       res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
@@ -616,9 +628,17 @@ router.put(
         updateData.shortCode = updateData.shortCode?.trim() ?? '';
       }
       
-      // 處理健保碼欄位
+      // 處理健保碼欄位並自動判斷產品類型
       if (updateData.healthInsuranceCode !== undefined) {
         updateData.healthInsuranceCode = updateData.healthInsuranceCode?.trim() ?? '';
+        
+        // 根據健保碼自動設定產品類型
+        const hasHealthInsuranceCode = updateData.healthInsuranceCode?.trim();
+        if (hasHealthInsuranceCode) {
+          updateData.productType = ProductType.MEDICINE;
+        } else {
+          updateData.productType = ProductType.PRODUCT;
+        }
       }
       
       // 處理條碼欄位

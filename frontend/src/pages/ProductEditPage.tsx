@@ -166,7 +166,11 @@ const ProductEditPage: React.FC = () => {
           };
           
           setProduct(productData);
-          setProductType(productData.productType);
+          
+          // 根據健保碼自動判斷產品類型
+          const hasHealthInsuranceCode = productData.healthInsuranceCode?.trim();
+          const autoDetectedType = hasHealthInsuranceCode ? 'medicine' : 'product';
+          setProductType(autoDetectedType);
           
           // 處理分類和供應商 - 如果是物件則取 _id，如果是字串則直接使用
           const categoryId = typeof productData.category === 'object' && productData.category
@@ -243,6 +247,18 @@ const ProductEditPage: React.FC = () => {
           ...prev,
           [name]: value
         }));
+        
+        // 如果是健保碼欄位，自動判斷產品類型
+        if (name === 'healthInsuranceCode') {
+          const hasHealthInsuranceCode = value?.trim();
+          if (hasHealthInsuranceCode) {
+            // 有健保碼時，設定為藥品類型
+            setProductType('medicine');
+          } else {
+            // 沒有健保碼時，設定為商品類型
+            setProductType('product');
+          }
+        }
       }
     }
   };
