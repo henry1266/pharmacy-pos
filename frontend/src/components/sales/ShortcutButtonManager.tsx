@@ -27,7 +27,9 @@ import {
   Search as SearchIcon,
   Check as CheckIcon,
   Cancel as CancelIcon,
-  FlashOn as FlashOnIcon
+  FlashOn as FlashOnIcon,
+  KeyboardArrowUp as ArrowUpIcon,
+  KeyboardArrowDown as ArrowDownIcon
 } from '@mui/icons-material';
 import useUserSettings, { type UserShortcut } from '../../hooks/useUserSettings';
 
@@ -102,6 +104,22 @@ const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({
 
   const handleRemoveProduct = (productId: string): void => {
     setSelectedProductIds(selectedProductIds.filter(id => id !== productId));
+  };
+
+  const handleMoveProductUp = (index: number): void => {
+    if (index > 0) {
+      const newProductIds = [...selectedProductIds];
+      [newProductIds[index - 1], newProductIds[index]] = [newProductIds[index], newProductIds[index - 1]];
+      setSelectedProductIds(newProductIds);
+    }
+  };
+
+  const handleMoveProductDown = (index: number): void => {
+    if (index < selectedProductIds.length - 1) {
+      const newProductIds = [...selectedProductIds];
+      [newProductIds[index], newProductIds[index + 1]] = [newProductIds[index + 1], newProductIds[index]];
+      setSelectedProductIds(newProductIds);
+    }
   };
 
   const handleSave = (): void => {
@@ -208,8 +226,7 @@ const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({
               return (
                 <TextField
                   {...restParams}
-                  label="搜尋藥品 (名稱/代碼/條碼)"
-                  placeholder="輸入關鍵字搜尋..."
+                  placeholder="搜尋藥品 (名稱/代碼/條碼)"
                   size="small"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && filteredProducts.length > 0) {
@@ -245,15 +262,37 @@ const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({
             {selectedProductIds.length === 0 ? (
               <ListItem><ListItemText primary="尚未加入任何藥品" /></ListItem>
             ) : (
-              selectedProductIds.map((productId, _index) => {
+              selectedProductIds.map((productId, index) => {
                 const product = getProductDetails(productId);
                 return (
                   <ListItem
                     key={productId}
                     secondaryAction={
-                      <IconButton edge="end" aria-label="delete" onClick={() => handleRemoveProduct(productId)} size="small">
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <IconButton
+                          edge="end"
+                          aria-label="move up"
+                          onClick={() => handleMoveProductUp(index)}
+                          size="small"
+                          disabled={index === 0}
+                          sx={{ mr: 0.5 }}
+                        >
+                          <ArrowUpIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton
+                          edge="end"
+                          aria-label="move down"
+                          onClick={() => handleMoveProductDown(index)}
+                          size="small"
+                          disabled={index === selectedProductIds.length - 1}
+                          sx={{ mr: 0.5 }}
+                        >
+                          <ArrowDownIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton edge="end" aria-label="delete" onClick={() => handleRemoveProduct(productId)} size="small">
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
                     }
                   >
                     <ListItemText

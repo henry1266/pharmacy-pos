@@ -71,8 +71,14 @@ const CustomProductsDialog: React.FC<CustomProductsDialogProps> = ({
       console.warn("Some product IDs are missing from allProducts:", missingProductIds);
     }
 
-    // 1. Get the products matching the IDs
-    let productsInShortcut = allProducts?.filter(p => productIdsToShow?.includes(p?._id));
+    // 1. Get the products matching the IDs and maintain the order from productIdsToShow
+    let productsInShortcut: Product[] = [];
+    if (productIdsToShow && allProducts) {
+      // 按照 productIdsToShow 的順序來排列產品
+      productsInShortcut = productIdsToShow
+        .map(id => allProducts.find(p => p?._id === id))
+        .filter((product): product is Product => product !== undefined);
+    }
     console.log("Found matching products:", productsInShortcut.length);
 
     // 2. Filter by search term if applicable
@@ -171,10 +177,10 @@ const CustomProductsDialog: React.FC<CustomProductsDialogProps> = ({
                       <Typography variant="subtitle1" sx={{ fontWeight: 'bold', pr: 3 }}>
                         {product?.name}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.9rem' }}>
-                        編號: {product?.code ?? '無'} | 價格: {(product?.sellingPrice ?? product?.price) ? `$${(product?.sellingPrice ?? product?.price)?.toFixed(2)}` : '無'}
+                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '1rem' }}>
+                        編號: {product?.code ?? '無'} |  {(product?.sellingPrice ?? product?.price) ? `$${(product?.sellingPrice ?? product?.price)?.toFixed(2)}` : '無'}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.9rem' }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '1rem' }}>
                         庫存: {getTotalInventory(product?._id)}
                       </Typography>
                     </Box>
