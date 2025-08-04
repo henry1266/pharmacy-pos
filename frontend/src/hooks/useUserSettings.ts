@@ -6,6 +6,7 @@ export interface UserShortcut {
   id: string;
   name: string;
   productIds: string[];
+  packageIds?: string[]; // 新增套餐ID支援
 }
 
 // 定義用戶設定類型
@@ -130,10 +131,10 @@ export const useUserSettings = () => {
   }, [settings.shortcuts, updateShortcuts]);
 
   // 更新快捷按鈕項目
-  const updateShortcutItems = useCallback(async (shortcutId: string, productIds: string[]): Promise<boolean> => {
+  const updateShortcutItems = useCallback(async (shortcutId: string, productIds: string[], packageIds?: string[]): Promise<boolean> => {
     const currentShortcuts = settings.shortcuts || [];
     const newShortcuts = currentShortcuts.map(s =>
-      s.id === shortcutId ? { ...s, productIds } : s
+      s.id === shortcutId ? { ...s, productIds, packageIds: packageIds || s.packageIds || [] } : s
     );
     return updateShortcuts(newShortcuts);
   }, [settings.shortcuts, updateShortcuts]);

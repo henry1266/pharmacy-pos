@@ -522,6 +522,7 @@ const SalesNew2Page: FC = () => {
           <ShortcutButtonManager
             onShortcutSelect={handleShortcutSelect}
             allProducts={products ?? []}
+            allPackages={packages ?? []}
             isTestMode={isTestMode}
           />
         </Box>
