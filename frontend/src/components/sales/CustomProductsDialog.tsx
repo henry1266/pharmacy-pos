@@ -88,9 +88,21 @@ const CustomProductsDialog: React.FC<CustomProductsDialogProps> = ({
     // Handle packages
     let packagesInShortcut: Package[] = [];
     if (allPackages && packageIdsToShow && packageIdsToShow.length > 0) {
+      // 統一的 ID 獲取函數，處理 MongoDB ObjectId 格式
+      const getItemId = (item: Package): string => {
+        if (item._id) {
+          if (typeof item._id === 'string') {
+            return item._id;
+          } else if (typeof item._id === 'object' && (item._id as any)?.$oid) {
+            return (item._id as any).$oid;
+          }
+        }
+        return item.code || '';
+      };
+
       // 按照 packageIdsToShow 的順序來排列套餐
       packagesInShortcut = packageIdsToShow
-        .map(id => allPackages.find(pkg => pkg?._id === id))
+        .map(id => allPackages.find(pkg => getItemId(pkg) === id))
         .filter((packageItem): packageItem is Package => packageItem !== undefined);
       
       // Filter by search term if applicable

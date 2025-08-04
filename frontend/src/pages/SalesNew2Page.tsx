@@ -226,40 +226,78 @@ const SalesNew2Page: FC = () => {
     }
   };
 
-  const validateShortcutProducts = useCallback((shortcut: UserShortcut, allProducts: Product[]): { isValid: boolean; validProductIds: string[] } => {
-    if (!shortcut?.productIds?.length) {
-      console.warn("Selected shortcut has no product IDs");
-      showSnackbar('此快捷按鈕沒有包含任何商品', 'warning');
-      return { isValid: false, validProductIds: [] };
+  const validateShortcutItems = useCallback((shortcut: UserShortcut, allProducts: Product[], allPackages: any[]): { isValid: boolean; validProductIds: string[]; validPackageIds: string[] } => {
+    const hasProducts = shortcut?.productIds && shortcut.productIds.length > 0;
+    const hasPackages = shortcut?.packageIds && shortcut.packageIds.length > 0;
+    
+    if (!hasProducts && !hasPackages) {
+      console.warn("Selected shortcut has no product or package IDs");
+      showSnackbar('此快捷按鈕沒有包含任何商品或套餐', 'warning');
+      return { isValid: false, validProductIds: [], validPackageIds: [] };
     }
 
-    if (!allProducts || allProducts.length === 0) {
-      console.warn("Products not loaded yet");
-      showSnackbar('產品資料尚未載入完成，請稍後再試', 'warning');
-      return { isValid: false, validProductIds: [] };
+    let validProductIds: string[] = [];
+    let validPackageIds: string[] = [];
+
+    // 驗證產品
+    if (hasProducts) {
+      if (!allProducts || allProducts.length === 0) {
+        console.warn("Products not loaded yet");
+        showSnackbar('產品資料尚未載入完成，請稍後再試', 'warning');
+        return { isValid: false, validProductIds: [], validPackageIds: [] };
+      }
+
+      validProductIds = shortcut.productIds!.filter(id =>
+        allProducts.some(p => p._id === id)
+      );
     }
 
-    const validProductIds = shortcut.productIds.filter(id =>
-      allProducts.some(p => p._id === id)
-    );
+    // 驗證套餐
+    if (hasPackages) {
+      if (!allPackages || allPackages.length === 0) {
+        console.warn("Packages not loaded yet");
+        showSnackbar('套餐資料尚未載入完成，請稍後再試', 'warning');
+        return { isValid: false, validProductIds: [], validPackageIds: [] };
+      }
 
-    if (validProductIds.length === 0) {
-      console.warn("None of the shortcut product IDs match available products");
-      showSnackbar('找不到此快捷按鈕中的任何商品', 'error');
-      return { isValid: false, validProductIds: [] };
+      // 使用統一的 ID 獲取函數來比較套餐
+      const getItemId = (item: any): string => {
+        if (item._id) {
+          if (typeof item._id === 'string') {
+            return item._id;
+          } else if (typeof item._id === 'object' && item._id.$oid) {
+            return item._id.$oid;
+          }
+        }
+        return item.code || '';
+      };
+
+      validPackageIds = shortcut.packageIds!.filter(id =>
+        allPackages.some(pkg => getItemId(pkg) === id)
+      );
     }
 
-    if (validProductIds.length < shortcut.productIds.length) {
-      console.warn(`Only ${validProductIds.length} of ${shortcut.productIds.length} products found`);
-      showSnackbar(`只找到 ${validProductIds.length} 個商品，部分商品可能已不存在`, 'warning');
+    const totalValidItems = validProductIds.length + validPackageIds.length;
+    const totalItems = (shortcut.productIds?.length || 0) + (shortcut.packageIds?.length || 0);
+
+    if (totalValidItems === 0) {
+      console.warn("None of the shortcut items match available products or packages");
+      showSnackbar('找不到此快捷按鈕中的任何商品或套餐', 'error');
+      return { isValid: false, validProductIds: [], validPackageIds: [] };
     }
-    return { isValid: true, validProductIds };
+
+    if (totalValidItems < totalItems) {
+      console.warn(`Only ${totalValidItems} of ${totalItems} items found`);
+      showSnackbar(`只找到 ${totalValidItems} 個項目，部分商品或套餐可能已不存在`, 'warning');
+    }
+    
+    return { isValid: true, validProductIds, validPackageIds };
   }, [showSnackbar]);
 
   const handleShortcutSelect = useCallback((shortcut: UserShortcut): void => {
     console.log("Shortcut selected:", shortcut);
 
-    const { isValid, validProductIds } = validateShortcutProducts(shortcut, products ?? []);
+    const { isValid, validProductIds, validPackageIds } = validateShortcutItems(shortcut, products ?? [], packages ?? []);
 
     if (!isValid) {
       return;
@@ -267,10 +305,11 @@ const SalesNew2Page: FC = () => {
 
     setSelectedShortcut({
       ...shortcut,
-      productIds: validProductIds
+      productIds: validProductIds,
+      packageIds: validPackageIds
     });
     setCustomDialogOpen(true);
-  }, [products, validateShortcutProducts]);
+  }, [products, packages, validateShortcutItems]);
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
@@ -327,9 +366,12 @@ const SalesNew2Page: FC = () => {
           open={customDialogOpen}
           onClose={() => setCustomDialogOpen(false)}
           allProducts={products ?? []}
+          allPackages={packages ?? []}
           productIdsToShow={selectedShortcut.productIds}
+          packageIdsToShow={selectedShortcut.packageIds ?? []}
           shortcutName={selectedShortcut.name}
           onSelectProduct={handleSelectProduct}
+          onSelectPackage={handleSelectPackage}
         />
       )}
 
