@@ -123,6 +123,55 @@ class OrderNumberService {
         throw new Error(`不支持的訂單類型: ${type}`);
     }
   }
+  
+  /**
+   * 生成唯一訂單號
+   * 如果基礎訂單號已存在，則添加後綴
+   * @param type - 訂單類型 ('purchase', 'shipping', 'sale')
+   * @param baseOrderNumber - 基礎訂單號
+   * @param maxAttempts - 最大嘗試次數（默認為10）
+   * @returns 唯一的訂單號
+   */
+  static async generateUniqueOrderNumber(type: string, baseOrderNumber: string, maxAttempts: number = 10): Promise<string> {
+    try {
+      // 根據訂單類型獲取相應的模型和字段
+      let Model: mongoose.Model<any>;
+      let field: string;
+      
+      switch (type.toLowerCase()) {
+        case 'purchase':
+          Model = mongoose.model('purchaseorder');
+          field = 'orderNumber';
+          break;
+        case 'shipping':
+          Model = mongoose.model('shippingorder');
+          field = 'orderNumber';
+          break;
+        case 'sale':
+          Model = mongoose.model('sale');
+          field = 'orderNumber';
+          break;
+        default:
+          throw new Error(`不支持的訂單類型: ${type}`);
+      }
+      
+      // 創建訂單號生成器實例
+      const generator = new OrderNumberGenerator({
+        Model,
+        field,
+        prefix: '',
+        useShortYear: false,
+        sequenceDigits: 3,
+        sequenceStart: 1
+      });
+      
+      // 生成唯一訂單號
+      return await generator.generateUnique(baseOrderNumber, maxAttempts);
+    } catch (error) {
+      console.error(`生成唯一${type}訂單號時出錯:`, error);
+      throw error;
+    }
+  }
 }
 
 export default OrderNumberService;

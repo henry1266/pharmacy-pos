@@ -201,27 +201,7 @@ router.get('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// 生成唯一訂單號的輔助函數
-async function generateUniqueOrderNumber(soid: string): Promise<string> {
-  // 基本訂單號使用soid
-  let orderNumber = soid;
-  let counter = 1;
-  let isUnique = false;
-  
-  // 檢查訂單號是否已存在，如果存在則添加計數器
-  while (!isUnique) {
-    const existingOrder = await ShippingOrder.findOne({ orderNumber });
-    if (!existingOrder) {
-      isUnique = true;
-    } else {
-      // 如果訂單號已存在，添加計數器後綴
-      orderNumber = `${soid}-${counter}`;
-      counter++;
-    }
-  }
-  
-  return orderNumber;
-}
+// 注意：原本的 generateUniqueOrderNumber 函數已被 OrderNumberService.generateUniqueOrderNumber 替代
 
 /**
  * 檢查出貨單號是否已存在
@@ -471,7 +451,7 @@ async function handleOrderNumberChange(newSoid?: string, currentSoid?: string, o
   }
   
   // 使用安全的方式生成唯一訂單號
-  const orderNumber = await generateUniqueOrderNumber(sanitizedSoid);
+  const orderNumber = await OrderNumberService.generateUniqueOrderNumber('shipping', sanitizedSoid);
   return {
     changed: true,
     orderNumber
