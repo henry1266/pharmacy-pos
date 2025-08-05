@@ -72,14 +72,14 @@ export const AccountTransactionListTable: React.FC<AccountTransactionListTablePr
     }
   };
 
-  // 共用的按鈕樣式 - 觸控優化
+  // 共用的按鈕樣式 - 觸控優化（小螢幕和平板更緊湊）
   const actionButtonStyle = {
-    width: { xs: 32, sm: 36, md: 40 },
-    height: { xs: 32, sm: 36, md: 40 },
-    m: { xs: 0.25, sm: 0.5 },
+    width: { xs: 28, sm: 32, md: 40 },
+    height: { xs: 28, sm: 32, md: 40 },
+    m: { xs: 0.1, sm: 0.25, md: 0.5 },
     transition: 'all 0.2s',
     '& .MuiSvgIcon-root': {
-      fontSize: { xs: '1rem', sm: '1.25rem', md: '1.5rem' }
+      fontSize: { xs: '0.9rem', sm: '1.1rem', md: '1.5rem' }
     },
     '&:hover': {
       transform: 'translateY(-2px)',
@@ -225,21 +225,49 @@ export const AccountTransactionListTable: React.FC<AccountTransactionListTablePr
                 <AccountTransactionListFundingStatusDisplay transaction={transaction} />
               </TableCell>
               <TableCell align="center">
+                {/* 平板和手機版 - 簡化版本，只顯示查看按鈕 */}
                 <Box
                   sx={{
-                    display: 'flex',
-                    gap: { xs: 0.25, sm: 0.5 },
-                    flexWrap: 'wrap',
+                    display: { xs: 'flex', md: 'none' },
                     justifyContent: 'center',
-                    maxWidth: { xs: '100%', sm: '100%' },
-                    // 防止點擊操作按鈕時觸發行點擊事件
-                    '& > *': {
-                      zIndex: 2
-                    }
+                    alignItems: 'center',
+                    height: '100%'
                   }}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <Tooltip title={ACTION_TOOLTIPS.VIEW}>
+                  <IconButton
+                    size="medium"
+                    sx={{
+                      width: 36,
+                      height: 36,
+                      backgroundColor: 'primary.main',
+                      color: 'white',
+                      '&:hover': {
+                        backgroundColor: 'primary.dark'
+                      }
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (onTransactionView) onTransactionView(transaction);
+                    }}
+                  >
+                    <VisibilityIcon />
+                  </IconButton>
+                </Box>
+                
+                {/* 桌面版 - 完整版本 */}
+                <Box
+                  sx={{
+                    display: { xs: 'none', md: 'flex' },
+                    gap: 0.5,
+                    flexWrap: 'wrap',
+                    justifyContent: 'center',
+                    maxWidth: '100%',
+                    padding: 0.5,
+                    '& > *': { zIndex: 2 }
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
                     <IconButton
                       size="medium"
                       sx={actionButtonStyle}
@@ -250,11 +278,9 @@ export const AccountTransactionListTable: React.FC<AccountTransactionListTablePr
                     >
                       <VisibilityIcon />
                     </IconButton>
-                  </Tooltip>
-                  
-                  {/* 編輯按鈕 - 只有草稿狀態可以編輯 */}
-                  {transaction.status === TRANSACTION_STATUS.DRAFT && onTransactionEdit && (
-                    <Tooltip title={ACTION_TOOLTIPS.EDIT}>
+                    
+                    {/* 編輯按鈕 - 只有草稿狀態可以編輯 */}
+                    {transaction.status === TRANSACTION_STATUS.DRAFT && onTransactionEdit && (
                       <IconButton
                         size="medium"
                         sx={actionButtonStyle}
@@ -265,10 +291,8 @@ export const AccountTransactionListTable: React.FC<AccountTransactionListTablePr
                       >
                         <EditIcon />
                       </IconButton>
-                    </Tooltip>
-                  )}
-                  
-                  <Tooltip title={ACTION_TOOLTIPS.COPY}>
+                    )}
+                    
                     <IconButton
                       size="medium"
                       sx={actionButtonStyle}
@@ -283,12 +307,10 @@ export const AccountTransactionListTable: React.FC<AccountTransactionListTablePr
                     >
                       <ContentCopyIcon />
                     </IconButton>
-                  </Tooltip>
-                  
-                  {/* 確認按鈕 - 只有草稿狀態且已平衡可以確認 */}
-                  {transaction.status === TRANSACTION_STATUS.DRAFT && transaction.entries &&
-                   isBalanced(transaction.entries) && onTransactionConfirm && (
-                    <Tooltip title={ACTION_TOOLTIPS.CONFIRM}>
+                    
+                    {/* 確認按鈕 - 只有草稿狀態且已平衡可以確認 */}
+                    {transaction.status === TRANSACTION_STATUS.DRAFT && transaction.entries &&
+                     isBalanced(transaction.entries) && onTransactionConfirm && (
                       <IconButton
                         size="medium"
                         color="success"
@@ -300,12 +322,10 @@ export const AccountTransactionListTable: React.FC<AccountTransactionListTablePr
                       >
                         <ConfirmIcon />
                       </IconButton>
-                    </Tooltip>
-                  )}
-                  
-                  {/* 解鎖按鈕 - 只有已確認狀態可以解鎖 */}
-                  {transaction.status === TRANSACTION_STATUS.CONFIRMED && onTransactionUnlock && (
-                    <Tooltip title={ACTION_TOOLTIPS.UNLOCK}>
+                    )}
+                    
+                    {/* 解鎖按鈕 - 只有已確認狀態可以解鎖 */}
+                    {transaction.status === TRANSACTION_STATUS.CONFIRMED && onTransactionUnlock && (
                       <IconButton
                         size="medium"
                         color="warning"
@@ -317,12 +337,10 @@ export const AccountTransactionListTable: React.FC<AccountTransactionListTablePr
                       >
                         <UnlockIcon />
                       </IconButton>
-                    </Tooltip>
-                  )}
-                  
-                  {/* 刪除按鈕 - 只有草稿狀態可以刪除 */}
-                  {transaction.status === TRANSACTION_STATUS.DRAFT && onTransactionDelete && (
-                    <Tooltip title={ACTION_TOOLTIPS.DELETE}>
+                    )}
+                    
+                    {/* 刪除按鈕 - 只有草稿狀態可以刪除 */}
+                    {transaction.status === TRANSACTION_STATUS.DRAFT && onTransactionDelete && (
                       <IconButton
                         size="medium"
                         color="error"
@@ -334,9 +352,8 @@ export const AccountTransactionListTable: React.FC<AccountTransactionListTablePr
                       >
                         <DeleteIcon />
                       </IconButton>
-                    </Tooltip>
-                  )}
-                </Box>
+                    )}
+                  </Box>
               </TableCell>
             </TableRow>
           ))}
