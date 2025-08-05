@@ -181,26 +181,62 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
     {
       field: 'actions',
       headerName: '操作',
-      flex: 1.5, // 增加操作列寬度
+      flex: 2, // 增加操作列寬度
+      minWidth: 220, // 確保最小寬度，給按鈕足夠空間
       sortable: false,
       align: 'center',
       renderCell: (params: GridRenderCellParams) => {
         const group = params.row as ExtendedTransactionGroupWithEntries;
         return (
-          <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+          <Box sx={{
+            display: 'flex',
+            gap: { xs: 1.5, sm: 1.5, md: 1 }, // 增加間距，特別是在平板和手機上
+            flexWrap: 'wrap',
+            justifyContent: 'center', // 確保按鈕居中對齊
+            '& .MuiIconButton-root': {
+              // 確保所有按鈕在小螢幕上都可見
+              display: 'inline-flex !important',
+              visibility: 'visible !important'
+            }
+          }}>
+            {/* 查看詳情按鈕 - 確保在所有螢幕尺寸上都可見 */}
             <Tooltip title="查看詳情">
               <IconButton
-                size="small"
-                onClick={() => navigate(`/accounting3/transaction/${group._id}`)}
+                size="medium"
+                color="primary"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/accounting3/transaction/${group._id}`);
+                }}
+                sx={{
+                  border: '1px solid',
+                  borderColor: 'primary.main',
+                  display: 'inline-flex !important', // 強制顯示
+                  visibility: 'visible !important', // 強制可見
+                  zIndex: 10, // 確保按鈕在最上層
+                  '&:hover': { bgcolor: 'primary.light', color: 'common.white' }
+                }}
               >
                 <OpenInNewIcon />
               </IconButton>
             </Tooltip>
             
+            {/* 快速檢視按鈕 - 確保在所有螢幕尺寸上都可見 */}
             <Tooltip title="快速檢視">
               <IconButton
-                size="small"
-                onClick={() => onView(group)}
+                size="medium"
+                color="info"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onView(group);
+                }}
+                sx={{
+                  display: 'inline-flex !important', // 強制顯示
+                  visibility: 'visible !important', // 強制可見
+                  zIndex: 10, // 確保按鈕在最上層
+                  ml: 1, // 增加左邊距，與查看詳情按鈕分開
+                  '&:hover': { bgcolor: 'info.light', color: 'common.white' }
+                }}
               >
                 <ViewIcon />
               </IconButton>
@@ -212,6 +248,10 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
                 <IconButton
                   size="small"
                   onClick={() => onEdit(group)}
+                  sx={{
+                    mx: 0.5, // 增加左右邊距
+                    '&:hover': { bgcolor: 'action.hover' } // 懸停效果
+                  }}
                 >
                   <EditIcon />
                 </IconButton>
@@ -222,6 +262,10 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
               <IconButton
                 size="small"
                 onClick={() => onCopy(group)}
+                sx={{
+                  mx: 0.5, // 增加左右邊距
+                  '&:hover': { bgcolor: 'action.hover' } // 懸停效果
+                }}
               >
                 <CopyIcon />
               </IconButton>
@@ -234,6 +278,10 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
                   size="small"
                   color="success"
                   onClick={() => onConfirm(group._id)}
+                  sx={{
+                    mx: 0.5, // 增加左右邊距
+                    '&:hover': { bgcolor: 'success.light', color: 'common.white' } // 懸停效果
+                  }}
                 >
                   <ConfirmIcon />
                 </IconButton>
@@ -247,6 +295,10 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
                   size="small"
                   color="warning"
                   onClick={() => onUnlock(group._id)}
+                  sx={{
+                    mx: 0.5, // 增加左右邊距
+                    '&:hover': { bgcolor: 'warning.light', color: 'common.white' } // 懸停效果
+                  }}
                 >
                   <UnlockIcon />
                 </IconButton>
@@ -260,6 +312,10 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
                   size="small"
                   color="error"
                   onClick={() => onDelete(group._id)}
+                  sx={{
+                    mx: 0.5, // 增加左右邊距
+                    '&:hover': { bgcolor: 'error.light', color: 'common.white' } // 懸停效果
+                  }}
                 >
                   <DeleteIcon />
                 </IconButton>
@@ -875,7 +931,11 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
                    getRowId={(row) => row.id}
                    getRowClassName={(params) => `row-${params.indexRelativeToCurrentPage}`}
                    rowsPerPageOptions={[100]}
-                   rowHeight={65} // 增加列高
+                   rowHeight={70} // 增加列高，給按鈕更多空間
+                   columnVisibilityModel={{
+                     // 確保操作列始終可見
+                     actions: true
+                   }}
                    sx={{
                      // 基本樣式
                      '& .MuiDataGrid-main': {
