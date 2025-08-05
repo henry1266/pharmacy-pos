@@ -269,21 +269,23 @@ export const AccountTransactionList: React.FC<AccountTransactionListProps> = ({
       {/* 標題區域 */}
       <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-          <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <ReceiptIcon />
-            {selectedAccount.name} 的交易記錄
-          </Typography>
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-          <Chip
-            label={selectedAccount.code}
-            size="small"
-            variant="outlined"
-            color="primary"
-          />
-          <Typography variant="body2" color="text.secondary">
-            {selectedAccount.type}
-          </Typography>
-        </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <ReceiptIcon />
+              {selectedAccount.name} 的交易記錄
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+              <Chip
+                label={selectedAccount.code}
+                size="small"
+                variant="outlined"
+                color="primary"
+              />
+              <Typography variant="body2" color="text.secondary">
+                {selectedAccount.type}
+              </Typography>
+            </Box>
+          </Box>
           {onAddTransaction && (
             <Button
               variant="contained"
