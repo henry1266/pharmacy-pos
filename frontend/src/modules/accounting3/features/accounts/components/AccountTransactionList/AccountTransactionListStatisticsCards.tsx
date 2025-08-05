@@ -30,6 +30,10 @@ interface AccountTransactionListStatisticsCardsProps {
  * 交易統計卡片組件
  * 顯示科目的交易統計資訊
  */
+/**
+ * 交易統計卡片組件 - 觸控平板優化版本
+ * 顯示科目的交易統計資訊，針對觸控平板進行了優化
+ */
 export const AccountTransactionListStatisticsCards: React.FC<AccountTransactionListStatisticsCardsProps> = ({
   statistics
 }) => {
@@ -41,14 +45,39 @@ export const AccountTransactionListStatisticsCards: React.FC<AccountTransactionL
     }).format(amount);
   };
 
+  // 卡片共用樣式
+  const cardStyle = {
+    height: '100%',
+    boxShadow: 2,
+    transition: 'transform 0.2s, box-shadow 0.2s',
+    '&:hover': {
+      boxShadow: 4,
+      transform: 'translateY(-2px)'
+    },
+    '&:active': {
+      transform: 'translateY(0)',
+      boxShadow: 1
+    }
+  };
+
+  // 圖標共用樣式
+  const iconStyle = {
+    fontSize: { xs: 20, sm: 24 },
+    mr: 1
+  };
+
   return (
-    <Grid container spacing={2} sx={{ mb: 2 }}>
-      <Grid item xs={12} sm={6} md={3}>
-        <Card>
-          <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-              <AssessmentIcon color="primary" sx={{ mr: 1 }} />
-              <Typography variant="body2" color="text.secondary">
+    <Grid container spacing={1} sx={{ mb: 2 }}>
+      <Grid item xs={3} sm={3} md={3}>
+        <Card sx={cardStyle}>
+          <CardContent sx={{
+            p: { xs: 1, sm: 2 },
+            '&:last-child': { pb: { xs: 1, sm: 2 } },
+            minHeight: { xs: 70, sm: 90 }
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+              <AssessmentIcon color="primary" sx={iconStyle} />
+              <Typography variant="body2" color="text.secondary" fontWeight="medium">
                 交易筆數
               </Typography>
             </Box>
@@ -59,12 +88,16 @@ export const AccountTransactionListStatisticsCards: React.FC<AccountTransactionL
         </Card>
       </Grid>
       
-      <Grid item xs={12} sm={6} md={3}>
-        <Card>
-          <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-              <TrendingUpIcon color="success" sx={{ mr: 1 }} />
-              <Typography variant="body2" color="text.secondary">
+      <Grid item xs={3} sm={3} md={3}>
+        <Card sx={cardStyle}>
+          <CardContent sx={{
+            p: { xs: 1, sm: 2 },
+            '&:last-child': { pb: { xs: 1, sm: 2 } },
+            minHeight: { xs: 70, sm: 90 }
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+              <TrendingUpIcon color="success" sx={iconStyle} />
+              <Typography variant="body2" color="text.secondary" fontWeight="medium">
                 借方總額
               </Typography>
             </Box>
@@ -75,12 +108,16 @@ export const AccountTransactionListStatisticsCards: React.FC<AccountTransactionL
         </Card>
       </Grid>
       
-      <Grid item xs={12} sm={6} md={3}>
-        <Card>
-          <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-              <TrendingDownIcon color="error" sx={{ mr: 1 }} />
-              <Typography variant="body2" color="text.secondary">
+      <Grid item xs={3} sm={3} md={3}>
+        <Card sx={cardStyle}>
+          <CardContent sx={{
+            p: { xs: 1, sm: 2 },
+            '&:last-child': { pb: { xs: 1, sm: 2 } },
+            minHeight: { xs: 70, sm: 90 }
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+              <TrendingDownIcon color="error" sx={iconStyle} />
+              <Typography variant="body2" color="text.secondary" fontWeight="medium">
                 貸方總額
               </Typography>
             </Box>
@@ -91,12 +128,16 @@ export const AccountTransactionListStatisticsCards: React.FC<AccountTransactionL
         </Card>
       </Grid>
       
-      <Grid item xs={12} sm={6} md={3}>
-        <Card>
-          <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-              <AccountBalanceIcon color="info" sx={{ mr: 1 }} />
-              <Typography variant="body2" color="text.secondary">
+      <Grid item xs={3} sm={3} md={3}>
+        <Card sx={cardStyle}>
+          <CardContent sx={{
+            p: { xs: 1, sm: 2 },
+            '&:last-child': { pb: { xs: 1, sm: 2 } },
+            minHeight: { xs: 70, sm: 90 }
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+              <AccountBalanceIcon color="info" sx={iconStyle} />
+              <Typography variant="body2" color="text.secondary" fontWeight="medium">
                 淨額
               </Typography>
             </Box>

@@ -50,6 +50,10 @@ interface AccountTransactionListTableProps {
  * 交易表格組件
  * 顯示交易列表和相關操作
  */
+/**
+ * 交易表格組件 - 觸控平板優化版本
+ * 顯示交易列表和相關操作，針對觸控平板進行了優化
+ */
 export const AccountTransactionListTable: React.FC<AccountTransactionListTableProps> = ({
   transactions,
   onTransactionView,
@@ -68,31 +72,92 @@ export const AccountTransactionListTable: React.FC<AccountTransactionListTablePr
     }
   };
 
+  // 共用的按鈕樣式 - 觸控優化
+  const actionButtonStyle = {
+    width: { xs: 32, sm: 36, md: 40 },
+    height: { xs: 32, sm: 36, md: 40 },
+    m: { xs: 0.25, sm: 0.5 },
+    transition: 'all 0.2s',
+    '& .MuiSvgIcon-root': {
+      fontSize: { xs: '1rem', sm: '1.25rem', md: '1.5rem' }
+    },
+    '&:hover': {
+      transform: 'translateY(-2px)',
+      boxShadow: 2
+    },
+    '&:active': {
+      transform: 'translateY(0)',
+      boxShadow: 0
+    }
+  };
+
   return (
-    <TableContainer component={Paper} variant="outlined">
-      <Table>
+    <TableContainer
+      component={Paper}
+      variant="outlined"
+      sx={{
+        boxShadow: 2,
+        borderRadius: 2,
+        overflow: 'hidden',
+        width: '100%',
+        maxWidth: '100%'
+      }}
+    >
+      <Table
+        sx={{
+          width: '100%',
+          tableLayout: 'fixed',
+          '& .MuiTableCell-root': {
+            px: { xs: 0.5, sm: 1, md: 2 },
+            py: { xs: 1, sm: 1.5, md: 2 },
+            fontSize: { xs: '0.75rem', sm: '0.875rem', md: '1rem' },
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
+          }
+        }}
+      >
         <TableHead>
-          <TableRow>
-            <TableCell>{TABLE_HEADERS.TRANSACTION_DATE}</TableCell>
-            <TableCell>{TABLE_HEADERS.DESCRIPTION}</TableCell>
-            <TableCell align="center">{TABLE_HEADERS.FLOW}</TableCell>
-            <TableCell align="right">{TABLE_HEADERS.ACCOUNT_AMOUNT}</TableCell>
-            <TableCell align="right">{TABLE_HEADERS.RUNNING_BALANCE}</TableCell>
-            <TableCell align="center">{TABLE_HEADERS.STATUS}</TableCell>
-            <TableCell align="center">{TABLE_HEADERS.FUNDING_STATUS}</TableCell>
-            <TableCell align="center">{TABLE_HEADERS.ACTIONS}</TableCell>
+          <TableRow
+            sx={{
+              backgroundColor: 'action.hover',
+              '& .MuiTableCell-head': {
+                fontWeight: 'bold',
+                whiteSpace: 'nowrap'
+              }
+            }}
+          >
+            <TableCell width="9%">{TABLE_HEADERS.TRANSACTION_DATE}</TableCell>
+            <TableCell width="16%">{TABLE_HEADERS.DESCRIPTION}</TableCell>
+            <TableCell width="18%" align="center">{TABLE_HEADERS.FLOW}</TableCell>
+            <TableCell width="12%" align="right">{TABLE_HEADERS.ACCOUNT_AMOUNT}</TableCell>
+            <TableCell width="12%" align="right">{TABLE_HEADERS.RUNNING_BALANCE}</TableCell>
+            <TableCell width="7%" align="center">{TABLE_HEADERS.STATUS}</TableCell>
+            <TableCell width="7%" align="center">{TABLE_HEADERS.FUNDING_STATUS}</TableCell>
+            <TableCell width="18%" align="center">{TABLE_HEADERS.ACTIONS}</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {transactions.map((transaction) => (
             <TableRow
               key={transaction._id}
+              sx={{
+                height: { xs: 72, sm: 80 },
+                '&:hover': {
+                  backgroundColor: 'action.hover'
+                },
+                cursor: 'pointer',
+                transition: 'background-color 0.2s'
+              }}
+              onClick={() => onTransactionView && onTransactionView(transaction)}
             >
               <TableCell>
-                {formatDate(transaction.transactionDate)}
+                <Typography variant="body1" fontWeight="medium">
+                  {formatDate(transaction.transactionDate)}
+                </Typography>
               </TableCell>
               <TableCell>
-                <Typography variant="body2" fontWeight="medium">
+                <Typography variant="body1" fontWeight="medium">
                   {transaction.description}
                 </Typography>
                 <Typography variant="caption" color="text.secondary" fontFamily="monospace">
@@ -104,7 +169,7 @@ export const AccountTransactionListTable: React.FC<AccountTransactionListTablePr
               </TableCell>
               <TableCell align="right">
                 <Typography
-                  variant="body2"
+                  variant="body1"
                   fontWeight="medium"
                   color={transaction.accountAmount! >= 0 ? 'success.main' : 'error.main'}
                 >
@@ -113,34 +178,71 @@ export const AccountTransactionListTable: React.FC<AccountTransactionListTablePr
               </TableCell>
               <TableCell align="right">
                 <Typography
-                  variant="body2"
+                  variant="body1"
                   fontWeight="bold"
                   color={transaction.runningBalance! >= 0 ? 'success.main' : 'error.main'}
                   sx={{
                     backgroundColor: transaction.runningBalance! >= 0 ? 'success.50' : 'error.50',
-                    px: 1,
-                    py: 0.5,
-                    borderRadius: 1
+                    px: { xs: 1, sm: 1.5 },
+                    py: { xs: 0.75, sm: 1 },
+                    borderRadius: 1.5,
+                    display: 'inline-block'
                   }}
                 >
                   {formatCurrency(transaction.runningBalance!)}
                 </Typography>
               </TableCell>
               <TableCell align="center">
-                <Chip
-                  label={getStatusLabel(transaction.status)}
-                  color={getStatusColor(transaction.status)}
-                  size="small"
-                />
+                {transaction.status === TRANSACTION_STATUS.CONFIRMED ? (
+                  <Chip
+                    icon={<ConfirmIcon fontSize="small" />}
+                    color="success"
+                    size="small"
+                    sx={{
+                      height: { xs: 24, sm: 28 },
+                      width: { xs: 24, sm: 28 },
+                      '& .MuiChip-label': { display: 'none' }
+                    }}
+                  />
+                ) : (
+                  <Chip
+                    icon={
+                      transaction.status === TRANSACTION_STATUS.DRAFT ?
+                      <EditIcon fontSize="small" /> :
+                      <DeleteIcon fontSize="small" />
+                    }
+                    color={getStatusColor(transaction.status)}
+                    size="small"
+                    sx={{
+                      height: { xs: 24, sm: 28 },
+                      width: { xs: 24, sm: 28 },
+                      '& .MuiChip-label': { display: 'none' }
+                    }}
+                  />
+                )}
               </TableCell>
               <TableCell align="center">
                 <AccountTransactionListFundingStatusDisplay transaction={transaction} />
               </TableCell>
               <TableCell align="center">
-                <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', justifyContent: 'center' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: { xs: 0.25, sm: 0.5 },
+                    flexWrap: 'wrap',
+                    justifyContent: 'center',
+                    maxWidth: { xs: '100%', sm: '100%' },
+                    // 防止點擊操作按鈕時觸發行點擊事件
+                    '& > *': {
+                      zIndex: 2
+                    }
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <Tooltip title={ACTION_TOOLTIPS.VIEW}>
                     <IconButton
-                      size="small"
+                      size="medium"
+                      sx={actionButtonStyle}
                       onClick={(e) => {
                         e.stopPropagation();
                         if (onTransactionView) onTransactionView(transaction);
@@ -154,7 +256,8 @@ export const AccountTransactionListTable: React.FC<AccountTransactionListTablePr
                   {transaction.status === TRANSACTION_STATUS.DRAFT && onTransactionEdit && (
                     <Tooltip title={ACTION_TOOLTIPS.EDIT}>
                       <IconButton
-                        size="small"
+                        size="medium"
+                        sx={actionButtonStyle}
                         onClick={(e) => {
                           e.stopPropagation();
                           onTransactionEdit(transaction);
@@ -167,7 +270,8 @@ export const AccountTransactionListTable: React.FC<AccountTransactionListTablePr
                   
                   <Tooltip title={ACTION_TOOLTIPS.COPY}>
                     <IconButton
-                      size="small"
+                      size="medium"
+                      sx={actionButtonStyle}
                       onClick={(e) => {
                         e.stopPropagation();
                         if (onTransactionCopy) {
@@ -186,8 +290,9 @@ export const AccountTransactionListTable: React.FC<AccountTransactionListTablePr
                    isBalanced(transaction.entries) && onTransactionConfirm && (
                     <Tooltip title={ACTION_TOOLTIPS.CONFIRM}>
                       <IconButton
-                        size="small"
+                        size="medium"
                         color="success"
+                        sx={actionButtonStyle}
                         onClick={(e) => {
                           e.stopPropagation();
                           onTransactionConfirm(transaction._id);
@@ -202,8 +307,9 @@ export const AccountTransactionListTable: React.FC<AccountTransactionListTablePr
                   {transaction.status === TRANSACTION_STATUS.CONFIRMED && onTransactionUnlock && (
                     <Tooltip title={ACTION_TOOLTIPS.UNLOCK}>
                       <IconButton
-                        size="small"
+                        size="medium"
                         color="warning"
+                        sx={actionButtonStyle}
                         onClick={(e) => {
                           e.stopPropagation();
                           onTransactionUnlock(transaction._id);
@@ -218,8 +324,9 @@ export const AccountTransactionListTable: React.FC<AccountTransactionListTablePr
                   {transaction.status === TRANSACTION_STATUS.DRAFT && onTransactionDelete && (
                     <Tooltip title={ACTION_TOOLTIPS.DELETE}>
                       <IconButton
-                        size="small"
+                        size="medium"
                         color="error"
+                        sx={actionButtonStyle}
                         onClick={(e) => {
                           e.stopPropagation();
                           onTransactionDelete(transaction._id);

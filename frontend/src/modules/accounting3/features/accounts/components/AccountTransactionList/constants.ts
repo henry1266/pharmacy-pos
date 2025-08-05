@@ -79,10 +79,10 @@ export const TABLE_HEADERS = {
   TRANSACTION_DATE: '交易日期',
   DESCRIPTION: '交易描述',
   FLOW: '交易流向',
-  ACCOUNT_AMOUNT: '本科目金額',
+  ACCOUNT_AMOUNT: '科目金額',
   RUNNING_BALANCE: '累計餘額',
   STATUS: '狀態',
-  FUNDING_STATUS: '資金狀態',
+  FUNDING_STATUS: '引用',
   ACTIONS: '操作',
 } as const;
 

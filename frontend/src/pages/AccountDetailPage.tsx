@@ -197,27 +197,54 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = () => {
           />
       </Card>
 
-      {/* 右側固定按鈕 */}
+      {/* 右側固定按鈕 - 優化觸控體驗 */}
       <Box
         sx={{
           position: 'fixed',
-          right: 5,
-          top: '40%',
-          transform: 'translateY(-50%)',
+          right: { xs: 16, sm: 20 },
+          bottom: { xs: 24, sm: 32 },
           display: 'flex',
           flexDirection: 'column',
-          gap: 2,
+          gap: 3,
           zIndex: 1000
         }}
       >
         <Tooltip title="新增交易" placement="left" arrow>
-          <Fab color="primary" size="medium" onClick={handleAddTransaction} aria-label="新增交易">
-            <AddIcon />
+          <Fab
+            color="primary"
+            size="large"
+            onClick={handleAddTransaction}
+            aria-label="新增交易"
+            sx={{
+              width: { xs: 56, sm: 64 },
+              height: { xs: 56, sm: 64 },
+              boxShadow: 3,
+              '&:active': {
+                boxShadow: 1,
+                transform: 'scale(0.98)'
+              }
+            }}
+          >
+            <AddIcon sx={{ fontSize: { xs: 24, sm: 28 } }} />
           </Fab>
         </Tooltip>
         <Tooltip title="返回科目列表" placement="left" arrow>
-          <Fab color="secondary" size="medium" onClick={() => navigate('/accounting3/accounts')} aria-label="返回科目列表">
-            <ArrowBackIcon />
+          <Fab
+            color="secondary"
+            size="large"
+            onClick={() => navigate('/accounting3/accounts')}
+            aria-label="返回科目列表"
+            sx={{
+              width: { xs: 56, sm: 64 },
+              height: { xs: 56, sm: 64 },
+              boxShadow: 3,
+              '&:active': {
+                boxShadow: 1,
+                transform: 'scale(0.98)'
+              }
+            }}
+          >
+            <ArrowBackIcon sx={{ fontSize: { xs: 24, sm: 28 } }} />
           </Fab>
         </Tooltip>
       </Box>

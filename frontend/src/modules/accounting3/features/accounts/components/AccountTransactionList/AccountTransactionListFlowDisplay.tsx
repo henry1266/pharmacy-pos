@@ -32,19 +32,21 @@ interface AccountTransactionListFlowDisplayProps {
   transaction: ExtendedTransactionGroupWithEntries;
 }
 
-// 可重用的 Chip 樣式配置
+// 可重用的 Chip 樣式配置 - 觸控優化版本
 const FLOW_CHIP_STYLES = {
-  fontSize: '0.75rem',
-  height: 24,
-  maxWidth: 80,
+  fontSize: { xs: '0.75rem', sm: '0.8rem' },
+  height: { xs: 24, sm: 28 },
+  maxWidth: { xs: 100, sm: 120 },
+  px: 0.5,
   '& .MuiChip-label': {
     overflow: 'hidden',
     textOverflow: 'ellipsis',
-    fontSize: '0.75rem'
+    fontSize: { xs: '0.75rem', sm: '0.8rem' },
+    px: 0.5
   }
 } as const;
 
-// 可重用的流向 Chip 組件
+// 可重用的流向 Chip 組件 - 觸控優化版本
 const FlowChip: React.FC<{
   label: string;
   color: 'primary' | 'secondary';
@@ -54,16 +56,24 @@ const FlowChip: React.FC<{
 }> = ({ label, color, position, accountId, onClick }) => (
   <Chip
     label={label}
-    size="small"
+    size="medium"
     color={color}
     clickable={!!accountId}
     onClick={accountId && onClick ? () => onClick(accountId) : undefined}
     sx={{
       ...FLOW_CHIP_STYLES,
-      ...(position === 'from' ? { mr: 0.5 } : { ml: 0.5 }),
+      ...(position === 'from' ? { mr: { xs: 0.5, sm: 1 } } : { ml: { xs: 0.5, sm: 1 } }),
       cursor: accountId ? 'pointer' : 'default',
+      boxShadow: 1,
+      transition: 'all 0.2s',
       '&:hover': accountId ? {
-        backgroundColor: color === 'primary' ? 'primary.dark' : 'secondary.dark'
+        backgroundColor: color === 'primary' ? 'primary.dark' : 'secondary.dark',
+        boxShadow: 2,
+        transform: 'translateY(-1px)'
+      } : {},
+      '&:active': accountId ? {
+        transform: 'translateY(0)',
+        boxShadow: 0
       } : {}
     }}
   />
@@ -134,7 +144,15 @@ export const AccountTransactionListFlowDisplay: React.FC<AccountTransactionListF
     const toAccountName = getAccountName(toAccount);
 
     return (
-      <Box sx={{ display: 'flex', alignItems: 'center', py: 0.5, minWidth: 180 }}>
+      <Box sx={{
+        display: 'flex',
+        alignItems: 'center',
+        py: { xs: 0.5, sm: 1 },
+        minWidth: { xs: 180, sm: 220 },
+        maxWidth: '100%',
+        justifyContent: 'center',
+        overflow: 'hidden'
+      }}>
         <FlowChip
           label={fromAccountName}
           color="secondary"
@@ -142,7 +160,17 @@ export const AccountTransactionListFlowDisplay: React.FC<AccountTransactionListF
           accountId={fromAccount.accountId}
           onClick={handleAccountClick}
         />
-        <ArrowForwardIcon sx={{ fontSize: 16, color: 'primary.main', mx: 0.25 }} />
+        <ArrowForwardIcon sx={{
+          fontSize: { xs: 16, sm: 20 },
+          color: 'primary.main',
+          mx: { xs: 0.25, sm: 0.5 },
+          animation: 'pulse 1.5s infinite ease-in-out',
+          '@keyframes pulse': {
+            '0%': { opacity: 0.7, transform: 'scale(0.95)' },
+            '50%': { opacity: 1, transform: 'scale(1.05)' },
+            '100%': { opacity: 0.7, transform: 'scale(0.95)' }
+          }
+        }} />
         <FlowChip
           label={toAccountName}
           color="primary"

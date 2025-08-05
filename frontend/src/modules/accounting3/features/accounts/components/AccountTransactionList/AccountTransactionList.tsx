@@ -6,7 +6,8 @@ import {
   Chip,
   CircularProgress,
   Alert,
-  Button
+  Button,
+  Snackbar
 } from '@mui/material';
 import {
   Receipt as ReceiptIcon,
@@ -196,6 +197,8 @@ export const AccountTransactionList: React.FC<AccountTransactionListProps> = ({
     };
   }, [selectedAccount, transactions]);
 
+  // 移除觸控事件處理函數和分頁邏輯
+
   // 計算帶累計餘額的交易列表（累加順序與顯示順序完全反過來）
   const transactionsWithRunningBalance = useMemo(() => {
     if (!selectedAccount || transactions.length === 0) return [];
@@ -322,7 +325,7 @@ export const AccountTransactionList: React.FC<AccountTransactionListProps> = ({
             </Box>
           </Box>
         ) : (
-          <Box sx={{ p: 2 }}>
+          <Box sx={{ p: 2, width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
             {/* Dashboard 統計區域 */}
             <TransactionStatisticsCards statistics={statistics} />
             
