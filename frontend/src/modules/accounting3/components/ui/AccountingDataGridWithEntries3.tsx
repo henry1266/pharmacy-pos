@@ -25,8 +25,11 @@ import {
   MenuItem,
   Grid,
   Stack,
-  Pagination
+  Pagination,
+  Fade,
+  Skeleton
 } from '@mui/material';
+import { DataGrid, GridColDef, GridRenderCellParams, GridLocaleText } from '@mui/x-data-grid';
 import {
   Edit as EditIcon,
   Delete as DeleteIcon,
@@ -71,6 +74,17 @@ interface ExtendedTransactionGroupWithEntries extends TransactionGroupWithEntrie
   }>;
 }
 
+// DataGrid 行數據介面
+interface TransactionRow extends ExtendedTransactionGroupWithEntries {
+  id: string; // DataGrid需要唯一的id字段
+}
+
+// 定義分頁模型介面
+interface PaginationModel {
+  page: number;
+  pageSize: number;
+}
+
 interface AccountingDataGridWithEntries3Props {
   organizationId?: string;
   showFilters?: boolean;
@@ -82,6 +96,8 @@ interface AccountingDataGridWithEntries3Props {
   onConfirm: (id: string) => void;
   onUnlock: (id: string) => void;
   onToggleFilters?: () => void;
+  paginationModel?: PaginationModel;
+  setPaginationModel?: (model: PaginationModel) => void;
 }
 
 interface FilterOptions {
@@ -102,13 +118,160 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
   onDelete,
   onView,
   onConfirm,
-  onUnlock
+  onUnlock,
+  paginationModel = { page: 0, pageSize: 25 },
+  setPaginationModel
 }) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   
   // 使用 Redux 狀態
   const { transactionGroups, loading, error, pagination } = useAppSelector(state => state.transactionGroupWithEntries);
+
+  // 定義 DataGrid 列
+  const columns: GridColDef[] = [
+    {
+      field: 'transactionDate',
+      headerName: '交易日期',
+      flex: 1,
+      valueFormatter: (params) => {
+        return formatDate(params.value);
+      }
+    },
+    {
+      field: 'description',
+      headerName: '交易描述',
+      flex: 2
+    },
+    {
+      field: 'groupNumber',
+      headerName: '交易編號',
+      flex: 1
+    },
+    {
+      field: 'flow',
+      headerName: '交易流向',
+      flex: 1.5,
+      sortable: false,
+      align: 'center',
+      renderCell: (params: GridRenderCellParams) => renderTransactionFlow(params.row as ExtendedTransactionGroupWithEntries)
+    },
+    {
+      field: 'totalAmount',
+      headerName: '金額',
+      flex: 1,
+      align: 'right',
+      valueFormatter: (params) => {
+        return formatCurrency(params.value || 0);
+      }
+    },
+    {
+      field: 'status',
+      headerName: '狀態',
+      flex: 1,
+      align: 'center',
+      renderCell: (params: GridRenderCellParams) => getStatusChip(params.value)
+    },
+    {
+      field: 'fundingStatus',
+      headerName: '資金狀態',
+      flex: 1,
+      align: 'center',
+      sortable: false,
+      renderCell: (params: GridRenderCellParams) => renderIntegratedFundingStatus(params.row as ExtendedTransactionGroupWithEntries)
+    },
+    {
+      field: 'actions',
+      headerName: '操作',
+      flex: 1,
+      sortable: false,
+      align: 'center',
+      renderCell: (params: GridRenderCellParams) => {
+        const group = params.row as ExtendedTransactionGroupWithEntries;
+        return (
+          <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+            <Tooltip title="查看詳情">
+              <IconButton
+                size="small"
+                onClick={() => navigate(`/accounting3/transaction/${group._id}`)}
+              >
+                <OpenInNewIcon />
+              </IconButton>
+            </Tooltip>
+            
+            <Tooltip title="快速檢視">
+              <IconButton
+                size="small"
+                onClick={() => onView(group)}
+              >
+                <ViewIcon />
+              </IconButton>
+            </Tooltip>
+            
+            {/* 編輯按鈕 - 只有草稿狀態可以編輯 */}
+            {group.status === 'draft' && (
+              <Tooltip title="編輯">
+                <IconButton
+                  size="small"
+                  onClick={() => onEdit(group)}
+                >
+                  <EditIcon />
+                </IconButton>
+              </Tooltip>
+            )}
+            
+            <Tooltip title="複製">
+              <IconButton
+                size="small"
+                onClick={() => onCopy(group)}
+              >
+                <CopyIcon />
+              </IconButton>
+            </Tooltip>
+            
+            {/* 確認按鈕 - 只有草稿狀態且已平衡可以確認 */}
+            {group.status === 'draft' && isBalanced(group.entries) && (
+              <Tooltip title="確認交易">
+                <IconButton
+                  size="small"
+                  color="success"
+                  onClick={() => onConfirm(group._id)}
+                >
+                  <ConfirmIcon />
+                </IconButton>
+              </Tooltip>
+            )}
+            
+            {/* 解鎖按鈕 - 只有已確認狀態可以解鎖 */}
+            {group.status === 'confirmed' && (
+              <Tooltip title="解鎖交易">
+                <IconButton
+                  size="small"
+                  color="warning"
+                  onClick={() => onUnlock(group._id)}
+                >
+                  <UnlockIcon />
+                </IconButton>
+              </Tooltip>
+            )}
+            
+            {/* 刪除按鈕 - 只有草稿狀態可以刪除 */}
+            {group.status === 'draft' && (
+              <Tooltip title="刪除">
+                <IconButton
+                  size="small"
+                  color="error"
+                  onClick={() => onDelete(group._id)}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Tooltip>
+            )}
+          </Box>
+        );
+      }
+    }
+  ];
 
   // 提取帳戶ID的工具函數
   const extractAccountId = (accountId: string | any): string | null => {
@@ -138,15 +301,21 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
     page: 1,
     limit: 25
   });
+  
+  // 為 DataGrid 準備行數據
+  const rows: TransactionRow[] = transactionGroups.map(group => ({
+    ...group,
+    id: group._id, // DataGrid 需要唯一的 id 字段
+  }));
 
   // 載入交易群組資料
   const loadTransactionGroups = () => {
-    console.log('[Accounting3] 🔍 AccountingDataGridWithEntries3 - 載入交易群組:', { organizationId, filter });
+    console.log('[Accounting3] 🔍 AccountingDataGridWithEntries3 - 載入交易群組:', {
+      organizationId
+    });
 
     const params: any = {
-      organizationId,
-      page: filter.page,
-      limit: filter.limit
+      organizationId
     };
 
     if (filter.search) params.search = filter.search;
@@ -164,15 +333,11 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
       search: filter.search,
       status: filter.status,
       startDate: filter.startDate,
-      endDate: filter.endDate,
-      page: filter.page,
-      limit: filter.limit
+      endDate: filter.endDate
     });
 
     const params: any = {
-      organizationId,
-      page: filter.page,
-      limit: filter.limit
+      organizationId
     };
 
     if (filter.search) params.search = filter.search;
@@ -187,9 +352,7 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
     filter.search,
     filter.status,
     filter.startDate,
-    filter.endDate,
-    filter.page,
-    filter.limit
+    filter.endDate
   ]);
 
   // 監聽 Redux 狀態變化
@@ -209,23 +372,36 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
       [field]: value,
       page: field !== 'page' ? 1 : value // 非分頁變更時重置到第一頁
     }));
+    
+    // 如果是篩選條件變更，重置分頁到第一頁
+    if (field !== 'page' && field !== 'limit' && setPaginationModel) {
+      setPaginationModel({
+        ...paginationModel,
+        page: 0 // DataGrid 的頁碼從 0 開始
+      });
+    }
   };
 
-  // 處理分頁變更
-  const handlePageChange = (_event: React.ChangeEvent<unknown>, value: number) => {
-    handleFilterChange('page', value);
-  };
+  // 處理分頁變更 - 這個函數不再需要，因為 DataGrid 會直接調用 onPageChange
 
-  // 清除篩選
+  // 清除篩選，但保留每頁顯示數量
   const handleClearFilter = () => {
-    setFilter({
+    setFilter(prevFilter => ({
       search: '',
       status: '',
       startDate: null,
       endDate: null,
       page: 1,
-      limit: 25
-    });
+      limit: prevFilter.limit // 保留用戶選擇的每頁顯示數量
+    }));
+    
+    // 重置分頁到第一頁
+    if (setPaginationModel) {
+      setPaginationModel({
+        ...paginationModel,
+        page: 0 // DataGrid 的頁碼從 0 開始
+      });
+    }
   };
 
   // 格式化日期
@@ -513,16 +689,49 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
     );
   };
 
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-        <CircularProgress />
-        <Typography variant="body2" sx={{ ml: 2 }}>
-          [Accounting3] 載入交易群組資料中...
-        </Typography>
-      </Box>
-    );
-  }
+  // 創建骨架屏載入效果
+  const renderSkeleton = () => (
+    <Box sx={{
+      width: '100%',
+      mt: 1,
+      bgcolor: 'background.paper', // 使用主題的背景色
+      borderRadius: 1,
+      height: '100%',
+      minHeight: '70vh' // 確保至少佔據70%的視窗高度
+    }}>
+      {[...Array(15)].map((_, index) => ( // 增加到15行以填滿更多空間
+        <Box
+          key={index}
+          sx={{
+            display: 'flex',
+            mb: 1,
+            opacity: 0,
+            animation: 'fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards',
+            animationDelay: `${index * 0.05}s`
+          }}
+        >
+          {[...Array(6)].map((_, colIndex) => (
+            <Skeleton
+              key={colIndex}
+              variant="rectangular"
+              width={`${100 / 6}%`}
+              height={52}
+              animation="wave"
+              sx={{
+                mx: 0.5,
+                borderRadius: 1,
+                opacity: 1 - (index * 0.1), // 漸變效果
+                bgcolor: 'action.hover', // 使用主題的懸停色，通常是淺灰色
+                '&::after': {
+                  background: 'linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.04), transparent)'
+                }
+              }}
+            />
+          ))}
+        </Box>
+      ))}
+    </Box>
+  );
 
   if (error) {
     return (
@@ -618,182 +827,164 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
           </Paper>
           )}
 
-          {/* 交易群組表格 */}
-          {transactionGroups.length === 0 ? (
-            <Box sx={{ textAlign: 'center', py: 4 }}>
-              <ReceiptIcon sx={{ fontSize: 64, color: 'grey.400', mb: 2 }} />
-              <Typography variant="h6" color="text.secondary" gutterBottom>
-                尚無交易記錄 (Accounting3)
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                開始建立您的第一筆複式記帳交易
-              </Typography>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={onCreateNew}
-              >
-                建立交易
-              </Button>
-            </Box>
-          ) : (
-            <>
-              <TableContainer component={Paper} variant="outlined">
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>交易日期</TableCell>
-                      <TableCell>交易描述</TableCell>                    
-                      <TableCell>交易編號</TableCell>
-                      <TableCell align="center">交易流向</TableCell>
-                      <TableCell align="right">金額</TableCell>
-                      <TableCell align="center">狀態</TableCell>
-                      <TableCell align="center">資金狀態</TableCell>
-                      <TableCell align="center">操作</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {transactionGroups.map((group) => (
-                      <TableRow key={group._id} hover>
-                        <TableCell>
-                          {formatDate(group.transactionDate)}
-                        </TableCell>
-                        <TableCell>
-                          <Typography variant="body2" fontWeight="medium">
-                            {group.description}
-                          </Typography>
-                        </TableCell>
-
-                        <TableCell>
-                          <Typography variant="body2" fontFamily="monospace">
-                            {group.groupNumber}
-                          </Typography>
-                        </TableCell>
-                        <TableCell align="center">
-                          {renderTransactionFlow(group as ExtendedTransactionGroupWithEntries)}
-                        </TableCell>
-                        <TableCell align="right">
-                          <Typography variant="body2" fontWeight="medium">
-                            {formatCurrency(calculateTotalAmount(group.entries))}
-                          </Typography>
-                        </TableCell>
-                        <TableCell align="center">
-                          {getStatusChip(group.status || 'draft')}
-                        </TableCell>
-                        <TableCell align="center">
-                          {renderIntegratedFundingStatus(group as ExtendedTransactionGroupWithEntries)}
-                        </TableCell>
-                        <TableCell align="center">
-                          <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                            <Tooltip title="查看詳情">
-                              <IconButton
-                                size="small"
-                                onClick={() => navigate(`/accounting3/transaction/${group._id}`)}
-                              >
-                                <OpenInNewIcon />
-                              </IconButton>
-                            </Tooltip>
-                            
-                            <Tooltip title="快速檢視">
-                              <IconButton
-                                size="small"
-                                onClick={() => onView(group)}
-                              >
-                                <ViewIcon />
-                              </IconButton>
-                            </Tooltip>
-                            
-                            {/* 編輯按鈕 - 只有草稿狀態可以編輯 */}
-                            {group.status === 'draft' && (
-                              <Tooltip title="編輯">
-                                <IconButton
-                                  size="small"
-                                  onClick={() => onEdit(group)}
-                                >
-                                  <EditIcon />
-                                </IconButton>
-                              </Tooltip>
-                            )}
-                            
-                            <Tooltip title="複製">
-                              <IconButton
-                                size="small"
-                                onClick={() => onCopy(group)}
-                              >
-                                <CopyIcon />
-                              </IconButton>
-                            </Tooltip>
-                            
-                            {/* 確認按鈕 - 只有草稿狀態且已平衡可以確認 */}
-                            {group.status === 'draft' && isBalanced(group.entries) && (
-                              <Tooltip title="確認交易">
-                                <IconButton
-                                  size="small"
-                                  color="success"
-                                  onClick={() => onConfirm(group._id)}
-                                >
-                                  <ConfirmIcon />
-                                </IconButton>
-                              </Tooltip>
-                            )}
-                            
-                            {/* 解鎖按鈕 - 只有已確認狀態可以解鎖 */}
-                            {group.status === 'confirmed' && (
-                              <Tooltip title="解鎖交易">
-                                <IconButton
-                                  size="small"
-                                  color="warning"
-                                  onClick={() => onUnlock(group._id)}
-                                >
-                                  <UnlockIcon />
-                                </IconButton>
-                              </Tooltip>
-                            )}
-                            
-                            {/* 刪除按鈕 - 只有草稿狀態可以刪除 */}
-                            {group.status === 'draft' && (
-                              <Tooltip title="刪除">
-                                <IconButton
-                                  size="small"
-                                  color="error"
-                                  onClick={() => onDelete(group._id)}
-                                >
-                                  <DeleteIcon />
-                                </IconButton>
-                              </Tooltip>
-                            )}
-                          </Box>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-
-              {/* 分頁 */}
-              {pagination && pagination.totalPages > 1 && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-                  <Stack spacing={2} alignItems="center">
-                    <Pagination
-                      count={pagination.totalPages}
-                      page={pagination.page}
-                      onChange={handlePageChange}
-                      color="primary"
-                      showFirstButton
-                      showLastButton
-                    />
-                    <Typography variant="caption" color="text.secondary">
-                      第 {pagination.page} 頁，共 {pagination.totalPages} 頁 |
-                      顯示 {transactionGroups.length} 筆，共 {pagination.total} 筆交易群組 (Accounting3)
+          {/* 交易群組表格 - 使用 DataGrid */}
+          <Box sx={{
+            width: '100%',
+            position: 'relative',
+            minHeight: '70vh', // 增加最小高度以填滿更多螢幕空間
+            height: '100%',
+            bgcolor: 'background.paper', // 確保整個容器使用相同的背景色
+            borderRadius: 1,
+            border: 1, // 添加外邊框
+            borderColor: 'divider', // 使用主題的分隔線顏色
+            boxShadow: 1, // 添加輕微陰影增強視覺效果
+            overflow: 'hidden' // 確保內容不會溢出圓角
+          }}>
+            <Fade in={!loading} timeout={1000}>
+              <Box sx={{
+                position: loading ? 'absolute' : 'relative',
+                width: '100%',
+                opacity: loading ? 0 : 1,
+                transition: 'opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                bgcolor: 'background.paper',
+                borderRadius: 1
+              }}>
+                {transactionGroups.length === 0 ? (
+                  <Box sx={{ textAlign: 'center', py: 4 }}>
+                    <ReceiptIcon sx={{ fontSize: 64, color: 'grey.400', mb: 2 }} />
+                    <Typography variant="h6" color="text.secondary" gutterBottom>
+                      尚無交易記錄
                     </Typography>
-                  </Stack>
-                </Box>
-              )}
-            </>
-          )}
-        </CardContent>
-      </Card>
-    </LocalizationProvider>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                      開始建立您的第一筆複式記帳交易
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      startIcon={<AddIcon />}
+                      onClick={onCreateNew}
+                    >
+                      建立交易
+                    </Button>
+                  </Box>
+                ) : (
+                 <DataGrid
+                   rows={rows}
+                   columns={columns}
+                   checkboxSelection={false}
+                   disableSelectionOnClick
+                   loading={false} // 由於我們自己控制載入效果，這裡設為false
+                   autoHeight
+                   getRowId={(row) => row.id}
+                   getRowClassName={(params) => `row-${params.indexRelativeToCurrentPage}`}
+                   sx={{
+                     // 基本樣式
+                     '& .MuiDataGrid-main': {
+                       bgcolor: 'background.paper'
+                     },
+                     '& .MuiDataGrid-root': {
+                       border: 'none' // 移除 DataGrid 自帶的邊框，因為我們已經為容器添加了邊框
+                     },
+                     // 基本行樣式
+                     '& .MuiDataGrid-row': {
+                       opacity: 0,
+                       animation: 'fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards',
+                       bgcolor: 'background.paper'
+                     },
+                     // 為每一行設置不同的動畫延遲
+                     ...[...Array(20)].reduce((styles, _, index) => ({
+                       ...styles,
+                       [`& .row-${index}`]: {
+                         animationDelay: `${index * 0.03}s`,
+                       },
+                     }), {}),
+                     '@keyframes fadeIn': {
+                       '0%': {
+                         opacity: 0,
+                         transform: 'translateY(5px)'
+                       },
+                       '100%': {
+                         opacity: 1,
+                         transform: 'translateY(0)'
+                       }
+                     }
+                   }}
+                   localeText={{
+                     noRowsLabel: '沒有交易記錄',
+                     footerRowSelected: (count: number) => `已選擇 ${count} 個項目`,
+                     columnMenuLabel: '選單',
+                     columnMenuShowColumns: '顯示欄位',
+                     columnMenuFilter: '篩選',
+                     columnMenuHideColumn: '隱藏',
+                     columnMenuUnsort: '取消排序',
+                     columnMenuSortAsc: '升序排列',
+                     columnMenuSortDesc: '降序排列',
+                     filterPanelAddFilter: '新增篩選',
+                     filterPanelDeleteIconLabel: '刪除',
+                     filterPanelOperator: '運算子',
+                     filterPanelOperatorAnd: '與',
+                     filterPanelOperatorOr: '或',
+                     filterPanelColumns: '欄位',
+                     filterPanelInputLabel: '值',
+                     filterPanelInputPlaceholder: '篩選值',
+                     columnsPanelTextFieldLabel: '尋找欄位',
+                     columnsPanelTextFieldPlaceholder: '欄位名稱',
+                     columnsPanelDragIconLabel: '重新排序欄位',
+                     columnsPanelShowAllButton: '顯示全部',
+                     columnsPanelHideAllButton: '隱藏全部',
+                     toolbarDensity: '密度',
+                     toolbarDensityLabel: '密度',
+                     toolbarDensityCompact: '緊湊',
+                     toolbarDensityStandard: '標準',
+                     toolbarDensityComfortable: '舒適',
+                     toolbarExport: '匯出',
+                     toolbarExportLabel: '匯出',
+                     toolbarExportCSV: '下載CSV',
+                     toolbarExportPrint: '列印',
+                     toolbarColumns: '欄位',
+                     toolbarColumnsLabel: '選擇欄位',
+                     toolbarFilters: '篩選',
+                     toolbarFiltersLabel: '顯示篩選',
+                     toolbarFiltersTooltipHide: '隱藏篩選',
+                     toolbarFiltersTooltipShow: '顯示篩選',
+                     toolbarQuickFilterPlaceholder: '搜尋...',
+                     toolbarQuickFilterLabel: '搜尋',
+                     toolbarQuickFilterDeleteIconLabel: '清除',
+                     paginationRowsPerPage: '每頁行數:',
+                     paginationPageSize: '頁面大小',
+                     paginationLabelDisplayedRows: ({ from, to, count }: { from: number; to: number; count: number }) => {
+                       const countDisplay = count !== -1 ? count.toString() : '超過 ' + to;
+                       return `${from}-${to} / ${countDisplay}`;
+                     },
+                     paginationLabelRowsPerPage: '每頁行數:'
+                   } as Partial<GridLocaleText>}
+                 />
+               )}
+             </Box>
+           </Fade>
+           
+           <Box
+             sx={{
+               position: 'absolute',
+               top: 0,
+               left: 0,
+               width: '100%',
+               height: '100%', // 確保填滿整個容器高度
+               minHeight: '70vh', // 確保至少佔據70%的視窗高度
+               opacity: loading ? 1 : 0,
+               visibility: loading ? 'visible' : 'hidden',
+               transition: 'opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+               overflow: 'hidden',
+               bgcolor: 'background.paper',
+               borderRadius: 1,
+               border: 'none' // 不需要為骨架屏添加邊框，因為它在容器內部
+             }}
+           >
+             {renderSkeleton()}
+           </Box>
+         </Box>
+       </CardContent>
+     </Card>
+   </LocalizationProvider>
   );
 };
 

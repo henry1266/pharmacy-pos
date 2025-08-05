@@ -139,15 +139,13 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
 
     console.log('📋 最終查詢條件:', filter);
 
-    // 執行查詢
+    // 執行查詢 - 不限制返回數據筆數
     const [transactionGroups, total] = await Promise.all([
       TransactionGroupWithEntries.find(filter)
         .populate('entries.accountId', 'name code accountType normalBalance')
         .populate('entries.categoryId', 'name type color')
         .populate('entries.sourceTransactionId', 'groupNumber description transactionDate totalAmount')
-        .sort({ transactionDate: -1, createdAt: -1 })
-        .skip(skip)
-        .limit(limitNum),
+        .sort({ transactionDate: -1, createdAt: -1 }),
       TransactionGroupWithEntries.countDocuments(filter)
     ]);
 
