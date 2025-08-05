@@ -190,7 +190,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           if (days > 0 || hours > 0) timeLeftString += `${hours}時 `;
           timeLeftString += `${minutes}分 ${seconds}秒`;
           
-          setTimeLeft(` (登入將於 ${timeLeftString} 後失效)`);
+          setTimeLeft(` ( ${timeLeftString} 後登出)`);
           return false;
         }
       };

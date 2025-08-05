@@ -8,8 +8,6 @@ import {
   Alert,
   Snackbar,
   Paper,
-  Breadcrumbs,
-  Link,
   Fab,
   Tooltip,
 } from '@mui/material';
@@ -24,6 +22,8 @@ import {
 import { AccountHierarchyManager, AccountTransactionList } from '../features/accounts/components';
 // 導入 accounting3 科目表單組件
 import { AccountForm } from '../features/accounts/components';
+// 導入美化的麵包屑導航組件
+import { BreadcrumbNavigation } from '../components/ui';
 
 // 導入共享類型
 import { Account3, Account3FormData } from '@pharmacy-pos/shared/types/accounting3';
@@ -306,39 +306,22 @@ export const AccountsManagementPage: React.FC = () => {
   return (
     <Container maxWidth="xl" sx={{ py: 2 }}>
       {/* 麵包屑導航 */}
-      <Box sx={{ mb: 2 }}>
-        <Breadcrumbs aria-label="breadcrumb">
-          <Link
-            color="inherit"
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              navigate('/accounting3');
-            }}
-            sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
-          >
-            <ReceiptIcon fontSize="small" />
-            會計管理
-          </Link>
-          <Typography 
-            color="text.primary" 
-            sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
-          >
-            <AccountTreeIcon fontSize="small" />
-            科目管理
-          </Typography>
-        </Breadcrumbs>
-      </Box>
-
-      {/* 頁面標題 */}
-      <Box sx={{ mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-          <AccountTreeIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-          <Typography variant="h4" component="h1" fontWeight="bold">
-            科目階層管理
-          </Typography>
-        </Box>
-      </Box>
+      <BreadcrumbNavigation
+        items={[
+          {
+            label: '會計管理',
+            path: '/accounting3',
+            icon: <ReceiptIcon fontSize="small" />
+          },
+          {
+            label: '科目管理',
+            icon: <AccountTreeIcon fontSize="small" />
+          }
+        ]}
+        showShadow={true}
+        fontSize="1.2rem"
+        padding={8}
+      />
 
       {/* 主要內容區域 - 左右布局 */}
       <Box sx={{ display: 'flex', gap: 2, height: 'calc(100vh - 200px)', minHeight: 600 }}>
