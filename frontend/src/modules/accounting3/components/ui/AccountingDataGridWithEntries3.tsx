@@ -744,8 +744,8 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
-      <Card>
-        <CardContent>
+      <Box>
+        <Box>
           {/* 篩選器 */}
           {showFilters && (
             <Paper sx={{ p: 2, mb: 3 }} variant="outlined">
@@ -884,6 +884,12 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
                      '& .MuiDataGrid-root': {
                        border: 'none' // 移除 DataGrid 自帶的邊框，因為我們已經為容器添加了邊框
                      },
+                     // 表頭樣式 - 使用主題的淡色
+                     '& .MuiDataGrid-columnHeaders': {
+                       bgcolor: 'action.hover', // 使用主題的淡色
+                       borderBottom: '1px solid',
+                       borderColor: 'divider'
+                     },
                      // 基本行樣式
                      '& .MuiDataGrid-row': {
                        opacity: 0,
@@ -982,8 +988,8 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
              {renderSkeleton()}
            </Box>
          </Box>
-       </CardContent>
-     </Card>
+       </Box>
+     </Box>
    </LocalizationProvider>
   );
 };

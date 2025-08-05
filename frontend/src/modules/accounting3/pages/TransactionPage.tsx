@@ -573,7 +573,6 @@ export const Accounting3TransactionPage: React.FC = () => {
   return (
     <Container maxWidth="xl" sx={{ py: 1 }}>
       {/* 頁面標題 */}
-      <Box sx={{ mb: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           {/* 麵包屑導航 */}
           <BreadcrumbNavigation
@@ -610,7 +609,6 @@ export const Accounting3TransactionPage: React.FC = () => {
             </Button>
           </Box>
         </Box>
-      </Box>
 
       {/* 錯誤提示 */}
       {error && (
@@ -620,22 +618,17 @@ export const Accounting3TransactionPage: React.FC = () => {
       )}
 
       {/* 主要內容區域 - 交易管理 */}
-      <Card sx={{ mb: 3, px: 2, mx: 1 }}>
-        <CardContent>
-          
-          <AccountingDataGridWithEntries
-            showFilters={showFilters}
-            onToggleFilters={() => setShowFilters(!showFilters)}
-            onCreateNew={() => navigate('/accounting3/transaction/new')}
-            onEdit={handleEdit}
-            onView={handleView}
-            onDelete={handleDelete}
-            onCopy={handleCopy}
-            onConfirm={handleConfirm}
-            onUnlock={handleUnlock}
-          />
-        </CardContent>
-      </Card>
+      <AccountingDataGridWithEntries
+        showFilters={showFilters}
+        onToggleFilters={() => setShowFilters(!showFilters)}
+        onCreateNew={() => navigate('/accounting3/transaction/new')}
+        onEdit={handleEdit}
+        onView={handleView}
+        onDelete={handleDelete}
+        onCopy={handleCopy}
+        onConfirm={handleConfirm}
+        onUnlock={handleUnlock}
+      />
 
       {/* 右側固定按鈕 */}
       <Box
