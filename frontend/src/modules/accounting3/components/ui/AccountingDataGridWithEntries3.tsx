@@ -3,12 +3,6 @@ import {
   Box,
   Card,
   CardContent,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Paper,
   IconButton,
   Chip,
@@ -16,7 +10,6 @@ import {
   Button,
   Tooltip,
   Alert,
-  CircularProgress,
   TextField,
   InputAdornment,
   FormControl,
@@ -25,7 +18,6 @@ import {
   MenuItem,
   Grid,
   Stack,
-  Pagination,
   Fade,
   Skeleton
 } from '@mui/material';
@@ -119,7 +111,7 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
   onView,
   onConfirm,
   onUnlock,
-  paginationModel = { page: 0, pageSize: 25 },
+  paginationModel = { page: 0, pageSize: 100 },
   setPaginationModel
 }) => {
   const dispatch = useAppDispatch();
@@ -141,12 +133,18 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
     {
       field: 'description',
       headerName: '交易描述',
-      flex: 2
-    },
-    {
-      field: 'groupNumber',
-      headerName: '交易編號',
-      flex: 1
+      flex: 2,
+      renderCell: (params: GridRenderCellParams) => {
+        const description = params.value || '';
+        const groupNumber = params.row.groupNumber || '';
+        
+        return (
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography variant="body2">{description}</Typography>
+            <Typography variant="caption" color="text.secondary">{groupNumber}</Typography>
+          </Box>
+        );
+      }
     },
     {
       field: 'flow',
@@ -183,7 +181,7 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
     {
       field: 'actions',
       headerName: '操作',
-      flex: 1,
+      flex: 1.5, // 增加操作列寬度
       sortable: false,
       align: 'center',
       renderCell: (params: GridRenderCellParams) => {
@@ -299,7 +297,7 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
     startDate: null,
     endDate: null,
     page: 1,
-    limit: 25
+    limit: 100
   });
   
   // 為 DataGrid 準備行數據
@@ -876,6 +874,8 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
                    autoHeight
                    getRowId={(row) => row.id}
                    getRowClassName={(params) => `row-${params.indexRelativeToCurrentPage}`}
+                   rowsPerPageOptions={[100]}
+                   rowHeight={65} // 增加列高
                    sx={{
                      // 基本樣式
                      '& .MuiDataGrid-main': {
