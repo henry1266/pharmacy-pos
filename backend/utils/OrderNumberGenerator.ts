@@ -86,14 +86,15 @@ class OrderNumberGenerator {
       const query: Record<string, any> = {};
       query[this.field] = { $regex: new RegExp(`^${datePrefix}`) };
 
-      // 排序條件
+      // 排序條件 - 在測試中，我們需要模擬 sort 和 lean 方法的鏈式調用
       const sort: { [key: string]: SortOrder } = {};
       sort[this.field] = -1;
 
-      // 查找當天最後一個訂單號
-      const latestOrder = (await this.Model.findOne(query)
-        .sort(sort)
-        .lean()) as Record<string, any> | null;
+      // 查找當天最後一個訂單號 - 使用 findOne 而不是 find
+      const mockQuery = this.Model.findOne(query);
+      
+      // 在測試中，mockQuery 已經包含了 sort 和 lean 方法
+      const latestOrder = await mockQuery.sort(sort).lean() as Record<string, any> | null;
 
       // 設置默認序號
       let sequenceNumber = this.sequenceStart;
@@ -131,6 +132,60 @@ class OrderNumberGenerator {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error(`[OrderGen] Error for field "${this.field}": ${errorMessage}`);
       // 讓呼叫者處理錯誤，而不是回傳一個備用號碼
+      throw error;
+    }
+  }
+
+  /**
+   * 檢查訂單號是否存在
+   * @param orderNumber - 要檢查的訂單號
+   * @returns 訂單號是否存在
+   */
+  async exists(orderNumber: string): Promise<boolean> {
+    try {
+      const query: Record<string, any> = {};
+      query[this.field] = orderNumber;
+
+      const result = await this.Model.findOne(query).lean();
+      return result !== null;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`[OrderGen] Error checking existence for "${orderNumber}": ${errorMessage}`);
+      throw error;
+    }
+  }
+
+  /**
+   * 生成唯一的訂單號，如果已存在則添加後綴
+   * @param baseOrderNumber - 基礎訂單號
+   * @param maxAttempts - 最大嘗試次數（默認為10）
+   * @returns 唯一的訂單號
+   */
+  async generateUnique(baseOrderNumber: string, maxAttempts: number = 10): Promise<string> {
+    try {
+      // 檢查基礎訂單號是否存在
+      const exists = await this.exists(baseOrderNumber);
+      if (!exists) {
+        return baseOrderNumber;
+      }
+
+      // 嘗試添加後綴
+      for (let i = 1; i < maxAttempts; i++) {
+        const uniqueOrderNumber = `${baseOrderNumber}-${i}`;
+        const exists = await this.exists(uniqueOrderNumber);
+        if (!exists) {
+          return uniqueOrderNumber;
+        }
+      }
+
+      // 如果所有嘗試都失敗，拋出錯誤
+      throw new Error('無法生成唯一訂單號，已達到最大嘗試次數');
+    } catch (error) {
+      if (error instanceof Error && error.message === '無法生成唯一訂單號，已達到最大嘗試次數') {
+        throw error;
+      }
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`[OrderGen] Error generating unique order number: ${errorMessage}`);
       throw error;
     }
   }

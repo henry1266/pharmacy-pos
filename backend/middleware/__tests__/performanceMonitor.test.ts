@@ -99,6 +99,9 @@ describe('PerformanceMonitor Middleware 測試', () => {
         .get('/test/fast')
         .expect(200);
 
+      // 添加一個小的延遲，確保 res.on('finish') 回調有足夠的時間執行
+      await new Promise(resolve => setTimeout(resolve, 50));
+
       const stats = getPerformanceStats();
       expect(stats.totalRequests).toBe(1);
       expect(stats.averageResponseTime).toBeGreaterThan(0);
@@ -115,6 +118,9 @@ describe('PerformanceMonitor Middleware 測試', () => {
         .send({ test: 'data' })
         .expect(200);
 
+      // 添加一個小的延遲，確保 res.on('finish') 回調有足夠的時間執行
+      await new Promise(resolve => setTimeout(resolve, 50));
+
       const stats = getPerformanceStats();
       expect(stats.totalRequests).toBe(2);
     });
@@ -127,6 +133,9 @@ describe('PerformanceMonitor Middleware 測試', () => {
       await request(testApp)
         .get('/test/error')
         .expect(500);
+
+      // 添加一個小的延遲，確保 res.on('finish') 回調有足夠的時間執行
+      await new Promise(resolve => setTimeout(resolve, 50));
 
       const stats = getPerformanceStats();
       expect(stats.totalRequests).toBe(2);
@@ -158,6 +167,9 @@ describe('PerformanceMonitor Middleware 測試', () => {
         .get('/test/fast')
         .expect(200);
 
+      // 添加一個小的延遲，確保 res.on('finish') 回調有足夠的時間執行
+      await new Promise(resolve => setTimeout(resolve, 50));
+
       const stats = getPerformanceStats();
       expect(stats.totalRequests).toBe(2);
       expect(stats.averageResponseTime).toBeGreaterThan(0);
@@ -173,6 +185,9 @@ describe('PerformanceMonitor Middleware 測試', () => {
         .get('/test/slow')
         .expect(200);
 
+      // 添加一個小的延遲，確保 res.on('finish') 回調有足夠的時間執行
+      await new Promise(resolve => setTimeout(resolve, 150));
+
       const stats = getPerformanceStats();
       expect(stats.slowestRequest).toBeDefined();
       expect(stats.fastestRequest).toBeDefined();
@@ -183,6 +198,9 @@ describe('PerformanceMonitor Middleware 測試', () => {
       await request(testApp)
         .get('/test/fast')
         .expect(200);
+
+      // 添加一個小的延遲，確保 res.on('finish') 回調有足夠的時間執行
+      await new Promise(resolve => setTimeout(resolve, 50));
 
       const stats = getPerformanceStats();
       expect(stats.memoryStats).toBeDefined();
@@ -202,6 +220,9 @@ describe('PerformanceMonitor Middleware 測試', () => {
         .get('/test/slow')
         .expect(200);
 
+      // 添加一個小的延遲，確保 res.on('finish') 回調有足夠的時間執行
+      await new Promise(resolve => setTimeout(resolve, 150));
+
       const slowRequests = getSlowRequests(50); // 50ms 閾值
       expect(slowRequests.length).toBeGreaterThan(0);
       expect(slowRequests[0].duration).toBeGreaterThan(50);
@@ -215,6 +236,9 @@ describe('PerformanceMonitor Middleware 測試', () => {
       await request(testApp)
         .get('/test/slow')
         .expect(200);
+
+      // 添加一個小的延遲，確保 res.on('finish') 回調有足夠的時間執行
+      await new Promise(resolve => setTimeout(resolve, 150));
 
       const slowRequests = getSlowRequests(50, 10);
       if (slowRequests.length > 1) {
@@ -230,6 +254,9 @@ describe('PerformanceMonitor Middleware 測試', () => {
           .expect(200);
       }
 
+      // 添加一個小的延遲，確保 res.on('finish') 回調有足夠的時間執行
+      await new Promise(resolve => setTimeout(resolve, 200));
+
       const slowRequests = getSlowRequests(50, 3);
       expect(slowRequests.length).toBeLessThanOrEqual(3);
     });
@@ -238,6 +265,9 @@ describe('PerformanceMonitor Middleware 測試', () => {
       await request(testApp)
         .get('/test/slow')
         .expect(200);
+
+      // 添加一個小的延遲，確保 res.on('finish') 回調有足夠的時間執行
+      await new Promise(resolve => setTimeout(resolve, 150));
 
       const slowRequests = getSlowRequests(50);
       if (slowRequests.length > 0) {
@@ -362,6 +392,9 @@ describe('PerformanceMonitor Middleware 測試', () => {
 
       await Promise.all(promises);
 
+      // 添加一個小的延遲，確保 res.on('finish') 回調有足夠的時間執行
+      await new Promise(resolve => setTimeout(resolve, 50));
+
       const stats = getPerformanceStats();
       expect(stats.totalRequests).toBe(3);
     });
@@ -378,6 +411,9 @@ describe('PerformanceMonitor Middleware 測試', () => {
       await request(testApp)
         .get('/test/error')
         .expect(500);
+
+      // 添加一個小的延遲，確保 res.on('finish') 回調有足夠的時間執行
+      await new Promise(resolve => setTimeout(resolve, 150));
 
       const stats = getPerformanceStats();
       expect(stats.totalRequests).toBe(3);
