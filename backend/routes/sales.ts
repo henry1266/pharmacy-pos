@@ -785,16 +785,16 @@ async function createSaleRecord(requestBody: SaleCreationRequest): Promise<SaleD
 
 // 生成銷貨單號
 async function generateSaleNumber(saleNumber?: string): Promise<string> {
-  // 如果提供了有效的銷貨單號，直接使用
-  if (saleNumber && saleNumber.trim() !== '') return saleNumber;
-  
+  // 不再使用前端提供的 saleNumber，一律由後端生成
+  console.log(`[Sale] Frontend provided saleNumber: "${saleNumber}" (Will be ignored)`);
+
   // 使用通用訂單單號生成服務
   const generatedNumber = await OrderNumberService.generateSaleOrderNumber();
   
   // 確保生成的銷貨單號不為空
   if (!generatedNumber || generatedNumber.trim() === '') {
     console.error('Error: OrderNumberService returned empty sale number');
-    throw new Error('系統無法生成銷貨單號，請稍後再試或手動指定銷貨單號');
+    throw new Error('系統無法生成銷貨單號，請稍後再試');
   }
   
   return generatedNumber;

@@ -97,30 +97,11 @@ class OrderNumberService {
       });
       
       // 生成銷貨單號
-      const generatedNumber = await generator.generate();
-      
-      // 確保生成的銷貨單號不為空
-      if (!generatedNumber || generatedNumber.trim() === '') {
-        console.error('警告: 生成了空的銷貨單號');
-        
-        // 生成一個基於時間戳的備用單號
-        const timestamp = Date.now();
-        const fallbackNumber = `SALE-${timestamp}`;
-        console.log(`使用備用銷貨單號: ${fallbackNumber}`);
-        
-        return fallbackNumber;
-      }
-      
-      return generatedNumber;
+      return await generator.generate();
     } catch (error) {
       console.error('生成銷貨單號時出錯:', error);
-      
-      // 發生錯誤時，生成一個基於時間戳的備用單號
-      const timestamp = Date.now();
-      const fallbackNumber = `SALE-${timestamp}`;
-      console.log(`發生錯誤，使用備用銷貨單號: ${fallbackNumber}`);
-      
-      return fallbackNumber;
+      // 直接向上拋出錯誤，讓呼叫者決定如何處理
+      throw error;
     }
   }
 
@@ -141,104 +122,6 @@ class OrderNumberService {
       default:
         throw new Error(`不支持的訂單類型: ${type}`);
     }
-  }
-
-  /**
-   * 檢查訂單號是否唯一
-   * @param type - 訂單類型 ('purchase', 'shipping', 'sale')
-   * @param orderNumber - 要檢查的訂單號
-   * @returns 是否唯一
-   */
-  static async isOrderNumberUnique(type: string, orderNumber: string): Promise<boolean> {
-    try {
-      // 安全處理：驗證輸入參數
-      if (!type || typeof type !== 'string' || !orderNumber || typeof orderNumber !== 'string') {
-        throw new Error('無效的參數');
-      }
-      
-      // 安全處理：清理和驗證訂單類型
-      const sanitizedType = type.toLowerCase().trim();
-      
-      let Model: mongoose.Model<any>;
-      
-      // 使用白名單方式處理訂單類型
-      switch (sanitizedType) {
-        case 'purchase':
-          Model = mongoose.model('purchaseorder');
-          break;
-        case 'shipping':
-          Model = mongoose.model('shippingorder');
-          break;
-        case 'sale':
-          Model = mongoose.model('sale');
-          break;
-        default:
-          throw new Error(`不支持的訂單類型: ${sanitizedType}`);
-      }
-      
-      // 安全處理：清理訂單號
-      const sanitizedOrderNumber = orderNumber.trim();
-      
-      // 使用更安全的方式查詢
-      let existingOrder = null;
-      
-      // 根據不同的訂單類型使用不同的查詢方式，避免動態構建查詢
-      if (sanitizedType === 'purchase') {
-        existingOrder = await Model.findOne({ poid: sanitizedOrderNumber });
-      } else if (sanitizedType === 'shipping') {
-        existingOrder = await Model.findOne({ soid: sanitizedOrderNumber });
-      } else if (sanitizedType === 'sale') {
-        existingOrder = await Model.findOne({ saleNumber: sanitizedOrderNumber });
-      }
-      return !existingOrder;
-    } catch (error) {
-      console.error('檢查訂單號唯一性時出錯:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * 生成唯一的訂單號
-   * @param type - 訂單類型 ('purchase', 'shipping', 'sale')
-   * @param baseOrderNumber - 基礎訂單號
-   * @returns 唯一的訂單號
-   */
-  static async generateUniqueOrderNumber(type: string, baseOrderNumber: string): Promise<string> {
-    // 安全處理：驗證輸入參數
-    if (!type || typeof type !== 'string') {
-      throw new Error('無效的訂單類型');
-    }
-    
-    if (!baseOrderNumber || typeof baseOrderNumber !== 'string') {
-      throw new Error('無效的基礎訂單號');
-    }
-    
-    // 安全處理：清理輸入
-    const sanitizedType = type.toLowerCase().trim();
-    const sanitizedBaseOrderNumber = baseOrderNumber.trim();
-    
-    let orderNumber = sanitizedBaseOrderNumber;
-    let counter = 1;
-    let isUnique = false;
-    
-    // 設置最大嘗試次數，防止無限循環
-    const MAX_ATTEMPTS = 100;
-    let attempts = 0;
-    
-    while (!isUnique && attempts < MAX_ATTEMPTS) {
-      isUnique = await this.isOrderNumberUnique(sanitizedType, orderNumber);
-      if (!isUnique) {
-        orderNumber = `${sanitizedBaseOrderNumber}-${counter}`;
-        counter++;
-        attempts++;
-      }
-    }
-    
-    if (attempts >= MAX_ATTEMPTS) {
-      throw new Error('無法生成唯一訂單號，已達到最大嘗試次數');
-    }
-    
-    return orderNumber;
   }
 }
 

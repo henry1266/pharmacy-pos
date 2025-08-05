@@ -81,112 +81,58 @@ class OrderNumberGenerator {
   async generate(): Promise<string> {
     try {
       const datePrefix = this.generateDatePrefix();
-      console.log(`生成日期前綴: ${datePrefix}`);
-      
+
       // 查詢條件 - 查找以日期前綴開頭的訂單
       const query: Record<string, any> = {};
       query[this.field] = { $regex: new RegExp(`^${datePrefix}`) };
-      
+
       // 排序條件
       const sort: { [key: string]: SortOrder } = {};
       sort[this.field] = -1;
-      
+
       // 查找當天最後一個訂單號
-      const latestOrder = await this.Model.findOne(query).sort(sort).lean() as Record<string, any> | null;
-      console.log(`最後一個訂單: ${latestOrder ? latestOrder[this.field] : '無'}`);
-      
+      const latestOrder = (await this.Model.findOne(query)
+        .sort(sort)
+        .lean()) as Record<string, any> | null;
+
       // 設置默認序號
       let sequenceNumber = this.sequenceStart;
-      
+
       // 如果找到了當天的訂單，提取序號部分
       if (latestOrder) {
         const orderNumber = latestOrder[this.field] as string;
-        
-        // 提取序號部分 - 從日期前綴後開始
-        const sequencePart = orderNumber.substring(datePrefix.length);
-        console.log(`序號部分: ${sequencePart}`);
-        
-        // 嘗試將序號部分轉換為數字
-        // 只取最後sequenceDigits位數字，避免中間有其他字符
-        const regex = new RegExp(`\\d{${this.sequenceDigits}}$`);
-        const match = regex.exec(sequencePart);
-        
-        if (match) {
-          const sequence = parseInt(match[0], 10);
-          if (!isNaN(sequence)) {
-            sequenceNumber = sequence + 1;
-            console.log(`下一個序號: ${sequenceNumber}`);
-          }
+        // 直接從字串尾端提取序號，更穩健
+        const sequencePart = orderNumber.slice(-this.sequenceDigits);
+        const sequence = parseInt(sequencePart, 10);
+
+        if (!isNaN(sequence)) {
+          sequenceNumber = sequence + 1;
         }
       }
-      
-      // 確保序號不超過位數限制
-      sequenceNumber = sequenceNumber % Math.pow(10, this.sequenceDigits);
-      if (sequenceNumber === 0) sequenceNumber = this.sequenceStart;
-      
+
+      // 處理序號循環，例如 999 之後回到 1
+      const maxSequenceValue = Math.pow(10, this.sequenceDigits);
+      if (sequenceNumber >= maxSequenceValue) {
+        sequenceNumber = this.sequenceStart;
+      }
+
       // 格式化序號為指定位數
       const formattedSequence = String(sequenceNumber).padStart(this.sequenceDigits, '0');
-      console.log(`格式化後的序號: ${formattedSequence}`);
-      
+
       // 組合最終訂單號
       const finalOrderNumber = `${datePrefix}${formattedSequence}`;
-      console.log(`生成的訂單號: ${finalOrderNumber}`);
-      
+
+      console.log(
+        `[OrderGen] Generated: ${finalOrderNumber} (Prefix: ${datePrefix}, Last: ${ latestOrder ? latestOrder[this.field] : 'N/A'}, Seq: ${sequenceNumber})`
+      );
+
       return finalOrderNumber;
     } catch (error) {
-      console.error('生成訂單單號時出錯:', error instanceof Error ? error.message : error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`[OrderGen] Error for field "${this.field}": ${errorMessage}`);
+      // 讓呼叫者處理錯誤，而不是回傳一個備用號碼
       throw error;
     }
-  }
-  
-  /**
-   * 檢查訂單單號是否已存在
-   * @param orderNumber - 要檢查的訂單單號
-   * @returns 是否已存在
-   */
-  async exists(orderNumber: string): Promise<boolean> {
-    try {
-      const query: Record<string, any> = {};
-      query[this.field] = orderNumber;
-      
-      const existingOrder = await this.Model.findOne(query).lean() as Record<string, any> | null;
-      return !!existingOrder;
-    } catch (error) {
-      console.error('檢查訂單單號是否存在時出錯:', error instanceof Error ? error.message : error);
-      throw error;
-    }
-  }
-  
-  /**
-   * 生成唯一的訂單單號（如果已存在則添加後綴）
-   * @param baseOrderNumber - 基礎訂單單號
-   * @returns 唯一的訂單單號
-   */
-  async generateUnique(baseOrderNumber: string): Promise<string> {
-    let orderNumber = baseOrderNumber;
-    let counter = 1;
-    let isUnique = false;
-    
-    // 設置最大嘗試次數，防止無限循環
-    const MAX_ATTEMPTS = 100;
-    let attempts = 0;
-    
-    while (!isUnique && attempts < MAX_ATTEMPTS) {
-      const exists = await this.exists(orderNumber);
-      if (!exists) {
-        isUnique = true;
-      } else {
-        orderNumber = `${baseOrderNumber}-${counter}`;
-        counter++;
-        attempts++;
-      }
-    }
-    
-    if (attempts >= MAX_ATTEMPTS) {
-      throw new Error('無法生成唯一訂單號，已達到最大嘗試次數');
-    }
-    
-    return orderNumber;
   }
 }
 
