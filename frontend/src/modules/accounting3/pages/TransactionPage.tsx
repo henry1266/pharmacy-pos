@@ -18,9 +18,8 @@ import {
   InputAdornment,
   Fab,
   Tooltip,
-  Breadcrumbs,
-  Link,
 } from '@mui/material';
+import { BreadcrumbNavigation } from '../components/ui/BreadcrumbNavigation';
 import {
   AccountBalance as AccountBalanceIcon,
   ListAlt as ListIcon,
@@ -491,39 +490,24 @@ export const Accounting3TransactionPage: React.FC = () => {
           </Box>
           
           {/* 麵包屑導航 */}
-          <Breadcrumbs aria-label="breadcrumb">
-            <Link
-              color="inherit"
-              href="/accounting3"
-              onClick={(e) => {
-                e.preventDefault();
-                navigate('/accounting3');
-              }}
-              sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
-            >
-              <AccountBalanceIcon fontSize="small" />
-              會計系統
-            </Link>
-            <Link
-              color="inherit"
-              href="/accounting3/transaction"
-              onClick={(e) => {
-                e.preventDefault();
-                navigate('/accounting3/transaction');
-              }}
-              sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
-            >
-              <ReceiptIcon fontSize="small" />
-              交易管理
-            </Link>
-            <Typography
-              color="text.primary"
-              sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
-            >
-              <AddIcon fontSize="small" />
-              新增交易
-            </Typography>
-          </Breadcrumbs>
+          <BreadcrumbNavigation
+            items={[
+              {
+                label: '會計系統',
+                path: '/accounting3',
+                icon: <AccountBalanceIcon fontSize="small" />
+              },
+              {
+                label: '交易管理',
+                path: '/accounting3/transaction',
+                icon: <ReceiptIcon fontSize="small" />
+              },
+              {
+                label: '新增交易',
+                icon: <AddIcon fontSize="small" />
+              }
+            ]}
+          />
         </Box>
 
         {/* 錯誤提示 */}
@@ -590,35 +574,42 @@ export const Accounting3TransactionPage: React.FC = () => {
     <Container maxWidth="xl" sx={{ py: 1 }}>
       {/* 頁面標題 */}
       <Box sx={{ mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-          <ReceiptIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-          <Typography variant="h4" component="h1" fontWeight="bold">
-            交易管理
-          </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {/* 麵包屑導航 */}
+          <BreadcrumbNavigation
+            items={[
+              {
+                label: '會計首頁',
+                path: '/accounting3',
+                icon: <AccountBalanceIcon fontSize="small" />
+              },
+              {
+                label: '交易列表',
+                icon: <ReceiptIcon fontSize="small" />
+              }
+            ]}
+          />
+          
+          {/* 右側按鈕 */}
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button
+              variant="outlined"
+              startIcon={<AccountTreeIcon />}
+              onClick={() => navigate('/accounting3/accounts')}
+              size="small"
+            >
+              科目管理
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<FilterListIcon />}
+              onClick={() => setShowFilters(!showFilters)}
+              size="small"
+            >
+              {showFilters ? '隱藏篩選' : '顯示篩選'}
+            </Button>
+          </Box>
         </Box>
-        
-        {/* 麵包屑導航 */}
-        <Breadcrumbs aria-label="breadcrumb">
-          <Link
-            color="inherit"
-            href="/accounting3"
-            onClick={(e) => {
-              e.preventDefault();
-              navigate('/accounting3');
-            }}
-            sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
-          >
-            <AccountBalanceIcon fontSize="small" />
-            會計系統
-          </Link>
-          <Typography
-            color="text.primary"
-            sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
-          >
-            <ReceiptIcon fontSize="small" />
-            交易管理
-          </Typography>
-        </Breadcrumbs>
       </Box>
 
       {/* 錯誤提示 */}
@@ -631,27 +622,7 @@ export const Accounting3TransactionPage: React.FC = () => {
       {/* 主要內容區域 - 交易管理 */}
       <Card sx={{ mb: 3, px: 2, mx: 1 }}>
         <CardContent>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="h6">交易列表</Typography>
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button
-                variant="outlined"
-                startIcon={<AccountTreeIcon />}
-                onClick={() => navigate('/accounting3/accounts')}
-                sx={{ mr: 1 }}
-              >
-                科目管理
-              </Button>
-              <Button
-                variant="outlined"
-                startIcon={<FilterListIcon />}
-                onClick={() => setShowFilters(!showFilters)}
-              >
-                {showFilters ? '隱藏篩選' : '顯示篩選'}
-              </Button>
-            </Box>
-          </Box>
-
+          
           <AccountingDataGridWithEntries
             showFilters={showFilters}
             onToggleFilters={() => setShowFilters(!showFilters)}
