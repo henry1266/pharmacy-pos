@@ -184,11 +184,7 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = () => {
 
       {/* 交易明細 */}
       <Card>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            交易明細
-          </Typography>
-          <Divider sx={{ mb: 2 }} />
+
           <AccountTransactionList
             selectedAccount={currentAccount}
             onTransactionView={handleTransactionView}
@@ -199,7 +195,6 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = () => {
             onTransactionCopy={handleTransactionCopy}
             onAddTransaction={handleAddTransaction}
           />
-        </CardContent>
       </Card>
 
       {/* 右側固定按鈕 */}

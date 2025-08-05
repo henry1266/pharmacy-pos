@@ -273,19 +273,6 @@ export const AccountTransactionList: React.FC<AccountTransactionListProps> = ({
             <ReceiptIcon />
             {selectedAccount.name} 的交易記錄
           </Typography>
-          
-          {onAddTransaction && (
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={<AddIcon />}
-              onClick={() => onAddTransaction(selectedAccount._id)}
-            >
-              新增交易
-            </Button>
-          )}
-        </Box>
-        
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
           <Chip
             label={selectedAccount.code}
@@ -297,6 +284,18 @@ export const AccountTransactionList: React.FC<AccountTransactionListProps> = ({
             {selectedAccount.type}
           </Typography>
         </Box>
+          {onAddTransaction && (
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<AddIcon />}
+              onClick={() => onAddTransaction(selectedAccount._id)}
+            >
+              新增交易
+            </Button>
+          )}
+        </Box>
+
       </Box>
 
       {/* 內容區域 */}
