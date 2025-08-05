@@ -167,7 +167,7 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = () => {
       <BreadcrumbNavigation
         items={[
           {
-            label: '會計管理',
+            label: '會計首頁',
             path: '/accounting3',
             icon: <ReceiptIcon fontSize="small" />
           },
