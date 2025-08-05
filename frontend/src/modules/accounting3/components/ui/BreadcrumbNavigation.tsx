@@ -5,7 +5,6 @@ import {
   Breadcrumbs,
   Link,
   Typography,
-  Paper,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
@@ -27,19 +26,14 @@ interface BreadcrumbNavigationProps {
 }
 
 // 創建樣式化的麵包屑容器
-const StyledBreadcrumbContainer = styled(Paper, {
-  shouldForwardProp: (prop) => 
-    prop !== 'showShadow' && prop !== 'backgroundColor' && prop !== 'padding',
-})<{ 
-  showShadow?: boolean; 
-  backgroundColor?: string | undefined;
+const StyledBreadcrumbContainer = styled(Box, {
+  shouldForwardProp: (prop) =>
+    prop !== 'padding',
+})<{
   padding?: string | number | undefined;
-}>(({ theme, showShadow, backgroundColor, padding }) => ({
+}>(({ theme, padding }) => ({
   padding: padding || theme.spacing(1.5, 2),
   marginBottom: theme.spacing(2),
-  backgroundColor: backgroundColor || theme.palette.background.paper,
-  boxShadow: showShadow ? theme.shadows[1] : 'none',
-  borderRadius: theme.shape.borderRadius,
   display: 'inline-block',
 }));
 
@@ -49,23 +43,17 @@ const StyledBreadcrumbContainer = styled(Paper, {
  * 可配置項目：
  * - items: 麵包屑項目數組
  * - fontSize: 字體大小
- * - backgroundColor: 背景顏色
- * - showShadow: 是否顯示陰影
  * - padding: 內邊距
  */
 export const BreadcrumbNavigation: React.FC<BreadcrumbNavigationProps> = ({
   items,
   fontSize = '1.2rem',
-  backgroundColor,
-  showShadow = true,
   padding,
 }) => {
   const navigate = useNavigate();
 
   return (
-    <StyledBreadcrumbContainer 
-      showShadow={showShadow} 
-      backgroundColor={backgroundColor}
+    <StyledBreadcrumbContainer
       padding={padding}
     >
       <Breadcrumbs aria-label="breadcrumb" separator="›">

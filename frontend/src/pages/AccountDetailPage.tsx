@@ -6,8 +6,6 @@ import {
   Typography,
   Card,
   CardContent,
-  Breadcrumbs,
-  Link,
   Alert,
   Snackbar,
   Divider,
@@ -19,7 +17,9 @@ import {
   AccountBalance as AccountBalanceIcon,
   Receipt as ReceiptIcon,
   Add as AddIcon,
+  AccountTree as AccountTreeIcon,
 } from '@mui/icons-material';
+import { BreadcrumbNavigation } from '../modules/accounting3/components/ui/BreadcrumbNavigation';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
 
 // 導入相關組件
@@ -162,51 +162,25 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = () => {
 
   return (
     <Container maxWidth="xl" sx={{ py: 1 }}>
-      {/* 頁面標題 */}
-      <Box sx={{ mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-          <AccountBalanceIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-          <Typography variant="h4" component="h1" fontWeight="bold">
-            科目詳情
-          </Typography>
-        </Box>
-      </Box>
 
       {/* 麵包屑導航 */}
-      <Box sx={{ mb: 3 }}>
-        <Breadcrumbs aria-label="breadcrumb">
-          <Link
-            color="inherit"
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              navigate('/accounting3');
-            }}
-            sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
-          >
-            <ReceiptIcon fontSize="small" />
-            會計管理
-          </Link>
-          <Link
-            color="inherit"
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              navigate('/accounting3/accounts');
-            }}
-            sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
-          >
-            <AccountBalanceIcon fontSize="small" />
-            科目管理
-          </Link>
-          <Typography
-            color="text.primary"
-            sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
-          >
-            {currentAccount.name}
-          </Typography>
-        </Breadcrumbs>
-      </Box>
+      <BreadcrumbNavigation
+        items={[
+          {
+            label: '會計管理',
+            path: '/accounting3',
+            icon: <ReceiptIcon fontSize="small" />
+          },
+          {
+            label: '科目管理',
+            path: '/accounting3/accounts',
+            icon: <AccountTreeIcon fontSize="small" />
+          },
+          {
+            label: currentAccount.name
+          }
+        ]}
+      />
 
       {/* 交易明細 */}
       <Card>
