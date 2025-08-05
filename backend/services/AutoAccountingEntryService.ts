@@ -274,7 +274,7 @@ export class AutoAccountingEntryService {
       invoiceNo: purchaseOrder.pobill,
       totalAmount: purchaseOrder.totalAmount,
       status: 'confirmed',
-      fundingType: 'original',
+      fundingType: 'purchase',
       createdBy: userId || 'system-auto', // 優先使用傳入的用戶ID
       entries: entries
     });

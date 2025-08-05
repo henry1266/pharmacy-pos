@@ -66,7 +66,7 @@ export interface TransactionGroup3 {
   // 資金來源追蹤功能
   linkedTransactionIds: string[];     // 被延伸使用的交易ID陣列
   sourceTransactionId?: string;       // 此交易的資金來源交易ID
-  fundingType: 'original' | 'extended' | 'transfer'; // 資金類型
+  fundingType: 'original' | 'extended' | 'transfer' | 'purchase'; // 資金類型
   
   createdBy: string;
   createdAt: string | Date;
@@ -197,7 +197,7 @@ export interface TransactionGroup3FormData {
   // 資金來源追蹤表單欄位
   linkedTransactionIds?: string[];
   sourceTransactionId?: string;
-  fundingType?: 'original' | 'extended' | 'transfer';
+  fundingType?: 'original' | 'extended' | 'transfer'  | 'purchase';
 }
 
 export interface AccountingEntry3FormData {
@@ -324,7 +324,7 @@ export interface TransactionGroup3Filter {
   invoiceNo?: string;
   
   // 資金來源追蹤過濾器
-  fundingType?: 'original' | 'extended' | 'transfer';
+  fundingType?: 'original' | 'extended' | 'transfer' | 'purchase';
   sourceTransactionId?: string;
   hasLinkedTransactions?: boolean;
   
@@ -384,7 +384,7 @@ export interface FundingSource3 {
   totalAmount: number;
   usedAmount: number;
   availableAmount: number;
-  fundingType: 'original' | 'extended' | 'transfer';
+  fundingType: 'original' | 'extended' | 'transfer' | 'purchase';
   receiptUrl?: string;
   invoiceNo?: string;
   isAvailable: boolean;
@@ -413,7 +413,7 @@ export interface FundingFlowPathItem3 {
   description: string;
   transactionDate: Date | string;
   totalAmount: number;
-  fundingType: 'original' | 'extended' | 'transfer';
+  fundingType: 'original' | 'extended' | 'transfer' | 'purchase';
 }
 
 export interface FundingFlow3Response {
@@ -453,7 +453,8 @@ export const TRANSACTION_STATUS_3 = [
 export const FUNDING_TYPES_3 = [
   { value: 'original', label: '原始資金', color: '#4caf50' },
   { value: 'extended', label: '延伸使用', color: '#ff9800' },
-  { value: 'transfer', label: '資金轉移', color: '#2196f3' }
+  { value: 'transfer', label: '資金轉移', color: '#2196f3' },
+  { value: 'purchase', label: '進貨單', color: '#802091ff' }
 ] as const;
 
 export const CATEGORY_TYPES_3 = [
@@ -462,16 +463,12 @@ export const CATEGORY_TYPES_3 = [
 ] as const;
 
 export const CURRENCIES_3 = [
-  { value: 'TWD', label: '新台幣 (TWD)' },
-  { value: 'USD', label: '美元 (USD)' },
-  { value: 'EUR', label: '歐元 (EUR)' },
-  { value: 'JPY', label: '日圓 (JPY)' },
-  { value: 'CNY', label: '人民幣 (CNY)' }
+  { value: 'TWD', label: '新台幣 (TWD)' }
 ] as const;
 
 // ===== 型別別名 =====
 
-export type FundingType3 = 'original' | 'extended' | 'transfer';
+export type FundingType3 = 'original' | 'extended' | 'transfer' | 'purchase';
 export type TransactionStatus3 = 'draft' | 'confirmed' | 'cancelled';
 export type AccountType3 = 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
 export type NormalBalance3 = 'debit' | 'credit';

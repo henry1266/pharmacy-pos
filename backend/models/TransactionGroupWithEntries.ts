@@ -67,7 +67,7 @@ export interface ITransactionGroupWithEntries extends Document {
   // 資金來源追蹤功能
   linkedTransactionIds: (mongoose.Types.ObjectId | string)[]; // 被延伸使用的交易ID陣列（保留向後相容）
   sourceTransactionId?: mongoose.Types.ObjectId | string;     // 此交易的資金來源交易ID
-  fundingType: 'original' | 'extended' | 'transfer';          // 資金類型：原始/延伸/轉帳
+  fundingType: 'original' | 'extended' | 'transfer' | 'purchase';          // 資金類型：原始/延伸/轉帳/貨單
   
   // 🆕 精確資金來源使用追蹤
   fundingSourceUsages?: IFundingSourceUsage[];                // 資金來源使用明細
@@ -320,7 +320,7 @@ const TransactionGroupWithEntriesSchema: Schema = new Schema({
   fundingType: {
     type: String,
     required: true,
-    enum: ['original', 'extended', 'transfer'],
+    enum: ['original', 'extended', 'transfer', 'purchase'],
     default: 'original'
   },
   
