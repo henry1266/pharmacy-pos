@@ -12,10 +12,6 @@ import {
   Alert,
   Snackbar,
   Paper,
-  Card,
-  CardContent,
-  TextField,
-  InputAdornment,
   Fab,
   Tooltip,
 } from '@mui/material';
@@ -30,6 +26,7 @@ import {
   ArrowBack as ArrowBackIcon,
   AccountTree as AccountTreeIcon,
   Receipt as ReceiptIcon,
+  Home as HomeIcon,
 } from '@mui/icons-material';
 import { useAppSelector, useAppDispatch } from '../../../hooks/redux';
 
@@ -58,6 +55,7 @@ import {
 } from '../../../../../shared/types/accounting2';
 
 /**
+ * /accounting3/transaction
  * 會計系統交易列表頁面
  * 專門用於管理交易的頁面
  */
@@ -482,12 +480,6 @@ export const Accounting3TransactionPage: React.FC = () => {
       <Container maxWidth="xl" sx={{ py: 1 }}>
         {/* 頁面標題 */}
         <Box sx={{ mb: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-            <ReceiptIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-            <Typography variant="h4" component="h1" fontWeight="bold">
-              新增交易
-            </Typography>
-          </Box>
           
           {/* 麵包屑導航 */}
           <BreadcrumbNavigation
@@ -580,7 +572,7 @@ export const Accounting3TransactionPage: React.FC = () => {
               {
                 label: '會計首頁',
                 path: '/accounting3',
-                icon: <AccountBalanceIcon fontSize="small" />
+                icon: <HomeIcon fontSize="small" />
               },
               {
                 label: '交易列表',
@@ -589,26 +581,10 @@ export const Accounting3TransactionPage: React.FC = () => {
             ]}
           />
           
-          {/* 右側按鈕 */}
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button
-              variant="outlined"
-              startIcon={<AccountTreeIcon />}
-              onClick={() => navigate('/accounting3/accounts')}
-              size="small"
-            >
-              科目管理
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<FilterListIcon />}
-              onClick={() => setShowFilters(!showFilters)}
-              size="small"
-            >
-              {showFilters ? '隱藏篩選' : '顯示篩選'}
-            </Button>
-          </Box>
+
+          
         </Box>
+        
 
       {/* 錯誤提示 */}
       {error && (
@@ -629,26 +605,6 @@ export const Accounting3TransactionPage: React.FC = () => {
         onConfirm={handleConfirm}
         onUnlock={handleUnlock}
       />
-
-      {/* 右側固定按鈕 */}
-      <Box
-        sx={{
-          position: 'fixed',
-          right: 5,
-          top: '40%',
-          transform: 'translateY(-50%)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 2,
-          zIndex: 1000
-        }}
-      >
-        <Tooltip title="新增交易" placement="left" arrow>
-          <Fab color="primary" size="medium" onClick={() => navigate('/accounting3/transaction/new')} aria-label="新增交易">
-            <AddIcon />
-          </Fab>
-        </Tooltip>
-      </Box>
 
       {/* 新增/編輯交易對話框 */}
       <Dialog

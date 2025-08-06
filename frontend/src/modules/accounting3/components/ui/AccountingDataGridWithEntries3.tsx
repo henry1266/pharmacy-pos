@@ -35,6 +35,7 @@ import {
   LockOpen as UnlockIcon,
   Link as LinkIcon,
   ArrowForward as ArrowForwardIcon,
+
   OpenInNew as OpenInNewIcon
 } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -111,6 +112,7 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
   onView,
   onConfirm,
   onUnlock,
+  onToggleFilters,
   paginationModel = { page: 0, pageSize: 100 },
   setPaginationModel
 }) => {
@@ -800,7 +802,37 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
-      <Box>
+      <Paper sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        {/* 標題區域 */}
+        <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <ReceiptIcon />
+                交易記錄
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<FilterIcon />}
+                onClick={() => onToggleFilters && onToggleFilters()}
+              >
+                {showFilters ? '隱藏篩選' : '顯示篩選'}
+              </Button>
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<AddIcon />}
+                onClick={onCreateNew}
+              >
+                新增交易
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+        
         <Box>
           {/* 篩選器 */}
           {showFilters && (
@@ -882,18 +914,7 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
           )}
 
           {/* 交易群組表格 - 使用 DataGrid */}
-          <Box sx={{
-            width: '100%',
-            position: 'relative',
-            minHeight: '70vh', // 增加最小高度以填滿更多螢幕空間
-            height: '100%',
-            bgcolor: 'background.paper', // 確保整個容器使用相同的背景色
-            borderRadius: 1,
-            border: 1, // 添加外邊框
-            borderColor: 'divider', // 使用主題的分隔線顏色
-            boxShadow: 1, // 添加輕微陰影增強視覺效果
-            overflow: 'hidden' // 確保內容不會溢出圓角
-          }}>
+          <Box sx={{ p: 2, width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
             <Fade in={!loading} timeout={1000}>
               <Box sx={{
                 position: loading ? 'absolute' : 'relative',
@@ -901,7 +922,11 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
                 opacity: loading ? 0 : 1,
                 transition: 'opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
                 bgcolor: 'background.paper',
-                borderRadius: 1
+                borderRadius: 1,
+                border: 1,
+                borderColor: 'divider',
+                boxShadow: 1,
+                overflow: 'hidden'
               }}>
                 {transactionGroups.length === 0 ? (
                   <Box sx={{ textAlign: 'center', py: 4 }}>
@@ -1049,7 +1074,7 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
            </Box>
          </Box>
        </Box>
-     </Box>
+     </Paper>
    </LocalizationProvider>
   );
 };

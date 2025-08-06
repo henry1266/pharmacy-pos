@@ -28,19 +28,22 @@ import AssignmentIcon from '@mui/icons-material/Assignment';
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import PointOfSaleIcon from '@mui/icons-material/PointOfSale';
 import PointOfSaleOutlinedIcon from '@mui/icons-material/PointOfSaleOutlined';
-import SettingsIcon from '@mui/icons-material/Settings';
-import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
-import CategoryIcon from '@mui/icons-material/Category';
-import ListAltIcon from '@mui/icons-material/ListAlt';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
-import BadgeIcon from '@mui/icons-material/Badge';
-import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined';
-import PersonIcon from '@mui/icons-material/Person';
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import BusinessIcon from '@mui/icons-material/Business';
-
+import {
+    AccountTree as AccountTreeIcon,
+    Home as HomeIcon,
+    Business as BusinessIcon,
+    AccessTime as AccessTimeIcon,
+    CalendarMonth as CalendarMonthIcon,
+    Person as PersonIcon,
+    BadgeOutlined as BadgeOutlinedIcon,
+    Badge as BadgeIcon,
+    ListAlt as ListAltIcon,
+    Category as CategoryIcon,
+    SettingsOutlined as SettingsOutlinedIcon,
+    Settings as SettingsIcon,
+} from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../../assets/css/dashui-theme.css';
 import ProductSearchDialog from '../common/ProductSearchDialog';
@@ -246,9 +249,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       ]
     },
     { text: '會計系統', icon: isAccounting3Path(location.pathname) ? <AccountBalanceWalletOutlinedIcon /> : <AccountBalanceWalletIcon /> , subItems: [
-        { text: '會計首頁', path: '/accounting3' },
+        { text: '會計首頁', path: '/accounting3' , icon: <HomeIcon fontSize="small" sx={{ ml: 1 }} /> },
         { text: '會計列表', path: '/accounting3/transaction', icon: <CategoryIcon fontSize="small" sx={{ ml: 1 }} /> },
-        { text: '會計科目', path: '/accounting3/accounts' },
+        { text: '會計科目', path: '/accounting3/accounts' , icon: <AccountTreeIcon fontSize="small" sx={{ ml: 1 }} /> },
         { text: '機構管理', path: '/accounting3/organizations', icon: <BusinessIcon fontSize="small" sx={{ ml: 1 }} />, adminOnly: true },
         { text: '結帳管理', path: '/accounting3/payments', icon: <BusinessIcon fontSize="small" sx={{ ml: 1 }} />, adminOnly: true },
       ]

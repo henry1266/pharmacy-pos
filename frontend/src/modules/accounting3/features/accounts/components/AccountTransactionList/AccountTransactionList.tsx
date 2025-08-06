@@ -34,6 +34,7 @@ interface AccountTransactionListProps {
 }
 
 /**
+ * /accounting3/accounts/:id
  * 科目交易列表組件
  * 顯示選中科目的相關交易
  */

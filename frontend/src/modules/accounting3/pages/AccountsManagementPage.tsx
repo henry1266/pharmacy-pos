@@ -15,7 +15,7 @@ import {
   AccountTree as AccountTreeIcon,
   ArrowBack as ArrowBackIcon,
   Add as AddIcon,
-  Receipt as ReceiptIcon,
+  Home as HomeIcon,
 } from '@mui/icons-material';
 
 // 導入 accounting3 階層管理組件
@@ -311,7 +311,7 @@ export const AccountsManagementPage: React.FC = () => {
           {
             label: '會計首頁',
             path: '/accounting3',
-            icon: <ReceiptIcon fontSize="small" />
+            icon: <HomeIcon fontSize="small" />
           },
           {
             label: '科目管理',

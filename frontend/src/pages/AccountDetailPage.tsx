@@ -18,6 +18,7 @@ import {
   Receipt as ReceiptIcon,
   Add as AddIcon,
   AccountTree as AccountTreeIcon,
+  Home as HomeIcon,
 } from '@mui/icons-material';
 import { BreadcrumbNavigation } from '../modules/accounting3/components/ui/BreadcrumbNavigation';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
@@ -169,7 +170,7 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = () => {
           {
             label: '會計首頁',
             path: '/accounting3',
-            icon: <ReceiptIcon fontSize="small" />
+            icon: <HomeIcon fontSize="small" />
           },
           {
             label: '科目管理',

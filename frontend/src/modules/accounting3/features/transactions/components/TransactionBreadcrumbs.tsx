@@ -1,9 +1,10 @@
 import React from 'react';
-import { Breadcrumbs, Link, Typography } from '@mui/material';
 import {
   Receipt as ReceiptIcon,
   Description as DescriptionIcon,
+  Home as HomeIcon,
 } from '@mui/icons-material';
+import { BreadcrumbNavigation } from '../../../components/ui';
 
 interface TransactionBreadcrumbsProps {
   onNavigateToList: () => void;
@@ -16,24 +17,30 @@ export const TransactionBreadcrumbs: React.FC<TransactionBreadcrumbsProps> = ({
   onNavigateToList
 }) => {
   return (
-    <Breadcrumbs sx={{ mb: 2 }}>
-      <Link
-        color="inherit"
-        href="#"
-        onClick={(e) => {
-          e.preventDefault();
-          onNavigateToList();
-        }}
-        sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
-      >
-        <ReceiptIcon fontSize="small" />
-        交易管理
-      </Link>
-      <Typography color="text.primary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-        <DescriptionIcon fontSize="small" />
-        交易詳情
-      </Typography>
-    </Breadcrumbs>
+    <BreadcrumbNavigation
+      items={[
+        {
+          label: '會計首頁',
+          onClick: (e) => {
+            e.preventDefault();
+            onNavigateToList();
+          },
+          icon: <HomeIcon fontSize="small" />
+        },
+         {
+          label: '交易列表',
+          path: '/accounting3/transaction',
+          icon: <ReceiptIcon fontSize="small" />
+        },
+        {
+          label: '交易詳情',
+          icon: <DescriptionIcon fontSize="small" />
+        }
+      ]}
+      showShadow={true}
+      fontSize="1.2rem"
+      padding={8}
+    />
   );
 };
 
