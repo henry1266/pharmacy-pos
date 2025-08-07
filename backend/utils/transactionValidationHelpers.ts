@@ -210,11 +210,12 @@ export const buildPaginationParams = (query: any): {
   limitNum: number;
   skip: number;
 } => {
-  const { page = 1, limit = 10000 } = query;  // 將默認 limit 設置為 10000，確保能獲取所有數據
+  const { page = 1, limit = 25 } = query;  // 將默認 limit 設置為 25，與前端保持一致
   const pageNum = parseInt(page as string);
   const limitNum = parseInt(limit as string);
   const skip = (pageNum - 1) * limitNum;
 
+  console.log(`🔢 分頁參數: page=${pageNum}, limit=${limitNum}, skip=${skip}`);
   return { pageNum, limitNum, skip };
 };
 

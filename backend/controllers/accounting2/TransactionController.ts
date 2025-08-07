@@ -244,7 +244,7 @@ export class TransactionController {
         endDate,
         accountId,
         page = '1',
-        limit = '50',
+        limit = '25', // 將默認值改為25，與前端一致
         sortBy = 'transactionDate',
         sortOrder = 'desc'
       } = req.query;
@@ -285,7 +285,25 @@ export class TransactionController {
         queryOptions.endDate = options.dateRange.endDate;
       }
 
+      console.log(`🔍 TransactionController.getTransactionsByUser - 查詢參數:`, {
+        userId,
+        organizationId: options.organizationId,
+        page: queryOptions.page,
+        limit: queryOptions.limit,
+        status: queryOptions.status,
+        dateRange: queryOptions.startDate && queryOptions.endDate ?
+          `${queryOptions.startDate.toISOString()} - ${queryOptions.endDate.toISOString()}` : 'none'
+      });
+
       const result = await TransactionService.getTransactionGroups(userId, options.organizationId, queryOptions);
+      
+      console.log(`✅ TransactionController.getTransactionsByUser - 查詢結果:`, {
+        transactionsCount: result.transactions.length,
+        totalRecords: result.total,
+        currentPage: result.page,
+        pageSize: result.limit,
+        totalPages: Math.ceil(result.total / result.limit)
+      });
       
       res.json({
         success: true,

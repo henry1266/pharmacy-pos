@@ -113,7 +113,7 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
   onConfirm,
   onUnlock,
   onToggleFilters,
-  paginationModel = { page: 0, pageSize: 100 },
+  paginationModel = { page: 0, pageSize: 25 },
   setPaginationModel
 }) => {
   const dispatch = useAppDispatch();
@@ -192,14 +192,9 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
         return (
           <Box sx={{
             display: 'flex',
-            gap: { xs: 1.5, sm: 1.5, md: 1 }, // 增加間距，特別是在平板和手機上
+            gap: 1,
             flexWrap: 'wrap',
-            justifyContent: 'center', // 確保按鈕居中對齊
-            '& .MuiIconButton-root': {
-              // 確保所有按鈕在小螢幕上都可見
-              display: 'inline-flex !important',
-              visibility: 'visible !important'
-            }
+            justifyContent: 'center' // 確保按鈕居中對齊
           }}>
             {/* 查看詳情按鈕 - 確保在所有螢幕尺寸上都可見 */}
             <Tooltip title="查看詳情">
@@ -213,9 +208,7 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
                 sx={{
                   border: '1px solid',
                   borderColor: 'primary.main',
-                  display: 'inline-flex !important', // 強制顯示
-                  visibility: 'visible !important', // 強制可見
-                  zIndex: 10, // 確保按鈕在最上層
+                  zIndex: 2, // 確保按鈕在上層
                   '&:hover': { bgcolor: 'primary.light', color: 'common.white' }
                 }}
               >
@@ -233,9 +226,7 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
                   onView(group);
                 }}
                 sx={{
-                  display: 'inline-flex !important', // 強制顯示
-                  visibility: 'visible !important', // 強制可見
-                  zIndex: 10, // 確保按鈕在最上層
+                  zIndex: 2, // 確保按鈕在上層
                   ml: 1, // 增加左邊距，與查看詳情按鈕分開
                   '&:hover': { bgcolor: 'info.light', color: 'common.white' }
                 }}
@@ -355,7 +346,7 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
     startDate: null,
     endDate: null,
     page: 1,
-    limit: 100
+    limit: 25
   });
   
   // 為 DataGrid 準備行數據
@@ -371,13 +362,22 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
     });
 
     const params: any = {
-      organizationId
+      organizationId,
+      page: filter.page,
+      limit: filter.limit
     };
 
     if (filter.search) params.search = filter.search;
     if (filter.status) params.status = filter.status;
     if (filter.startDate) params.startDate = filter.startDate.toISOString();
     if (filter.endDate) params.endDate = filter.endDate.toISOString();
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Accounting3] 🔍 發送分頁請求:', {
+        page: filter.page,
+        limit: filter.limit
+      });
+    }
 
     dispatch(fetchTransactionGroupsWithEntries(params) as any);
   };
@@ -393,13 +393,22 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
     });
 
     const params: any = {
-      organizationId
+      organizationId,
+      page: filter.page,
+      limit: filter.limit
     };
 
     if (filter.search) params.search = filter.search;
     if (filter.status) params.status = filter.status;
     if (filter.startDate) params.startDate = filter.startDate.toISOString();
     if (filter.endDate) params.endDate = filter.endDate.toISOString();
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Accounting3] 🔍 發送分頁請求:', {
+        page: filter.page,
+        limit: filter.limit
+      });
+    }
 
     dispatch(fetchTransactionGroupsWithEntries(params) as any);
   }, [
@@ -408,7 +417,9 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
     filter.search,
     filter.status,
     filter.startDate,
-    filter.endDate
+    filter.endDate,
+    filter.page,
+    filter.limit
   ]);
 
   // 監聽 Redux 狀態變化
@@ -929,8 +940,20 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
                    loading={false} // 由於我們自己控制載入效果，這裡設為false
                    autoHeight
                    getRowId={(row) => row.id}
-                   getRowClassName={(params) => `row-${params.indexRelativeToCurrentPage}`}
-                   rowsPerPageOptions={[100]}
+                   rowBuffer={10} // 優化虛擬滾動，減少預渲染的行數
+                   rowsPerPageOptions={[25, 50, 100]}
+                   initialState={{
+                     pagination: {
+                       pageSize: 25,
+                     },
+                   }}
+                   pagination
+                   paginationMode="server"
+                   page={filter.page - 1} // DataGrid 頁碼從 0 開始，而 API 從 1 開始
+                   pageSize={filter.limit}
+                   onPageChange={(newPage) => handleFilterChange('page', newPage + 1)} // +1 轉換為 API 頁碼
+                   onPageSizeChange={(newPageSize) => handleFilterChange('limit', newPageSize)}
+                   rowCount={pagination?.total || 0} // 使用後端返回的總記錄數
                    rowHeight={70} // 增加列高，給按鈕更多空間
                    columnVisibilityModel={{
                      // 確保操作列始終可見
@@ -950,28 +973,9 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
                        borderBottom: '1px solid',
                        borderColor: 'divider'
                      },
-                     // 基本行樣式
+                     // 基本行樣式 - 簡化，移除動畫效果
                      '& .MuiDataGrid-row': {
-                       opacity: 0,
-                       animation: 'fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards',
                        bgcolor: 'background.paper'
-                     },
-                     // 為每一行設置不同的動畫延遲
-                     ...[...Array(20)].reduce((styles, _, index) => ({
-                       ...styles,
-                       [`& .row-${index}`]: {
-                         animationDelay: `${index * 0.03}s`,
-                       },
-                     }), {}),
-                     '@keyframes fadeIn': {
-                       '0%': {
-                         opacity: 0,
-                         transform: 'translateY(5px)'
-                       },
-                       '100%': {
-                         opacity: 1,
-                         transform: 'translateY(0)'
-                       }
                      }
                    }}
                    localeText={{

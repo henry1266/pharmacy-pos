@@ -139,17 +139,19 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
 
     console.log('📋 最終查詢條件:', filter);
 
-    // 執行查詢 - 不限制返回數據筆數
+    // 執行查詢 - 使用分頁參數限制返回數據筆數
     const [transactionGroups, total] = await Promise.all([
       TransactionGroupWithEntries.find(filter)
         .populate('entries.accountId', 'name code accountType normalBalance')
         .populate('entries.categoryId', 'name type color')
         .populate('entries.sourceTransactionId', 'groupNumber description transactionDate totalAmount')
-        .sort({ transactionDate: -1, createdAt: -1 }),
+        .sort({ transactionDate: -1, createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum),
       TransactionGroupWithEntries.countDocuments(filter)
     ]);
 
-    console.log('📊 查詢結果數量:', transactionGroups.length, '/', total);
+    console.log('📊 查詢結果數量:', transactionGroups.length, '/', total, `(分頁: ${pageNum}/${Math.ceil(total/limitNum)}, 每頁 ${limitNum} 筆)`);
 
     // 格式化交易群組列表
     const formattedTransactionGroups = await formatTransactionGroupsList(transactionGroups, userId);

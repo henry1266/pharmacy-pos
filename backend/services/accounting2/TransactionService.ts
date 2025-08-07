@@ -107,9 +107,12 @@ export class TransactionService {
         ];
       }
 
-      const page = filters?.page || 1;
-      const limit = filters?.limit || 20;
+      // 確保分頁參數有效，並使用前端傳入的值
+      const page = filters?.page && filters.page > 0 ? filters.page : 1;
+      const limit = filters?.limit && filters.limit > 0 ? filters.limit : 25; // 將默認值改為25，與前端一致
       const skip = (page - 1) * limit;
+
+      console.log(`🔢 分頁參數: page=${page}, limit=${limit}, skip=${skip}`);
 
       const [transactions, total] = await Promise.all([
         TransactionGroupWithEntries.find(query)
@@ -121,7 +124,7 @@ export class TransactionService {
         TransactionGroupWithEntries.countDocuments(query)
       ]);
 
-      console.log(`📊 查詢交易群組數量: ${transactions.length}/${total}`);
+      console.log(`📊 查詢交易群組數量: ${transactions.length}/${total}, 分頁: ${page}/${Math.ceil(total/limit)}`);
       return {
         transactions,
         total,

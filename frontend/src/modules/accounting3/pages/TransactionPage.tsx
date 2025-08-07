@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Box,
@@ -91,22 +91,35 @@ export const Accounting3TransactionPage: React.FC = () => {
     severity: 'success'
   });
 
+  // 使用 useCallback 記憶化數據加載函數
+  const loadInitialData = useCallback(async () => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔄 Accounting3TransactionPage 初始化載入資料');
+    }
+    
+    // 使用 Promise.all 並行加載數據
+    await Promise.all([
+      dispatch(fetchTransactionGroupsWithEntries() as any),
+      dispatch(fetchAccounts2() as any),
+      dispatch(fetchOrganizations2() as any)
+    ]);
+  }, [dispatch]);
+
   // 載入交易群組和會計科目資料
   useEffect(() => {
-    console.log('🔄 Accounting3TransactionPage 初始化載入資料');
-    dispatch(fetchTransactionGroupsWithEntries() as any);
-    dispatch(fetchAccounts2() as any);
-    dispatch(fetchOrganizations2() as any);
-  }, [dispatch]);
+    loadInitialData();
+  }, [loadInitialData]);
 
   // 監聽 Redux 狀態變化
   useEffect(() => {
-    console.log('📊 TransactionGroupsWithEntries 狀態變化:', {
-      transactionGroupsLength: transactionGroups.length,
-      loading,
-      error,
-      firstTransaction: transactionGroups[0]
-    });
+    if (process.env.NODE_ENV === 'development') {
+      console.log('📊 TransactionGroupsWithEntries 狀態變化:', {
+        transactionGroupsLength: transactionGroups.length,
+        loading,
+        error,
+        firstTransaction: transactionGroups[0]
+      });
+    }
   }, [transactionGroups, loading, error]);
 
   // 處理從 URL 參數進入編輯或複製模式
@@ -116,18 +129,24 @@ export const Accounting3TransactionPage: React.FC = () => {
       
       if (transactionToProcess) {
         if (isCopyMode) {
-          console.log('📋 從 Redux store 自動打開複製對話框:', transactionToProcess);
+          if (process.env.NODE_ENV === 'development') {
+            console.log('📋 從 Redux store 自動打開複製對話框:', transactionToProcess);
+          }
           setCopyingTransaction(transactionToProcess);
           setEditingTransaction(null);
           setDialogOpen(true);
         } else {
-          console.log('🔧 從 Redux store 自動打開編輯對話框:', transactionToProcess);
+          if (process.env.NODE_ENV === 'development') {
+            console.log('🔧 從 Redux store 自動打開編輯對話框:', transactionToProcess);
+          }
           setEditingTransaction(transactionToProcess);
           setCopyingTransaction(null);
           setDialogOpen(true);
         }
       } else if (transactionGroups.length > 0) {
-        console.log('🔍 Redux store 中找不到交易，透過 API 直接獲取:', transactionId);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🔍 Redux store 中找不到交易，透過 API 直接獲取:', transactionId);
+        }
         fetchTransactionDirectly(transactionId);
       }
     }
@@ -136,7 +155,9 @@ export const Accounting3TransactionPage: React.FC = () => {
   // 直接透過 API 獲取單一交易
   const fetchTransactionDirectly = async (id: string) => {
     try {
-      console.log('📡 直接 API 獲取內嵌分錄交易:', id);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('📡 直接 API 獲取內嵌分錄交易:', id);
+      }
       const response = await fetch(`/api/accounting2/transaction-groups-with-entries/${id}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -148,15 +169,21 @@ export const Accounting3TransactionPage: React.FC = () => {
         const result = await response.json();
         if (result.success && result.data) {
           const transaction = result.data;
-          console.log('✅ 直接 API 獲取內嵌分錄交易成功:', transaction);
+          if (process.env.NODE_ENV === 'development') {
+            console.log('✅ 直接 API 獲取內嵌分錄交易成功:', transaction);
+          }
           
           if (isCopyMode) {
-            console.log('📋 透過 API 自動打開複製對話框:', transaction);
+            if (process.env.NODE_ENV === 'development') {
+              console.log('📋 透過 API 自動打開複製對話框:', transaction);
+            }
             setCopyingTransaction(transaction);
             setEditingTransaction(null);
             setDialogOpen(true);
           } else {
-            console.log('🔧 透過 API 自動打開編輯對話框:', transaction);
+            if (process.env.NODE_ENV === 'development') {
+              console.log('🔧 透過 API 自動打開編輯對話框:', transaction);
+            }
             setEditingTransaction(transaction);
             setCopyingTransaction(null);
             setDialogOpen(true);
@@ -178,7 +205,9 @@ export const Accounting3TransactionPage: React.FC = () => {
   // 處理從科目詳情頁面的「增加明細」按鈕進入新增模式
   useEffect(() => {
     if (defaultAccountId && !transactionId && !dialogOpen) {
-      console.log('🆕 從科目詳情頁面自動打開新增交易對話框，預設科目ID:', defaultAccountId, '預設機構ID:', defaultOrganizationId);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🆕 從科目詳情頁面自動打開新增交易對話框，預設科目ID:', defaultAccountId, '預設機構ID:', defaultOrganizationId);
+      }
       setEditingTransaction(null);
       setCopyingTransaction(null);
       setDialogOpen(true);
@@ -232,7 +261,9 @@ export const Accounting3TransactionPage: React.FC = () => {
         showSnackbar('交易已成功確認', 'success');
         // 重新載入資料以更新狀態
         setTimeout(() => {
-          console.log('🔄 確認交易後重新載入交易列表');
+          if (process.env.NODE_ENV === 'development') {
+            console.log('🔄 確認交易後重新載入交易列表');
+          }
           dispatch(fetchTransactionGroupsWithEntries() as any);
         }, 500);
       } catch (error) {
@@ -250,7 +281,9 @@ export const Accounting3TransactionPage: React.FC = () => {
         showSnackbar('交易已成功解鎖', 'success');
         // 重新載入資料以更新狀態
         setTimeout(() => {
-          console.log('🔄 解鎖交易後重新載入交易列表');
+          if (process.env.NODE_ENV === 'development') {
+            console.log('🔄 解鎖交易後重新載入交易列表');
+          }
           dispatch(fetchTransactionGroupsWithEntries() as any);
         }, 500);
       } catch (error) {
@@ -263,19 +296,21 @@ export const Accounting3TransactionPage: React.FC = () => {
   // 處理表單提交
   const handleFormSubmit = async (formData: TransactionGroupWithEntriesFormData) => {
     try {
-      console.log('🚀 [Accounting3] handleFormSubmit 開始:', {
-        mode: editingTransaction ? 'edit' : 'create',
-        isCopyMode: !!copyingTransaction,
-        transactionId: editingTransaction?._id,
-        returnTo,
-        formDataSummary: {
-          description: formData.description,
-          organizationId: formData.organizationId,
-          entriesCount: formData.entries?.length || 0,
-          hasLinkedTransactions: !!(formData.linkedTransactionIds?.length),
-          fundingType: formData.fundingType
-        }
-      });
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🚀 [Accounting3] handleFormSubmit 開始:', {
+          mode: editingTransaction ? 'edit' : 'create',
+          isCopyMode: !!copyingTransaction,
+          transactionId: editingTransaction?._id,
+          returnTo,
+          formDataSummary: {
+            description: formData.description,
+            organizationId: formData.organizationId,
+            entriesCount: formData.entries?.length || 0,
+            hasLinkedTransactions: !!(formData.linkedTransactionIds?.length),
+            fundingType: formData.fundingType
+          }
+        });
+      }
       
       // 資料驗證
       if (!formData.description?.trim()) {
@@ -308,17 +343,19 @@ export const Accounting3TransactionPage: React.FC = () => {
           status: copyingTransaction ? 'confirmed' : 'draft' // 複製模式下設為已確認，否則為草稿
         } as Omit<TransactionGroupWithEntries, '_id' | 'createdAt' | 'updatedAt'>;
         
-        console.log('📊 [Accounting3] 轉換後的 API 資料:', {
-          ...converted,
-          entries: converted.entries.map(entry => ({
-            accountId: entry.accountId,
-            debitAmount: entry.debitAmount,
-            creditAmount: entry.creditAmount,
-            description: entry.description
-          })),
-          isCopyMode: !!copyingTransaction,
-          statusReason: copyingTransaction ? '複製模式：自動設為已確認' : '新建模式：設為草稿'
-        });
+        if (process.env.NODE_ENV === 'development') {
+          console.log('📊 [Accounting3] 轉換後的 API 資料:', {
+            ...converted,
+            entries: converted.entries.map(entry => ({
+              accountId: entry.accountId,
+              debitAmount: entry.debitAmount,
+              creditAmount: entry.creditAmount,
+              description: entry.description
+            })),
+            isCopyMode: !!copyingTransaction,
+            statusReason: copyingTransaction ? '複製模式：自動設為已確認' : '新建模式：設為草稿'
+          });
+        }
         
         return converted;
       };
@@ -326,7 +363,9 @@ export const Accounting3TransactionPage: React.FC = () => {
       const apiData = convertFormDataToApiData(formData);
       
       if (editingTransaction) {
-        console.log('🔧 [Accounting3] 執行更新操作:', editingTransaction._id);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🔧 [Accounting3] 執行更新操作:', editingTransaction._id);
+        }
         
         // 對於更新操作，使用 Partial 類型
         const updateData: Partial<TransactionGroupWithEntries> = {
@@ -342,7 +381,9 @@ export const Accounting3TransactionPage: React.FC = () => {
         };
         
         const updatedResult = await dispatch(updateTransactionGroupWithEntries(editingTransaction._id, updateData) as any);
-        console.log('✅ [Accounting3] 更新操作完成:', updatedResult);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('✅ [Accounting3] 更新操作完成:', updatedResult);
+        }
         
         showSnackbar('交易已成功更新', 'success');
         
@@ -357,21 +398,29 @@ export const Accounting3TransactionPage: React.FC = () => {
         
         // 增加延遲時間確保後端完成更新
         setTimeout(() => {
-          console.log('🔄 編輯成功後重新載入交易列表');
+          if (process.env.NODE_ENV === 'development') {
+            console.log('🔄 編輯成功後重新載入交易列表');
+          }
           dispatch(fetchTransactionGroupsWithEntries() as any);
         }, 500);
         
         if (returnTo && editingTransaction) {
-          console.log('🔄 編輯成功，準備返回原頁面:', decodeURIComponent(returnTo));
+          if (process.env.NODE_ENV === 'development') {
+            console.log('🔄 編輯成功，準備返回原頁面:', decodeURIComponent(returnTo));
+          }
           setTimeout(() => {
             navigate(decodeURIComponent(returnTo));
           }, 1000);
         }
       } else {
-        console.log('🆕 [Accounting3] 執行建立操作');
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🆕 [Accounting3] 執行建立操作');
+        }
         
         const createResult = await dispatch(createTransactionGroupWithEntries(apiData) as any);
-        console.log('✅ [Accounting3] 建立操作完成:', createResult);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('✅ [Accounting3] 建立操作完成:', createResult);
+        }
         
         showSnackbar(copyingTransaction ? '交易已成功複製並確認' : '交易已成功建立', 'success');
         
@@ -381,31 +430,37 @@ export const Accounting3TransactionPage: React.FC = () => {
         
         // 增加延遲時間確保後端完成創建
         setTimeout(() => {
-          console.log('🔄 新增/複製成功後重新載入交易列表');
+          if (process.env.NODE_ENV === 'development') {
+            console.log('🔄 新增/複製成功後重新載入交易列表');
+          }
           dispatch(fetchTransactionGroupsWithEntries() as any);
         }, 500);
         
         if (returnTo && (copyingTransaction || defaultAccountId)) {
           const actionType = copyingTransaction ? '複製' : '新增';
-          console.log(`🔄 ${actionType}成功，準備返回原頁面:`, decodeURIComponent(returnTo));
+          if (process.env.NODE_ENV === 'development') {
+            console.log(`🔄 ${actionType}成功，準備返回原頁面:`, decodeURIComponent(returnTo));
+          }
           setTimeout(() => {
             navigate(decodeURIComponent(returnTo));
           }, 1000);
         }
       }
     } catch (error) {
-      console.error('❌ [Accounting3] 表單提交失敗:', error);
-      console.error('❌ [Accounting3] 錯誤詳情:', {
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-        editingTransaction: !!editingTransaction,
-        copyingTransaction: !!copyingTransaction,
-        formDataSummary: {
-          description: formData.description,
-          organizationId: formData.organizationId,
-          entriesCount: formData.entries?.length || 0
-        }
-      });
+      if (process.env.NODE_ENV === 'development') {
+        console.error('❌ [Accounting3] 表單提交失敗:', error);
+        console.error('❌ [Accounting3] 錯誤詳情:', {
+          message: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+          editingTransaction: !!editingTransaction,
+          copyingTransaction: !!copyingTransaction,
+          formDataSummary: {
+            description: formData.description,
+            organizationId: formData.organizationId,
+            entriesCount: formData.entries?.length || 0
+          }
+        });
+      }
       
       // 根據錯誤類型顯示更具體的錯誤訊息
       let errorMessage = editingTransaction ? '更新交易失敗' : '建立交易失敗';
@@ -469,7 +524,9 @@ export const Accounting3TransactionPage: React.FC = () => {
       const converted = new Date(dateValue);
       return !isNaN(converted.getTime()) ? converted : new Date();
     } catch (error) {
-      console.error('❌ 日期轉換失敗:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('❌ 日期轉換失敗:', error);
+      }
       return new Date();
     }
   };
@@ -625,7 +682,9 @@ export const Accounting3TransactionPage: React.FC = () => {
             {...(editingTransaction?._id && { transactionId: editingTransaction._id })}
             {...(editingTransaction?.status && { currentStatus: editingTransaction.status })}
             onStatusChange={(newStatus) => {
-              console.log('🔄 狀態變更:', { transactionId: editingTransaction?._id, newStatus });
+              if (process.env.NODE_ENV === 'development') {
+                console.log('🔄 狀態變更:', { transactionId: editingTransaction?._id, newStatus });
+              }
               if (editingTransaction) {
                 setEditingTransaction({
                   ...editingTransaction,
