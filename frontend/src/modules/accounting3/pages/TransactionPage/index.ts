@@ -1,5 +1,6 @@
 // 導出主組件
 export { default as TransactionPage } from './TransactionPage';
+export { default as TransactionNewPage } from './TransactionNewPage';
 
 // 導出子組件
 export { default as PageHeader } from './components/PageHeader';

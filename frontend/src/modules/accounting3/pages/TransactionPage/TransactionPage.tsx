@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Container, Alert, Snackbar, Box } from '@mui/material';
 import { useAppSelector } from '../../../../hooks/redux';
 
@@ -16,7 +16,7 @@ import TransactionDetail from './components/TransactionDetail';
 import { FilterOptions } from './types';
 
 /**
- * 會計系統交易頁面
+ * 會計系統交易列表頁面
  * 專門用於管理交易的頁面
  */
 export const TransactionPage: React.FC = () => {
@@ -35,11 +35,6 @@ export const TransactionPage: React.FC = () => {
     showFilters,
     searchTerm,
     snackbar,
-    isNewMode,
-    
-    // URL 參數
-    defaultAccountId,
-    defaultOrganizationId,
     
     // 事件處理函數
     setSearchTerm,
@@ -55,9 +50,6 @@ export const TransactionPage: React.FC = () => {
     handleCloseDialog,
     handleCloseDetailDialog,
     handleCloseSnackbar,
-    
-    // 導航
-    navigate
   } = useTransactionPage();
 
   // 獲取帳戶和組織數據
@@ -113,65 +105,6 @@ export const TransactionPage: React.FC = () => {
     console.log('每頁行數變更:', parseInt(event.target.value, 10));
   };
 
-  // 如果是新增模式，直接顯示新增表單
-  if (isNewMode) {
-    return (
-      <Container maxWidth="xl" sx={{ py: 0, px: 0 }}>
-        {/* 頁面標題 */}
-        <PageHeader
-          mode="new"
-          showFilters={false}
-          searchTerm=""
-          onSearchChange={() => {}}
-          onToggleFilters={() => {}}
-          onNavigateToNew={() => {}}
-          onNavigateToList={() => navigate('/accounting3/transaction')}
-        />
-
-        {/* 錯誤提示 */}
-        {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
-        )}
-
-        {/* 新增交易表單 */}
-        <Box sx={{ p: 2, bgcolor: 'background.paper', borderRadius: 1 }}>
-          <TransactionForm
-            open={true}
-            onClose={() => navigate('/accounting3/transaction')}
-            onSubmit={async (formData) => {
-              await handleFormSubmit(formData);
-              navigate('/accounting3/transaction');
-            }}
-            editingTransaction={null}
-            copyingTransaction={null}
-            accounts={accounts}
-            organizations={organizations}
-            defaultAccountId={defaultAccountId}
-            defaultOrganizationId={defaultOrganizationId}
-          />
-        </Box>
-
-        {/* 通知 Snackbar */}
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={6000}
-          onClose={handleCloseSnackbar}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-        >
-          <Alert
-            onClose={handleCloseSnackbar}
-            severity={snackbar.severity}
-            sx={{ width: '100%' }}
-          >
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
-      </Container>
-    );
-  }
-
   return (
     <Container maxWidth="xl" sx={{ py: 0, px: 0 }}>
       {/* 頁面標題 */}
@@ -226,8 +159,8 @@ export const TransactionPage: React.FC = () => {
         copyingTransaction={copyingTransaction}
         accounts={accounts}
         organizations={organizations}
-        defaultAccountId={defaultAccountId}
-        defaultOrganizationId={defaultOrganizationId}
+        defaultAccountId={null}
+        defaultOrganizationId={null}
       />
 
       {/* 交易詳情對話框 */}
