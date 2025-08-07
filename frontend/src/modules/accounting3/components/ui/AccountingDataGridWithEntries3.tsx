@@ -36,7 +36,6 @@ import { TransactionGroupWithEntries, EmbeddedAccountingEntry } from '@pharmacy-
 import { useAppSelector, useAppDispatch } from '../../../../hooks/redux';
 import { fetchTransactionGroupsWithEntries } from '../../../../redux/actions';
 
-// 移除 fadeIn 動畫定義
 
 // 直接在組件文件中定義 useDebounce hook
 function useDebounce<T>(value: T, delay: number): T {
