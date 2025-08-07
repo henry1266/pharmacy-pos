@@ -813,6 +813,21 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', gap: 1 }}>
+              <TextField
+                size="small"
+                label="搜尋"
+                value={filter.search}
+                onChange={(e) => handleFilterChange('search', e.target.value)}
+                placeholder="交易描述、發票號碼..."
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ mr: 1 }}
+              />
               <Button
                 variant="outlined"
                 size="small"
@@ -836,51 +851,12 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
         <Box>
           {/* 篩選器 */}
           {showFilters && (
-            <Paper sx={{ p: 2, mb: 3 }} variant="outlined">
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-              <FilterIcon />
-              <Typography variant="h6">篩選條件 (Accounting3)</Typography>
-              <Button size="small" onClick={handleClearFilter}>
-                清除篩選
-              </Button>
-            </Box>
-            
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6} md={3}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  label="搜尋"
-                  value={filter.search}
-                  onChange={(e) => handleFilterChange('search', e.target.value)}
-                  placeholder="交易描述、發票號碼..."
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
-
-              <Grid item xs={12} sm={6} md={3}>
-                <FormControl fullWidth size="small">
-                  <InputLabel>狀態</InputLabel>
-                  <Select
-                    value={filter.status}
-                    onChange={(e) => handleFilterChange('status', e.target.value)}
-                    label="狀態"
-                  >
-                    <MenuItem value="">全部</MenuItem>
-                    <MenuItem value="draft">草稿</MenuItem>
-                    <MenuItem value="confirmed">已確認</MenuItem>
-                    <MenuItem value="cancelled">已取消</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-
-              <Grid item xs={12} sm={6} md={3}>
+            <Paper sx={{ p: 1.5, mb: 2 }} variant="outlined">
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'flex-end' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <FilterIcon fontSize="small" />
+                  <Typography variant="subtitle2">時間範圍</Typography>
+                </Box>
                 <DatePicker
                   label="開始日期"
                   value={filter.startDate}
@@ -889,13 +865,10 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
                     <TextField
                       {...params}
                       size="small"
-                      fullWidth
+                      sx={{ width: 180 }}
                     />
                   )}
                 />
-              </Grid>
-
-              <Grid item xs={12} sm={6} md={3}>
                 <DatePicker
                   label="結束日期"
                   value={filter.endDate}
@@ -904,13 +877,15 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
                     <TextField
                       {...params}
                       size="small"
-                      fullWidth
+                      sx={{ width: 180 }}
                     />
                   )}
                 />
-              </Grid>
-            </Grid>
-          </Paper>
+                <Button size="small" onClick={handleClearFilter}>
+                  清除篩選
+                </Button>
+              </Box>
+            </Paper>
           )}
 
           {/* 交易群組表格 - 使用 DataGrid */}
