@@ -621,23 +621,7 @@ export const Accounting3TransactionPage: React.FC = () => {
 
   return (
     <Container maxWidth="xl" sx={{ py: 1 }}>
-      {/* 頁面標題 */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          {/* 麵包屑導航 */}
-          <BreadcrumbNavigation
-            items={[
-              {
-                label: '會計首頁',
-                path: '/accounting3',
-                icon: <HomeIcon fontSize="small" />
-              },
-              {
-                label: '交易列表',
-                icon: <ReceiptIcon fontSize="small" />
-              }
-            ]}
-          />
-        </Box>
+
         
 
       {/* 錯誤提示 */}

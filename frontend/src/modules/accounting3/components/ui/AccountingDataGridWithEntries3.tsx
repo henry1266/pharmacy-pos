@@ -855,9 +855,18 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
       <Paper sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
         {/* 會計交易列表標題區域 */}
-        <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ p: 1.5, borderBottom: 1, borderColor: 'divider' }}>
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            minHeight: 48 // 確保最小高度一致
+          }}>
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              height: '100%' // 確保高度一致
+            }}>
               <BreadcrumbNavigation
                 items={[
                   {
@@ -872,7 +881,12 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
                 ]}
               />
             </Box>
-            <Box sx={{ display: 'flex', gap: 1 }}>
+            <Box sx={{
+              display: 'flex',
+              gap: 1,
+              alignItems: 'center',
+              height: '100%' // 確保高度一致
+            }}>
               <TextField
                 size="small"
                 label="搜尋"
