@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { keyframes } from '@emotion/react';
 import {
   Box,
   Paper,
@@ -10,9 +9,7 @@ import {
   Tooltip,
   Alert,
   TextField,
-  InputAdornment,
   Stack,
-  Fade,
   Skeleton
 } from '@mui/material';
 import { DataGrid, GridColDef, GridRenderCellParams, GridLocaleText } from '@mui/x-data-grid';
@@ -22,7 +19,6 @@ import {
   Add as AddIcon,
   Receipt as ReceiptIcon,
   Visibility as ViewIcon,
-  Search as SearchIcon,
   FilterList as FilterIcon,
   ContentCopy as CopyIcon,
   CheckCircle as ConfirmIcon,
@@ -30,9 +26,7 @@ import {
   Link as LinkIcon,
   ArrowForward as ArrowForwardIcon,
   OpenInNew as OpenInNewIcon,
-  Home as HomeIcon
 } from '@mui/icons-material';
-import { BreadcrumbNavigation } from '../ui/BreadcrumbNavigation';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -42,17 +36,7 @@ import { TransactionGroupWithEntries, EmbeddedAccountingEntry } from '@pharmacy-
 import { useAppSelector, useAppDispatch } from '../../../../hooks/redux';
 import { fetchTransactionGroupsWithEntries } from '../../../../redux/actions';
 
-// 定義 fadeIn 動畫
-const fadeIn = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-`;
+// 移除 fadeIn 動畫定義
 
 // 直接在組件文件中定義 useDebounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -820,12 +804,7 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
           key={index}
           sx={{
             display: 'flex',
-            mb: 1.5,
-            opacity: 0,
-            animation: `${fadeIn} 0.8s ease-in-out forwards`,
-            animationDelay: `${index * 0.08}s`,
-            transform: 'translateY(10px)',
-            // animationFillMode 已經在上面定義了
+            mb: 1.5
           }}
         >
           {[...Array(6)].map((_, colIndex) => (
@@ -834,7 +813,7 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
               variant="rectangular"
               width={`${100 / 6}%`}
               height={52}
-              animation="pulse" // 使用 pulse 動畫
+              // 移除 animation="pulse"
               sx={{
                 mx: 0.5,
                 borderRadius: 1,
@@ -867,86 +846,6 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
       <Paper sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
         {/* 會計交易列表標題區域 */}
-        <Box sx={{
-          p: 1.5,
-          borderBottom: 1,
-          borderColor: 'divider',
-          bgcolor: 'background.paper',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-          position: 'sticky',
-          top: 0,
-          zIndex: 10
-        }}>
-          <Box sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            minHeight: 48 // 確保最小高度一致
-          }}>
-            <Box sx={{
-              display: 'flex',
-              alignItems: 'center',
-              height: '100%' // 確保高度一致
-            }}>
-              <Box sx={{
-                display: 'flex',
-                alignItems: 'center',
-                height: 44 // 增加高度與其他元素一致
-              }}>
-                <Box sx={{
-                  '& > div': {
-                    marginBottom: 0, // 覆蓋 StyledBreadcrumbContainer 的 marginBottom
-                    display: 'flex',
-                    alignItems: 'center'
-                  }
-                }}>
-                  <BreadcrumbNavigation
-                    items={[
-                      {
-                        label: '會計首頁',
-                        path: '/accounting3',
-                        icon: <HomeIcon sx={{ fontSize: '1.1rem' }} />
-                      },
-                      {
-                        label: '交易列表',
-                        icon: <ReceiptIcon sx={{ fontSize: '1.1rem' }} />
-                      }
-                    ]}
-                    fontSize="0.975rem"
-                    padding={0}
-                  />
-                </Box>
-                <Box sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  backgroundColor: 'secondary.main',
-                  color: 'secondary.contrastText',
-                  px: 2,
-                  py: 0.5, // 減少上下內邊距
-                  ml: 2,
-                  borderRadius: 2,
-                  minWidth: 'fit-content',
-                  height: 36 // 增加高度
-                }}>
-                  <Typography variant="caption" sx={{ fontSize: '0.85rem', mr: 0.75 }}>
-                    總筆數
-                  </Typography>
-                  <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: 'bold', lineHeight: 1 }}>
-                    {pagination?.total || 0}
-                  </Typography>
-                </Box>
-              </Box>
-            </Box>
-            <Box sx={{
-              display: 'flex',
-              gap: 1,
-              alignItems: 'center',
-              height: '100%' // 確保高度一致
-              }}>
-              {/* 搜尋框和按鈕已移至 TransactionPage */}
-            </Box>
-          </Box>
-        </Box>
         
         <Box>
           {/* 篩選器 */}
@@ -1019,13 +918,10 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
 
           {/* 交易群組表格 - 使用 DataGrid */}
           <Box sx={{ p: 2, width: '100%', maxWidth: '100%', overflow: 'hidden', bgcolor: 'background.default' }}>
-            <Fade in={!loading} timeout={800} appear={true}>
+            <Box sx={{ display: loading ? 'none' : 'block' }}>
               <Box sx={{
                 position: 'relative',
                 width: '100%',
-                opacity: loading ? 0 : 1,
-                transition: 'opacity 0.8s ease-in-out, transform 0.6s ease-out',
-                transform: loading ? 'translateY(10px)' : 'translateY(0)',
                 bgcolor: 'background.paper',
                 borderRadius: 1,
                 border: 1,
@@ -1166,7 +1062,7 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
                  />
                )}
              </Box>
-           </Fade>
+           </Box>
            
            <Box
              sx={{
@@ -1176,9 +1072,7 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
                width: '100%',
                height: '100%', // 確保填滿整個容器高度
                minHeight: '70vh', // 確保至少佔據70%的視窗高度
-               opacity: loading ? 1 : 0,
-               visibility: loading ? 'visible' : 'hidden',
-               transition: 'opacity 0.8s ease-in-out, visibility 0.8s ease-in-out',
+               display: loading ? 'block' : 'none',
                overflow: 'hidden',
                bgcolor: 'background.paper',
                borderRadius: 1,
