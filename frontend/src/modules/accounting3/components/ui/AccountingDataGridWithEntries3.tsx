@@ -897,16 +897,11 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
           )}
 
           {/* 交易群組表格 - 使用 DataGrid */}
-          <Box sx={{ p: 2, width: '100%', maxWidth: '100%', overflow: 'hidden', bgcolor: 'background.default' }}>
+          <Box sx={{ width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
             <Box sx={{ display: loading ? 'none' : 'block' }}>
               <Box sx={{
                 position: 'relative',
                 width: '100%',
-                bgcolor: 'background.paper',
-                borderRadius: 1,
-                border: 1,
-                borderColor: 'divider',
-                boxShadow: 1,
                 overflow: 'hidden'
               }}>
                 {transactionGroups.length === 0 ? (
@@ -955,17 +950,8 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
                      actions: true
                    }}
                    sx={{
-                     // 基本樣式
-                     '& .MuiDataGrid-main': {
-                       bgcolor: 'background.paper'
-                     },
-                     '& .MuiDataGrid-root': {
-                       border: 'none', // 移除 DataGrid 自帶的邊框，因為我們已經為容器添加了邊框
-                       boxShadow: '0 2px 4px rgba(0,0,0,0.05)' // 添加輕微陰影
-                     },
-                     // 表頭樣式 - 使用主題的淡色
+                     // 表頭樣式
                      '& .MuiDataGrid-columnHeaders': {
-                       bgcolor: 'action.hover', // 使用主題的淡色
                        borderBottom: '1px solid',
                        borderColor: 'divider',
                        height: 48, // 固定表頭高度
@@ -975,7 +961,6 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
                      },
                      // 基本行樣式 - 簡化，移除動畫效果
                      '& .MuiDataGrid-row': {
-                       bgcolor: 'background.paper',
                        '&:hover': {
                          bgcolor: 'action.hover' // 懸停效果
                        },
@@ -986,8 +971,7 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
                      // 分頁控制區域
                      '& .MuiDataGrid-footerContainer': {
                        borderTop: '1px solid',
-                       borderColor: 'divider',
-                       bgcolor: 'background.paper'
+                       borderColor: 'divider'
                      }
                    }}
                    localeText={{
