@@ -260,7 +260,7 @@ const OrganizationPage: React.FC = () => {
             gap: 1,
             alignItems: 'center',
             height: '100%'
-          }}>
+            }}>
             <TextField
               size="small"
               label="搜尋"

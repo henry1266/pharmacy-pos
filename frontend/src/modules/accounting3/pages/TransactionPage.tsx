@@ -14,6 +14,8 @@ import {
   Paper,
   Fab,
   Tooltip,
+  TextField,
+  InputAdornment,
 } from '@mui/material';
 import { BreadcrumbNavigation } from '../components/ui/BreadcrumbNavigation';
 import {
@@ -71,7 +73,7 @@ export const Accounting3TransactionPage: React.FC = () => {
   const defaultOrganizationId = searchParams.get('defaultOrganizationId');
   
   // Redux state - 使用內嵌分錄狀態
-  const { transactionGroups, loading, error } = useAppSelector(state => state.transactionGroupWithEntries);
+  const { transactionGroups, loading, error, pagination } = useAppSelector(state => state.transactionGroupWithEntries);
   
   // Local state
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -534,30 +536,108 @@ export const Accounting3TransactionPage: React.FC = () => {
   // 如果是新增模式，直接顯示新增表單
   if (isNewMode) {
     return (
-      <Container maxWidth="xl" sx={{ py: 1 }}>
-        {/* 頁面標題 */}
-        <Box sx={{ mb: 3 }}>
-          
-          {/* 麵包屑導航 */}
-          <BreadcrumbNavigation
-            items={[
-              {
-                label: '會計系統',
-                path: '/accounting3',
-                icon: <AccountBalanceIcon fontSize="small" />
-              },
-              {
-                label: '交易管理',
-                path: '/accounting3/transaction',
-                icon: <ReceiptIcon fontSize="small" />
-              },
-              {
-                label: '新增交易',
-                icon: <AddIcon fontSize="small" />
-              }
-            ]}
-          />
-        </Box>
+      <Container maxWidth="xl" sx={{ py: 0, px: 0 }}>
+        {/* 標題區域 */}
+        <Paper sx={{
+          mb: 3,
+          bgcolor: 'background.paper',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 10
+        }}>
+          <Box sx={{
+            p: 1.5,
+            borderBottom: 1,
+            borderColor: 'divider',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            minHeight: 48
+          }}>
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              height: '100%'
+            }}>
+              <Box sx={{
+                display: 'flex',
+                alignItems: 'center',
+                height: 44
+              }}>
+                <Box sx={{
+                  '& > div': {
+                    marginBottom: 0,
+                    display: 'flex',
+                    alignItems: 'center'
+                  }
+                }}>
+                  <BreadcrumbNavigation
+                    items={[
+                      {
+                        label: '會計首頁',
+                        path: '/accounting3',
+                        icon: <HomeIcon sx={{ fontSize: '1.1rem' }} />
+                      },
+                      {
+                        label: '交易管理',
+                        path: '/accounting3/transaction',
+                        icon: <ReceiptIcon sx={{ fontSize: '1.1rem' }} />
+                      },
+                      {
+                        label: '新增交易',
+                        icon: <AddIcon sx={{ fontSize: '1.1rem' }} />
+                      }
+                    ]}
+                    fontSize="0.975rem"
+                    padding={0}
+                  />
+                </Box>
+                
+              </Box>
+            </Box>
+            <Box sx={{
+              display: 'flex',
+              gap: 1,
+              alignItems: 'center',
+              height: '100%',
+              marginLeft: 'auto' // 使用 marginLeft: 'auto' 代替 justifyContent: 'flex-end'
+            }}>
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<ArrowBackIcon />}
+                onClick={() => navigate('/accounting3/transaction')}
+                sx={{
+                  height: 44, // 增加按鈕高度
+                  minWidth: 110 // 確保按鈕有足夠寬度
+                }}
+              >
+                返回列表
+              </Button>
+            </Box>
+            <Box sx={{
+              display: 'flex',
+              gap: 1,
+              alignItems: 'center',
+              height: '100%',
+              marginLeft: 'auto' // 使用 marginLeft: 'auto' 代替 justifyContent: 'flex-end'
+            }}>
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<ArrowBackIcon />}
+                onClick={() => navigate('/accounting3/transaction')}
+                sx={{
+                  height: 44, // 增加按鈕高度
+                  minWidth: 110 // 確保按鈕有足夠寬度
+                }}
+              >
+                返回列表
+              </Button>
+            </Box>
+          </Box>
+        </Paper>
 
         {/* 錯誤提示 */}
         {error && (
@@ -620,9 +700,82 @@ export const Accounting3TransactionPage: React.FC = () => {
   }
 
   return (
-    <Container maxWidth="xl" sx={{ py: 1 }}>
-
-        
+    <Container maxWidth="xl" sx={{ py: 0, px: 0 }}>
+        {/* 標題區域 */}
+        <Paper sx={{
+          mb: 3,
+          bgcolor: 'background.paper',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 10
+        }}>
+          <Box sx={{
+            p: 1.5,
+            borderBottom: 1,
+            borderColor: 'divider',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            minHeight: 48
+          }}>
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              height: '100%'
+            }}>
+              <Box sx={{
+                display: 'flex',
+                alignItems: 'center',
+                height: 44
+              }}>
+                <Box sx={{
+                  '& > div': {
+                    marginBottom: 0,
+                    display: 'flex',
+                    alignItems: 'center'
+                  }
+                }}>
+                  <BreadcrumbNavigation
+                    items={[
+                      {
+                        label: '會計首頁',
+                        path: '/accounting3',
+                        icon: <HomeIcon sx={{ fontSize: '1.1rem' }} />
+                      },
+                      {
+                        label: '交易管理',
+                        icon: <ReceiptIcon sx={{ fontSize: '1.1rem' }} />
+                      }
+                    ]}
+                    fontSize="0.975rem"
+                    padding={0}
+                  />
+                </Box>
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  backgroundColor: 'secondary.main',
+                  color: 'secondary.contrastText',
+                  px: 2,
+                  py: 0.5,
+                  ml: 2,
+                  borderRadius: 2,
+                  minWidth: 'fit-content',
+                  height: 36
+                }}>
+                  <Typography variant="caption" sx={{ fontSize: '0.85rem', mr: 0.75 }}>
+                    總筆數
+                  </Typography>
+                  <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: 'bold', lineHeight: 1 }}>
+                    {pagination?.total || 0}
+                  </Typography>
+                </Box>
+              </Box>
+              
+            </Box>
+          </Box>
+        </Paper>
 
       {/* 錯誤提示 */}
       {error && (
@@ -632,17 +785,19 @@ export const Accounting3TransactionPage: React.FC = () => {
       )}
 
       {/* 主要內容區域 - 交易管理 */}
-      <AccountingDataGridWithEntries
-        showFilters={showFilters}
-        onToggleFilters={() => setShowFilters(!showFilters)}
-        onCreateNew={() => navigate('/accounting3/transaction/new')}
-        onEdit={handleEdit}
-        onView={handleView}
-        onDelete={handleDelete}
-        onCopy={handleCopy}
-        onConfirm={handleConfirm}
-        onUnlock={handleUnlock}
-      />
+      <Box sx={{ p: 2, width: '100%', maxWidth: '100%', overflow: 'hidden', bgcolor: 'background.default' }}>
+        <AccountingDataGridWithEntries
+          showFilters={showFilters}
+          onToggleFilters={() => setShowFilters(!showFilters)}
+          onCreateNew={() => navigate('/accounting3/transaction/new')}
+          onEdit={handleEdit}
+          onView={handleView}
+          onDelete={handleDelete}
+          onCopy={handleCopy}
+          onConfirm={handleConfirm}
+          onUnlock={handleUnlock}
+        />
+      </Box>
 
       {/* 新增/編輯交易對話框 */}
       <Dialog

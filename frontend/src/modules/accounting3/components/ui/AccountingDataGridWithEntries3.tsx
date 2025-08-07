@@ -923,7 +923,7 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
               gap: 1,
               alignItems: 'center',
               height: '100%' // 確保高度一致
-            }}>
+              }}>
               <TextField
                 size="small"
                 label="搜尋"
