@@ -169,7 +169,8 @@ export const buildQueryFilter = (
     organizationId,
     status,
     startDate,
-    endDate
+    endDate,
+    search
   } = query;
 
   // 建立基本查詢條件
@@ -199,6 +200,19 @@ export const buildQueryFilter = (
     if (endDate) {
       filter.transactionDate.$lte = new Date(endDate as string);
     }
+  }
+
+  // 搜尋過濾 - 針對描述和流向欄位
+  if (search && typeof search === 'string' && search.trim() !== '') {
+    const searchRegex = new RegExp(search, 'i');
+    filter.$or = [
+      { description: searchRegex },                    // 搜尋描述
+      { groupNumber: searchRegex },                    // 搜尋交易編號
+      { invoiceNo: searchRegex },                      // 搜尋發票號碼
+      { 'entries.description': searchRegex },          // 搜尋分錄描述
+      { 'entries.accountName': searchRegex }           // 搜尋科目名稱（流向）
+    ];
+    console.log('🔍 搜尋條件:', search);
   }
 
   return filter;

@@ -17,28 +17,11 @@
   '& .MuiDataGrid-row': {
     bgcolor: 'background.paper'
   }
-  // 移除動畫延遲設置和 keyframes 定義
-  ```
-- [ ] 優化骨架屏渲染，減少元素數量
-  ```tsx
-  // 優化骨架屏渲染函數
-  const renderSkeleton = () => (
-    <Box sx={{ width: '100%', mt: 1 }}>
-      {/* 減少骨架元素數量 */}
-      {[...Array(8)].map((_, index) => (
-        <Skeleton 
-          key={index}
-          variant="rectangular"
-          height={52}
-          sx={{ mb: 1, borderRadius: 1 }}
-        />
-      ))}
-    </Box>
-  );
-  ```
 
 ### 中期優化項目
+
 - [ ] 使用 `useMemo` 記憶化複雜計算結果
+
   ```tsx
   // 優化 renderIntegratedFundingStatus 函數
   const memoizedFundingStatus = useMemo(() => 
@@ -46,8 +29,10 @@
     [group._id, group.referencedByInfo, group.fundingSourceUsages]
   );
   ```
+
 - [ ] 使用 `useCallback` 記憶化事件處理函數
 - [ ] 添加 debounce 處理搜索輸入
+
   ```tsx
   // 添加 debounce 處理搜索
   const debouncedSearch = useDebounce(filter.search, 500);
@@ -57,6 +42,7 @@
     // ...
   }, [debouncedSearch, /* 其他依賴 */]);
   ```
+  
 - [x] 優化 `TransactionPage.tsx` 中的數據加載邏輯
   ```tsx
   // 分離數據獲取邏輯

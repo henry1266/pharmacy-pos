@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { keyframes } from '@emotion/react';
 import {
   Box,
   Card,
@@ -35,7 +36,6 @@ import {
   LockOpen as UnlockIcon,
   Link as LinkIcon,
   ArrowForward as ArrowForwardIcon,
-
   OpenInNew as OpenInNewIcon
 } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -46,6 +46,35 @@ import { useNavigate } from 'react-router-dom';
 import { TransactionGroupWithEntries, EmbeddedAccountingEntry } from '@pharmacy-pos/shared';
 import { useAppSelector, useAppDispatch } from '../../../../hooks/redux';
 import { fetchTransactionGroupsWithEntries } from '../../../../redux/actions';
+
+// 定義 fadeIn 動畫
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+// 直接在組件文件中定義 useDebounce hook
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
 
 // 臨時型別擴展，確保 referencedByInfo 和 fundingSourceUsages 屬性可用
 interface ExtendedTransactionGroupWithEntries extends TransactionGroupWithEntries {
@@ -349,11 +378,16 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
     limit: 25
   });
   
-  // 為 DataGrid 準備行數據
-  const rows: TransactionRow[] = transactionGroups.map(group => ({
+  // 使用 debounce 處理搜索輸入
+  const debouncedSearch = useDebounce(filter.search, 500);
+  
+  // 為 DataGrid 準備行數據 - 使用 useMemo 優化
+  const rows: TransactionRow[] = useMemo(() => transactionGroups.map(group => ({
     ...group,
     id: group._id, // DataGrid 需要唯一的 id 字段
-  }));
+  })), [transactionGroups]);
+  
+  // 移除這裡的 fundingStatusMap 定義，我們將在 renderIntegratedFundingStatus 函數定義後重新添加
 
   // 載入交易群組資料
   const loadTransactionGroups = () => {
@@ -386,7 +420,7 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
   useEffect(() => {
     console.log('[Accounting3] 🔍 AccountingDataGridWithEntries3 - 載入交易群組:', {
       organizationId,
-      search: filter.search,
+      search: debouncedSearch, // 使用 debouncedSearch 而不是 filter.search
       status: filter.status,
       startDate: filter.startDate,
       endDate: filter.endDate
@@ -398,7 +432,7 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
       limit: filter.limit
     };
 
-    if (filter.search) params.search = filter.search;
+    if (debouncedSearch) params.search = debouncedSearch; // 使用 debouncedSearch
     if (filter.status) params.status = filter.status;
     if (filter.startDate) params.startDate = filter.startDate.toISOString();
     if (filter.endDate) params.endDate = filter.endDate.toISOString();
@@ -414,7 +448,7 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
   }, [
     dispatch,
     organizationId,
-    filter.search,
+    debouncedSearch, // 使用 debouncedSearch 替換 filter.search
     filter.status,
     filter.startDate,
     filter.endDate,
@@ -432,8 +466,8 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
     });
   }, [transactionGroups, loading, error, pagination]);
 
-  // 處理篩選變更
-  const handleFilterChange = (field: keyof FilterOptions, value: any) => {
+  // 使用 useCallback 記憶化事件處理函數
+  const handleFilterChange = useCallback((field: keyof FilterOptions, value: any) => {
     setFilter(prev => ({
       ...prev,
       [field]: value,
@@ -447,7 +481,7 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
         page: 0 // DataGrid 的頁碼從 0 開始
       });
     }
-  };
+  }, [paginationModel, setPaginationModel]);
 
   // 處理分頁變更 - 這個函數不再需要，因為 DataGrid 會直接調用 onPageChange
 
@@ -764,17 +798,20 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
       bgcolor: 'background.paper', // 使用主題的背景色
       borderRadius: 1,
       height: '100%',
-      minHeight: '70vh' // 確保至少佔據70%的視窗高度
+      minHeight: '70vh', // 確保至少佔據70%的視窗高度
+      p: 2 // 添加內邊距
     }}>
       {[...Array(15)].map((_, index) => ( // 增加到15行以填滿更多空間
         <Box
           key={index}
           sx={{
             display: 'flex',
-            mb: 1,
+            mb: 1.5,
             opacity: 0,
-            animation: 'fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards',
-            animationDelay: `${index * 0.05}s`
+            animation: `${fadeIn} 0.8s ease-in-out forwards`,
+            animationDelay: `${index * 0.08}s`,
+            transform: 'translateY(10px)',
+            // animationFillMode 已經在上面定義了
           }}
         >
           {[...Array(6)].map((_, colIndex) => (
@@ -783,20 +820,21 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
               variant="rectangular"
               width={`${100 / 6}%`}
               height={52}
-              animation="wave"
+              animation="pulse" // 使用 pulse 動畫
               sx={{
                 mx: 0.5,
                 borderRadius: 1,
-                opacity: 1 - (index * 0.1), // 漸變效果
+                opacity: 1 - (index * 0.05), // 更輕微的漸變效果
                 bgcolor: 'action.hover', // 使用主題的懸停色，通常是淺灰色
                 '&::after': {
-                  background: 'linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.04), transparent)'
+                  background: 'linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.06), transparent)'
                 }
               }}
             />
           ))}
         </Box>
       ))}
+      {/* 使用標準的 React 方式添加動畫 */}
     </Box>
   );
 
@@ -901,12 +939,13 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
 
           {/* 交易群組表格 - 使用 DataGrid */}
           <Box sx={{ p: 2, width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
-            <Fade in={!loading} timeout={1000}>
+            <Fade in={!loading} timeout={800} appear={true}>
               <Box sx={{
-                position: loading ? 'absolute' : 'relative',
+                position: 'relative',
                 width: '100%',
                 opacity: loading ? 0 : 1,
-                transition: 'opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                transition: 'opacity 0.8s ease-in-out, transform 0.6s ease-out',
+                transform: loading ? 'translateY(10px)' : 'translateY(0)',
                 bgcolor: 'background.paper',
                 borderRadius: 1,
                 border: 1,
@@ -1042,11 +1081,12 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
                minHeight: '70vh', // 確保至少佔據70%的視窗高度
                opacity: loading ? 1 : 0,
                visibility: loading ? 'visible' : 'hidden',
-               transition: 'opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+               transition: 'opacity 0.8s ease-in-out, visibility 0.8s ease-in-out',
                overflow: 'hidden',
                bgcolor: 'background.paper',
                borderRadius: 1,
-               border: 'none' // 不需要為骨架屏添加邊框，因為它在容器內部
+               border: 'none', // 不需要為骨架屏添加邊框，因為它在容器內部
+               zIndex: 1 // 確保骨架屏在數據表格之上
              }}
            >
              {renderSkeleton()}
