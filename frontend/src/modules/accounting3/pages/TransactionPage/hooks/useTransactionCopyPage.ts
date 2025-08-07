@@ -25,7 +25,6 @@ export const useTransactionCopyPage = () => {
   const [searchParams] = useSearchParams();
   
   // URL 查詢參數
-  const returnTo = searchParams.get('returnTo');
   
   // Redux 狀態
   const { transactionGroups, loading, error } = useAppSelector(state => state.transactionGroupWithEntries);
@@ -99,11 +98,7 @@ export const useTransactionCopyPage = () => {
 
   // 處理取消複製
   const handleCancel = () => {
-    if (returnTo) {
-      navigate(decodeURIComponent(returnTo));
-    } else {
-      navigate('/accounting3/transaction');
-    }
+    navigate('/accounting3/transaction');
   };
 
   // 轉換表單資料為 API 資料
@@ -183,14 +178,7 @@ export const useTransactionCopyPage = () => {
       
       // 延遲導航，讓用戶看到成功消息
       setTimeout(() => {
-        if (returnTo) {
-          if (process.env.NODE_ENV === 'development') {
-            console.log('🔄 複製成功，準備返回原頁面:', decodeURIComponent(returnTo));
-          }
-          navigate(decodeURIComponent(returnTo));
-        } else {
-          navigate('/accounting3/transaction');
-        }
+        navigate('/accounting3/transaction');
       }, 1500);
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
@@ -260,7 +248,6 @@ export const useTransactionCopyPage = () => {
     
     // URL 參數
     transactionId,
-    returnTo,
     
     // 事件處理函數
     handleFormSubmit,

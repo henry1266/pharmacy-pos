@@ -297,7 +297,7 @@ export const AccountsManagementPage: React.FC = () => {
     const transactionId = typeof transaction._id === 'string' ? transaction._id :
                          transaction._id?.$oid || String(transaction._id);
     if (transactionId) {
-      window.open(`/accounting3/transaction/${transactionId}/copy?returnTo=${encodeURIComponent('/accounting3/accounts')}`, '_blank');
+      window.open(`/accounting3/transaction/${transactionId}/copy`, '_blank');
     } else {
       showSnackbar('無法複製交易：交易 ID 無效', 'error');
     }
@@ -404,7 +404,7 @@ export const AccountsManagementPage: React.FC = () => {
               };
               
               if (transactionId && isValidObjectId(transactionId)) {
-                window.open(`/accounting3/transaction/${transactionId}?returnTo=${encodeURIComponent('/accounting3/accounts')}`, '_blank');
+                window.open(`/accounting3/transaction/${transactionId}`, '_blank');
               } else {
                 showSnackbar('無法查看交易：交易 ID 無效', 'error');
               }
@@ -480,7 +480,7 @@ export const AccountsManagementPage: React.FC = () => {
               
               if (transactionId && isValidObjectId(transactionId)) {
                 console.log('✅ 導航到編輯頁面:', `/accounting3/transaction/${transactionId}/edit`);
-                window.open(`/accounting3/transaction/${transactionId}/edit?returnTo=${encodeURIComponent('/accounting3/accounts')}`, '_blank');
+                window.open(`/accounting3/transaction/${transactionId}/edit`, '_blank');
               } else {
                 console.error('❌ 交易 ID 無效或格式錯誤:', {
                   transaction,
@@ -499,7 +499,7 @@ export const AccountsManagementPage: React.FC = () => {
             onAddTransaction={(accountId) => {
               console.log('為科目新增交易:', accountId);
               // 導航到新增交易頁面，並預設選中的科目
-              window.open(`/accounting3/transaction/new?defaultAccountId=${accountId}&returnTo=${encodeURIComponent('/accounting3/accounts')}`, '_blank');
+              window.open(`/accounting3/transaction/new?defaultAccountId=${accountId}`, '_blank');
             }}
           />
         </Box>

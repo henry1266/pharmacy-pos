@@ -67,12 +67,8 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   
   // 處理複製按鈕點擊 - 在新分頁中打開複製頁面
   const handleCopyClick = useCallback((transaction: TransactionGroupWithEntries) => {
-    // 構建返回 URL
-    const currentPath = window.location.pathname;
-    const returnToParam = encodeURIComponent(currentPath);
-    
     // 在新分頁中打開複製頁面
-    window.open(`/accounting3/transaction/${transaction._id}/copy?returnTo=${returnToParam}`, '_blank');
+    window.open(`/accounting3/transaction/${transaction._id}/copy`, '_blank');
   }, []);
   // 獲取交易狀態標籤顏色
   const getStatusColor = (status: string) => {

@@ -22,7 +22,6 @@ export const TransactionNewPage: React.FC = () => {
     snackbar,
     
     // URL 參數
-    returnTo,
     defaultAccountId,
     defaultOrganizationId,
     

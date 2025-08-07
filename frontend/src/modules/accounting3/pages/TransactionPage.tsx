@@ -68,7 +68,7 @@ export const Accounting3TransactionPage: React.FC = () => {
   const { transactionId } = useParams<{ transactionId?: string }>();
   const isCopyMode = window.location.pathname.includes('/copy');
   const isNewMode = window.location.pathname.includes('/new');
-  const returnTo = searchParams.get('returnTo');
+  // 移除 returnTo 參數
   const defaultAccountId = searchParams.get('defaultAccountId');
   const defaultOrganizationId = searchParams.get('defaultOrganizationId');
   
@@ -303,7 +303,7 @@ export const Accounting3TransactionPage: React.FC = () => {
           mode: editingTransaction ? 'edit' : 'create',
           isCopyMode: !!copyingTransaction,
           transactionId: editingTransaction?._id,
-          returnTo,
+          // 移除 returnTo 參數
           formDataSummary: {
             description: formData.description,
             organizationId: formData.organizationId,
@@ -406,14 +406,13 @@ export const Accounting3TransactionPage: React.FC = () => {
           dispatch(fetchTransactionGroupsWithEntries() as any);
         }, 500);
         
-        if (returnTo && editingTransaction) {
-          if (process.env.NODE_ENV === 'development') {
-            console.log('🔄 編輯成功，準備返回原頁面:', decodeURIComponent(returnTo));
-          }
-          setTimeout(() => {
-            navigate(decodeURIComponent(returnTo));
-          }, 1000);
+        // 編輯成功後直接返回交易列表頁面
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🔄 編輯成功，準備返回交易列表頁面');
         }
+        setTimeout(() => {
+          navigate('/accounting3/transaction');
+        }, 1000);
       } else {
         if (process.env.NODE_ENV === 'development') {
           console.log('🆕 [Accounting3] 執行建立操作');
@@ -438,15 +437,14 @@ export const Accounting3TransactionPage: React.FC = () => {
           dispatch(fetchTransactionGroupsWithEntries() as any);
         }, 500);
         
-        if (returnTo && (copyingTransaction || defaultAccountId)) {
-          const actionType = copyingTransaction ? '複製' : '新增';
-          if (process.env.NODE_ENV === 'development') {
-            console.log(`🔄 ${actionType}成功，準備返回原頁面:`, decodeURIComponent(returnTo));
-          }
-          setTimeout(() => {
-            navigate(decodeURIComponent(returnTo));
-          }, 1000);
+        // 複製或新增成功後直接返回交易列表頁面
+        const actionType = copyingTransaction ? '複製' : '新增';
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`🔄 ${actionType}成功，準備返回交易列表頁面`);
         }
+        setTimeout(() => {
+          navigate('/accounting3/transaction');
+        }, 1000);
       }
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
@@ -502,7 +500,7 @@ export const Accounting3TransactionPage: React.FC = () => {
     setEditingTransaction(null);
     setCopyingTransaction(null);
     
-    if (isCopyMode && transactionId && returnTo) {
+    if (isCopyMode && transactionId) {
       navigate('/accounting3/transaction');
     }
   };

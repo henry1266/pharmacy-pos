@@ -60,28 +60,20 @@ export const TransactionDetail: React.FC<TransactionDetailProps> = ({
   
   // 處理編輯按鈕點擊 - 在新分頁中打開編輯頁面
   const handleEditClick = useCallback((transaction: TransactionGroupWithEntries) => {
-    // 構建返回 URL
-    const currentPath = window.location.pathname;
-    const returnToParam = encodeURIComponent(currentPath);
-    
     // 關閉詳情對話框
     onClose();
     
     // 在新分頁中打開編輯頁面
-    window.open(`/accounting3/transaction/${transaction._id}/edit?returnTo=${returnToParam}`, '_blank');
+    window.open(`/accounting3/transaction/${transaction._id}/edit`, '_blank');
   }, [onClose]);
   
   // 處理複製按鈕點擊 - 在新分頁中打開複製頁面
   const handleCopyClick = useCallback((transaction: TransactionGroupWithEntries) => {
-    // 構建返回 URL
-    const currentPath = window.location.pathname;
-    const returnToParam = encodeURIComponent(currentPath);
-    
     // 關閉詳情對話框
     onClose();
     
     // 在新分頁中打開複製頁面
-    window.open(`/accounting3/transaction/${transaction._id}/copy?returnTo=${returnToParam}`, '_blank');
+    window.open(`/accounting3/transaction/${transaction._id}/copy`, '_blank');
   }, [onClose]);
 
   // 計算借貸總額

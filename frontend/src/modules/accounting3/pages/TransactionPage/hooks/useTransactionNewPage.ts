@@ -23,7 +23,6 @@ export const useTransactionNewPage = () => {
   const [searchParams] = useSearchParams();
   
   // URL 查詢參數
-  const returnTo = searchParams.get('returnTo');
   const defaultAccountId = searchParams.get('defaultAccountId');
   const defaultOrganizationId = searchParams.get('defaultOrganizationId');
   
@@ -62,11 +61,7 @@ export const useTransactionNewPage = () => {
 
   // 處理取消新增
   const handleCancel = () => {
-    if (returnTo) {
-      navigate(decodeURIComponent(returnTo));
-    } else {
-      navigate('/accounting3/transaction');
-    }
+    navigate('/accounting3/transaction');
   };
 
   // 轉換表單資料為 API 資料
@@ -146,14 +141,7 @@ export const useTransactionNewPage = () => {
       
       // 延遲導航，讓用戶看到成功消息
       setTimeout(() => {
-        if (returnTo) {
-          if (process.env.NODE_ENV === 'development') {
-            console.log('🔄 新增成功，準備返回原頁面:', decodeURIComponent(returnTo));
-          }
-          navigate(decodeURIComponent(returnTo));
-        } else {
-          navigate('/accounting3/transaction');
-        }
+        navigate('/accounting3/transaction');
       }, 1500);
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
@@ -203,7 +191,6 @@ export const useTransactionNewPage = () => {
     snackbar,
     
     // URL 參數
-    returnTo,
     defaultAccountId,
     defaultOrganizationId,
     

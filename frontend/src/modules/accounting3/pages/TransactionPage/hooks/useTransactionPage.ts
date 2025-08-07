@@ -30,7 +30,6 @@ export const useTransactionPage = () => {
   const isNewMode = window.location.pathname.includes('/new');
   
   // URL 查詢參數
-  const returnTo = searchParams.get('returnTo');
   const defaultAccountId = searchParams.get('defaultAccountId');
   const defaultOrganizationId = searchParams.get('defaultOrganizationId');
   
@@ -72,32 +71,20 @@ export const useTransactionPage = () => {
 
   // 處理新增交易 - 在新分頁中打開新增頁面
   const handleCreateNew = () => {
-    // 構建返回 URL
-    const currentPath = window.location.pathname;
-    const returnToParam = encodeURIComponent(currentPath);
-    
     // 在新分頁中打開新增頁面
-    window.open(`/accounting3/transaction/new?returnTo=${returnToParam}`, '_blank');
+    window.open(`/accounting3/transaction/new`, '_blank');
   };
 
   // 處理編輯交易 - 在新分頁中打開編輯頁面
   const handleEdit = (transactionGroup: TransactionGroupWithEntries) => {
-    // 構建返回 URL
-    const currentPath = window.location.pathname;
-    const returnToParam = encodeURIComponent(currentPath);
-    
     // 在新分頁中打開編輯頁面
-    window.open(`/accounting3/transaction/${transactionGroup._id}/edit?returnTo=${returnToParam}`, '_blank');
+    window.open(`/accounting3/transaction/${transactionGroup._id}/edit`, '_blank');
   };
 
   // 處理檢視交易 - 在新分頁中打開詳情頁面
   const handleView = (transactionGroup: TransactionGroupWithEntries) => {
-    // 構建返回 URL
-    const currentPath = window.location.pathname;
-    const returnToParam = encodeURIComponent(currentPath);
-    
     // 在新分頁中打開詳情頁面
-    window.open(`/accounting3/transaction/${transactionGroup._id}?returnTo=${returnToParam}`, '_blank');
+    window.open(`/accounting3/transaction/${transactionGroup._id}`, '_blank');
   };
 
   // 處理刪除交易
@@ -115,12 +102,8 @@ export const useTransactionPage = () => {
 
   // 處理複製交易 - 在新分頁中打開複製頁面
   const handleCopy = (transactionGroup: TransactionGroupWithEntries) => {
-    // 構建返回 URL
-    const currentPath = window.location.pathname;
-    const returnToParam = encodeURIComponent(currentPath);
-    
     // 在新分頁中打開複製頁面
-    window.open(`/accounting3/transaction/${transactionGroup._id}/copy?returnTo=${returnToParam}`, '_blank');
+    window.open(`/accounting3/transaction/${transactionGroup._id}/copy`, '_blank');
   };
 
   // 處理確認交易
@@ -182,16 +165,13 @@ export const useTransactionPage = () => {
   // 如果 URL 中有 transactionId 參數，則在新分頁中打開相應的頁面
   useEffect(() => {
     if (transactionId && transactionGroups.length > 0) {
-      const currentPath = window.location.pathname;
-      const returnToParam = encodeURIComponent(currentPath);
-      
       // 根據模式在新分頁中打開相應的頁面
       if (isCopyMode) {
-        window.open(`/accounting3/transaction/${transactionId}/copy?returnTo=${returnToParam}`, '_blank');
+        window.open(`/accounting3/transaction/${transactionId}/copy`, '_blank');
       } else if (isNewMode) {
-        window.open(`/accounting3/transaction/new?returnTo=${returnToParam}`, '_blank');
+        window.open(`/accounting3/transaction/new`, '_blank');
       } else {
-        window.open(`/accounting3/transaction/${transactionId}/edit?returnTo=${returnToParam}`, '_blank');
+        window.open(`/accounting3/transaction/${transactionId}/edit`, '_blank');
       }
       
       // 導航回交易列表頁面
@@ -202,11 +182,8 @@ export const useTransactionPage = () => {
   // 如果 URL 中有 defaultAccountId 參數，則在新分頁中打開新增頁面
   useEffect(() => {
     if (defaultAccountId && !transactionId) {
-      const currentPath = window.location.pathname;
-      const returnToParam = encodeURIComponent(currentPath);
-      
       // 在新分頁中打開新增頁面
-      window.open(`/accounting3/transaction/new?returnTo=${returnToParam}&defaultAccountId=${defaultAccountId}&defaultOrganizationId=${defaultOrganizationId || ''}`, '_blank');
+      window.open(`/accounting3/transaction/new?defaultAccountId=${defaultAccountId}&defaultOrganizationId=${defaultOrganizationId || ''}`, '_blank');
       
       // 導航回交易列表頁面
       navigate('/accounting3/transaction');
@@ -227,7 +204,6 @@ export const useTransactionPage = () => {
     
     // URL 參數
     transactionId,
-    returnTo,
     defaultAccountId,
     defaultOrganizationId,
     

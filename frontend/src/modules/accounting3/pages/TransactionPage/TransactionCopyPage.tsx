@@ -23,7 +23,6 @@ export const TransactionCopyPage: React.FC = () => {
     snackbar,
     
     // URL 參數
-    returnTo,
     
     // 事件處理函數
     handleFormSubmit,
