@@ -22,7 +22,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Breadcrumbs,
   Link,
   Fab,
   Tooltip,
@@ -35,7 +34,9 @@ import {
   Business as BusinessIcon,
   Receipt as ReceiptIcon,
   ArrowBack as ArrowBackIcon,
+  Home as HomeIcon,
 } from '@mui/icons-material';
+import { BreadcrumbNavigation } from '../components/ui/BreadcrumbNavigation';
 
 import { Organization } from '@pharmacy-pos/shared/types/organization';
 import organizationService from '../services/organizationService';
@@ -181,73 +182,143 @@ const OrganizationPage: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="xl" sx={{ py: 2 }}>
-      {/* 麵包屑導航 */}
-      <Box sx={{ mb: 2 }}>
-        <Breadcrumbs aria-label="breadcrumb">
-          <Link
-            color="inherit"
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              navigate('/accounting3');
-            }}
-            sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
-          >
-            <ReceiptIcon fontSize="small" />
-            會計管理
-          </Link>
-          <Typography 
-            color="text.primary" 
-            sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
-          >
-            <BusinessIcon fontSize="small" />
-            組織管理
-          </Typography>
-        </Breadcrumbs>
-      </Box>
-
-      {/* 頁面標題 */}
-      <Box sx={{ mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-          <BusinessIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-          <Typography variant="h4" component="h1" fontWeight="bold">
-            組織管理
-          </Typography>
+    <Container maxWidth="xl" sx={{ py: 0, px: 0 }}>
+      {/* 標題區域 */}
+      <Paper sx={{
+        mb: 3,
+        bgcolor: 'background.paper',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 10
+      }}>
+        <Box sx={{
+          p: 1.5,
+          borderBottom: 1,
+          borderColor: 'divider',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          minHeight: 48
+        }}>
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            height: '100%'
+          }}>
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              height: 44
+            }}>
+              <Box sx={{
+                '& > div': {
+                  marginBottom: 0,
+                  display: 'flex',
+                  alignItems: 'center'
+                }
+              }}>
+                <BreadcrumbNavigation
+                  items={[
+                    {
+                      label: '會計首頁',
+                      path: '/accounting3',
+                      icon: <HomeIcon sx={{ fontSize: '1.1rem' }} />
+                    },
+                    {
+                      label: '組織管理',
+                      icon: <BusinessIcon sx={{ fontSize: '1.1rem' }} />
+                    }
+                  ]}
+                  fontSize="0.975rem"
+                  padding={0}
+                />
+              </Box>
+              <Box sx={{
+                display: 'flex',
+                alignItems: 'center',
+                backgroundColor: 'secondary.main',
+                color: 'secondary.contrastText',
+                px: 2,
+                py: 0.5,
+                ml: 2,
+                borderRadius: 2,
+                minWidth: 'fit-content',
+                height: 36
+              }}>
+                <Typography variant="caption" sx={{ fontSize: '0.85rem', mr: 0.75 }}>
+                  總筆數
+                </Typography>
+                <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: 'bold', lineHeight: 1 }}>
+                  {filteredOrganizations.length}
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+          <Box sx={{
+            display: 'flex',
+            gap: 1,
+            alignItems: 'center',
+            height: '100%'
+          }}>
+            <TextField
+              size="small"
+              label="搜尋"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="組織名稱、代碼..."
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+                sx: { height: 44 }
+              }}
+              sx={{
+                mr: 1,
+                '& .MuiInputBase-root': {
+                  height: 44
+                }
+              }}
+            />
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<AddIcon />}
+              onClick={handleAddOrganization}
+              sx={{
+                height: 44,
+                minWidth: 110
+              }}
+            >
+              新增組織
+            </Button>
+          </Box>
         </Box>
-      </Box>
+      </Paper>
 
-      {/* 工具列 */}
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <TextField
-          placeholder="搜尋組織名稱、代碼或描述..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-          }}
-          sx={{ minWidth: 300 }}
-        />
-        
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleAddOrganization}
-        >
-          新增組織
-        </Button>
-      </Box>
 
       {/* 組織列表 */}
-      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <TableContainer sx={{ maxHeight: 600 }}>
+      <Box sx={{ p: 2, width: '100%', maxWidth: '100%', overflow: 'hidden', bgcolor: 'background.default' }}>
+        <Paper sx={{
+          width: '100%',
+          overflow: 'hidden',
+          bgcolor: 'background.paper',
+          borderRadius: 1,
+          border: 1,
+          borderColor: 'divider',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+        }}>
+          <TableContainer sx={{ maxHeight: 600 }}>
           <Table stickyHeader>
             <TableHead>
-              <TableRow>
+              <TableRow sx={{
+                bgcolor: 'action.hover',
+                '& th': {
+                  fontWeight: 600
+                }
+              }}>
                 <TableCell>組織代碼</TableCell>
                 <TableCell>組織名稱</TableCell>
                 <TableCell>描述</TableCell>
@@ -270,8 +341,17 @@ const OrganizationPage: React.FC = () => {
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredOrganizations.map((organization) => (
-                  <TableRow key={organization._id} hover>
+                filteredOrganizations.map((organization, index) => (
+                  <TableRow
+                    key={organization._id}
+                    hover
+                    sx={{
+                      '&:hover': {
+                        bgcolor: 'action.hover'
+                      },
+                      ...(index % 2 === 1 ? { bgcolor: 'action.hover' } : {})
+                    }}
+                  >
                     <TableCell>
                       <Typography variant="body2" fontWeight="medium">
                         {organization.code}
@@ -322,6 +402,7 @@ const OrganizationPage: React.FC = () => {
           </Table>
         </TableContainer>
       </Paper>
+    </Box>
 
       {/* 右側固定按鈕 */}
       <Box
