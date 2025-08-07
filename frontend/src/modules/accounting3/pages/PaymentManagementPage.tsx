@@ -9,11 +9,13 @@ import {
   Grid,
   Alert,
   CircularProgress,
-  Breadcrumbs,
   Link,
-  Chip
+  Chip,
+  Paper,
+  Container
 } from '@mui/material';
-import { Business, Payment, ArrowForward } from '@mui/icons-material';
+import { Business, Payment, ArrowForward, Home } from '@mui/icons-material';
+import { BreadcrumbNavigation } from '../components/ui/BreadcrumbNavigation';
 import { PaymentPage } from '../features/transactions/components';
 import { accounting3Service } from '../services/accounting3Service';
 
@@ -95,40 +97,157 @@ export const PaymentManagementPage: React.FC<PaymentManagementPageProps> = () =>
     const selectedOrg = organizations.find(org => org._id === organizationId);
     
     return (
-      <Box sx={{ p: 3 }}>
-        {/* 麵包屑導航 */}
-        <Breadcrumbs sx={{ mb: 3 }}>
-          <Link
-            component="button"
-            variant="body1"
-            onClick={handleBackToOrganizations}
-            sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-          >
-            <Business fontSize="small" />
-            組織選擇
-          </Link>
-          <Typography color="text.primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Payment fontSize="small" />
-            {selectedOrg?.name || organizationId} - 付款管理
-          </Typography>
-        </Breadcrumbs>
+      <Container maxWidth="xl" sx={{ py: 0, px: 0 }}>
+        {/* 標題區域 */}
+        <Paper sx={{
+          mb: 3,
+          bgcolor: 'background.paper',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 10
+        }}>
+          <Box sx={{
+            p: 1.5,
+            borderBottom: 1,
+            borderColor: 'divider',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            minHeight: 48
+          }}>
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              height: '100%'
+            }}>
+              <Box sx={{
+                display: 'flex',
+                alignItems: 'center',
+                height: 44
+              }}>
+                <Box sx={{
+                  '& > div': {
+                    marginBottom: 0,
+                    display: 'flex',
+                    alignItems: 'center'
+                  }
+                }}>
+                  <BreadcrumbNavigation
+                    items={[
+                      {
+                        label: '會計首頁',
+                        path: '/accounting3',
+                        icon: <Home sx={{ fontSize: '1.1rem' }} />
+                      },
+                      {
+                        label: '組織選擇',
+                        path: '/accounting3/payments',
+                        icon: <Business sx={{ fontSize: '1.1rem' }} />
+                      },
+                      {
+                        label: `${selectedOrg?.name || organizationId} - 付款管理`,
+                        icon: <Payment sx={{ fontSize: '1.1rem' }} />
+                      }
+                    ]}
+                    fontSize="0.975rem"
+                    padding={0}
+                  />
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+        </Paper>
 
-        <PaymentPage organizationId={organizationId} />
-      </Box>
+        <Box sx={{ p: 2 }}>
+          <PaymentPage organizationId={organizationId} />
+        </Box>
+      </Container>
     );
   }
 
   // 顯示組織選擇器
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        <Payment />
-        應付帳款付款管理
-      </Typography>
-      
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-        選擇組織以管理和處理供應商應付帳款的付款作業
-      </Typography>
+    <Container maxWidth="xl" sx={{ py: 0, px: 0 }}>
+      {/* 標題區域 */}
+      <Paper sx={{
+        mb: 3,
+        bgcolor: 'background.paper',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 10
+      }}>
+        <Box sx={{
+          p: 1.5,
+          borderBottom: 1,
+          borderColor: 'divider',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          minHeight: 48
+        }}>
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            height: '100%'
+          }}>
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              height: 44
+            }}>
+              <Box sx={{
+                '& > div': {
+                  marginBottom: 0,
+                  display: 'flex',
+                  alignItems: 'center'
+                }
+              }}>
+                <BreadcrumbNavigation
+                  items={[
+                    {
+                      label: '會計首頁',
+                      path: '/accounting3',
+                      icon: <Home sx={{ fontSize: '1.1rem' }} />
+                    },
+                    {
+                      label: '付款管理',
+                      icon: <Payment sx={{ fontSize: '1.1rem' }} />
+                    }
+                  ]}
+                  fontSize="0.975rem"
+                  padding={0}
+                />
+              </Box>
+              <Box sx={{
+                display: 'flex',
+                alignItems: 'center',
+                backgroundColor: 'secondary.main',
+                color: 'secondary.contrastText',
+                px: 2,
+                py: 0.5,
+                ml: 2,
+                borderRadius: 2,
+                minWidth: 'fit-content',
+                height: 36
+              }}>
+                <Typography variant="caption" sx={{ fontSize: '0.85rem', mr: 0.75 }}>
+                  總筆數
+                </Typography>
+                <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: 'bold', lineHeight: 1 }}>
+                  {organizations.length}
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+        </Box>
+      </Paper>
+
+      <Box sx={{ p: 2 }}>
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+          選擇組織以管理和處理供應商應付帳款的付款作業
+        </Typography>
 
       {error && (
         <Alert severity="error" sx={{ mb: 3 }}>
@@ -208,6 +327,7 @@ export const PaymentManagementPage: React.FC<PaymentManagementPageProps> = () =>
         </Grid>
       )}
     </Box>
+  </Container>
   );
 };
 
