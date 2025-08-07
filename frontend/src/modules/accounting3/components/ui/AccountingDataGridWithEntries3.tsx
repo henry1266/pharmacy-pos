@@ -855,7 +855,16 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
       <Paper sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
         {/* 會計交易列表標題區域 */}
-        <Box sx={{ p: 1.5, borderBottom: 1, borderColor: 'divider' }}>
+        <Box sx={{
+          p: 1.5,
+          borderBottom: 1,
+          borderColor: 'divider',
+          bgcolor: 'background.paper',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 10
+        }}>
           <Box sx={{
             display: 'flex',
             alignItems: 'center',
@@ -867,35 +876,53 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
               alignItems: 'center',
               height: '100%' // 確保高度一致
             }}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <BreadcrumbNavigation
-                  items={[
-                    {
-                      label: '會計首頁',
-                      path: '/accounting3',
-                      icon: <HomeIcon fontSize="small" />
-                    },
-                    {
-                      label: '交易列表',
-                      icon: <ReceiptIcon fontSize="small" />
-                    }
-                  ]}
-                />
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{
-                    ml: 2,
+              <Box sx={{
+                display: 'flex',
+                alignItems: 'center',
+                height: 44 // 增加高度與其他元素一致
+              }}>
+                <Box sx={{
+                  '& > div': {
+                    marginBottom: 0, // 覆蓋 StyledBreadcrumbContainer 的 marginBottom
                     display: 'flex',
-                    alignItems: 'center',
-                    bgcolor: 'action.hover',
-                    px: 1.5,
-                    py: 0.5,
-                    borderRadius: 1
-                  }}
-                >
-                  筆數: {pagination?.total || 0}
-                </Typography>
+                    alignItems: 'center'
+                  }
+                }}>
+                  <BreadcrumbNavigation
+                    items={[
+                      {
+                        label: '會計首頁',
+                        path: '/accounting3',
+                        icon: <HomeIcon sx={{ fontSize: '1.1rem' }} />
+                      },
+                      {
+                        label: '交易列表',
+                        icon: <ReceiptIcon sx={{ fontSize: '1.1rem' }} />
+                      }
+                    ]}
+                    fontSize="0.975rem"
+                    padding={0}
+                  />
+                </Box>
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  backgroundColor: 'secondary.main',
+                  color: 'secondary.contrastText',
+                  px: 2,
+                  py: 0.5, // 減少上下內邊距
+                  ml: 2,
+                  borderRadius: 2,
+                  minWidth: 'fit-content',
+                  height: 36 // 增加高度
+                }}>
+                  <Typography variant="caption" sx={{ fontSize: '0.85rem', mr: 0.75 }}>
+                    總筆數
+                  </Typography>
+                  <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: 'bold', lineHeight: 1 }}>
+                    {pagination?.total || 0}
+                  </Typography>
+                </Box>
               </Box>
             </Box>
             <Box sx={{
@@ -916,14 +943,24 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
                       <SearchIcon />
                     </InputAdornment>
                   ),
+                  sx: { height: 44 } // 增加輸入框高度
                 }}
-                sx={{ mr: 1 }}
+                sx={{
+                  mr: 1,
+                  '& .MuiInputBase-root': {
+                    height: 44 // 增加輸入框高度
+                  }
+                }}
               />
               <Button
                 variant="outlined"
                 size="small"
                 startIcon={<FilterIcon />}
                 onClick={() => onToggleFilters && onToggleFilters()}
+                sx={{
+                  height: 44, // 增加按鈕高度
+                  minWidth: 110 // 確保按鈕有足夠寬度
+                }}
               >
                 {showFilters ? '隱藏篩選' : '顯示篩選'}
               </Button>
@@ -932,6 +969,10 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
                 size="small"
                 startIcon={<AddIcon />}
                 onClick={onCreateNew}
+                sx={{
+                  height: 44, // 增加按鈕高度
+                  minWidth: 110 // 確保按鈕有足夠寬度
+                }}
               >
                 新增交易
               </Button>
@@ -942,8 +983,20 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
         <Box>
           {/* 篩選器 */}
           {showFilters && (
-            <Paper sx={{ p: 1.5, mb: 2 }} variant="outlined">
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'flex-end' }}>
+            <Paper sx={{
+              p: 1.5,
+              mb: 2,
+              bgcolor: 'background.paper',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+              borderRadius: 1
+            }} variant="outlined">
+              <Box sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                justifyContent: 'flex-end',
+                minHeight: 48 // 確保最小高度一致
+              }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <FilterIcon fontSize="small" />
                   <Typography variant="subtitle2">時間範圍</Typography>
@@ -956,7 +1009,12 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
                     <TextField
                       {...params}
                       size="small"
-                      sx={{ width: 180 }}
+                      sx={{
+                        width: 180,
+                        '& .MuiInputBase-root': {
+                          height: 44 // 增加輸入框高度
+                        }
+                      }}
                     />
                   )}
                 />
@@ -968,11 +1026,23 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
                     <TextField
                       {...params}
                       size="small"
-                      sx={{ width: 180 }}
+                      sx={{
+                        width: 180,
+                        '& .MuiInputBase-root': {
+                          height: 44 // 增加輸入框高度
+                        }
+                      }}
                     />
                   )}
                 />
-                <Button size="small" onClick={handleClearFilter}>
+                <Button
+                  size="small"
+                  onClick={handleClearFilter}
+                  sx={{
+                    height: 44, // 增加按鈕高度
+                    minWidth: 90 // 確保按鈕有足夠寬度
+                  }}
+                >
                   清除篩選
                 </Button>
               </Box>
@@ -980,7 +1050,7 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
           )}
 
           {/* 交易群組表格 - 使用 DataGrid */}
-          <Box sx={{ p: 2, width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
+          <Box sx={{ p: 2, width: '100%', maxWidth: '100%', overflow: 'hidden', bgcolor: 'background.default' }}>
             <Fade in={!loading} timeout={800} appear={true}>
               <Box sx={{
                 position: 'relative',
@@ -1046,16 +1116,33 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
                        bgcolor: 'background.paper'
                      },
                      '& .MuiDataGrid-root': {
-                       border: 'none' // 移除 DataGrid 自帶的邊框，因為我們已經為容器添加了邊框
+                       border: 'none', // 移除 DataGrid 自帶的邊框，因為我們已經為容器添加了邊框
+                       boxShadow: '0 2px 4px rgba(0,0,0,0.05)' // 添加輕微陰影
                      },
                      // 表頭樣式 - 使用主題的淡色
                      '& .MuiDataGrid-columnHeaders': {
                        bgcolor: 'action.hover', // 使用主題的淡色
                        borderBottom: '1px solid',
-                       borderColor: 'divider'
+                       borderColor: 'divider',
+                       height: 48, // 固定表頭高度
+                       '& .MuiDataGrid-columnHeaderTitle': {
+                         fontWeight: 600 // 加粗表頭文字
+                       }
                      },
                      // 基本行樣式 - 簡化，移除動畫效果
                      '& .MuiDataGrid-row': {
+                       bgcolor: 'background.paper',
+                       '&:hover': {
+                         bgcolor: 'action.hover' // 懸停效果
+                       },
+                       '&:nth-of-type(even)': {
+                         bgcolor: 'action.hover' // 斑馬紋效果
+                       }
+                     },
+                     // 分頁控制區域
+                     '& .MuiDataGrid-footerContainer': {
+                       borderTop: '1px solid',
+                       borderColor: 'divider',
                        bgcolor: 'background.paper'
                      }
                    }}
