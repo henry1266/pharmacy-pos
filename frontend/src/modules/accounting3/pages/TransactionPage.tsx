@@ -823,6 +823,7 @@ export const Accounting3TransactionPage: React.FC = () => {
       <Box sx={{ p: 2, width: '100%', maxWidth: '100%', overflow: 'hidden', bgcolor: 'background.default' }}>
         <AccountingDataGridWithEntries
           showFilters={showFilters}
+          searchTerm={searchTerm}
           onCreateNew={() => navigate('/accounting3/transaction/new')}
           onEdit={handleEdit}
           onView={handleView}

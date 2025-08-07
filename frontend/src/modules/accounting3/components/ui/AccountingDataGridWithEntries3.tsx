@@ -105,6 +105,7 @@ interface PaginationModel {
 interface AccountingDataGridWithEntries3Props {
   organizationId?: string;
   showFilters?: boolean;
+  searchTerm?: string; // 添加 searchTerm 參數
   onCreateNew: () => void;
   onEdit: (transactionGroup: ExtendedTransactionGroupWithEntries) => void;
   onCopy: (transactionGroup: ExtendedTransactionGroupWithEntries) => void;
@@ -128,6 +129,7 @@ interface FilterOptions {
 export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntries3Props> = ({
   organizationId,
   showFilters = false,
+  searchTerm = '', // 添加 searchTerm 參數，默認為空字符串
   onCreateNew,
   onEdit,
   onCopy,
@@ -371,8 +373,27 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
     limit: 25
   });
   
-  // 使用 debounce 處理搜索輸入
-  const debouncedSearch = useDebounce(filter.search, 500);
+  // 使用 debounce 處理搜索輸入，優先使用傳入的 searchTerm
+  const debouncedSearch = useDebounce(searchTerm || filter.search, 500);
+  
+  // 監聽 searchTerm 變化，更新 filter.search
+  useEffect(() => {
+    if (searchTerm !== undefined) {
+      setFilter(prev => ({
+        ...prev,
+        search: searchTerm,
+        page: 1 // 重置到第一頁
+      }));
+      
+      // 重置分頁到第一頁
+      if (setPaginationModel) {
+        setPaginationModel({
+          ...paginationModel,
+          page: 0 // DataGrid 的頁碼從 0 開始
+        });
+      }
+    }
+  }, [searchTerm, setPaginationModel, paginationModel]);
   
   // 為 DataGrid 準備行數據 - 使用 useMemo 優化
   const rows: TransactionRow[] = useMemo(() => transactionGroups.map(group => ({
