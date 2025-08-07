@@ -38,39 +38,6 @@ import {
 
 const router: Router = express.Router();
 
-// 輔助函數：驗證和轉換 ObjectId
-// const validateObjectId = (id: string, fieldName: string): mongoose.Types.ObjectId => {
-//   if (!id || typeof id !== 'string' || id.trim() === '') {
-//     throw new Error(`${fieldName} 不能為空`);
-//   }
-//   if (!mongoose.Types.ObjectId.isValid(id)) {
-//     throw new Error(`無效的 ${fieldName} ID: ${id}`);
-//   }
-//   return new mongoose.Types.ObjectId(id);
-// };
-
-// 輔助函數：安全轉換 ObjectId（可選欄位）
-// const safeObjectId = (id?: string | null | undefined): mongoose.Types.ObjectId | undefined => {
-//   // 檢查是否為空值或無效值
-//   if (!id || id === 'null' || id === 'undefined') return undefined;
-  
-//   // 確保 id 是字串類型
-//   if (typeof id !== 'string') {
-//     console.warn('⚠️ [Backend] safeObjectId 收到非字串類型的 id:', { id, type: typeof id });
-//     return undefined;
-//   }
-  
-//   // 檢查字串是否為空
-//   if (id.trim() === '') return undefined;
-  
-//   // 驗證 ObjectId 格式
-//   if (!mongoose.Types.ObjectId.isValid(id)) {
-//     console.warn('⚠️ [Backend] safeObjectId 收到無效的 ObjectId 格式:', id);
-//     return undefined;
-//   }
-  
-//   return new mongoose.Types.ObjectId(id);
-// };
 
 // 輔助函數：生成交易群組編號
 const generateGroupNumber = async (): Promise<string> => {

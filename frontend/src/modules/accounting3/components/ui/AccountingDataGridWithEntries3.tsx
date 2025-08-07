@@ -36,8 +36,10 @@ import {
   LockOpen as UnlockIcon,
   Link as LinkIcon,
   ArrowForward as ArrowForwardIcon,
-  OpenInNew as OpenInNewIcon
+  OpenInNew as OpenInNewIcon,
+  Home as HomeIcon
 } from '@mui/icons-material';
+import { BreadcrumbNavigation } from '../ui/BreadcrumbNavigation';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -852,14 +854,23 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
       <Paper sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-        {/* 標題區域 */}
+        {/* 會計交易列表標題區域 */}
         <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <ReceiptIcon />
-                交易記錄
-              </Typography>
+              <BreadcrumbNavigation
+                items={[
+                  {
+                    label: '會計首頁',
+                    path: '/accounting3',
+                    icon: <HomeIcon fontSize="small" />
+                  },
+                  {
+                    label: '交易列表',
+                    icon: <ReceiptIcon fontSize="small" />
+                  }
+                ]}
+              />
             </Box>
             <Box sx={{ display: 'flex', gap: 1 }}>
               <TextField
@@ -867,7 +878,7 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
                 label="搜尋"
                 value={filter.search}
                 onChange={(e) => handleFilterChange('search', e.target.value)}
-                placeholder="交易描述、發票號碼..."
+                placeholder="交易..."
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">

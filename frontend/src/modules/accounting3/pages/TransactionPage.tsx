@@ -637,9 +637,6 @@ export const Accounting3TransactionPage: React.FC = () => {
               }
             ]}
           />
-          
-
-          
         </Box>
         
 
