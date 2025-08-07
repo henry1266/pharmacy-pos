@@ -52,9 +52,7 @@ export const AccountTransactionList: React.FC<AccountTransactionListProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // 彈出式對話框狀態
-  const [transactionDetailOpen, setTransactionDetailOpen] = useState(false);
-  const [selectedTransactionForDetail, setSelectedTransactionForDetail] = useState<ExtendedTransactionGroupWithEntries | null>(null);
+  // 移除彈出式對話框狀態
 
   // 監聽 Redux 狀態變化
   const { transactionGroups } = useAppSelector(state => state.transactionGroupWithEntries);
@@ -345,12 +343,7 @@ export const AccountTransactionList: React.FC<AccountTransactionListProps> = ({
         )}
       </Box>
 
-      {/* 交易詳情對話框 */}
-      <TransactionDetailDialog
-        open={transactionDetailOpen}
-        transaction={selectedTransactionForDetail}
-        onClose={() => setTransactionDetailOpen(false)}
-      />
+      {/* 移除交易詳情對話框 */}
     </Paper>
   );
 };

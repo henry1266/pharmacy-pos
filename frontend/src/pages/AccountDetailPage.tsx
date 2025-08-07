@@ -87,21 +87,24 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
   };
 
-  // 處理新增交易
+  // 處理新增交易 - 在新分頁中打開新增頁面
   const handleAddTransaction = () => {
     const returnTo = encodeURIComponent(`/accounting3/accounts/${accountId}`);
-    navigate(`/accounting3/transaction/new?defaultAccountId=${accountId}&returnTo=${returnTo}`);
+    window.open(`/accounting3/transaction/new?defaultAccountId=${accountId}&returnTo=${returnTo}`, '_blank');
   };
 
-  // 處理查看交易
+  // 處理查看交易 - 在新分頁中打開詳情頁面
   const handleTransactionView = (transaction: TransactionGroupWithEntries) => {
-    navigate(`/accounting3/transaction/${transaction._id}`);
+    // 構建返回 URL
+    const returnTo = encodeURIComponent(`/accounting3/accounts/${accountId}`);
+    // 在新分頁中打開詳情頁面
+    window.open(`/accounting3/transaction/${transaction._id}?returnTo=${returnTo}`, '_blank');
   };
 
-  // 處理編輯交易
+  // 處理編輯交易 - 在新分頁中打開編輯頁面
   const handleTransactionEdit = (transaction: TransactionGroupWithEntries) => {
     const returnTo = encodeURIComponent(`/accounting3/accounts/${accountId}`);
-    navigate(`/accounting3/transaction/${transaction._id}/edit?returnTo=${returnTo}`);
+    window.open(`/accounting3/transaction/${transaction._id}/edit?returnTo=${returnTo}`, '_blank');
   };
 
   // 處理確認交易
@@ -145,10 +148,10 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = () => {
     }
   };
 
-  // 處理複製交易
+  // 處理複製交易 - 在新分頁中打開複製頁面
   const handleTransactionCopy = (transaction: TransactionGroupWithEntries) => {
     const returnTo = encodeURIComponent(`/accounting3/accounts/${accountId}`);
-    navigate(`/accounting3/transaction/${transaction._id}/copy?returnTo=${returnTo}`);
+    window.open(`/accounting3/transaction/${transaction._id}/copy?returnTo=${returnTo}`, '_blank');
   };
 
   if (!currentAccount) {

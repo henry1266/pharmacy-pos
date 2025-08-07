@@ -297,7 +297,7 @@ export const AccountsManagementPage: React.FC = () => {
     const transactionId = typeof transaction._id === 'string' ? transaction._id :
                          transaction._id?.$oid || String(transaction._id);
     if (transactionId) {
-      navigate(`/accounting3/transaction/${transactionId}/copy?returnTo=${encodeURIComponent('/accounting3/accounts')}`);
+      window.open(`/accounting3/transaction/${transactionId}/copy?returnTo=${encodeURIComponent('/accounting3/accounts')}`, '_blank');
     } else {
       showSnackbar('無法複製交易：交易 ID 無效', 'error');
     }
@@ -344,9 +344,70 @@ export const AccountsManagementPage: React.FC = () => {
         <Box sx={{ width: '73%', minWidth: 500 }}>
           <AccountTransactionList
             selectedAccount={selectedAccount}
-            onTransactionView={(_transaction) => {
-              //console.log('查看交易:', transaction);
-              // 可以打開交易詳情對話框
+            onTransactionView={(transaction) => {
+              console.log('查看交易:', transaction);
+              
+              // 使用與 onTransactionEdit 相同的 extractObjectId 函數
+              const extractObjectId = (idValue: any): string => {
+                if (!idValue) return '';
+                
+                // 如果已經是字串，直接返回
+                if (typeof idValue === 'string') {
+                  return idValue;
+                }
+                
+                // 如果是物件，檢查是否有 $oid 屬性（MongoDB 標準格式）
+                if (typeof idValue === 'object' && idValue !== null) {
+                  // 優先檢查 $oid 屬性（這是 MongoDB 的標準格式）
+                  if (idValue.$oid && typeof idValue.$oid === 'string') {
+                    return idValue.$oid;
+                  }
+                  
+                  // 檢查是否有 toString 方法
+                  if (typeof idValue.toString === 'function') {
+                    try {
+                      const stringValue = idValue.toString();
+                      if (stringValue !== '[object Object]') {
+                        return stringValue;
+                      }
+                    } catch (e) {
+                      console.warn('toString() 失敗:', e);
+                    }
+                  }
+                  
+                  // 檢查是否有 toHexString 方法（Mongoose ObjectId）
+                  if (typeof idValue.toHexString === 'function') {
+                    try {
+                      const hexString = idValue.toHexString();
+                      return hexString;
+                    } catch (e) {
+                      console.warn('toHexString() 失敗:', e);
+                    }
+                  }
+                }
+                
+                // 最後嘗試直接字串轉換
+                const stringValue = String(idValue);
+                if (stringValue !== '[object Object]') {
+                  return stringValue;
+                }
+                
+                console.error('無法提取 ObjectId:', idValue);
+                return '';
+              };
+              
+              const transactionId = extractObjectId(transaction._id);
+              
+              // 驗證 ID 是否有效（MongoDB ObjectId 應該是 24 個字符的十六進制字串）
+              const isValidObjectId = (id: string): boolean => {
+                return /^[0-9a-fA-F]{24}$/.test(id);
+              };
+              
+              if (transactionId && isValidObjectId(transactionId)) {
+                window.open(`/accounting3/transaction/${transactionId}?returnTo=${encodeURIComponent('/accounting3/accounts')}`, '_blank');
+              } else {
+                showSnackbar('無法查看交易：交易 ID 無效', 'error');
+              }
             }}
             onTransactionEdit={(transaction) => {
               console.log('🔍 編輯交易 - 原始物件:', transaction);
@@ -419,7 +480,7 @@ export const AccountsManagementPage: React.FC = () => {
               
               if (transactionId && isValidObjectId(transactionId)) {
                 console.log('✅ 導航到編輯頁面:', `/accounting3/transaction/${transactionId}/edit`);
-                navigate(`/accounting3/transaction/${transactionId}/edit?returnTo=${encodeURIComponent('/accounting3/accounts')}`);
+                window.open(`/accounting3/transaction/${transactionId}/edit?returnTo=${encodeURIComponent('/accounting3/accounts')}`, '_blank');
               } else {
                 console.error('❌ 交易 ID 無效或格式錯誤:', {
                   transaction,
@@ -438,7 +499,7 @@ export const AccountsManagementPage: React.FC = () => {
             onAddTransaction={(accountId) => {
               console.log('為科目新增交易:', accountId);
               // 導航到新增交易頁面，並預設選中的科目
-              navigate(`/accounting3/transaction/new?defaultAccountId=${accountId}&returnTo=${encodeURIComponent('/accounting3/accounts')}`);
+              window.open(`/accounting3/transaction/new?defaultAccountId=${accountId}&returnTo=${encodeURIComponent('/accounting3/accounts')}`, '_blank');
             }}
           />
         </Box>

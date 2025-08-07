@@ -54,20 +54,16 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   pagination,
   onPageChange,
   onRowsPerPageChange,
+  onEdit,
   onView,
   onDelete,
   onConfirm,
   onUnlock
 }) => {
-  // 處理編輯按鈕點擊 - 在新分頁中打開編輯頁面
+  // 使用從 props 傳遞過來的 onEdit 函數
   const handleEditClick = useCallback((transaction: TransactionGroupWithEntries) => {
-    // 構建返回 URL
-    const currentPath = window.location.pathname;
-    const returnToParam = encodeURIComponent(currentPath);
-    
-    // 在新分頁中打開編輯頁面
-    window.open(`/accounting3/transaction/${transaction._id}/edit?returnTo=${returnToParam}`, '_blank');
-  }, []);
+    onEdit(transaction);
+  }, [onEdit]);
   
   // 處理複製按鈕點擊 - 在新分頁中打開複製頁面
   const handleCopyClick = useCallback((transaction: TransactionGroupWithEntries) => {
