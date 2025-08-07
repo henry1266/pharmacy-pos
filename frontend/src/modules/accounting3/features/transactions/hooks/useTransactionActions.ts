@@ -66,7 +66,7 @@ export const useTransactionActions = ({
 
   // 處理返回列表
   const handleBackToList = () => {
-    navigate('/accounting3');
+    navigate('/accounting3/transaction');
   };
 
   return {
