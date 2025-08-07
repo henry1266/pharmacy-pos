@@ -593,35 +593,16 @@ export const Accounting3TransactionPage: React.FC = () => {
                     padding={0}
                   />
                 </Box>
-                
               </Box>
+              {/* 左側不需要返回列表按鈕 */}
             </Box>
+            {/* 右側返回列表按鈕 */}
             <Box sx={{
               display: 'flex',
               gap: 1,
               alignItems: 'center',
               height: '100%',
-              marginLeft: 'auto' // 使用 marginLeft: 'auto' 代替 justifyContent: 'flex-end'
-            }}>
-              <Button
-                variant="contained"
-                size="small"
-                startIcon={<ArrowBackIcon />}
-                onClick={() => navigate('/accounting3/transaction')}
-                sx={{
-                  height: 44, // 增加按鈕高度
-                  minWidth: 110 // 確保按鈕有足夠寬度
-                }}
-              >
-                返回列表
-              </Button>
-            </Box>
-            <Box sx={{
-              display: 'flex',
-              gap: 1,
-              alignItems: 'center',
-              height: '100%',
-              marginLeft: 'auto' // 使用 marginLeft: 'auto' 代替 justifyContent: 'flex-end'
+              marginLeft: 'auto' // 使用 marginLeft: 'auto' 使其靠右對齊
             }}>
               <Button
                 variant="contained"
@@ -719,6 +700,7 @@ export const Accounting3TransactionPage: React.FC = () => {
             justifyContent: 'space-between',
             minHeight: 48
           }}>
+            {/* 左側區域：麵包屑和總筆數 */}
             <Box sx={{
               display: 'flex',
               alignItems: 'center',
@@ -772,7 +754,60 @@ export const Accounting3TransactionPage: React.FC = () => {
                   </Typography>
                 </Box>
               </Box>
-              
+            </Box>
+            
+            {/* 右側區域：搜尋框和按鈕 */}
+            <Box sx={{
+              display: 'flex',
+              gap: 1,
+              alignItems: 'center',
+              height: '100%',
+              marginLeft: 'auto' // 使用 marginLeft: 'auto' 使其靠右對齊
+            }}>
+              <TextField
+                size="small"
+                label="搜尋"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="交易..."
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                  sx: { height: 44 } // 增加輸入框高度
+                }}
+                sx={{
+                  '& .MuiInputBase-root': {
+                    height: 44 // 增加輸入框高度
+                  }
+                }}
+              />
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<FilterListIcon />}
+                onClick={() => setShowFilters(!showFilters)}
+                sx={{
+                  height: 44, // 增加按鈕高度
+                  minWidth: 110 // 確保按鈕有足夠寬度
+                }}
+              >
+                {showFilters ? '隱藏篩選' : '顯示篩選'}
+              </Button>
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<AddIcon />}
+                onClick={() => navigate('/accounting3/transaction/new')}
+                sx={{
+                  height: 44, // 增加按鈕高度
+                  minWidth: 110 // 確保按鈕有足夠寬度
+                }}
+              >
+                新增交易
+              </Button>
             </Box>
           </Box>
         </Paper>
@@ -788,7 +823,6 @@ export const Accounting3TransactionPage: React.FC = () => {
       <Box sx={{ p: 2, width: '100%', maxWidth: '100%', overflow: 'hidden', bgcolor: 'background.default' }}>
         <AccountingDataGridWithEntries
           showFilters={showFilters}
-          onToggleFilters={() => setShowFilters(!showFilters)}
           onCreateNew={() => navigate('/accounting3/transaction/new')}
           onEdit={handleEdit}
           onView={handleView}

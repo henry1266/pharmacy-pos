@@ -112,7 +112,6 @@ interface AccountingDataGridWithEntries3Props {
   onView: (transactionGroup: ExtendedTransactionGroupWithEntries) => void;
   onConfirm: (id: string) => void;
   onUnlock: (id: string) => void;
-  onToggleFilters?: () => void;
   paginationModel?: PaginationModel;
   setPaginationModel?: (model: PaginationModel) => void;
 }
@@ -136,7 +135,6 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
   onView,
   onConfirm,
   onUnlock,
-  onToggleFilters,
   paginationModel = { page: 0, pageSize: 25 },
   setPaginationModel
 }) => {
@@ -924,51 +922,7 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
               alignItems: 'center',
               height: '100%' // 確保高度一致
               }}>
-              <TextField
-                size="small"
-                label="搜尋"
-                value={filter.search}
-                onChange={(e) => handleFilterChange('search', e.target.value)}
-                placeholder="交易..."
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon />
-                    </InputAdornment>
-                  ),
-                  sx: { height: 44 } // 增加輸入框高度
-                }}
-                sx={{
-                  mr: 1,
-                  '& .MuiInputBase-root': {
-                    height: 44 // 增加輸入框高度
-                  }
-                }}
-              />
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<FilterIcon />}
-                onClick={() => onToggleFilters && onToggleFilters()}
-                sx={{
-                  height: 44, // 增加按鈕高度
-                  minWidth: 110 // 確保按鈕有足夠寬度
-                }}
-              >
-                {showFilters ? '隱藏篩選' : '顯示篩選'}
-              </Button>
-              <Button
-                variant="contained"
-                size="small"
-                startIcon={<AddIcon />}
-                onClick={onCreateNew}
-                sx={{
-                  height: 44, // 增加按鈕高度
-                  minWidth: 110 // 確保按鈕有足夠寬度
-                }}
-              >
-                新增交易
-              </Button>
+              {/* 搜尋框和按鈕已移至 TransactionPage */}
             </Box>
           </Box>
         </Box>
