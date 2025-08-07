@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   Box,
   Paper,
@@ -94,7 +94,7 @@ export const AccountingDataGrid: React.FC<AccountingDataGridProps> = ({
   
   // 監聽 searchTerm 變化，更新 filter.search
   useEffect(() => {
-    if (searchTerm !== undefined) {
+    if (searchTerm !== undefined && searchTerm !== filter.search) {
       setFilter(prev => ({
         ...prev,
         search: searchTerm,
@@ -104,12 +104,12 @@ export const AccountingDataGrid: React.FC<AccountingDataGridProps> = ({
       // 重置分頁到第一頁
       if (setPaginationModel) {
         setPaginationModel({
-          ...paginationModel,
+          pageSize: paginationModel.pageSize,
           page: 0 // DataGrid 的頁碼從 0 開始
         });
       }
     }
-  }, [searchTerm, setPaginationModel, paginationModel]);
+  }, [searchTerm]);
   
   // 為 DataGrid 準備行數據 - 使用 useMemo 優化
   const rows: TransactionRow[] = useMemo(() => transactionGroups.map(group => ({
@@ -144,6 +144,9 @@ export const AccountingDataGrid: React.FC<AccountingDataGridProps> = ({
     dispatch(fetchTransactionGroupsWithEntries(params) as any);
   }, [dispatch, organizationId, filter]);
 
+  // 使用ref來追蹤上一次的請求參數
+  const prevParamsRef = useRef<string>('');
+  
   // 初始載入和篩選變更時重新載入
   useEffect(() => {
     console.log('[Accounting3] 🔍 AccountingDataGrid - 載入交易群組:', {
@@ -172,7 +175,13 @@ export const AccountingDataGrid: React.FC<AccountingDataGridProps> = ({
       });
     }
 
-    dispatch(fetchTransactionGroupsWithEntries(params) as any);
+    const currentParams = JSON.stringify(params);
+    
+    // 只有當參數變化時才發送請求
+    if (prevParamsRef.current !== currentParams) {
+      prevParamsRef.current = currentParams;
+      dispatch(fetchTransactionGroupsWithEntries(params) as any);
+    }
   }, [
     dispatch,
     organizationId,
