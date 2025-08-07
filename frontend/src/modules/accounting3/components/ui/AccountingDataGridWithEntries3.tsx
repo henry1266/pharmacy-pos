@@ -788,46 +788,26 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
     );
   };
 
-  // 創建骨架屏載入效果
+  // 簡單的加載指示器
   const renderSkeleton = () => (
     <Box sx={{
       width: '100%',
-      mt: 1,
-      bgcolor: 'background.paper', // 使用主題的背景色
-      borderRadius: 1,
       height: '100%',
-      minHeight: '70vh', // 確保至少佔據70%的視窗高度
-      p: 2 // 添加內邊距
+      minHeight: '70vh',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+      bgcolor: 'background.paper',
+      borderRadius: 1,
+      p: 4
     }}>
-      {[...Array(15)].map((_, index) => ( // 增加到15行以填滿更多空間
-        <Box
-          key={index}
-          sx={{
-            display: 'flex',
-            mb: 1.5
-          }}
-        >
-          {[...Array(6)].map((_, colIndex) => (
-            <Skeleton
-              key={colIndex}
-              variant="rectangular"
-              width={`${100 / 6}%`}
-              height={52}
-              // 移除 animation="pulse"
-              sx={{
-                mx: 0.5,
-                borderRadius: 1,
-                opacity: 1 - (index * 0.05), // 更輕微的漸變效果
-                bgcolor: 'action.hover', // 使用主題的懸停色，通常是淺灰色
-                '&::after': {
-                  background: 'linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.06), transparent)'
-                }
-              }}
-            />
-          ))}
-        </Box>
-      ))}
-      {/* 使用標準的 React 方式添加動畫 */}
+      <Typography variant="h6" color="text.secondary" gutterBottom>
+        資料載入中...
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        請稍候，系統正在處理您的請求
+      </Typography>
     </Box>
   );
 
