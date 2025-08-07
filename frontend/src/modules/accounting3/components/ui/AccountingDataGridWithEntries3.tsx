@@ -867,19 +867,36 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
               alignItems: 'center',
               height: '100%' // 確保高度一致
             }}>
-              <BreadcrumbNavigation
-                items={[
-                  {
-                    label: '會計首頁',
-                    path: '/accounting3',
-                    icon: <HomeIcon fontSize="small" />
-                  },
-                  {
-                    label: '交易列表',
-                    icon: <ReceiptIcon fontSize="small" />
-                  }
-                ]}
-              />
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <BreadcrumbNavigation
+                  items={[
+                    {
+                      label: '會計首頁',
+                      path: '/accounting3',
+                      icon: <HomeIcon fontSize="small" />
+                    },
+                    {
+                      label: '交易列表',
+                      icon: <ReceiptIcon fontSize="small" />
+                    }
+                  ]}
+                />
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{
+                    ml: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    bgcolor: 'action.hover',
+                    px: 1.5,
+                    py: 0.5,
+                    borderRadius: 1
+                  }}
+                >
+                  筆數: {pagination?.total || 0}
+                </Typography>
+              </Box>
             </Box>
             <Box sx={{
               display: 'flex',
