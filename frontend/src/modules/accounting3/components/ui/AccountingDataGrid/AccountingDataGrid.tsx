@@ -44,7 +44,7 @@ export const AccountingDataGrid: React.FC<AccountingDataGridProps> = ({
   organizationId,
   showFilters = false,
   searchTerm = '',
-  onCreateNew,
+  
   onEdit,
   onCopy,
   onDelete,
@@ -360,7 +360,6 @@ export const AccountingDataGrid: React.FC<AccountingDataGridProps> = ({
                           <Button
                             variant="contained"
                             startIcon={<AddIcon />}
-                            onClick={onCreateNew}
                           >
                             建立交易
                           </Button>
