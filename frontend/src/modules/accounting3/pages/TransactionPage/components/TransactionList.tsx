@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   Box,
   Paper,
@@ -54,13 +54,30 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   pagination,
   onPageChange,
   onRowsPerPageChange,
-  onEdit,
   onView,
-  onCopy,
   onDelete,
   onConfirm,
   onUnlock
 }) => {
+  // 處理編輯按鈕點擊 - 在新分頁中打開編輯頁面
+  const handleEditClick = useCallback((transaction: TransactionGroupWithEntries) => {
+    // 構建返回 URL
+    const currentPath = window.location.pathname;
+    const returnToParam = encodeURIComponent(currentPath);
+    
+    // 在新分頁中打開編輯頁面
+    window.open(`/accounting3/transaction/${transaction._id}/edit?returnTo=${returnToParam}`, '_blank');
+  }, []);
+  
+  // 處理複製按鈕點擊 - 在新分頁中打開複製頁面
+  const handleCopyClick = useCallback((transaction: TransactionGroupWithEntries) => {
+    // 構建返回 URL
+    const currentPath = window.location.pathname;
+    const returnToParam = encodeURIComponent(currentPath);
+    
+    // 在新分頁中打開複製頁面
+    window.open(`/accounting3/transaction/${transaction._id}/copy?returnTo=${returnToParam}`, '_blank');
+  }, []);
   // 獲取交易狀態標籤顏色
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -187,7 +204,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                       <Tooltip title="複製">
                         <IconButton
                           size="small"
-                          onClick={() => onCopy(transaction)}
+                          onClick={() => handleCopyClick(transaction)}
                         >
                           <CopyIcon fontSize="small" />
                         </IconButton>
@@ -198,7 +215,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                           <Tooltip title="編輯">
                             <IconButton
                               size="small"
-                              onClick={() => onEdit(transaction)}
+                              onClick={() => handleEditClick(transaction)}
                             >
                               <EditIcon fontSize="small" />
                             </IconButton>

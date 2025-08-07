@@ -1,39 +1,32 @@
 import React from 'react';
-import { Container, Alert, Box, Snackbar } from '@mui/material';
+import { Container, Alert, Snackbar, Box, Paper, Typography, Button } from '@mui/material';
 import { useAppSelector } from '../../../../hooks/redux';
+import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 
 // 導入自定義 hook
-import { useTransactionNewPage } from './hooks/useTransactionNewPage';
+import { useTransactionEditPage } from '../TransactionPage/hooks/useTransactionEditPage';
 
 // 導入子組件
-import PageHeader from './components/PageHeader';
-import TransactionPageForm from './components/TransactionPageForm';
+import TransactionPageForm from '../TransactionPage/components/TransactionPageForm';
 
 /**
- * 會計系統交易新增頁面
- * 專門用於新增交易
+ * 會計系統交易編輯頁面
+ * 專門用於編輯交易的獨立頁面
  */
-export const TransactionNewPage: React.FC = () => {
+export const TransactionEditPage: React.FC = () => {
   // 使用自定義 hook 獲取頁面狀態和事件處理函數
   const {
     // 狀態
+    editingTransaction,
     loading,
     error,
     snackbar,
-    
-    // URL 參數
-    returnTo,
-    defaultAccountId,
-    defaultOrganizationId,
     
     // 事件處理函數
     handleFormSubmit,
     handleCancel,
     handleCloseSnackbar,
-    
-    // 導航
-    navigate
-  } = useTransactionNewPage();
+  } = useTransactionEditPage();
 
   // 獲取帳戶和組織數據
   const { accounts } = useAppSelector(state => state.account2);
@@ -42,20 +35,25 @@ export const TransactionNewPage: React.FC = () => {
   return (
     <Container maxWidth="xl" sx={{ py: 3, px: 2 }}>
       {/* 頁面標題 */}
-      <PageHeader
-        mode="new"
-        showFilters={false}
-        searchTerm=""
-        onSearchChange={() => {}}
-        onToggleFilters={() => {}}
-        onNavigateToNew={() => {}}
-        onNavigateToList={() => navigate('/accounting3/transaction')}
-      />
+      <Paper elevation={0} sx={{ p: 2, mb: 3, border: '1px solid #e0e0e0' }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Box display="flex" alignItems="center">
+            <Button
+              startIcon={<ArrowBackIcon />}
+              onClick={handleCancel}
+              sx={{ mr: 2 }}
+            >
+              返回
+            </Button>
+            <Typography variant="h5">編輯交易</Typography>
+          </Box>
+        </Box>
+      </Paper>
 
       {/* 載入中提示 */}
-      {loading && (
+      {loading && !editingTransaction && (
         <Alert severity="info" sx={{ mb: 3 }}>
-          正在載入資料...
+          正在載入交易資料...
         </Alert>
       )}
 
@@ -66,19 +64,19 @@ export const TransactionNewPage: React.FC = () => {
         </Alert>
       )}
 
-      {/* 新增交易表單 */}
-      <Box sx={{ p: 2, bgcolor: 'background.paper', borderRadius: 1 }}>
+      {/* 交易表單 */}
+      {editingTransaction && (
         <TransactionPageForm
           onCancel={handleCancel}
           onSubmit={handleFormSubmit}
-          editingTransaction={null}
+          editingTransaction={editingTransaction}
           copyingTransaction={null}
           accounts={accounts}
           organizations={organizations}
-          defaultAccountId={defaultAccountId}
-          defaultOrganizationId={defaultOrganizationId}
+          defaultAccountId={null}
+          defaultOrganizationId={null}
         />
-      </Box>
+      )}
 
       {/* 通知 Snackbar */}
       <Snackbar
@@ -99,4 +97,4 @@ export const TransactionNewPage: React.FC = () => {
   );
 };
 
-export default TransactionNewPage;
+export default TransactionEditPage;

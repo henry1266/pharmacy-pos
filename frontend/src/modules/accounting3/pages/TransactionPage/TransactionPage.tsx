@@ -9,8 +9,6 @@ import { useTransactionPage } from './hooks/useTransactionPage';
 import PageHeader from './components/PageHeader';
 import FilterPanel from './components/FilterPanel';
 import TransactionList from './components/TransactionList';
-import TransactionForm from './components/TransactionForm';
-import TransactionDetail from './components/TransactionDetail';
 
 // 導入類型
 import { FilterOptions } from './types';
@@ -27,11 +25,6 @@ export const TransactionPage: React.FC = () => {
     loading,
     error,
     pagination,
-    dialogOpen,
-    detailDialogOpen,
-    editingTransaction,
-    copyingTransaction,
-    viewingTransaction,
     showFilters,
     searchTerm,
     snackbar,
@@ -46,9 +39,6 @@ export const TransactionPage: React.FC = () => {
     handleCopy,
     handleConfirm,
     handleUnlock,
-    handleFormSubmit,
-    handleCloseDialog,
-    handleCloseDetailDialog,
     handleCloseSnackbar,
   } = useTransactionPage();
 
@@ -144,31 +134,6 @@ export const TransactionPage: React.FC = () => {
         onRowsPerPageChange={handleRowsPerPageChange}
         onEdit={handleEdit}
         onView={handleView}
-        onCopy={handleCopy}
-        onDelete={handleDelete}
-        onConfirm={handleConfirm}
-        onUnlock={handleUnlock}
-      />
-
-      {/* 交易表單對話框 */}
-      <TransactionForm
-        open={dialogOpen}
-        onClose={handleCloseDialog}
-        onSubmit={handleFormSubmit}
-        editingTransaction={editingTransaction}
-        copyingTransaction={copyingTransaction}
-        accounts={accounts}
-        organizations={organizations}
-        defaultAccountId={null}
-        defaultOrganizationId={null}
-      />
-
-      {/* 交易詳情對話框 */}
-      <TransactionDetail
-        open={detailDialogOpen}
-        onClose={handleCloseDetailDialog}
-        transaction={viewingTransaction}
-        onEdit={handleEdit}
         onCopy={handleCopy}
         onDelete={handleDelete}
         onConfirm={handleConfirm}

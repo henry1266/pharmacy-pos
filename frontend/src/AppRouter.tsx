@@ -49,6 +49,7 @@ import PaymentManagementPage from './modules/accounting3/pages/PaymentManagement
 // 會計管理頁面元件
   import Accounting3DashboardPage from './pages/Accounting3DashboardPage';
   import Accounting3TransactionPage from './modules/accounting3/pages/TransactionPage';
+  import TransactionEditPage from './modules/accounting3/pages/TransactionEditPage/TransactionEditPage';
   import AccountsManagementPage from './modules/accounting3/pages/AccountsManagementPage';
   import AccountDetailPage from './pages/AccountDetailPage';
   import TransactionDetailPage from './pages/TransactionDetailPage';
@@ -102,7 +103,7 @@ const AppRouter: React.FC = () => {
       <Route path="/accounting3/transaction" element={<Accounting3TransactionPage />} />
       <Route path="/accounting3/transaction/new" element={<Accounting3TransactionPage />} />
       <Route path="/accounting3/transaction/:transactionId" element={<TransactionDetailPage />} />
-      <Route path="/accounting3/transaction/:transactionId/edit" element={<Accounting3TransactionPage />} />
+      <Route path="/accounting3/transaction/:transactionId/edit" element={<TransactionEditPage />} />
       <Route path="/accounting3/transaction/:transactionId/copy" element={<Accounting3TransactionPage />} />
       
       {/* Accounting3 科目管理路由 */}

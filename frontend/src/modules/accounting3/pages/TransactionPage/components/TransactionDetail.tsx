@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
   DialogTitle,
@@ -49,13 +50,39 @@ export const TransactionDetail: React.FC<TransactionDetailProps> = ({
   open,
   onClose,
   transaction,
-  onEdit,
-  onCopy,
   onDelete,
   onConfirm,
   onUnlock
 }) => {
+  const navigate = useNavigate();
+  
   if (!transaction) return null;
+  
+  // 處理編輯按鈕點擊 - 在新分頁中打開編輯頁面
+  const handleEditClick = useCallback((transaction: TransactionGroupWithEntries) => {
+    // 構建返回 URL
+    const currentPath = window.location.pathname;
+    const returnToParam = encodeURIComponent(currentPath);
+    
+    // 關閉詳情對話框
+    onClose();
+    
+    // 在新分頁中打開編輯頁面
+    window.open(`/accounting3/transaction/${transaction._id}/edit?returnTo=${returnToParam}`, '_blank');
+  }, [onClose]);
+  
+  // 處理複製按鈕點擊 - 在新分頁中打開複製頁面
+  const handleCopyClick = useCallback((transaction: TransactionGroupWithEntries) => {
+    // 構建返回 URL
+    const currentPath = window.location.pathname;
+    const returnToParam = encodeURIComponent(currentPath);
+    
+    // 關閉詳情對話框
+    onClose();
+    
+    // 在新分頁中打開複製頁面
+    window.open(`/accounting3/transaction/${transaction._id}/copy?returnTo=${returnToParam}`, '_blank');
+  }, [onClose]);
 
   // 計算借貸總額
   const totalDebit = transaction.entries.reduce((sum, entry) => sum + (entry.debitAmount || 0), 0);
@@ -304,7 +331,7 @@ export const TransactionDetail: React.FC<TransactionDetailProps> = ({
             <Button
               color="inherit"
               startIcon={<CopyIcon />}
-              onClick={() => onCopy(transaction)}
+              onClick={() => handleCopyClick(transaction)}
             >
               複製
             </Button>
@@ -314,7 +341,7 @@ export const TransactionDetail: React.FC<TransactionDetailProps> = ({
                 <Button
                   color="primary"
                   startIcon={<EditIcon />}
-                  onClick={() => onEdit(transaction)}
+                  onClick={() => handleEditClick(transaction)}
                 >
                   編輯
                 </Button>
