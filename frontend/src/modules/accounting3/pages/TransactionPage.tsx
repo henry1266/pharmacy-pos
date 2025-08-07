@@ -542,9 +542,8 @@ export const Accounting3TransactionPage: React.FC = () => {
           mb: 3,
           bgcolor: 'background.paper',
           boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-          position: 'sticky',
-          top: 0,
-          zIndex: 10
+          position: 'relative', // 改為 relative
+          zIndex: 1 // 降低 zIndex 值
         }}>
           <Box sx={{
             p: 1.5,
@@ -651,7 +650,7 @@ export const Accounting3TransactionPage: React.FC = () => {
             display: 'flex',
             flexDirection: 'column',
             gap: 2,
-            zIndex: 1000
+            zIndex: 5 // 降低 zIndex 值
           }}
         >
           <Tooltip title="返回交易列表" placement="left" arrow>
@@ -687,9 +686,8 @@ export const Accounting3TransactionPage: React.FC = () => {
           mb: 3,
           bgcolor: 'background.paper',
           boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-          position: 'sticky',
-          top: 0,
-          zIndex: 10
+          position: 'relative', // 改為 relative
+          zIndex: 1 // 降低 zIndex 值
         }}>
           <Box sx={{
             p: 1.5,
