@@ -16,6 +16,7 @@ import {
   Alert,
   CircularProgress
 } from '@mui/material';
+import { PackageInventoryDisplay } from '../../package-units';
 import {
   Delete as DeleteIcon,
   Edit as EditIcon,
@@ -67,15 +68,22 @@ export const EditableRow: FC<EditableRowProps> = ({
       />
     </TableCell>
     <TableCell align="right">
-      <TextField
-        fullWidth
-        size="small"
-        name="dquantity"
-        type="number"
-        value={editingItem.dquantity}
-        onChange={handleEditingItemChange}
-        inputProps={{ min: 1 }}
-      />
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+        <TextField
+          fullWidth
+          size="small"
+          name="dquantity"
+          type="number"
+          value={editingItem.dquantity}
+          onChange={handleEditingItemChange}
+          inputProps={{ min: 1 }}
+        />
+        {editingItem.packageUnits && editingItem.packageUnits.length > 0 && (
+          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+            基礎單位：{editingItem.dquantity} {editingItem.unit || '個'}
+          </Typography>
+        )}
+      </Box>
     </TableCell>
     <TableCell align="right">
       <TextField
@@ -118,23 +126,34 @@ export const DisplayRow: FC<DisplayRowProps> = ({
     </TableCell>
     <TableCell>{item.did}</TableCell>
     <TableCell>{item.dname}</TableCell>
-    <TableCell align="right">{item.dquantity}</TableCell>
+    <TableCell align="right">
+      {item.packageUnits && item.packageUnits.length > 0 ? (
+        <PackageInventoryDisplay
+          packageUnits={item.packageUnits}
+          totalQuantity={Number(item.dquantity)}
+          baseUnitName={item.unit || '個'}
+          variant="compact"
+        />
+      ) : (
+        item.dquantity
+      )}
+    </TableCell>
     <TableCell align="right">{formatAmount(item.dtotalCost)}</TableCell>
     <TableCell align="right">
       {calculateUnitPrice(item.dtotalCost, item.dquantity)}
     </TableCell>
     <TableCell align="center">
       <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-        <IconButton 
-          size="small" 
-          onClick={() => handleMoveItem(index, 'up')} 
+        <IconButton
+          size="small"
+          onClick={() => handleMoveItem(index, 'up')}
           disabled={isFirst}
         >
           <ArrowUpwardIcon fontSize="small" />
         </IconButton>
-        <IconButton 
-          size="small" 
-          onClick={() => handleMoveItem(index, 'down')} 
+        <IconButton
+          size="small"
+          onClick={() => handleMoveItem(index, 'down')}
           disabled={isLast}
         >
           <ArrowDownwardIcon fontSize="small" />
@@ -317,14 +336,34 @@ export const AmountRenderer: FC<{ value: number }> = ({ value }) => (
 EditableRow.propTypes = {
   item: PropTypes.object.isRequired,
   index: PropTypes.number.isRequired,
-  editingItem: PropTypes.object.isRequired,
+  editingItem: PropTypes.shape({
+    did: PropTypes.string.isRequired,
+    dname: PropTypes.string.isRequired,
+    dquantity: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    dtotalCost: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    batchNumber: PropTypes.string,
+    packageQuantity: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    boxQuantity: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    packageUnits: PropTypes.array,
+    unit: PropTypes.string
+  }).isRequired,
   handleEditingItemChange: PropTypes.func.isRequired,
   handleSaveEditItem: PropTypes.func.isRequired,
   handleCancelEditItem: PropTypes.func.isRequired
 } as any;
 
 DisplayRow.propTypes = {
-  item: PropTypes.object.isRequired,
+  item: PropTypes.shape({
+    did: PropTypes.string.isRequired,
+    dname: PropTypes.string.isRequired,
+    dquantity: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    dtotalCost: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    batchNumber: PropTypes.string,
+    packageQuantity: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    boxQuantity: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    packageUnits: PropTypes.array,
+    unit: PropTypes.string
+  }).isRequired,
   index: PropTypes.number.isRequired,
   handleEditItem: PropTypes.func.isRequired,
   handleRemoveItem: PropTypes.func.isRequired,

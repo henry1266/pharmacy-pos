@@ -37,6 +37,7 @@ import ItemsTable from '../components/shipping-orders/form/ProductItems/ItemsTab
 import GenericConfirmDialog from '../components/common/GenericConfirmDialog';
 import TestModeConfig from '../testMode/config/TestModeConfig';
 import testModeDataService from '../testMode/services/TestModeDataService';
+import useShippingOrderItems from '../hooks/useShippingOrderItems';
 
 // =================================================================
 // 1. 型別定義 (Type Definitions)
@@ -121,6 +122,7 @@ const adjustShippingOrderItems = (items: CurrentItem[], multiplier: number): Cur
     return [];
   }
 
+  // 保留所有原始屬性，只調整 dtotalCost
   let adjustedItems = items.map(item => ({
     ...item,
     dtotalCost: String(parseFloat((Number(item.dtotalCost ?? 0) * multiplier).toFixed(2)))
@@ -146,6 +148,7 @@ const adjustShippingOrderItems = (items: CurrentItem[], multiplier: number): Cur
       return item;
     });
   }
+  
   return adjustedItems;
 };
 
@@ -270,21 +273,39 @@ const ShippingOrderFormPage: React.FC = () => {
     multiplierMode: ''
   });
 
-  const [currentItem, setCurrentItem] = useState<CurrentItem>({
-    did: '',
-    dname: '',
-    dquantity: '',
-    dtotalCost: '',
-    product: null
-  });
-
-  const [editingItemIndex, setEditingItemIndex] = useState<number>(-1);
-  const [editingItem, setEditingItem] = useState<CurrentItem | null>(null);
-  const [confirmDialogOpen, setConfirmDialogOpen] = useState<boolean>(false);
-  const [selectedSupplier, setSelectedSupplier] = useState<ISupplier | null>(null);
+  // 產品詳情映射
+  const [productDetails, setProductDetails] = useState<ProductDetailsMap>({});
 
   const productInputRef = useRef<HTMLInputElement>(null);
   const invoiceInputRef = useRef<HTMLInputElement>(null);
+
+  // 使用 useShippingOrderItems hook
+  const {
+    currentItem,
+    editingItemIndex,
+    editingItem,
+    handleItemInputChange,
+    handleEditingItemChange,
+    handleProductChange,
+    handleAddItem,
+    handleRemoveItem,
+    handleEditItem,
+    handleSaveEditItem,
+    handleCancelEditItem,
+    handleMoveItem,
+    handleMainQuantityChange,
+  } = useShippingOrderItems({
+    showSnackbar,
+    productInputRef,
+    formData: formData as any,
+    setFormData: setFormData as any,
+    productDetails,
+    setProductDetails,
+    productsData: products as Product[]
+  });
+
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState<boolean>(false);
+  const [selectedSupplier, setSelectedSupplier] = useState<ISupplier | null>(null);
 
   useEffect(() => {
     dispatch(fetchSuppliers());
@@ -346,14 +367,28 @@ const ShippingOrderFormPage: React.FC = () => {
                 }
               }
               
+              // 確保從後端獲取的 packageQuantity 和 boxQuantity 值被正確處理
+              const packageQuantity = (item as any).packageQuantity !== undefined && (item as any).packageQuantity !== null
+                ? String((item as any).packageQuantity)
+                : '';
+              
+              const boxQuantity = (item as any).boxQuantity !== undefined && (item as any).boxQuantity !== null
+                ? String((item as any).boxQuantity)
+                : '';
+              
+              console.log('處理大包裝數據:', {
+                packageQuantity,
+                boxQuantity
+              });
+              
               return {
                 did: productCode,
                 dname: productName,
                 dquantity: String(item.dquantity || item.quantity || ''),
                 dtotalCost: String(item.dtotalCost || item.subtotal || ''),
                 batchNumber: item.batchNumber || '', // 加入批號欄位
-                packageQuantity: (item as any).packageQuantity ? String((item as any).packageQuantity) : '', // 加入大包裝數量欄位
-                boxQuantity: (item as any).boxQuantity ? String((item as any).boxQuantity) : '', // 加入盒裝數量欄位
+                packageQuantity: packageQuantity, // 加入大包裝數量欄位
+                boxQuantity: boxQuantity, // 加入盒裝數量欄位
                 product: productId,
                 packageUnits: productPackageUnits // 加入包裝單位資料
               };
@@ -446,113 +481,6 @@ const ShippingOrderFormPage: React.FC = () => {
     });
   };
 
-  const handleItemInputChange = (e: { target: { name: string; value: string } }) => {
-    setCurrentItem({
-      ...currentItem,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const handleEditingItemChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    if (editingItem) {
-      setEditingItem({
-        ...editingItem,
-        [e.target.name]: e.target.value
-      });
-    }
-  };
-
-  const handleProductChange = (_event: React.SyntheticEvent<Element, Event>, newValue: any) => {
-    setCurrentItem({
-      ...currentItem,
-      did: newValue ? newValue.code : '',
-      dname: newValue ? newValue.name : '',
-      product: newValue ? newValue._id : null
-    });
-  };
-
-  const handleAddItem = () => {
-    if (!currentItem.did || !currentItem.dname || !currentItem.dquantity || currentItem.dtotalCost === '') {
-      setSnackbar({ open: true, message: '請填寫完整的藥品項目資料', severity: 'error' });
-      return;
-    }
-    
-    setFormData({
-      ...formData,
-      items: [...formData.items, currentItem]
-    });
-    
-    // 清空當前項目
-    setCurrentItem({ did: '', dname: '', dquantity: '', dtotalCost: '', product: null });
-  };
-
-  const handleRemoveItem = (index: number) => {
-    const newItems = formData.items.filter((_, i) => i !== index);
-    setFormData({ ...formData, items: newItems });
-  };
-
-  const handleEditItem = (index: number) => {
-    setEditingItemIndex(index);
-    setEditingItem({ ...formData.items[index] } as CurrentItem);
-  };
-
-  const handleSaveEditItem = () => {
-    if (!editingItem?.did || !editingItem?.dname || !editingItem?.dquantity || editingItem?.dtotalCost === '') {
-      setSnackbar({ open: true, message: '請填寫完整的藥品項目資料', severity: 'error' });
-      return;
-    }
-    
-    const newItems = [...formData.items];
-    newItems[editingItemIndex] = editingItem;
-    setFormData({ ...formData, items: newItems });
-    
-    setEditingItemIndex(-1);
-    setEditingItem(null);
-  };
-
-  const handleCancelEditItem = () => {
-    setEditingItemIndex(-1);
-    setEditingItem(null);
-  };
-
-  const handleMoveItem = (index: number, direction: 'up' | 'down') => {
-    if ((direction === 'up' && index === 0) || (direction === 'down' && index === formData.items.length - 1)) {
-      return;
-    }
-    
-    const newItems = [...formData.items];
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    const itemAtIndex = newItems[index];
-    const itemAtTargetIndex = newItems[targetIndex];
-    if (itemAtIndex && itemAtTargetIndex) {
-      newItems[index] = itemAtTargetIndex;
-      newItems[targetIndex] = itemAtIndex;
-    }
-    
-    setFormData({ ...formData, items: newItems });
-  };
-
-  const handleDragEnd = (result: DropResult) => {
-    if (!result.destination) {
-      return;
-    }
-
-    const sourceIndex = result.source.index;
-    const destinationIndex = result.destination.index;
-
-    if (sourceIndex === destinationIndex) {
-      return;
-    }
-
-    const newItems = Array.from(formData.items);
-    const [reorderedItem] = newItems.splice(sourceIndex, 1);
-    if (reorderedItem) {
-      newItems.splice(destinationIndex, 0, reorderedItem);
-    }
-
-    setFormData(prev => ({ ...prev, items: newItems }));
-  };
-
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
@@ -592,8 +520,34 @@ const ShippingOrderFormPage: React.FC = () => {
       return;
     }
 
+    // 輸出原始表單數據，檢查大包裝相關屬性
+    console.log('原始表單數據:', JSON.stringify(formData.items.map(item => ({
+      did: item.did,
+      dname: item.dname,
+      packageQuantity: item.packageQuantity,
+      boxQuantity: item.boxQuantity
+    })), null, 2));
+    
+    // 詳細輸出每個項目的大包裝相關屬性
+    formData.items.forEach((item, index) => {
+      console.log(`提交表單 - 項目 ${index + 1} (${item.did} - ${item.dname}) 的大包裝相關屬性:`, {
+        packageQuantity: item.packageQuantity,
+        boxQuantity: item.boxQuantity,
+        packageQuantity類型: typeof item.packageQuantity,
+        boxQuantity類型: typeof item.boxQuantity
+      });
+    });
+
     const multiplier = getMultiplier();
     const finalAdjustedItems = adjustShippingOrderItems(formData.items, multiplier);
+
+    // 輸出調整後的項目，檢查大包裝相關屬性是否保留
+    console.log('調整後的項目:', JSON.stringify(finalAdjustedItems.map(item => ({
+      did: item.did,
+      dname: item.dname,
+      packageQuantity: item.packageQuantity,
+      boxQuantity: item.boxQuantity
+    })), null, 2));
 
     // 使用類型斷言確保 status 符合接口的要求
     const status = formData.status as "pending" | "completed" | "cancelled";
@@ -603,19 +557,42 @@ const ShippingOrderFormPage: React.FC = () => {
       soid: formData.soid,
       sosupplier: formData.sosupplier,
       supplier: formData.supplier,
-      items: finalAdjustedItems.map(item => ({
-        did: item.did,
-        dname: item.dname,
-        dquantity: Number(item.dquantity),
-        dtotalCost: Number(item.dtotalCost),
-        product: item.product || undefined,
-        unitPrice: Number(item.dquantity) > 0 ? Number(item.dtotalCost) / Number(item.dquantity) : 0,
-        notes: '',
-        batchNumber: item.batchNumber,
-        packageQuantity: item.packageQuantity ? Number(item.packageQuantity) : undefined,
-        boxQuantity: item.boxQuantity ? Number(item.boxQuantity) : undefined,
-        packageUnits: item.packageUnits || []
-      })),
+      items: finalAdjustedItems.map(item => {
+        // 輸出每個項目的大包裝相關屬性
+        console.log(`處理項目 ${item.did} (${item.dname}) 的大包裝數據:`, {
+          packageQuantity: item.packageQuantity,
+          boxQuantity: item.boxQuantity
+        });
+
+        // 基本項目數據
+        const result = {
+          did: item.did,
+          dname: item.dname,
+          dquantity: Number(item.dquantity),
+          dtotalCost: Number(item.dtotalCost),
+          product: item.product || undefined,
+          unitPrice: Number(item.dquantity) > 0 ? Number(item.dtotalCost) / Number(item.dquantity) : 0,
+          notes: '',
+          batchNumber: item.batchNumber
+        };
+
+        // 完全參照進貨單的 submitForm 函數處理大包裝相關屬性
+        // 使用條件運算符處理空字符串，將其轉換為 undefined
+        (result as any).packageQuantity = item.packageQuantity && item.packageQuantity !== '' ? Number(item.packageQuantity) : undefined;
+        (result as any).boxQuantity = item.boxQuantity && item.boxQuantity !== '' ? Number(item.boxQuantity) : undefined;
+        // unit 屬性不再需要設置
+
+        // 輸出處理後的項目數據
+        console.log(`處理後的項目 ${item.did} (${item.dname}) 數據:`, {
+          ...result,
+          packageQuantity: (result as any).packageQuantity,
+          boxQuantity: (result as any).boxQuantity,
+          packageQuantity類型: typeof (result as any).packageQuantity,
+          boxQuantity類型: typeof (result as any).boxQuantity
+        });
+
+        return result;
+      }),
       totalAmount: finalAdjustedItems.reduce((sum, item) => sum + Number(item.dtotalCost), 0),
       status: status,
       paymentStatus: formData.paymentStatus,
@@ -623,6 +600,8 @@ const ShippingOrderFormPage: React.FC = () => {
       sobill: formData.sobill,
       sobilldate: format(formData.sobilldate, 'yyyy-MM-dd')
     };
+    
+    console.log('最終提交數據:', JSON.stringify(submitData, null, 2));
     
     try {
       if (isEditMode && id) {
@@ -661,6 +640,27 @@ const ShippingOrderFormPage: React.FC = () => {
     navigate('/shipping-orders');
   };
 
+  const handleDragEnd = (result: DropResult) => {
+    if (!result.destination) {
+      return;
+    }
+
+    const sourceIndex = result.source.index;
+    const destinationIndex = result.destination.index;
+
+    if (sourceIndex === destinationIndex) {
+      return;
+    }
+
+    const newItems = Array.from(formData.items);
+    const [reorderedItem] = newItems.splice(sourceIndex, 1);
+    if (reorderedItem) {
+      newItems.splice(destinationIndex, 0, reorderedItem);
+    }
+
+    setFormData(prev => ({ ...prev, items: newItems }));
+  };
+  
   // 計算總金額（含倍率調整） for display
   const rawTotalAmountForDisplay = formData.items.reduce((sum, item) => sum + Number(item.dtotalCost ?? 0), 0);
   const currentMultiplierForDisplay = getMultiplier();
@@ -760,22 +760,22 @@ const ShippingOrderFormPage: React.FC = () => {
               <CardContent sx={{ pb: 1, flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
                 <Typography variant="h6" sx={{ mb: 1 }}>藥品項目</Typography>
                 
-                
                 <Box sx={{ position: 'sticky', top: 0, zIndex: 10, pb: 1, borderBottom: '1px solid #e0e0e0' }}>
-                  <ProductItemForm 
+                  <ProductItemForm
                     currentItem={currentItem as any}
                     handleItemInputChange={handleItemInputChange}
-                    handleProductChange={handleProductChange}
+                    handleProductChange={handleProductChange as any}
                     handleAddItem={handleAddItem}
                     products={products}
                     autoFocus={isEditMode}
+                    handleMainQuantityChange={handleMainQuantityChange as any}
                   />
                 </Box>
                 
                 <Box sx={{ flex: 1, overflowY: 'auto', minHeight: '200px' }}>
-                  <ItemsTable 
+                  <ItemsTable
                     items={formData.items}
-                  editingItemIndex={editingItemIndex}
+                    editingItemIndex={editingItemIndex}
                     editingItem={editingItem}
                     handleEditItem={handleEditItem}
                     handleSaveEditItem={handleSaveEditItem}

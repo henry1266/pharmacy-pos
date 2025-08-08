@@ -26,6 +26,10 @@ export interface IInventory {
   costPrice?: number; // 進價（成本價）
   unitPrice?: number; // 售價（單價）
   grossProfit?: number; // 毛利
+  // 新增大包裝相關欄位
+  packageQuantity?: number; // 大包裝數量
+  boxQuantity?: number; // 盒裝數量
+  unit?: string; // 單位
 }
 
 // 庫存文檔介面
@@ -118,6 +122,16 @@ const InventorySchema = new Schema<IInventoryDocument>({
   grossProfit: { // 毛利
     type: Number,
     default: 0
+  },
+  // 新增大包裝相關欄位
+  packageQuantity: { // 大包裝數量
+    type: Number
+  },
+  boxQuantity: { // 盒裝數量
+    type: Number
+  },
+  unit: { // 單位
+    type: String
   }
 }, {
   timestamps: true // 自動添加 createdAt 和 updatedAt

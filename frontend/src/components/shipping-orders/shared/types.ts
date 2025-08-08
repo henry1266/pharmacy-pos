@@ -3,6 +3,8 @@
  */
 
 import { ChangeEvent, SyntheticEvent, ReactNode } from 'react';
+import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
+
 // GridPaginationModel 在 MUI v5.17.26 中不存在，使用自定義型別
 interface GridPaginationModel {
   page: number;
@@ -15,6 +17,11 @@ export interface Item {
   dname: string;
   dquantity: string | number;
   dtotalCost: string | number;
+  batchNumber?: string;
+  packageQuantity?: string | number;
+  boxQuantity?: string | number;
+  packageUnits?: ProductPackageUnit[];
+  unit?: string;
   [key: string]: any;
 }
 

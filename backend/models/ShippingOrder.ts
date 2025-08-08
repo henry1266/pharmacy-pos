@@ -12,6 +12,10 @@ export interface IShippingOrderItem {
   dquantity: number;
   dtotalCost: number;
   unitPrice: number;
+  batchNumber?: string; // 批號
+  packageQuantity?: number; // 大包裝數量
+  boxQuantity?: number; // 盒裝數量
+  unit?: string; // 單位
 }
 
 // 出貨單項目文檔介面
@@ -68,6 +72,22 @@ const ShippingOrderItemSchema = new Schema<IShippingOrderItemDocument>({
     default: function(this: IShippingOrderItemDocument) {
       return this.dquantity > 0 ? this.dtotalCost / this.dquantity : 0;
     }
+  },
+  batchNumber: {
+    type: String,
+    required: false
+  },
+  packageQuantity: {
+    type: Number,
+    required: false
+  },
+  boxQuantity: {
+    type: Number,
+    required: false
+  },
+  unit: {
+    type: String,
+    required: false
   }
 });
 

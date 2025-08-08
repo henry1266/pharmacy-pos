@@ -31,6 +31,10 @@ interface ShippingOrderItem {
   dtotalCost: number;
   product?: Types.ObjectId | ProductDocument;
   healthInsuranceCode?: string;
+  batchNumber?: string;
+  packageQuantity?: number;
+  boxQuantity?: number;
+  unit?: string;
 }
 
 interface ShippingOrderDocument {
@@ -59,6 +63,10 @@ interface ShippingOrderRequest {
   sobill?: string;
   socustomer?: string;
   customer?: Types.ObjectId;
+  // 添加大包裝相關屬性
+  packageQuantity?: number;
+  boxQuantity?: number;
+  unit?: string;
 }
 
 // interface SearchQuery {
@@ -388,7 +396,7 @@ router.post('/', [
 });
 
 // 驗證出貨單項目的輔助函數
-async function validateOrderItems(items: ShippingOrderItem[]): Promise<{ valid: boolean; message?: string }> {
+async function validateOrderItems(items: ShippingOrderItem[]): Promise<{ valid: boolean; message?: string; processedItems?: ShippingOrderItem[] }> {
   for (const item of items) {
     // 修正：允許 dtotalCost 為 0，但不允許為 null、undefined
     // 使用嚴格檢查，確保欄位存在且不為空值
@@ -406,9 +414,16 @@ async function validateOrderItems(items: ShippingOrderItem[]): Promise<{ valid: 
     if (product) {
       item.product = product._id as any;
     }
+    
+    // 處理大包裝相關屬性 - 完全參照進貨單的 processItemsUpdate 函數
+    // 使用條件運算符處理空字符串，將其轉換為 undefined
+    // 使用 as any 避免 TypeScript 類型錯誤
+    (item as any).packageQuantity = item.packageQuantity ? Number(item.packageQuantity) : undefined;
+    (item as any).boxQuantity = item.boxQuantity ? Number(item.boxQuantity) : undefined;
+    (item as any).unit = item.unit ? item.unit : undefined;
   }
   
-  return { valid: true };
+  return { valid: true, processedItems: items };
 }
 
 /**
@@ -498,7 +513,8 @@ function prepareUpdateData(requestBody: ShippingOrderRequest, orderNumberResult?
 // @access  Public
 router.put('/:id', async (req: Request, res: Response) => {
   try {
-    const { soid, items, status } = req.body as ShippingOrderRequest;
+    const { soid, status } = req.body as ShippingOrderRequest;
+    let { items } = req.body as ShippingOrderRequest;
 
     // 檢查出貨單是否存在
     let shippingOrder = await ShippingOrder.findById(req.params.id);
@@ -520,6 +536,11 @@ router.put('/:id', async (req: Request, res: Response) => {
       if (!itemsValidation.valid) {
         res.status(400).json(createErrorResponse(itemsValidation.message || ERROR_MESSAGES.GENERIC.VALIDATION_FAILED));
         return;
+      }
+      
+      // 使用處理後的項目
+      if (itemsValidation.processedItems) {
+        items = itemsValidation.processedItems;
       }
     }
 
@@ -697,14 +718,41 @@ async function createShippingInventoryRecords(shippingOrder: ShippingOrderDocume
       }
       
       // 為每個出貨單項目創建新的庫存記錄
-      const inventory = new Inventory({
+      const inventoryData: any = {
         product: item.product,
         quantity: -parseInt(item.dquantity.toString()), // 負數表示庫存減少
         totalAmount: Number(item.dtotalCost),
         shippingOrderId: shippingOrder._id, // 使用出貨單ID
         shippingOrderNumber: shippingOrder.orderNumber, // 使用出貨單號
         type: 'ship' // 設置類型為'ship'
+      };
+      
+      // 添加調試日誌，查看項目的大包裝相關屬性
+      console.log(`項目大包裝數據:`, {
+        did: item.did,
+        dname: item.dname,
+        packageQuantity: item.packageQuantity,
+        boxQuantity: item.boxQuantity,
+        unit: item.unit,
+        batchNumber: item.batchNumber
       });
+      
+      // 添加大包裝相關屬性 - 使用條件運算符處理空字符串，將其轉換為 undefined
+      inventoryData.packageQuantity = item.packageQuantity ? Number(item.packageQuantity) : undefined;
+      inventoryData.boxQuantity = item.boxQuantity ? Number(item.boxQuantity) : undefined;
+      inventoryData.unit = item.unit ? item.unit : undefined;
+      
+      console.log(`設置大包裝相關屬性:`, {
+        packageQuantity: inventoryData.packageQuantity,
+        boxQuantity: inventoryData.boxQuantity,
+        unit: inventoryData.unit
+      });
+      if (item.batchNumber) {
+        inventoryData.batchNumber = item.batchNumber;
+        console.log(`設置 batchNumber: ${item.batchNumber}`);
+      }
+      
+      const inventory = new Inventory(inventoryData);
       
       await inventory.save();
       console.log(`已為產品 ${item.product} 創建新庫存記錄，出貨單號: ${shippingOrder.orderNumber}, 數量: -${item.dquantity}, 總金額: ${item.dtotalCost}, 類型: ship`);

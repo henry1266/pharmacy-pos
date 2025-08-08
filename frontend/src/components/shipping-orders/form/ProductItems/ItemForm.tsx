@@ -29,7 +29,6 @@ interface Product {
   purchasePrice?: string | number;
   healthInsurancePrice?: string | number;
   packageUnits?: ProductPackageUnit[];
-  unit?: string;
   [key: string]: any;
 }
 
@@ -47,6 +46,8 @@ interface CurrentItem {
   dquantity?: string | number;
   dtotalCost?: string | number;
   batchNumber?: string;
+  packageQuantity?: string | number;
+  boxQuantity?: string | number;
   [key: string]: any;
 }
 
@@ -58,6 +59,7 @@ interface ItemFormProps {
   handleAddItem: () => void;
   products: Product[];
   autoFocus?: boolean;
+  handleMainQuantityChange?: (e: ChangeEvent<HTMLInputElement>, inputMode: 'base' | 'package', selectedProduct: Product | null) => number;
 }
 
 /**
@@ -71,7 +73,8 @@ const ItemForm: FC<ItemFormProps> = ({
   handleProductChange,
   handleAddItem,
   products,
-  autoFocus
+  autoFocus,
+  handleMainQuantityChange: externalHandleMainQuantityChange
 }) => {
   // 添加狀態來跟踪當前的輸入模式（基礎單位或大包裝單位）
   const [inputMode, setInputMode] = useState<'base' | 'package'>('base');
@@ -145,10 +148,19 @@ const ItemForm: FC<ItemFormProps> = ({
    * 根據當前輸入模式計算實際總數量並更新相關狀態
    */
   const handleMainQuantityChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { value } = e.target;
-    
     // 更新顯示的輸入數量
-    setDisplayInputQuantity(value);
+    setDisplayInputQuantity(e.target.value);
+    
+    // 如果有外部傳入的處理函數，則使用它
+    if (externalHandleMainQuantityChange) {
+      // 使用外部處理函數返回的實際總數量來更新顯示
+      const actualQuantity = externalHandleMainQuantityChange(e, inputMode, selectedProduct) || 0;
+      setActualTotalQuantity(actualQuantity);
+      return;
+    }
+    
+    // 以下是原有的實現，作為後備方案
+    const { value } = e.target;
     
     // 計算實際的總數量（基礎單位）
     let actualQuantity = 0;
@@ -157,37 +169,57 @@ const ItemForm: FC<ItemFormProps> = ({
     if (inputMode === 'base' || !selectedProduct?.packageUnits?.length) {
       // 基礎單位模式，直接使用輸入的數量
       actualQuantity = numericValue;
+      
+      // 在基礎單位模式下，將 packageQuantity 和 boxQuantity 設置為 0
+      console.log('基礎單位模式 - 設置前的大包裝相關屬性:', {
+        packageQuantity: currentItem.packageQuantity,
+        boxQuantity: currentItem.boxQuantity
+      });
+      
+      handleItemInputChange({
+        target: { name: 'packageQuantity', value: '0' }
+      });
+      
+      handleItemInputChange({
+        target: { name: 'boxQuantity', value: '0' }
+      });
+      
+      console.log('基礎單位模式 - 設置後的大包裝相關屬性:', {
+        packageQuantity: '0',
+        boxQuantity: '0'
+      });
     } else {
       // 大包裝單位模式，將輸入的數量乘以大包裝單位的數量
+      console.log('大包裝單位模式 - 設置前的大包裝相關屬性:', {
+        packageQuantity: currentItem.packageQuantity,
+        boxQuantity: currentItem.boxQuantity,
+        inputMode: inputMode
+      });
+      
       const largestPackageUnit = [...(selectedProduct.packageUnits || [])]
         .sort((a, b) => b.unitValue - a.unitValue)[0];
       
       if (largestPackageUnit) {
+        // 計算實際總數量（基礎單位）
         actualQuantity = numericValue * largestPackageUnit.unitValue;
         
-        // 更新 packageQuantity
+        // 更新 packageQuantity 為輸入的大包裝數量
         handleItemInputChange({
           target: { name: 'packageQuantity', value: numericValue.toString() }
         });
         
-        // 如果有第二大的包裝單位，則更新 boxQuantity
-        if ((selectedProduct.packageUnits || []).length > 1) {
-          const remainingPackages = (selectedProduct.packageUnits || [])
-            .filter(p => p.unitName !== largestPackageUnit.unitName);
-          
-          if (remainingPackages.length > 0) {
-            const secondLargest = remainingPackages.reduce(
-              (max, current) => current.unitValue > max.unitValue ? current : max,
-              remainingPackages[0]
-            );
-            
-            // 計算第二大包裝單位的數量
-            const boxQuantity = Math.floor(actualQuantity / secondLargest.unitValue);
-            handleItemInputChange({
-              target: { name: 'boxQuantity', value: boxQuantity.toString() }
-            });
-          }
-        }
+        // 更新 boxQuantity 為實際總數量（基礎單位）
+        handleItemInputChange({
+          target: { name: 'boxQuantity', value: actualQuantity.toString() }
+        });
+        
+        console.log('大包裝單位模式 - 設置後的大包裝相關屬性:', {
+          packageQuantity: numericValue.toString(),
+          boxQuantity: actualQuantity.toString(),
+          largestPackageUnit: largestPackageUnit.unitName,
+          largestPackageUnitValue: largestPackageUnit.unitValue,
+          actualQuantity: actualQuantity
+        });
       }
     }
     
@@ -235,8 +267,16 @@ const ItemForm: FC<ItemFormProps> = ({
 
   /**
    * 添加項目後重置所有輸入狀態
+   * 重置數量輸入、總數量和輸入模式
    */
   const handleAddItemWithReset = () => {
+    // 輸出當前項目的大包裝相關屬性
+    console.log('添加項目前的大包裝相關屬性:', {
+      packageQuantity: currentItem.packageQuantity,
+      boxQuantity: currentItem.boxQuantity,
+      inputMode: inputMode
+    });
+    
     // 調用原始的添加項目函數
     handleAddItem();
     
@@ -244,6 +284,15 @@ const ItemForm: FC<ItemFormProps> = ({
     setDisplayInputQuantity('');
     setActualTotalQuantity(0);
     setInputMode('base');
+    
+    // 確保重置 packageQuantity 和 boxQuantity 值
+    handleItemInputChange({
+      target: { name: 'packageQuantity', value: '' }
+    });
+    
+    handleItemInputChange({
+      target: { name: 'boxQuantity', value: '' }
+    });
   };
 
   return (
@@ -356,12 +405,24 @@ const ItemForm: FC<ItemFormProps> = ({
                             // 只有在有選中產品且產品有包裝單位時才切換
                             const hasPackageUnits = selectedProduct?.packageUnits && selectedProduct.packageUnits.length > 0;
                             
+                            console.log('按下Enter鍵 - 切換前的狀態:', {
+                              inputMode: inputMode,
+                              hasPackageUnits: hasPackageUnits,
+                              packageQuantity: currentItem.packageQuantity,
+                              boxQuantity: currentItem.boxQuantity
+                            });
+                            
                             if (hasPackageUnits) {
                               // 切換輸入模式（基礎單位 <-> 大包裝單位）
-                              setInputMode(inputMode === 'base' ? 'package' : 'base');
+                              const newMode = inputMode === 'base' ? 'package' : 'base';
+                              setInputMode(newMode);
                               
                               // 清空輸入框
                               setDisplayInputQuantity('');
+                              
+                              console.log('切換後的狀態:', {
+                                newMode: newMode
+                              });
                             }
                           }
                         }}
@@ -418,7 +479,7 @@ const ItemForm: FC<ItemFormProps> = ({
                           {selectedProduct.packageUnits.map((unit, index) => (
                             <Chip
                               key={index}
-                              label={`${unit.unitName}: ${unit.unitValue} ${selectedProduct.unit || '個'}`}
+                              label={`${unit.unitName}: ${unit.unitValue} 個`}
                               size="small"
                               variant="outlined"
                               color={inputMode === 'package' && index === 0 ? "primary" : "default"}
