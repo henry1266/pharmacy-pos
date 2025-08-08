@@ -152,19 +152,13 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
       
       // 只有在有選中產品且產品有包裝單位時才切換
       if (selectedProduct?.packageUnits && selectedProduct.packageUnits.length > 0) {
-        // 獲取最大的包裝單位
-        const largestPackageUnit = [...selectedProduct.packageUnits].sort((a, b) => b.unitValue - a.unitValue)[0];
-        
         // 切換輸入模式
         if (inputMode === 'base') {
           // 從基礎單位切換到大包裝單位
           setInputMode('package');
           
-          // 計算大包裝數量
-          const packageQuantity = Math.floor(actualTotalQuantity / largestPackageUnit.unitValue);
-          
-          // 更新顯示的輸入數量
-          setDisplayInputQuantity(packageQuantity.toString());
+          // 清空輸入框
+          setDisplayInputQuantity('');
         } else {
           // 從大包裝單位切換到基礎單位
           setInputMode('base');
@@ -417,7 +411,7 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
         <Grid item xs={12}>
           <Grid container spacing={1} alignItems="flex-start">
             {/* 選擇藥品 */}
-            <Grid item xs={12} sm={4.5}>
+            <Grid item xs={12} sm={5}>
               <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
                 <Box sx={{ flex: 1 }}>
                   <Autocomplete
@@ -515,10 +509,6 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
                       },
                     },
                   }}
-                  // 添加提示文字
-                  helperText={inputMode === 'package'
-                    ? `ENTER切回基礎單位`
-                    : `ENTER切大包裝`}
                 />
               </Box>
             </Grid>
