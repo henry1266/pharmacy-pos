@@ -6,7 +6,9 @@ import {
   Button,
   Typography,
   IconButton,
-  Box
+  Box,
+  Paper,
+  Chip
 } from '@mui/material';
 // 單獨引入 Grid 組件
 import Grid from '@mui/material/Grid';
@@ -479,179 +481,219 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
   };
 
   return (
-    <Box sx={{ mb: 1 }}>
-      <Grid container spacing={1}>
-        {/* 第一排：選擇藥品、總數量、總成本、新增按鈕、大包裝計算 */}
+    <Box sx={{ mb: 2 }}>
+      <Grid container spacing={2}>
+        {/* 藥品選擇表單 */}
         <Grid item xs={12}>
-          <Grid container spacing={1} alignItems="flex-start">
-            {/* 選擇藥品 */}
-            <Grid item xs={12} sm={5.5}>
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                {/* 藥品選擇下拉框 */}
-                <Box sx={{ flex: 1 }}>
-                  <Autocomplete
-                    id="product-select"
-                    options={products ?? []}
-                    getOptionLabel={(option) => {
-                      const code = option.code ?? 'N/A';
-                      const name = option.name;
-                      const healthCode = (option as any).healthInsuranceCode ? ` [健保:${(option as any).healthInsuranceCode}]` : '';
-                      const barcode = (option as any).barcode ? ` [條碼:${(option as any).barcode}]` : '';
-                      return `${code} - ${name}${healthCode}${barcode}`;
-                    }}
-                    value={products?.find(p => p._id === currentItem.product) ?? null}
-                    onChange={handleProductChangeWithChart}
-                    filterOptions={(options, state) => filterProducts(options, state.inputValue)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter' || event.key === 'Tab') {
-                        if ((event.target as HTMLInputElement).value) {
-                          const filteredOptions = filterProducts(products ?? [], (event.target as HTMLInputElement).value);
-                          if (filteredOptions.length > 0 && filteredOptions[0]) {
-                            handleProductChangeWithChart(event, filteredOptions[0]);
-                            event.preventDefault();
-                            const dquantityInput = document.querySelector('input[name="dquantity"]');
-                            const packageQuantityInput = document.querySelector('input[name="packageQuantity"]');
-                            if (dquantityInput && !(dquantityInput as HTMLInputElement).disabled) {
-                              (dquantityInput as HTMLInputElement).focus();
-                            } else if (packageQuantityInput && !(packageQuantityInput as HTMLInputElement).disabled) {
-                              (packageQuantityInput as HTMLInputElement).focus();
+          <Paper elevation={0} sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: 2 }}>
+            <Grid container spacing={2} alignItems="center">
+              {/* 第一行：藥品選擇、批號輸入和圖表按鈕 */}
+              <Grid item xs={12}>
+                <Grid container spacing={2} alignItems="center">
+                  {/* 藥品選擇下拉框 */}
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1
+                    }}>
+                      <Box sx={{ flex: 1 }}>
+                        <Autocomplete
+                          id="product-select"
+                          options={products ?? []}
+                          getOptionLabel={(option) => {
+                            const code = option.code ?? 'N/A';
+                            const name = option.name;
+                            const healthCode = (option as any).healthInsuranceCode ? ` [健保:${(option as any).healthInsuranceCode}]` : '';
+                            const barcode = (option as any).barcode ? ` [條碼:${(option as any).barcode}]` : '';
+                            return `${code} - ${name}${healthCode}${barcode}`;
+                          }}
+                          value={products?.find(p => p._id === currentItem.product) ?? null}
+                          onChange={handleProductChangeWithChart}
+                          filterOptions={(options, state) => filterProducts(options, state.inputValue)}
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter' || event.key === 'Tab') {
+                              if ((event.target as HTMLInputElement).value) {
+                                const filteredOptions = filterProducts(products ?? [], (event.target as HTMLInputElement).value);
+                                if (filteredOptions.length > 0 && filteredOptions[0]) {
+                                  handleProductChangeWithChart(event, filteredOptions[0]);
+                                  event.preventDefault();
+                                  const dquantityInput = document.querySelector('input[name="dquantity"]');
+                                  const packageQuantityInput = document.querySelector('input[name="packageQuantity"]');
+                                  if (dquantityInput && !(dquantityInput as HTMLInputElement).disabled) {
+                                    (dquantityInput as HTMLInputElement).focus();
+                                  } else if (packageQuantityInput && !(packageQuantityInput as HTMLInputElement).disabled) {
+                                    (packageQuantityInput as HTMLInputElement).focus();
+                                  }
+                                  return;
+                                }
+                              }
                             }
-                            return;
-                          }
-                        }
-                      }
-                    }}
-                    renderInput={(params) => {
-                      const { InputLabelProps, ...restParams } = params;
-                      return (
-                        <TextField
-                          {...restParams}
-                          {...(productInputRef && { inputRef: productInputRef })}
-                          id="product-select-input"
-                          label="選擇藥品"
+                          }}
+                          renderInput={(params) => {
+                            const { InputLabelProps, ...restParams } = params;
+                            return (
+                              <TextField
+                                {...restParams}
+                                {...(productInputRef && { inputRef: productInputRef })}
+                                id="product-select-input"
+                                label="選擇藥品"
+                                fullWidth
+                                size="small"
+                              />
+                            );
+                          }}
+                        />
+                      </Box>
+                      {/* 圖表按鈕 */}
+                      <IconButton
+                        onClick={handleChartButtonClick}
+                        disabled={!selectedProduct}
+                        color="primary"
+                        sx={{
+                          height: 36,
+                          width: 36,
+                          bgcolor: 'action.hover'
+                        }}
+                        title="查看商品圖表分析"
+                      >
+                        <BarChartIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  </Grid>
+                  
+                  {/* 批號輸入 */}
+                  <Grid item xs={12} md={3}>
+                    <TextField
+                      fullWidth
+                      label="批號 (選填)"
+                      name="batchNumber"
+                      value={currentItem.batchNumber || ''}
+                      onChange={handleItemInputChange}
+                      size="small"
+                      placeholder="請輸入批號"
+                    />
+                  </Grid>
+                </Grid>
+              </Grid>
+
+              {/* 第二行：數量、總成本和新增按鈕 */}
+              <Grid item xs={12}>
+                <Grid container spacing={2} alignItems="flex-start">
+                  {/* 總數量和大包裝提示 */}
+                  <Grid item xs={12} md={2.5}>
+                    <Box sx={{ width: '100%' }}>
+                      <TextField
+                        fullWidth
+                        label={inputMode === 'base' ? "總數量" : "大包裝數量"}
+                        name="dquantity"
+                        type="number"
+                        value={displayInputQuantity}
+                        onChange={handleMainQuantityChange}
+                        onFocus={handleFocus}
+                        onKeyDown={handleQuantityKeyDown}
+                        inputProps={{ min: "0", step: "1" }}
+                        disabled={mainQuantityDisabled}
+                        size="small"
+                        sx={{
+                          '& .MuiInputLabel-root': {
+                            color: inputMode === 'package' ? 'primary.main' : 'inherit',
+                            fontWeight: inputMode === 'package' ? 'bold' : 'normal',
+                          },
+                          '& .MuiOutlinedInput-root': {
+                            '& fieldset': {
+                              borderColor: inputMode === 'package' ? 'primary.main' : 'inherit',
+                              borderWidth: inputMode === 'package' ? 2 : 1,
+                            },
+                          },
+                        }}
+                      />
+                      
+                      {/* 基礎單位總數顯示 */}
+                      <Box sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        mt: 0.5,
+                        px: 0.5
+                      }}>
+                        <Typography variant="caption" color="text.secondary">
+                          基礎單位總數: <strong>{actualTotalQuantity}</strong>
+                        </Typography>
+                        
+                        {/* 切換提示 */}
+                        {selectedProduct?.packageUnits && selectedProduct.packageUnits.length > 0 && (
+                          <Typography variant="caption" color="primary.main" sx={{ fontWeight: 'bold' }}>
+                            按Enter切換
+                          </Typography>
+                        )}
+                      </Box>
+                    </Box>
+                  </Grid>
+
+                  {/* 大包裝提示 - 只在有包裝單位時顯示 */}
+              {selectedProduct?.packageUnits && selectedProduct.packageUnits.length > 0 && (
+                <Grid item xs={12} md={1}>
+                  <Box sx={{
+                    p: 1,
+                    mt: 1,
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: 1
+                  }}>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                      {selectedProduct.packageUnits.map((unit, index) => (
+                        <Chip
+                          key={index}
+                          label={`${unit.unitName}: ${unit.unitValue} ${selectedProduct.unit}`}
+                          size="small"
+                          variant="outlined"
+                          color={inputMode === 'package' && index === 0 ? "primary" : "default"}
+                        />
+                      ))}
+                    </Box>
+                  </Box>
+                </Grid>
+              )}
+                  
+                  {/* 總成本 */}
+                  <Grid item xs={12} md={6}>
+                    <Grid container spacing={2} alignItems="center">
+                      <Grid item xs={8}>
+                        <PriceTooltip
+                          currentItem={{...currentItem, dquantity: dQuantityValue}}
+                          handleItemInputChange={handleItemInputChange}
+                          getProductPurchasePrice={getProductPurchasePrice}
+                          calculateTotalCost={calculateTotalCost}
+                          isInventorySufficient={isInventorySufficient}
+                          handleAddItem={handleAddItemWithReset}
+                        />
+                      </Grid>
+                      
+                      {/* 新增按鈕 */}
+                      <Grid item xs={3}>
+                        <Button
+                          variant="contained"
+                          onClick={handleAddItemWithReset}
                           fullWidth
                           size="small"
-                        />
-                      );
-                    }}
-                  />
-                </Box>
-                {/* 圖表按鈕 */}
-                <IconButton
-                  onClick={handleChartButtonClick}
-                  disabled={!selectedProduct}
-                  color="primary"
-                  sx={{ mt: 0.5, height: 30 }}
-                  title="查看商品圖表分析"
-                >
-                  <BarChartIcon fontSize="small" />
-                </IconButton>
-              </Box>
+                          sx={{
+                            height: '36px',
+                            minHeight: '36px',
+                            minWidth: '36px',
+                            borderRadius: 1
+                          }}
+                        >
+                          <AddIcon fontSize="small" />
+                        </Button>
+                      </Grid>
+                    </Grid>
+                  </Grid>
+                </Grid>
+              </Grid>
             </Grid>
-
-            {/* 總數量 */}
-            <Grid item xs={12} sm={1.5}>
-              <Box sx={{ width: '100%' }}>
-                {/* 在輸入框上方顯示基礎單位的總數 */}
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                  基礎單位總數: {actualTotalQuantity}
-                </Typography>
-                
-                <TextField
-                  fullWidth
-                  label={inputMode === 'base' ? "總數量" : "大包裝數量"}
-                  name="dquantity"
-                  type="number"
-                  value={displayInputQuantity}
-                  onChange={handleMainQuantityChange}
-                  onFocus={handleFocus}
-                  onKeyDown={handleQuantityKeyDown}
-                  inputProps={{ min: "0", step: "1" }}
-                  disabled={mainQuantityDisabled}
-                  size="small"
-                  sx={{
-                    '& .MuiInputLabel-root': {
-                      color: inputMode === 'package' ? 'primary.main' : 'inherit',
-                      fontWeight: inputMode === 'package' ? 'bold' : 'normal',
-                    },
-                    '& .MuiOutlinedInput-root': {
-                      '& fieldset': {
-                        borderColor: inputMode === 'package' ? 'primary.main' : 'inherit',
-                        borderWidth: inputMode === 'package' ? 2 : 1,
-                      },
-                    },
-                  }}
-                />
-              </Box>
-            </Grid>
-
-            {/* 總成本 */}
-            <Grid item xs={12} sm={2.5}>
-              <PriceTooltip
-                currentItem={{...currentItem, dquantity: dQuantityValue}}
-                handleItemInputChange={handleItemInputChange}
-                getProductPurchasePrice={getProductPurchasePrice}
-                calculateTotalCost={calculateTotalCost}
-                isInventorySufficient={isInventorySufficient}
-                handleAddItem={handleAddItemWithReset}
-              />
-            </Grid>
-
-            {/* 批號輸入 */}
-            <Grid item xs={12} sm={1.5}>
-              <TextField
-                fullWidth
-                label="批號 (選填)"
-                name="batchNumber"
-                value={currentItem.batchNumber || ''}
-                onChange={handleItemInputChange}
-                size="small"
-                placeholder="請輸入批號"
-              />
-            </Grid>
-            
-            {/* 新增按鈕 */}
-            <Grid item xs={12} sm={1}>
-              <Button
-                variant="contained"
-                onClick={handleAddItemWithReset}
-                fullWidth
-                size="small"
-                sx={{
-                  height: '32px',
-                  minHeight: '32px',
-                  minWidth: '32px',
-                  px: 1
-                }}
-              >
-                <AddIcon fontSize="small" />
-              </Button>
-            </Grid>
-
-            {/* 大包裝提示 */}
-            <Grid item xs={12} sm={1.5}>
-              {selectedProduct?.packageUnits && selectedProduct.packageUnits.length > 0 ? (
-                <Box sx={{
-                  border: '1px dashed #ccc',
-                  borderRadius: 1,
-                  p: 1,
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center'
-                }}>
-                  <Typography variant="caption" color="text.secondary">
-                    <strong>Enter切換包裝</strong>
-                  </Typography>
-                  {selectedProduct.packageUnits.map((unit, index) => (
-                    <Typography key={index} variant="caption" color="text.secondary">
-                      {unit.unitName}: {unit.unitValue} {selectedProduct.unit}
-                    </Typography>
-                  ))}
-                </Box>
-              ) : null}
-            </Grid>
-          </Grid>
+          </Paper>
         </Grid>
       </Grid>
       
