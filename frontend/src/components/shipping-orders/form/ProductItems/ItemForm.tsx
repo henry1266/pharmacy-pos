@@ -198,32 +198,7 @@ const ItemForm: FC<ItemFormProps> = ({
     });
   };
 
-  /**
-   * 處理數量輸入框的按鍵事件
-   * 在按下 Enter 鍵時切換基礎單位和大包裝單位輸入模式
-   */
-  const handleQuantityKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      
-      // 只有在有選中產品且產品有包裝單位時才切換
-      const hasPackageUnits = selectedProduct?.packageUnits && selectedProduct.packageUnits.length > 0;
-      
-      if (hasPackageUnits) {
-        // 切換輸入模式（基礎單位 <-> 大包裝單位）
-        setInputMode(inputMode === 'base' ? 'package' : 'base');
-        
-        // 清空輸入框
-        setDisplayInputQuantity('');
-      } else {
-        // 如果沒有包裝單位，則聚焦到總成本輸入框
-        const dtotalCostInput = document.querySelector('input[name="dtotalCost"]');
-        if (dtotalCostInput) {
-          (dtotalCostInput as HTMLInputElement).focus();
-        }
-      }
-    }
-  };
+  // 處理數量輸入框的按鍵事件已直接內聯到 TextField 組件中
 
   // 過濾產品的函數
   const filterProducts = (options: Product[], inputValue?: string): Product[] => {
@@ -281,7 +256,7 @@ const ItemForm: FC<ItemFormProps> = ({
               <Grid item xs={12}>
                 <Grid container spacing={2} alignItems="center">
                   {/* 藥品選擇下拉框 */}
-                  <Grid item xs={12} md={8}>
+                  <Grid item xs={12} md={6}>
                     <Box sx={{
                       display: 'flex',
                       alignItems: 'center',
@@ -303,13 +278,16 @@ const ItemForm: FC<ItemFormProps> = ({
                           filterOptions={(options, state) => filterProducts(options, state.inputValue)}
                           onKeyDown={(event) => {
                             if (['Enter', 'Tab'].includes(event.key)) {
-                              const filteredOptions = filterProducts(products, (event.target as HTMLInputElement).value);
-                              if (filteredOptions.length > 0 && filteredOptions[0]) {
-                                handleProductChange(event, filteredOptions[0]);
-                                event.preventDefault();
-                                const dquantityInput = document.querySelector('input[name="dquantity"]');
-                                if (dquantityInput) {
-                                  (dquantityInput as HTMLInputElement).focus();
+                              const inputValue = (event.target as HTMLInputElement).value;
+                              if (inputValue) {
+                                const filteredOptions = filterProducts(products, inputValue);
+                                if (filteredOptions.length > 0 && filteredOptions[0]) {
+                                  handleProductChangeWithState(event, filteredOptions[0]);
+                                  event.preventDefault();
+                                  const dquantityInput = document.querySelector('input[name="dquantity"]');
+                                  if (dquantityInput) {
+                                    (dquantityInput as HTMLInputElement).focus();
+                                  }
                                 }
                               }
                             }
@@ -342,7 +320,7 @@ const ItemForm: FC<ItemFormProps> = ({
                   </Grid>
                   
                   {/* 批號輸入 */}
-                  <Grid item xs={12} md={4}>
+                  <Grid item xs={12} md={3}>
                     <TextField
                       fullWidth
                       label="批號 (選填)"
@@ -360,7 +338,7 @@ const ItemForm: FC<ItemFormProps> = ({
               <Grid item xs={12}>
                 <Grid container spacing={2} alignItems="flex-start">
                   {/* 總數量和大包裝提示 */}
-                  <Grid item xs={12} md={3}>
+                  <Grid item xs={12} md={2.5}>
                     <Box sx={{ width: '100%' }}>
                       <TextField
                         fullWidth
@@ -370,7 +348,23 @@ const ItemForm: FC<ItemFormProps> = ({
                         value={displayInputQuantity}
                         onChange={handleMainQuantityChange}
                         onFocus={handleFocus}
-                        onKeyDown={handleQuantityKeyDown}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            
+                            // 只有在有選中產品且產品有包裝單位時才切換
+                            const hasPackageUnits = selectedProduct?.packageUnits && selectedProduct.packageUnits.length > 0;
+                            
+                            if (hasPackageUnits) {
+                              // 切換輸入模式（基礎單位 <-> 大包裝單位）
+                              setInputMode(inputMode === 'base' ? 'package' : 'base');
+                              
+                              // 清空輸入框
+                              setDisplayInputQuantity('');
+                            }
+                          }
+                        }}
                         inputProps={{ min: "0", step: "1" }}
                         size="small"
                         sx={{
@@ -410,7 +404,7 @@ const ItemForm: FC<ItemFormProps> = ({
 
                   {/* 大包裝提示 - 只在有包裝單位時顯示 */}
                   {selectedProduct?.packageUnits && selectedProduct.packageUnits.length > 0 && (
-                    <Grid item xs={12} md={3}>
+                    <Grid item xs={12} md={1}>
                       <Box sx={{
                         p: 1,
                         mt: 1,
@@ -436,7 +430,7 @@ const ItemForm: FC<ItemFormProps> = ({
                   )}
                   
                   {/* 總成本和新增按鈕 */}
-                  <Grid item xs={12} md={9}>
+                  <Grid item xs={12} md={5}>
                     <Grid container spacing={2} alignItems="center">
                       <Grid item xs={8}>
                         <PriceTooltip
