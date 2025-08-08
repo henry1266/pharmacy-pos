@@ -10,6 +10,7 @@ import {
   Paper,
   Fab,
   Tooltip,
+  Chip,
 } from '@mui/material';
 import {
   AccountTree as AccountTreeIcon,
@@ -64,6 +65,7 @@ export const AccountsManagementPage: React.FC = () => {
   const [formLoading, setFormLoading] = useState(false);
   const [hierarchyKey, setHierarchyKey] = useState(0); // 用於強制重新載入階層
   const [transactionListKey, setTransactionListKey] = useState(0); // 用於強制重新載入交易列表
+  const [searchQuery, setSearchQuery] = useState(''); // 查詢科目的關鍵字
   
   // 通知狀態
   const [snackbar, setSnackbar] = useState<{
@@ -304,27 +306,115 @@ export const AccountsManagementPage: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="xl" sx={{ py: 2 }}>
-      {/* 麵包屑導航 */}
-      <BreadcrumbNavigation
-        items={[
-          {
-            label: '會計首頁',
-            path: '/accounting3',
-            icon: <HomeIcon fontSize="small" />
-          },
-          {
-            label: '科目管理',
-            icon: <AccountTreeIcon fontSize="small" />
-          }
-        ]}
-        showShadow={true}
-        fontSize="1.2rem"
-        padding={8}
-      />
+    <Container maxWidth="xl" sx={{ py: 0, px: 0 }}>
+      {/* 標題區域 */}
+      <Paper sx={{
+        mb: 3,
+        bgcolor: 'background.paper',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 10
+      }}>
+        <Box sx={{
+          p: 1.5,
+          borderBottom: 1,
+          borderColor: 'divider',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          minHeight: 48
+        }}>
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            width: '100%'
+          }}>
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              height: '100%'
+            }}>
+              <Box sx={{
+                display: 'flex',
+                alignItems: 'center',
+                height: 44
+              }}>
+                <Box sx={{
+                  '& > div': {
+                    marginBottom: 0,
+                    display: 'flex',
+                    alignItems: 'center'
+                  }
+                }}>
+                  <BreadcrumbNavigation
+                    items={[
+                      {
+                        label: '會計首頁',
+                        path: '/accounting3',
+                        icon: <HomeIcon sx={{ fontSize: '1.1rem' }} />
+                      },
+                      {
+                        label: '科目管理',
+                        icon: <AccountTreeIcon sx={{ fontSize: '1.1rem' }} />
+                      }
+                    ]}
+                    fontSize="0.975rem"
+                    padding={0}
+                  />
+                </Box>
+              </Box>
+            </Box>
+            
+            {/* 右側查詢區域 */}
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              mr: 2
+            }}>
+              <Box sx={{
+                display: 'flex',
+                alignItems: 'center',
+                backgroundColor: 'background.paper',
+                border: 1,
+                borderColor: 'divider',
+                borderRadius: 2,
+                px: 2,
+                py: 0.5,
+                height: 36
+              }}>
+                <Typography variant="caption" sx={{ fontSize: '0.85rem', mr: 1 }}>
+                  查詢科目
+                </Typography>
+                <input
+                  type="text"
+                  placeholder="輸入科目名稱或代碼"
+                  value={searchQuery}
+                  style={{
+                    border: 'none',
+                    outline: 'none',
+                    backgroundColor: 'transparent',
+                    fontSize: '0.9rem',
+                    width: '180px'
+                  }}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    console.log('查詢科目:', e.target.value);
+                    // 當搜索查詢變更時，強制重新載入階層
+                    // 這樣 AccountHierarchyManager 可以在內部處理搜索
+                    setHierarchyKey(prev => prev + 1);
+                  }}
+                />
+              </Box>
+            </Box>
+          </Box>
+        </Box>
+      </Paper>
 
-      {/* 主要內容區域 - 左右布局 */}
-      <Box sx={{ display: 'flex', gap: 2, height: 'calc(100vh - 200px)', minHeight: 600 }}>
+      <Box sx={{ p: 2 }}>
+        {/* 主要內容區域 - 左右布局 */}
+      <Box sx={{ display: 'flex', gap: 2, height: 'calc(100vh - 150px)', minHeight: 600 }}>
         {/* 左側：科目階層管理 */}
         <Paper sx={{ width: '27%', minWidth: 400 }}>
           <AccountHierarchyManager
@@ -334,7 +424,9 @@ export const AccountsManagementPage: React.FC = () => {
             onAccountEdit={handleAccountEdit}
             onAccountDelete={handleAccountDelete}
             showToolbar={true}
-            showSearch={true}
+            showSearch={false}
+            // 注意：AccountHierarchyManager 組件不接受 searchQuery 屬性
+            // 我們將在頂部搜索框中處理搜索邏輯
             showSettings={true}
             height="100%"
           />
@@ -503,6 +595,7 @@ export const AccountsManagementPage: React.FC = () => {
             }}
           />
         </Box>
+      </Box>
       </Box>
 
       {/* 右側固定按鈕 */}
