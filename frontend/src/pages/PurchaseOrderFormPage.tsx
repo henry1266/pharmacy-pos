@@ -11,6 +11,7 @@ import {
   CircularProgress,
   Grid
 } from '@mui/material';
+import PageHeader from '../components/purchase-orders/PageHeader';
 import { format } from 'date-fns';
 import { DropResult } from 'react-beautiful-dnd';
 import { Product, Supplier } from '@pharmacy-pos/shared/types/entities';
@@ -672,21 +673,28 @@ const PurchaseOrderFormPage: React.FC = () => {
 
   return (
     <Box sx={{
-      p: { xs: 1, sm: 1.5, md: 2 },
+      p: { xs: 1, sm: 2, md: 3 },
       height: 'calc(100vh - 120px)',
       display: 'flex',
       flexDirection: 'column',
       overflow: 'hidden',
+  
       '@media (max-width: 600px)': {
         height: 'calc(100vh - 56px)'
       }
     }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-        <Typography variant="h5" component="h1">
-          {isEditMode ? '編輯進貨單' : '新增進貨單'}
-          {isGlobalTestMode && <Typography variant="caption" color="secondary" sx={{ ml: 1 }}>(測試模式)</Typography>}
-        </Typography>
-      </Box>
+      {/* 使用新的 PageHeader 組件 */}
+      <PageHeader
+        mode={isEditMode ? 'edit' : 'new'}
+        onNavigateToList={handleCancel}
+        editId={id}
+      />
+      
+      {isGlobalTestMode && (
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="caption" color="secondary">(測試模式)</Typography>
+        </Box>
+      )}
 
       <form onSubmit={handleSubmit} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
