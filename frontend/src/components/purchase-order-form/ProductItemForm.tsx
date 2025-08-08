@@ -13,9 +13,7 @@ import Grid from '@mui/material/Grid';
 import { Add as AddIcon, BarChart as BarChartIcon } from '@mui/icons-material';
 import PriceTooltip from '../form-widgets/PriceTooltip';
 import ChartModal from '../products/ChartModal';
-import { PackageQuantityInput } from '../package-units';
 import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
-import { PackageQuantityChangeData } from '../package-units/types';
 import PropTypes from 'prop-types';
 import { Product } from '@pharmacy-pos/shared/types/entities';
 
@@ -163,8 +161,8 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
           // 從大包裝單位切換到基礎單位
           setInputMode('base');
           
-          // 更新顯示的輸入數量
-          setDisplayInputQuantity(actualTotalQuantity.toString());
+          // 清空輸入框
+          setDisplayInputQuantity('');
         }
       }
     }
@@ -411,7 +409,7 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
         <Grid item xs={12}>
           <Grid container spacing={1} alignItems="flex-start">
             {/* 選擇藥品 */}
-            <Grid item xs={12} sm={5}>
+            <Grid item xs={12} sm={5.5}>
               <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
                 <Box sx={{ flex: 1 }}>
                   <Autocomplete
@@ -509,6 +507,7 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
                       },
                     },
                   }}
+                
                 />
               </Box>
             </Grid>
@@ -555,49 +554,27 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
               </Button>
             </Grid>
 
-            {/* 包裝單位輸入 */}
-            <Grid item xs={12} sm={2.5}>
+            {/* 大包裝提示 */}
+            <Grid item xs={12} sm={1.5}>
               {selectedProduct?.packageUnits && selectedProduct.packageUnits.length > 0 ? (
-                <PackageQuantityInput
-                  packageUnits={selectedProduct.packageUnits}
-                  value={Number(dQuantityValue) || 0}
-                  onChange={(quantity, packageData) => {
-                    handleItemInputChange({ target: { name: 'dquantity', value: quantity.toString() } });
-                    
-                    // 處理包裝數量資訊
-                    if (packageData && packageData.packageBreakdown.length > 0) {
-                      // 找到最大的包裝單位作為 packageQuantity
-                      const largestPackage = packageData.packageBreakdown.reduce((max, current) =>
-                        current.unitValue > max.unitValue ? current : max
-                      );
-                      
-                      // 找到第二大的包裝單位作為 boxQuantity，如果沒有則使用基礎單位
-                      const remainingPackages = packageData.packageBreakdown.filter(p => p.unitName !== largestPackage.unitName);
-                      const secondLargest = remainingPackages.length > 0
-                        ? remainingPackages.reduce((max, current) => current.unitValue > max.unitValue ? current : max)
-                        : null;
-                      
-                      // 更新包裝數量欄位
-                      handleItemInputChange({ target: { name: 'packageQuantity', value: largestPackage.quantity.toString() } });
-                      
-                      if (secondLargest) {
-                        handleItemInputChange({ target: { name: 'boxQuantity', value: secondLargest.quantity.toString() } });
-                      } else {
-                        // 如果只有一個包裝單位，計算每個包裝的基礎單位數量
-                        const baseUnitsPerPackage = largestPackage.unitValue;
-                        handleItemInputChange({ target: { name: 'boxQuantity', value: baseUnitsPerPackage.toString() } });
-                      }
-                    } else {
-                      // 清空包裝數量欄位
-                      handleItemInputChange({ target: { name: 'packageQuantity', value: '' } });
-                      handleItemInputChange({ target: { name: 'boxQuantity', value: '' } });
-                    }
-                  }}
-                  disabled={mainQuantityDisabled}
-                  variant="outlined"
-                  // 使用 showCalculator 屬性來控制是否顯示計算器按鈕
-                  showCalculator={true}
-                />
+                <Box sx={{
+                  border: '1px dashed #ccc',
+                  borderRadius: 1,
+                  p: 1,
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center'
+                }}>
+                  <Typography variant="caption" color="text.secondary">
+                    <strong>Enter切換包裝</strong>
+                  </Typography>
+                  {selectedProduct.packageUnits.map((unit, index) => (
+                    <Typography key={index} variant="caption" color="text.secondary">
+                      {unit.unitName}: {unit.unitValue} {selectedProduct.unit}
+                    </Typography>
+                  ))}
+                </Box>
               ) : null}
             </Grid>
 
