@@ -673,7 +673,7 @@ const PurchaseOrderFormPage: React.FC = () => {
 
   return (
     <Box sx={{
-      p: { xs: 1, sm: 2, md: 3 },
+      p: { xs: 1, sm: 1, md: 1.5 },
       height: 'calc(100vh - 120px)',
       display: 'flex',
       flexDirection: 'column',
@@ -688,6 +688,20 @@ const PurchaseOrderFormPage: React.FC = () => {
         mode={isEditMode ? 'edit' : 'new'}
         onNavigateToList={handleCancel}
         editId={id}
+        actionButtons={
+          <ActionButtons
+            onCancel={handleCancel}
+            loading={dataLoading}
+            onSubmit={() => {
+              // 手動觸發表單提交
+              const formElement = document.querySelector('form');
+              if (formElement) {
+                const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
+                formElement.dispatchEvent(submitEvent);
+              }
+            }}
+          />
+        }
       />
       
       {isGlobalTestMode && (
@@ -697,9 +711,6 @@ const PurchaseOrderFormPage: React.FC = () => {
       )}
 
       <form onSubmit={handleSubmit} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
-          <ActionButtons onCancel={handleCancel} />
-        </Box>
         <Grid container spacing={2} sx={{ flex: 1, minHeight: 0 }}>
           {/* 左側：基本資訊 */}
           <Grid item xs={12} md={3} sx={{ display: 'flex', flexDirection: 'column' }}>

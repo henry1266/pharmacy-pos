@@ -13,6 +13,7 @@ interface PageHeaderProps {
   onNavigateToList: () => void;
   onNavigateToNew?: () => void;
   editId?: string | undefined;
+  actionButtons?: React.ReactNode;
 }
 
 /**
@@ -23,7 +24,8 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   mode,
   onNavigateToList,
   onNavigateToNew,
-  editId
+  editId,
+  actionButtons
 }) => {
   // 新增或編輯模式的標題
   if (mode === 'new' || mode === 'edit') {
@@ -86,18 +88,22 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
             height: '100%',
             marginLeft: 'auto'
           }}>
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={<ArrowBackIcon />}
-              onClick={onNavigateToList}
-              sx={{
-                height: 44,
-                minWidth: 110
-              }}
-            >
-              返回列表
-            </Button>
+            {actionButtons ? (
+              actionButtons
+            ) : (
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<ArrowBackIcon />}
+                onClick={onNavigateToList}
+                sx={{
+                  height: 44,
+                  minWidth: 110
+                }}
+              >
+                返回列表
+              </Button>
+            )}
           </Box>
         </Box>
       </Paper>

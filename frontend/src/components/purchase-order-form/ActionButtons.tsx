@@ -13,6 +13,7 @@ import {
 interface ActionButtonsProps {
   loading?: boolean;
   onCancel: () => void;
+  onSubmit?: () => void;
 }
 
 /**
@@ -22,7 +23,8 @@ interface ActionButtonsProps {
  */
 const ActionButtons: FC<ActionButtonsProps> = ({
   loading,
-  onCancel
+  onCancel,
+  onSubmit
 }) => {
   return (
     <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mb: 0 }}>
@@ -36,12 +38,12 @@ const ActionButtons: FC<ActionButtonsProps> = ({
         取消
       </Button>
       <Button
-        type="submit"
         variant="contained"
         startIcon={<SaveIcon />}
         disabled={loading || false}
         tabIndex={-1}
         size="small"
+        onClick={onSubmit}
       >
         {loading ? '儲存中...' : '儲存進貨單'}
       </Button>
@@ -52,7 +54,8 @@ const ActionButtons: FC<ActionButtonsProps> = ({
 // 添加 ActionButtons 的 PropTypes 驗證
 ActionButtons.propTypes = {
   loading: PropTypes.bool,
-  onCancel: PropTypes.func.isRequired
+  onCancel: PropTypes.func.isRequired,
+  onSubmit: PropTypes.func
 } as any; // 使用 any 類型來避免 TypeScript 錯誤
 
 export default ActionButtons;
