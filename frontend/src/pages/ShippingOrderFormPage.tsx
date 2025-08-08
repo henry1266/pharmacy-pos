@@ -1,18 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useAppDispatch } from '../hooks/redux';
-import { useNavigate, useParams } from 'react-router-dom';
-import { 
-  Box, 
-  Typography, 
-  Card, 
-  CardContent, 
+import {
+  Box,
+  Typography,
+  Card,
+  CardContent,
   Snackbar,
   Alert,
-  Button
+  Button,
+  CircularProgress,
+  Grid
 } from '@mui/material';
-
-// Redux actions 和 store state 型別定義
+import { format } from 'date-fns';
+import { DropResult } from 'react-beautiful-dnd';
+import { Product, Supplier } from '@pharmacy-pos/shared/types/entities';
+import { RootState } from '../redux/store';
 import {
   fetchShippingOrder,
   addShippingOrder,
@@ -20,112 +24,266 @@ import {
   fetchSuppliers,
   fetchProducts
 } from '../redux/actions';
-import { RootState } from '../redux/store';
 
 // 導入共享型別
 import { ShippingOrderCreateRequest } from '@pharmacy-pos/shared/types/api';
-import { Supplier } from '@pharmacy-pos/shared/types/entities';
 
 // 導入拆分後的組件
 import BasicInfoForm from '../components/shipping-orders/form/BasicInfo/index';
 import ProductItemForm from '../components/shipping-orders/form/ProductItems/ItemForm';
 import ItemsTable from '../components/shipping-orders/form/ProductItems/ItemsTable';
 import GenericConfirmDialog from '../components/common/GenericConfirmDialog';
+import TestModeConfig from '../testMode/config/TestModeConfig';
+import testModeDataService from '../testMode/services/TestModeDataService';
 
 // =================================================================
 // 1. 型別定義 (Type Definitions)
 // =================================================================
 
 // 供應商的型別 - 擴展 shared Supplier
-interface ISupplier extends Supplier {
+interface ISupplier extends Omit<Supplier, 'id'> {
   _id: string;
-  // ... 其他供應商屬性
+  id?: string;
+  [key: string]: any;
 }
 
-// 產品的型別
-interface IProduct {
+// 擴展 Product 類型以包含實際使用的欄位
+interface ExtendedProduct extends Omit<Product, 'category' | 'supplier' | 'purchasePrice'> {
   _id: string;
   code: string;
-  name:string;
-  // ... 其他產品屬性
+  name: string;
+  shortCode?: string;
+  healthInsuranceCode?: string;
+  barcode?: string;
+  purchasePrice?: string | number;
+  category?: { name: string } | string;
+  supplier?: { name: string } | string;
+  [key: string]: any;
 }
 
-// 訂單項目的型別
-interface IOrderItem {
+// 產品詳情映射介面
+interface ProductDetailsMap {
+  [productCode: string]: Product & { stock: number };
+}
+
+// 當前項目類型
+interface CurrentItem {
   did: string;
   dname: string;
-  dquantity: number | string; // 允許輸入時為 string
-  dtotalCost: number | string; // 允許輸入時為 string
-  product: string | null; // 儲存 product ID
-  unitPrice?: number;
-  notes?: string;
+  dquantity: string;
+  dtotalCost: string;
+  batchNumber?: string;
+  packageQuantity?: string;
+  boxQuantity?: string;
+  product: string | null | undefined;
+  [key: string]: any;
 }
 
 // 表單資料的完整型別
-interface IShippingOrderForm {
-  _id?: string; // 在編輯模式下會有
+interface IFormData {
   soid: string;
-  sosupplier: string;
-  supplier: string; // 儲存 supplier ID
-  items: IOrderItem[];
+  sobill: string;
+  sobilldate: Date;
+  sosupplier: string; // supplier name
+  supplier: string; // Store supplier ID
+  items: CurrentItem[];
   notes: string;
   status: 'pending' | 'completed' | 'cancelled';
   paymentStatus: '未收' | '已收款' | '已開立';
+  multiplierMode: string | number;
+  [key: string]: any;
 }
 
+// Snackbar 狀態型別
 interface ISnackbarState {
   open: boolean;
   message: string;
   severity: 'success' | 'error' | 'warning' | 'info';
 }
 
-// =================================================================
-// 2. 組件實作 (Component Implementation)
-// =================================================================
+// 初始狀態渲染 props 型別
+interface RenderInitialStateProps {
+  dataLoading: boolean;
+  orderDataLoaded: boolean;
+  isGlobalTestMode: boolean;
+  dataError: any;
+  isEditMode: boolean;
+  orderData: any;
+  products: ExtendedProduct[];
+  suppliers: ISupplier[];
+}
+
+// Helper function to adjust shipping order items with multiplier and rounding
+const adjustShippingOrderItems = (items: CurrentItem[], multiplier: number): CurrentItem[] => {
+  if (!items || items.length === 0) {
+    return [];
+  }
+
+  let adjustedItems = items.map(item => ({
+    ...item,
+    dtotalCost: String(parseFloat((Number(item.dtotalCost ?? 0) * multiplier).toFixed(2)))
+  }));
+
+  const rawTotalAmountBeforeMultiplier = items.reduce((sum, item) => sum + Number(item.dtotalCost ?? 0), 0);
+  const totalAmountAfterMultiplier = rawTotalAmountBeforeMultiplier * multiplier;
+  const roundedTotalAmount = Math.round(totalAmountAfterMultiplier);
+  const roundingDifference = roundedTotalAmount - totalAmountAfterMultiplier;
+
+  if (roundingDifference !== 0 && adjustedItems.length > 0) {
+    const maxCostItemIndex = adjustedItems.reduce((maxIndex, item, currentIndex, arr) => {
+      return Number(item.dtotalCost) > Number(arr[maxIndex]?.dtotalCost || 0) ? currentIndex : maxIndex;
+    }, 0);
+
+    adjustedItems = adjustedItems.map((item, index) => {
+      if (index === maxCostItemIndex) {
+        return {
+          ...item,
+          dtotalCost: String(parseFloat((Number(item.dtotalCost) + roundingDifference).toFixed(2)))
+        };
+      }
+      return item;
+    });
+  }
+  return adjustedItems;
+};
+
+// Helper component/function to render initial loading or error states
+const RenderInitialState: React.FC<RenderInitialStateProps> = ({
+  dataLoading,
+  orderDataLoaded,
+  isGlobalTestMode,
+  dataError,
+  isEditMode,
+  orderData,
+  products,
+  suppliers
+}) => {
+  if (dataLoading && !orderDataLoaded && !isGlobalTestMode) {
+    return (
+      <Box sx={{ p: 3, textAlign: 'center' }}>
+        <CircularProgress />
+        <Typography sx={{ mt: 1 }}>載入中...</Typography>
+      </Box>
+    );
+  }
+
+  if (dataError && (!orderData && !isEditMode) && !isGlobalTestMode) {
+    return (
+      <Box sx={{ p: 3, textAlign: 'center' }}>
+        <Typography color="error">
+          {typeof dataError === 'string' ? dataError : JSON.stringify(dataError)}
+        </Typography>
+        <Button variant="contained" onClick={() => window.location.reload()} sx={{ mt: 2 }}>
+          重試
+        </Button>
+      </Box>
+    );
+  }
+
+  if (isGlobalTestMode && dataError && !(products && products.length > 0 && suppliers && suppliers.length > 0)) {
+    return (
+      <Box sx={{ p: 3, textAlign: 'center' }}>
+        <Typography color="warning">
+          測試模式：無法載入初始資料，也無法載入模擬資料。請檢查控制台。
+        </Typography>
+      </Box>
+    );
+  }
+  return null;
+};
+
+// 輔助函數，用於從產品對象中獲取產品ID
+const getProductId = (product: any): string | null => {
+  if (typeof product === 'string') {
+    return product;
+  }
+  if (product && typeof product === 'object') {
+    return product._id;
+  }
+  return null;
+};
 
 const ShippingOrderFormPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const isEditMode = !!id;
-  
-  // 使用 RootState 來為 useSelector 提供型別
-  const { currentShippingOrder, loading, error } = useSelector((state: RootState) => state.shippingOrders);
-  const { suppliers } = useSelector((state: RootState) => state.suppliers);
-  const { products } = useSelector((state: RootState) => state.products);
 
-  const [formData, setFormData] = useState<IShippingOrderForm>({
+  const isGlobalTestMode = useMemo(() => {
+    return TestModeConfig.isEnabled();
+  }, []);
+
+  const [snackbar, setSnackbar] = useState<ISnackbarState>({ open: false, message: '', severity: 'success' });
+  const showSnackbar = useCallback((message: string, severity: 'success' | 'error' | 'warning' | 'info') => {
+    setSnackbar({ open: true, message, severity });
+  }, []);
+
+  // 從 Redux 獲取數據
+  const { currentShippingOrder, loading: initialDataLoading, error: initialDataError } = useSelector((state: RootState) => state.shippingOrders);
+  const { suppliers: initialSuppliers } = useSelector((state: RootState) => state.suppliers);
+  const { products: initialProducts } = useSelector((state: RootState) => state.products);
+
+  // 創建可變版本的數據，用於測試模式修改
+  let dataLoading = initialDataLoading;
+  let dataError = initialDataError;
+  let suppliers = initialSuppliers as unknown as ISupplier[];
+  let products = initialProducts as unknown as ExtendedProduct[];
+  let orderData = currentShippingOrder;
+  let orderDataLoaded = !!currentShippingOrder;
+  let suppliersLoaded = !!initialSuppliers?.length;
+  let productsLoaded = !!initialProducts?.length;
+
+  if (isGlobalTestMode) {
+    // 使用統一的測試數據服務
+    const testProducts = testModeDataService.getPurchaseOrderProducts(products as any, dataError);
+    const testSuppliers = testModeDataService.getPurchaseOrderSuppliers(suppliers as any, dataError);
+
+    if (!products || products.length === 0 || (dataError && !productsLoaded)) {
+      products = testProducts as unknown as ExtendedProduct[];
+      productsLoaded = true;
+    }
+    if (!suppliers || suppliers.length === 0 || (dataError && !suppliersLoaded)) {
+      suppliers = testSuppliers as unknown as ISupplier[];
+      suppliersLoaded = true;
+    }
+    // 如果有錯誤但我們有測試數據，清除錯誤和載入狀態
+    if (dataError && (testProducts.length > 0 || testSuppliers.length > 0)) {
+      dataError = null;
+    }
+    if (dataLoading && (productsLoaded || suppliersLoaded)) {
+      dataLoading = false;
+    }
+  }
+
+  const [formData, setFormData] = useState<IFormData>({
     soid: '',
-    sosupplier: '',
-    supplier: '',
+    sobill: '',
+    sobilldate: new Date(),
+    sosupplier: '', // supplier name
+    supplier: '', // Store supplier ID
     items: [],
     notes: '',
     status: 'pending',
-    paymentStatus: '未收'
+    paymentStatus: '未收',
+    multiplierMode: ''
   });
-  
-  const [currentItem, setCurrentItem] = useState<IOrderItem>({
+
+  const [currentItem, setCurrentItem] = useState<CurrentItem>({
     did: '',
     dname: '',
     dquantity: '',
     dtotalCost: '',
     product: null
   });
-  
+
   const [editingItemIndex, setEditingItemIndex] = useState<number>(-1);
-  const [editingItem, setEditingItem] = useState<IOrderItem | null>(null);
-  
-  const [snackbar, setSnackbar] = useState<ISnackbarState>({
-    open: false,
-    message: '',
-    severity: 'success'
-  });
-  
+  const [editingItem, setEditingItem] = useState<CurrentItem | null>(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState<boolean>(false);
-  
-  // 保存當前選中的供應商對象，這對於MUI Autocomplete的value屬性很重要
   const [selectedSupplier, setSelectedSupplier] = useState<ISupplier | null>(null);
-  
+
+  const productInputRef = useRef<HTMLInputElement>(null);
+  const invoiceInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     dispatch(fetchSuppliers());
     dispatch(fetchProducts());
@@ -133,73 +291,145 @@ const ShippingOrderFormPage: React.FC = () => {
     if (isEditMode && id) {
       dispatch(fetchShippingOrder(id));
     }
-    
-    // FIX: 移除所有不穩定的 `document.querySelector` 和 `setTimeout` 來自動聚焦。
-    // 自動聚焦的功能將會透過 `autoFocus` prop 傳遞給子組件來實現。
-
   }, [dispatch, isEditMode, id]);
-  
+
   // 在編輯模式下載入出貨單數據
   useEffect(() => {
-    // 確保 currentShippingOrder 和 suppliers 都已載入
-    if (isEditMode && currentShippingOrder && suppliers.length > 0) {
-      // 將從 Redux 來的資料設定到表單中
-      setFormData({
-        soid: (currentShippingOrder as any).soid ?? currentShippingOrder.orderNumber ?? '',
-        sosupplier: typeof (currentShippingOrder as any).supplier === 'string'
-          ? (currentShippingOrder as any).supplier
-          : (currentShippingOrder as any).supplier?.name ?? (currentShippingOrder as any).sosupplier ?? '',
-        supplier: typeof (currentShippingOrder as any).supplier === 'string'
-          ? (currentShippingOrder as any).supplier
-          : (currentShippingOrder as any).supplier?._id ?? '',
-        items: (currentShippingOrder as any).items ?? [],
-        notes: (currentShippingOrder as any).notes ?? '',
-        status: (currentShippingOrder.status === 'shipped' || currentShippingOrder.status === 'delivered')
-          ? 'completed'
-          : (currentShippingOrder.status as 'pending' | 'completed' | 'cancelled') || 'pending',
-        paymentStatus: (currentShippingOrder as any).paymentStatus === '已收'
-          ? '已收款'
-          : (currentShippingOrder as any).paymentStatus ?? '未收'
-      });
+    if (isEditMode && orderData && products) {
+      console.log('載入編輯資料:', orderData);
       
-      // 找到並設置當前選中的供應商物件，以正確顯示在 Autocomplete 中
-      const supplierId = typeof (currentShippingOrder as any).supplier === 'string'
-        ? (currentShippingOrder as any).supplier
-        : (currentShippingOrder as any).supplier?._id;
+      const supplierId = typeof orderData.supplier === 'object' ? orderData.supplier._id : orderData.supplier;
+      
+      // 修復項目資料映射邏輯
+      const mappedItems = Array.isArray(orderData.items)
+        ? orderData.items.map((item: any) => {
+            console.log('處理項目:', item);
+            
+            // 處理產品資訊
+            let productCode = '';
+            let productName = '';
+            let productId: string | null = null;
+            
+            if (item.product) {
+              if (typeof item.product === 'object') {
+                // 產品是完整對象
+                productCode = item.product.code || item.did || '';
+                productName = item.product.name || item.dname || '';
+                productId = item.product._id;
+              } else {
+                // 產品只是ID字符串，需要從 products 中查找
+                productId = item.product;
+                productCode = item.did || '';
+                productName = item.dname || '';
+              }
+            } else {
+              // 沒有產品對象，使用項目中的直接欄位
+              productCode = item.did || '';
+              productName = item.dname || '';
+              
+              // 嘗試通過產品代碼查找產品
+              const foundProduct = products?.find((p: any) => p.code === productCode);
+              if (foundProduct) {
+                productId = foundProduct._id;
+              }
+            }
+            
+            return {
+              did: productCode,
+              dname: productName,
+              dquantity: String(item.dquantity || item.quantity || ''),
+              dtotalCost: String(item.dtotalCost || item.subtotal || ''),
+              batchNumber: item.batchNumber || '', // 加入批號欄位
+              packageQuantity: (item as any).packageQuantity ? String((item as any).packageQuantity) : '', // 加入大包裝數量欄位
+              boxQuantity: (item as any).boxQuantity ? String((item as any).boxQuantity) : '', // 加入盒裝數量欄位
+              product: productId
+            };
+          })
+        : [];
+      
+      console.log('映射後的項目:', mappedItems);
         
-      const foundSupplier = suppliers.find(s => s._id === supplierId);
-      if (foundSupplier) {
-        setSelectedSupplier(foundSupplier);
+      setFormData({
+        soid: orderData.soid || orderData.orderNumber || '',
+        sobill: (orderData as any).sobill || '',
+        sobilldate: (() => {
+          let dateToUse = new Date();
+          if ((orderData as any).sobilldate) {
+            dateToUse = new Date((orderData as any).sobilldate);
+          } else if (orderData.orderDate) {
+            dateToUse = new Date(orderData.orderDate);
+          }
+          return dateToUse;
+        })(),
+        sosupplier: orderData.sosupplier ||
+                   (orderData.supplier && typeof orderData.supplier === 'object' ? orderData.supplier.name : ''),
+        supplier: supplierId || '',
+        items: mappedItems,
+        notes: orderData.notes ?? '',
+        status: (orderData.status as 'pending' | 'completed' | 'cancelled') ?? 'pending',
+        paymentStatus: (orderData.paymentStatus as '未收' | '已收款' | '已開立') || '未收',
+        multiplierMode: ''
+      });
+    }
+  }, [isEditMode, orderData, products]);
+
+  useEffect(() => {
+    if (isEditMode && orderDataLoaded && suppliersLoaded && formData.supplier && suppliers && suppliers.length > 0) {
+      const supplierObj = suppliers.find(s => s._id === formData.supplier);
+      if (supplierObj) {
+        setSelectedSupplier(supplierObj);
+        if (formData.sosupplier !== supplierObj.name) {
+          setFormData(prev => ({ ...prev, sosupplier: supplierObj.name }));
+        }
       }
     }
-  }, [isEditMode, currentShippingOrder, suppliers]);
-  
+  }, [isEditMode, orderDataLoaded, suppliersLoaded, formData.supplier, formData.sosupplier, suppliers]);
+
   useEffect(() => {
-    if (error) {
-      setSnackbar({
-        open: true,
-        message: error,
-        severity: 'error'
-      });
+    let timerId: NodeJS.Timeout | undefined;
+    if (!dataLoading) {
+        if (!isEditMode) {
+            if (invoiceInputRef.current) {
+                timerId = setTimeout(() => {
+                  if (invoiceInputRef.current) {
+                    invoiceInputRef.current.focus();
+                  }
+                }, 500); 
+            }
+        } else if (orderDataLoaded) {
+            if (productInputRef.current) {
+                timerId = setTimeout(() => {
+                  if (productInputRef.current) {
+                    productInputRef.current.focus();
+                  }
+                }, 500);
+            }
+        }
     }
-  }, [error]);
-  
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | { target: { name: string; value: string } }) => {
+    return () => {
+      if (timerId) {
+        clearTimeout(timerId);
+      }
+    };
+  }, [dataLoading, isEditMode, orderDataLoaded]);
+
+  const handleFormInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | { target: { name: string; value: string } }) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleDateChange = (date: Date | null) => {
+    setFormData({ ...formData, sobilldate: date || new Date() });
+  };
+
+  const handleSupplierChange = (supplier: ISupplier | null) => {
+    setSelectedSupplier(supplier);
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      sosupplier: supplier ? supplier.name : '',
+      supplier: supplier ? supplier._id : ''
     });
   };
-  
-  const handleSupplierChange = (newValue: ISupplier | null) => {
-    setSelectedSupplier(newValue);
-    setFormData({
-      ...formData,
-      sosupplier: newValue ? newValue.name : '',
-      supplier: newValue ? newValue._id : ''
-    });
-  };
-  
+
   const handleItemInputChange = (e: { target: { name: string; value: string } }) => {
     setCurrentItem({
       ...currentItem,
@@ -215,8 +445,8 @@ const ShippingOrderFormPage: React.FC = () => {
       });
     }
   };
-  
-  const handleProductChange = (_event: React.SyntheticEvent<Element, Event>, newValue: IProduct | null) => {
+
+  const handleProductChange = (_event: React.SyntheticEvent<Element, Event>, newValue: any) => {
     setCurrentItem({
       ...currentItem,
       did: newValue ? newValue.code : '',
@@ -224,7 +454,7 @@ const ShippingOrderFormPage: React.FC = () => {
       product: newValue ? newValue._id : null
     });
   };
-  
+
   const handleAddItem = () => {
     if (!currentItem.did || !currentItem.dname || !currentItem.dquantity || currentItem.dtotalCost === '') {
       setSnackbar({ open: true, message: '請填寫完整的藥品項目資料', severity: 'error' });
@@ -238,20 +468,18 @@ const ShippingOrderFormPage: React.FC = () => {
     
     // 清空當前項目
     setCurrentItem({ did: '', dname: '', dquantity: '', dtotalCost: '', product: null });
-    
-    // FIX: 聚焦操作應該由 ProductItemForm 組件內部處理，而不是在這裡直接操作 DOM
   };
-  
+
   const handleRemoveItem = (index: number) => {
     const newItems = formData.items.filter((_, i) => i !== index);
     setFormData({ ...formData, items: newItems });
   };
-  
+
   const handleEditItem = (index: number) => {
     setEditingItemIndex(index);
-    setEditingItem({ ...formData.items[index] } as IOrderItem);
+    setEditingItem({ ...formData.items[index] } as CurrentItem);
   };
-  
+
   const handleSaveEditItem = () => {
     if (!editingItem?.did || !editingItem?.dname || !editingItem?.dquantity || editingItem?.dtotalCost === '') {
       setSnackbar({ open: true, message: '請填寫完整的藥品項目資料', severity: 'error' });
@@ -265,7 +493,7 @@ const ShippingOrderFormPage: React.FC = () => {
     setEditingItemIndex(-1);
     setEditingItem(null);
   };
-  
+
   const handleCancelEditItem = () => {
     setEditingItemIndex(-1);
     setEditingItem(null);
@@ -287,155 +515,271 @@ const ShippingOrderFormPage: React.FC = () => {
     
     setFormData({ ...formData, items: newItems });
   };
-  
+
+  const handleDragEnd = (result: DropResult) => {
+    if (!result.destination) {
+      return;
+    }
+
+    const sourceIndex = result.source.index;
+    const destinationIndex = result.destination.index;
+
+    if (sourceIndex === destinationIndex) {
+      return;
+    }
+
+    const newItems = Array.from(formData.items);
+    const [reorderedItem] = newItems.splice(sourceIndex, 1);
+    if (reorderedItem) {
+      newItems.splice(destinationIndex, 0, reorderedItem);
+    }
+
+    setFormData(prev => ({ ...prev, items: newItems }));
+  };
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     if (!formData.supplier) {
-      setSnackbar({ open: true, message: '請選擇一個供應商', severity: 'error' });
+      showSnackbar('請填寫所有必填欄位 (供應商)', 'error');
       return;
     }
     
     if (formData.items.length === 0) {
-      setSnackbar({ open: true, message: '請至少添加一個藥品項目', severity: 'error' });
+      showSnackbar('請至少添加一個藥品項目', 'error');
       return;
     }
     
-    if (formData.status === 'completed') {
+    if (formData.status === 'completed' && !isGlobalTestMode) {
       setConfirmDialogOpen(true);
       return;
     }
     
     submitForm();
   };
-  
+
+  // 計算倍率係數
+  const getMultiplier = (): number => {
+    const multiplierValue = parseFloat(formData.multiplierMode as string);
+    if (!multiplierValue || isNaN(multiplierValue)) {
+      return 1; // 無倍率或無效值時返回1（不調整）
+    }
+    return 1 + (multiplierValue / 100); // 轉換為倍率係數
+  };
+
   const submitForm = () => {
-    // 轉換為 API 期望的格式
-    const submitData: ShippingOrderCreateRequest = {
+    if (isGlobalTestMode) {
+      console.log('TEST MODE: Simulating form submission with data:', formData);
+      showSnackbar(`出貨單已在測試模式下模擬${isEditMode ? '更新' : '新增'}成功`, 'success');
+      setTimeout(() => { navigate('/shipping-orders'); }, 1500);
+      setConfirmDialogOpen(false);
+      return;
+    }
+
+    const multiplier = getMultiplier();
+    const finalAdjustedItems = adjustShippingOrderItems(formData.items, multiplier);
+
+    // 使用類型斷言確保 status 符合接口的要求
+    const status = formData.status as "pending" | "completed" | "cancelled";
+    
+    // 保持原始的 formData 結構，只轉換數據類型
+    const submitData: any = {
       soid: formData.soid,
       sosupplier: formData.sosupplier,
       supplier: formData.supplier,
-      items: formData.items.map(item => ({
+      items: finalAdjustedItems.map(item => ({
         did: item.did,
         dname: item.dname,
         dquantity: Number(item.dquantity),
         dtotalCost: Number(item.dtotalCost),
-        ...(item.product && { product: item.product }),
-        unitPrice: Number(item.dtotalCost) / Number(item.dquantity),
-        notes: item.notes ?? ''
+        product: item.product || undefined,
+        unitPrice: Number(item.dquantity) > 0 ? Number(item.dtotalCost) / Number(item.dquantity) : 0,
+        notes: '',
+        batchNumber: item.batchNumber,
+        packageQuantity: item.packageQuantity ? Number(item.packageQuantity) : undefined,
+        boxQuantity: item.boxQuantity ? Number(item.boxQuantity) : undefined,
       })),
-      totalAmount: formData.items.reduce((sum, item) => sum + Number(item.dtotalCost), 0),
-      status: formData.status,
+      totalAmount: finalAdjustedItems.reduce((sum, item) => sum + Number(item.dtotalCost), 0),
+      status: status,
       paymentStatus: formData.paymentStatus,
-      notes: formData.notes
+      notes: formData.notes,
+      sobill: formData.sobill,
+      sobilldate: format(formData.sobilldate, 'yyyy-MM-dd')
     };
     
-    if (isEditMode && id) {
-      dispatch(updateShippingOrder(id, submitData, navigate));
-    } else {
-      dispatch(addShippingOrder(submitData, navigate));
+    try {
+      if (isEditMode && id) {
+        dispatch(updateShippingOrder(id, submitData, navigate));
+        showSnackbar('出貨單已成功更新', 'success');
+      } else {
+        dispatch(addShippingOrder(submitData, navigate));
+        showSnackbar('出貨單已成功新增', 'success');
+      }
+      setTimeout(() => { navigate('/shipping-orders'); }, 1500);
+    } catch (err: unknown) {
+      console.error('提交出貨單失敗:', err);
+      const error = err as { response?: { data?: { msg?: string } }, message?: string };
+      showSnackbar('提交出貨單失敗: ' + (error.response?.data?.msg ?? error.message ?? '未知錯誤'), 'error');
+    } finally {
+      setConfirmDialogOpen(false);
     }
   };
-  
+
   const handleConfirmComplete = () => {
-    setConfirmDialogOpen(false);
     submitForm();
   };
-  
+
   const handleCancelComplete = () => {
     setConfirmDialogOpen(false);
   };
-  
+
   const handleSnackbarClose = (_event?: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === 'clickaway') {
       return;
     }
     setSnackbar({ ...snackbar, open: false });
   };
-  
+
   const handleCancel = () => {
     navigate('/shipping-orders');
   };
+
+  // 計算總金額（含倍率調整） for display
+  const rawTotalAmountForDisplay = formData.items.reduce((sum, item) => sum + Number(item.dtotalCost ?? 0), 0);
+  const currentMultiplierForDisplay = getMultiplier();
+  const adjustedTotalAmountForDisplay = rawTotalAmountForDisplay * currentMultiplierForDisplay;
+  const totalAmountForDisplay = Math.round(adjustedTotalAmountForDisplay);
   
-  const totalAmount = formData.items.reduce((sum, item) => sum + Number(item.dtotalCost ?? 0), 0);
-  
+  // 對話框標題獲取函數
+  const getDialogTitle = (): string => {
+    if (isGlobalTestMode) {
+      return "測試模式確認";
+    }
+    return formData.status === 'completed' ? "確認完成出貨單" : "確認提交";
+  };
+
+  // 對話框訊息獲取函數
+  const getDialogMessage = (): string => {
+    if (isGlobalTestMode) {
+      return "此為測試模式，操作不會實際儲存。是否繼續？";
+    }
+    return formData.status === 'completed'
+      ? "您確定要將此出貨單標記為完成嗎？完成後將無法修改。" 
+      : "您確定要提交此出貨單嗎？";
+  };
+
+  const initialStateRender = RenderInitialState({
+    dataLoading,
+    orderDataLoaded,
+    isGlobalTestMode,
+    dataError,
+    isEditMode,
+    orderData,
+    products,
+    suppliers,
+  });
+
+  if (initialStateRender) {
+    return initialStateRender;
+  }
+
   return (
-    <Box>
+    <Box sx={{
+      p: { xs: 1, sm: 1, md: 1.5 },
+      height: 'calc(100vh - 120px)',
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden',
+  
+      '@media (max-width: 600px)': {
+        height: 'calc(100vh - 56px)'
+      }
+    }}>
       <Typography variant="h5" component="h1" gutterBottom>
         {isEditMode ? '編輯出貨單' : '新增出貨單'}
       </Typography>
       
-      <form onSubmit={handleSubmit}>
-        <BasicInfoForm 
-          formData={formData}
-          handleInputChange={handleInputChange}
-          handleSupplierChange={handleSupplierChange}
-          suppliers={suppliers}
-          selectedSupplier={selectedSupplier}
-          isEditMode={isEditMode}
-          // FIX: 傳遞 autoFocus 屬性給子組件
-          autoFocus={!isEditMode}
-        />
-        
-        <Card sx={{ mb: 1 }}>
-          <CardContent sx={{ pb: 1 }}>
-            <Typography variant="h6">藥品項目</Typography>
-            
-            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
-              <Button variant="contained" color="primary" type="submit" disabled={loading} sx={{ mr: 1 }}>
-                {isEditMode ? '保存' : '創建'}
-              </Button>
-              <Button variant="outlined" color="secondary" onClick={handleCancel} disabled={loading}>
-                取消
-              </Button>
-            </Box>
-            
-            <Box sx={{ position: 'sticky', top: 0, zIndex: 10, pb: 1, borderBottom: '1px solid #e0e0e0' }}>
-              <ProductItemForm 
-                currentItem={currentItem as any}
-                handleItemInputChange={handleItemInputChange}
-                handleProductChange={handleProductChange}
-                handleAddItem={handleAddItem}
-                products={products}
-                 // FIX: 傳遞 autoFocus 屬性給子組件
-                autoFocus={isEditMode}
-              />
-            </Box>
-            
-            <Box sx={{ height: 'calc(100vh - 550px)', minHeight: '250px', overflowY: 'auto' }}>
-              <ItemsTable 
-                items={formData.items}
-                editingItemIndex={editingItemIndex}
-                editingItem={editingItem}
-                handleEditItem={handleEditItem}
-                handleSaveEditItem={handleSaveEditItem}
-                handleCancelEditItem={handleCancelEditItem}
-                handleRemoveItem={handleRemoveItem}
-                handleMoveItem={handleMoveItem}
-                handleEditingItemChange={handleEditingItemChange}
-                totalAmount={totalAmount}
-              />
-            </Box>
-          </CardContent>
-        </Card>
-        
-        <GenericConfirmDialog 
+      {isGlobalTestMode && (
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="caption" color="secondary">(測試模式)</Typography>
+        </Box>
+      )}
+
+      <form onSubmit={handleSubmit} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <Grid container spacing={2} sx={{ flex: 1, minHeight: 0 }}>
+          {/* 左側：基本資訊 */}
+          <Grid item xs={12} md={3} sx={{ display: 'flex', flexDirection: 'column' }}>
+            <BasicInfoForm
+              formData={formData}
+              handleInputChange={handleFormInputChange}
+              handleSupplierChange={handleSupplierChange}
+              suppliers={suppliers || []}
+              selectedSupplier={selectedSupplier}
+              isEditMode={isEditMode}
+              autoFocus={!isEditMode}
+            />
+          </Grid>
+
+          {/* 右側：藥品項目 */}
+          <Grid item xs={12} md={9} sx={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+            <Card sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+              <CardContent sx={{ pb: 1, flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+                <Typography variant="h6" sx={{ mb: 1 }}>藥品項目</Typography>
+                
+                <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                  <Button variant="contained" color="primary" type="submit" disabled={dataLoading} sx={{ mr: 1 }}>
+                    {isEditMode ? '保存' : '創建'}
+                  </Button>
+                  <Button variant="outlined" color="secondary" onClick={handleCancel} disabled={dataLoading}>
+                    取消
+                  </Button>
+                </Box>
+                
+                <Box sx={{ position: 'sticky', top: 0, zIndex: 10, pb: 1, borderBottom: '1px solid #e0e0e0' }}>
+                  <ProductItemForm 
+                    currentItem={currentItem as any}
+                    handleItemInputChange={handleItemInputChange}
+                    handleProductChange={handleProductChange}
+                    handleAddItem={handleAddItem}
+                    products={products}
+                    autoFocus={isEditMode}
+                  />
+                </Box>
+                
+                <Box sx={{ flex: 1, overflowY: 'auto', minHeight: '200px' }}>
+                  <ItemsTable 
+                    items={formData.items}
+                  editingItemIndex={editingItemIndex}
+                    editingItem={editingItem}
+                    handleEditItem={handleEditItem}
+                    handleSaveEditItem={handleSaveEditItem}
+                    handleCancelEditItem={handleCancelEditItem}
+                    handleRemoveItem={handleRemoveItem}
+                    handleMoveItem={handleMoveItem}
+                    handleEditingItemChange={handleEditingItemChange}
+                    handleDragEnd={handleDragEnd}
+                    totalAmount={totalAmountForDisplay}
+                    codeField="did"
+                  />
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+
+        <GenericConfirmDialog
           open={confirmDialogOpen}
           onClose={handleCancelComplete}
           onConfirm={handleConfirmComplete}
-          title="確認完成出貨單" 
-          message="您確定要將此出貨單標記為完成並提交嗎？此操作將更新相關庫存。" 
-          confirmText="確認完成"
+          title={getDialogTitle()}
+          message={getDialogMessage()}
+          confirmText="確認"
           cancelText="取消"
         />
       </form>
-      
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleSnackbarClose}
-      >
-        <Alert onClose={handleSnackbarClose} severity={snackbar.severity} sx={{ width: '100%' }}>
+
+      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleSnackbarClose}>
+        <Alert onClose={handleSnackbarClose} severity={snackbar.severity} sx={{ width: '100%' }} variant="filled">
           {snackbar.message}
         </Alert>
       </Snackbar>
