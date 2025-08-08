@@ -66,6 +66,8 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(
     products?.find(p => p._id === currentItem.product) ?? null
   );
+  // 添加狀態來控制包裝單位輸入的顯示模式
+  const [showAdvancedPackageInput, setShowAdvancedPackageInput] = useState<boolean>(false);
 
   const dQuantityValue = currentItem.dquantity ?? '';
   const mainQuantityDisabled = false; // 簡化邏輯，因為不再有舊的大包裝輸入欄位
@@ -104,10 +106,31 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
     setActiveInput(e.target.name);
   };
 
-  // Generic onKeyDown for quantity inputs to prevent Enter issues
+  // 處理數量輸入框的按鍵事件，在按下 Enter 鍵時切換到高級輸入模式
   const handleQuantityKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Enter') {
       event.preventDefault();
+      
+      // 只有在有選中產品且產品有包裝單位時才切換
+      if (selectedProduct?.packageUnits && selectedProduct.packageUnits.length > 0) {
+        // 嘗試找到計算器按鈕並模擬點擊
+        setTimeout(() => {
+          const calculatorButton = document.querySelector('.MuiIconButton-root .MuiSvgIcon-root[data-testid="CalculateIcon"]');
+          if (calculatorButton && calculatorButton.parentElement) {
+            (calculatorButton.parentElement as HTMLElement).click();
+          } else {
+            // 如果找不到計算器按鈕，則嘗試找到包裝單位輸入區域並聚焦
+            const packageInputs = document.querySelectorAll('input[type="number"]');
+            for (let i = 0; i < packageInputs.length; i++) {
+              const input = packageInputs[i] as HTMLInputElement;
+              if (input.name !== 'dquantity' && input.name !== 'dtotalCost') {
+                input.focus();
+                break;
+              }
+            }
+          }
+        }, 100);
+      }
     }
   };
 
@@ -501,6 +524,8 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
                   }}
                   disabled={mainQuantityDisabled}
                   variant="outlined"
+                  // 使用 showCalculator 屬性來控制是否顯示計算器按鈕
+                  showCalculator={true}
                 />
               ) : null}
             </Grid>
