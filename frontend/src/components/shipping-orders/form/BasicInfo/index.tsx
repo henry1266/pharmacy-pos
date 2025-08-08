@@ -59,7 +59,7 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
         
         
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={6}>
             <TextField
               fullWidth
               label="出貨單號"
@@ -73,7 +73,7 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
             />
           </Grid>
           
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={6}>
             <SupplierSelect
               suppliers={suppliers ?? []}
               selectedSupplier={selectedSupplier || null}
@@ -85,7 +85,7 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
             />
           </Grid>
           
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={6}>
             <FormControl fullWidth size="small">
               <InputLabel id="payment-status-select-label">付款狀態</InputLabel>
               <Select
@@ -103,7 +103,7 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
             </FormControl>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={6}>
             <FormControl fullWidth size="small">
               <InputLabel id="status-select-label">狀態</InputLabel>
               <Select
