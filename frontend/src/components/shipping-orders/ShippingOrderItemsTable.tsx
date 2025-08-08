@@ -16,6 +16,8 @@ interface ShippingOrderItem {
   totalPrice?: number;
   profit?: number;
   profitMargin?: number;
+  packageQuantity?: number | string;
+  boxQuantity?: number | string;
   [key: string]: any;
 }
 
@@ -106,6 +108,8 @@ const ShippingOrderItemsTable: React.FC<ShippingOrderItemsTableProps> = ({
           totalAmount={totalAmount}
           title=""
           isLoading={isTableLoading}
+          showPackageQuantity={true}
+          showBatchNumber={true}
         />
       </CardContent>
     </Card>

@@ -24,6 +24,8 @@ interface ShippingOrderItem {
   totalPrice?: number;
   profit?: number;
   profitMargin?: number;
+  packageQuantity?: number | string;
+  boxQuantity?: number | string;
   [key: string]: any;
 }
 
