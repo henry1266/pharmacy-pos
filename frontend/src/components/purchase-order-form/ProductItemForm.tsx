@@ -66,15 +66,54 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(
     products?.find(p => p._id === currentItem.product) ?? null
   );
-  // 添加狀態來控制包裝單位輸入的顯示模式
-  const [showAdvancedPackageInput, setShowAdvancedPackageInput] = useState<boolean>(false);
+  // 添加狀態來跟踪當前的輸入模式（基礎單位或大包裝單位）
+  const [inputMode, setInputMode] = useState<'base' | 'package'>('base');
+  
+  // 添加狀態來存儲實際的總數量（基礎單位的數量）和顯示的數量
+  const [actualTotalQuantity, setActualTotalQuantity] = useState<number>(0);
+  const [displayInputQuantity, setDisplayInputQuantity] = useState<string>('');
 
   const dQuantityValue = currentItem.dquantity ?? '';
   const mainQuantityDisabled = false; // 簡化邏輯，因為不再有舊的大包裝輸入欄位
 
   const handleMainQuantityChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
-    handleItemInputChange({ target: { name: 'dquantity', value } });
+    
+    // 更新顯示的輸入數量
+    setDisplayInputQuantity(value);
+    
+    // 計算實際的總數量（基礎單位）
+    let actualQuantity = 0;
+    
+    if (inputMode === 'base' || !selectedProduct?.packageUnits || selectedProduct.packageUnits.length === 0) {
+      // 基礎單位模式，直接使用輸入的數量
+      actualQuantity = Number(value) || 0;
+    } else {
+      // 大包裝單位模式，將輸入的數量乘以大包裝單位的數量
+      const largestPackageUnit = [...selectedProduct.packageUnits].sort((a, b) => b.unitValue - a.unitValue)[0];
+      const packageQuantity = Number(value) || 0;
+      actualQuantity = packageQuantity * largestPackageUnit.unitValue;
+      
+      // 更新 packageQuantity
+      handleItemInputChange({ target: { name: 'packageQuantity', value: packageQuantity.toString() } });
+      
+      // 如果有第二大的包裝單位，則更新 boxQuantity
+      if (selectedProduct.packageUnits.length > 1) {
+        const remainingPackages = selectedProduct.packageUnits.filter(p => p.unitName !== largestPackageUnit.unitName);
+        const secondLargest = remainingPackages.reduce((max, current) =>
+          current.unitValue > max.unitValue ? current : max, remainingPackages[0]);
+        
+        // 計算第二大包裝單位的數量
+        const boxQuantity = Math.floor(actualQuantity / secondLargest.unitValue);
+        handleItemInputChange({ target: { name: 'boxQuantity', value: boxQuantity.toString() } });
+      }
+    }
+    
+    // 更新實際的總數量
+    setActualTotalQuantity(actualQuantity);
+    
+    // 更新表單數據中的總數量（基礎單位）
+    handleItemInputChange({ target: { name: 'dquantity', value: actualQuantity.toString() } });
   };
   
   const getProductPurchasePrice = (): number => {
@@ -106,30 +145,33 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
     setActiveInput(e.target.name);
   };
 
-  // 處理數量輸入框的按鍵事件，在按下 Enter 鍵時切換到高級輸入模式
+  // 處理數量輸入框的按鍵事件，在按下 Enter 鍵時切換輸入模式
   const handleQuantityKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Enter') {
       event.preventDefault();
       
       // 只有在有選中產品且產品有包裝單位時才切換
       if (selectedProduct?.packageUnits && selectedProduct.packageUnits.length > 0) {
-        // 嘗試找到計算器按鈕並模擬點擊
-        setTimeout(() => {
-          const calculatorButton = document.querySelector('.MuiIconButton-root .MuiSvgIcon-root[data-testid="CalculateIcon"]');
-          if (calculatorButton && calculatorButton.parentElement) {
-            (calculatorButton.parentElement as HTMLElement).click();
-          } else {
-            // 如果找不到計算器按鈕，則嘗試找到包裝單位輸入區域並聚焦
-            const packageInputs = document.querySelectorAll('input[type="number"]');
-            for (let i = 0; i < packageInputs.length; i++) {
-              const input = packageInputs[i] as HTMLInputElement;
-              if (input.name !== 'dquantity' && input.name !== 'dtotalCost') {
-                input.focus();
-                break;
-              }
-            }
-          }
-        }, 100);
+        // 獲取最大的包裝單位
+        const largestPackageUnit = [...selectedProduct.packageUnits].sort((a, b) => b.unitValue - a.unitValue)[0];
+        
+        // 切換輸入模式
+        if (inputMode === 'base') {
+          // 從基礎單位切換到大包裝單位
+          setInputMode('package');
+          
+          // 計算大包裝數量
+          const packageQuantity = Math.floor(actualTotalQuantity / largestPackageUnit.unitValue);
+          
+          // 更新顯示的輸入數量
+          setDisplayInputQuantity(packageQuantity.toString());
+        } else {
+          // 從大包裝單位切換到基礎單位
+          setInputMode('base');
+          
+          // 更新顯示的輸入數量
+          setDisplayInputQuantity(actualTotalQuantity.toString());
+        }
       }
     }
   };
@@ -352,6 +394,21 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
     setSelectedProduct(product);
     handleProductChange(event, product);
   };
+  
+  // 添加項目後重置輸入器數字並重置為基礎量輸入
+  const handleAddItemWithReset = () => {
+    // 先調用原始的 handleAddItem 函數
+    handleAddItem();
+    
+    // 重置輸入器數字
+    setDisplayInputQuantity('');
+    
+    // 重置實際總數量
+    setActualTotalQuantity(0);
+    
+    // 重置為基礎量輸入模式
+    setInputMode('base');
+  };
 
   return (
     <Box sx={{ mb: 1 }}>
@@ -427,19 +484,43 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
 
             {/* 總數量 */}
             <Grid item xs={12} sm={1.5}>
-              <TextField
-                fullWidth
-                label="總數量"
-                name="dquantity"
-                type="number"
-                value={dQuantityValue}
-                onChange={handleMainQuantityChange}
-                onFocus={handleFocus}
-                onKeyDown={handleQuantityKeyDown}
-                inputProps={{ min: "0", step: "1" }}
-                disabled={mainQuantityDisabled}
-                size="small"
-              />
+              <Box sx={{ width: '100%' }}>
+                {/* 在輸入框上方顯示基礎單位的總數 */}
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                  基礎單位總數: {actualTotalQuantity}
+                </Typography>
+                
+                <TextField
+                  fullWidth
+                  label={inputMode === 'base' ? "總數量" : "大包裝數量"}
+                  name="dquantity"
+                  type="number"
+                  value={displayInputQuantity}
+                  onChange={handleMainQuantityChange}
+                  onFocus={handleFocus}
+                  onKeyDown={handleQuantityKeyDown}
+                  inputProps={{ min: "0", step: "1" }}
+                  disabled={mainQuantityDisabled}
+                  size="small"
+                  // 添加視覺提示，顯示當前的輸入模式
+                  sx={{
+                    '& .MuiInputLabel-root': {
+                      color: inputMode === 'package' ? 'primary.main' : 'inherit',
+                      fontWeight: inputMode === 'package' ? 'bold' : 'normal',
+                    },
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: inputMode === 'package' ? 'primary.main' : 'inherit',
+                        borderWidth: inputMode === 'package' ? 2 : 1,
+                      },
+                    },
+                  }}
+                  // 添加提示文字
+                  helperText={inputMode === 'package'
+                    ? `ENTER切回基礎單位`
+                    : `ENTER切大包裝`}
+                />
+              </Box>
             </Grid>
 
             {/* 總成本 */}
@@ -450,7 +531,7 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
                 getProductPurchasePrice={getProductPurchasePrice}
                 calculateTotalCost={calculateTotalCost}
                 isInventorySufficient={isInventorySufficient}
-                handleAddItem={handleAddItem}
+                handleAddItem={handleAddItemWithReset}
               />
             </Grid>
             {/* 批號輸入 */}
@@ -470,7 +551,7 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
             <Grid item xs={12} sm={1}>
               <Button
                 variant="contained"
-                onClick={handleAddItem}
+                onClick={handleAddItemWithReset}
                 fullWidth
                 size="small"
                 sx={{
