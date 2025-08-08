@@ -74,6 +74,10 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
   const dQuantityValue = currentItem.dquantity ?? '';
   const mainQuantityDisabled = false; // 簡化邏輯，因為不再有舊的大包裝輸入欄位
 
+  /**
+   * 處理主要數量輸入變更
+   * 根據當前輸入模式計算實際總數量並更新相關狀態
+   */
   const handleMainQuantityChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     
@@ -82,295 +86,142 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
     
     // 計算實際的總數量（基礎單位）
     let actualQuantity = 0;
+    const numericValue = Number(value) || 0;
     
-    if (inputMode === 'base' || !selectedProduct?.packageUnits || selectedProduct.packageUnits.length === 0) {
+    if (inputMode === 'base' || !selectedProduct?.packageUnits?.length) {
       // 基礎單位模式，直接使用輸入的數量
-      actualQuantity = Number(value) || 0;
+      actualQuantity = numericValue;
     } else {
       // 大包裝單位模式，將輸入的數量乘以大包裝單位的數量
-      const largestPackageUnit = [...selectedProduct.packageUnits].sort((a, b) => b.unitValue - a.unitValue)[0];
-      const packageQuantity = Number(value) || 0;
-      actualQuantity = packageQuantity * largestPackageUnit.unitValue;
+      const largestPackageUnit = [...selectedProduct.packageUnits]
+        .sort((a, b) => b.unitValue - a.unitValue)[0];
+      
+      actualQuantity = numericValue * largestPackageUnit.unitValue;
       
       // 更新 packageQuantity
-      handleItemInputChange({ target: { name: 'packageQuantity', value: packageQuantity.toString() } });
+      handleItemInputChange({
+        target: { name: 'packageQuantity', value: numericValue.toString() }
+      });
       
       // 如果有第二大的包裝單位，則更新 boxQuantity
       if (selectedProduct.packageUnits.length > 1) {
-        const remainingPackages = selectedProduct.packageUnits.filter(p => p.unitName !== largestPackageUnit.unitName);
-        const secondLargest = remainingPackages.reduce((max, current) =>
-          current.unitValue > max.unitValue ? current : max, remainingPackages[0]);
+        const remainingPackages = selectedProduct.packageUnits
+          .filter(p => p.unitName !== largestPackageUnit.unitName);
+        
+        const secondLargest = remainingPackages.reduce(
+          (max, current) => current.unitValue > max.unitValue ? current : max,
+          remainingPackages[0]
+        );
         
         // 計算第二大包裝單位的數量
         const boxQuantity = Math.floor(actualQuantity / secondLargest.unitValue);
-        handleItemInputChange({ target: { name: 'boxQuantity', value: boxQuantity.toString() } });
+        handleItemInputChange({
+          target: { name: 'boxQuantity', value: boxQuantity.toString() }
+        });
       }
     }
     
-    // 更新實際的總數量
+    // 更新實際的總數量和表單數據
     setActualTotalQuantity(actualQuantity);
-    
-    // 更新表單數據中的總數量（基礎單位）
-    handleItemInputChange({ target: { name: 'dquantity', value: actualQuantity.toString() } });
+    handleItemInputChange({
+      target: { name: 'dquantity', value: actualQuantity.toString() }
+    });
   };
   
+  /**
+   * 獲取產品的採購價格
+   * @returns 產品的採購價格，如果找不到則返回0
+   */
   const getProductPurchasePrice = (): number => {
-    // 使用可選鏈運算符替代條件判斷
-    return currentItem?.product ? Number(products?.find(p => p._id === currentItem.product)?.purchasePrice) || 0 : 0;
+    if (!currentItem?.product) return 0;
+    
+    const selectedProduct = products?.find(p => p._id === currentItem.product);
+    return Number(selectedProduct?.purchasePrice) || 0;
   };
 
+  /**
+   * 計算總成本
+   * @param quantity 數量
+   * @returns 計算後的總成本（保留兩位小數）
+   */
   const calculateTotalCost = (quantity: string | number): number => {
     const purchasePrice = getProductPurchasePrice();
     const numericQuantity = parseFloat(quantity as string) || 0;
     return Number((purchasePrice * numericQuantity).toFixed(2));
   };
 
-  const isInventorySufficient = (): boolean => true; 
+  /**
+   * 檢查庫存是否足夠
+   * @returns 庫存是否足夠的布爾值
+   */
+  const isInventorySufficient = (): boolean => true;
 
+  /**
+   * 過濾產品列表
+   * 根據輸入值過濾產品名稱、代碼、簡碼、健保碼或條碼
+   */
   const filterProducts = (options: Product[], inputValue?: string): Product[] => {
-    // 使用可選鏈運算符替代條件判斷
     const filterValue = inputValue?.toLowerCase() || '';
-    return options.filter(option =>
-      option.name.toLowerCase().includes(filterValue) ||
-      option.code?.toLowerCase().includes(filterValue) ||
-      option.shortCode?.toLowerCase().includes(filterValue) ||
-      (option.productType === 'medicine' && (option as any).healthInsuranceCode?.toLowerCase().includes(filterValue)) ||
-      (option.productType === 'product' && (option as any).barcode?.toLowerCase().includes(filterValue))
-    );
+    
+    return options.filter(option => {
+      // 檢查基本屬性
+      const nameMatch = option.name.toLowerCase().includes(filterValue);
+      const codeMatch = option.code?.toLowerCase().includes(filterValue) || false;
+      const shortCodeMatch = option.shortCode?.toLowerCase().includes(filterValue) || false;
+      
+      // 檢查特定產品類型的屬性
+      const healthCodeMatch = option.productType === 'medicine' &&
+        (option as any).healthInsuranceCode?.toLowerCase().includes(filterValue) || false;
+      const barcodeMatch = option.productType === 'product' &&
+        (option as any).barcode?.toLowerCase().includes(filterValue) || false;
+      
+      return nameMatch || codeMatch || shortCodeMatch || healthCodeMatch || barcodeMatch;
+    });
   };
 
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     setActiveInput(e.target.name);
   };
 
-  // 處理數量輸入框的按鍵事件，在按下 Enter 鍵時切換輸入模式
+  /**
+   * 處理數量輸入框的按鍵事件
+   * 在按下 Enter 鍵時切換基礎單位和大包裝單位輸入模式
+   */
   const handleQuantityKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Enter') {
       event.preventDefault();
       
       // 只有在有選中產品且產品有包裝單位時才切換
-      if (selectedProduct?.packageUnits && selectedProduct.packageUnits.length > 0) {
-        // 切換輸入模式
-        if (inputMode === 'base') {
-          // 從基礎單位切換到大包裝單位
-          setInputMode('package');
-          
-          // 清空輸入框
-          setDisplayInputQuantity('');
-        } else {
-          // 從大包裝單位切換到基礎單位
-          setInputMode('base');
-          
-          // 清空輸入框
-          setDisplayInputQuantity('');
-        }
+      const hasPackageUnits = selectedProduct?.packageUnits && selectedProduct.packageUnits.length > 0;
+      
+      if (hasPackageUnits) {
+        // 切換輸入模式（基礎單位 <-> 大包裝單位）
+        setInputMode(inputMode === 'base' ? 'package' : 'base');
+        
+        // 清空輸入框
+        setDisplayInputQuantity('');
       }
     }
   };
 
-  // 處理圖表按鈕點擊
+  /**
+   * 處理圖表按鈕點擊
+   * 獲取產品庫存和交易數據並顯示圖表
+   */
   const handleChartButtonClick = async () => {
     if (!selectedProduct) return;
     
     try {
-      // 調用 API 獲取產品的真實圖表數據
+      // 調用 API 獲取產品的庫存數據
       const response = await axios.get(`/api/inventory/product/${selectedProduct._id}`);
-      
-      // 處理 ApiResponse 格式
       const inventoryData = response.data.data ?? [];
       
-      // 篩選條件：至少saleNumber、purchaseOrderNumber或shippingOrderNumber其中之一要有值
-      const filteredInventories = inventoryData.filter((inv: any) => {
-        const hasSaleNumber = inv.saleNumber?.trim() !== '';
-        const hasPurchaseOrderNumber = inv.purchaseOrderNumber?.trim() !== '';
-        const hasShippingOrderNumber = inv.shippingOrderNumber?.trim() !== '';
-        return hasSaleNumber || hasPurchaseOrderNumber || hasShippingOrderNumber;
-      });
+      // 處理庫存數據
+      const processedData = processInventoryData(inventoryData);
       
-      // 合併相同類型且單號相同的記錄
-      const mergedInventories: any[] = [];
-      const saleGroups: { [key: string]: any } = {};
-      const purchaseGroups: { [key: string]: any } = {};
-      const shipGroups: { [key: string]: any } = {};
-      
-      filteredInventories.forEach((inv: any) => {
-        if (inv.saleNumber) {
-          if (!saleGroups[inv.saleNumber]) {
-            saleGroups[inv.saleNumber] = {
-              ...inv,
-              type: 'sale',
-              totalQuantity: inv.quantity,
-              totalAmount: inv.totalAmount ?? 0,
-              batchNumber: inv.batchNumber // 保留批號資訊
-            };
-          } else {
-            saleGroups[inv.saleNumber].totalQuantity = (saleGroups[inv.saleNumber].totalQuantity ?? 0) + inv.quantity;
-            saleGroups[inv.saleNumber].totalAmount = (saleGroups[inv.saleNumber].totalAmount ?? 0) + (inv.totalAmount ?? 0);
-            // 如果有多個批號，合併顯示
-            if (inv.batchNumber && saleGroups[inv.saleNumber].batchNumber !== inv.batchNumber) {
-              saleGroups[inv.saleNumber].batchNumber = saleGroups[inv.saleNumber].batchNumber
-                ? `${saleGroups[inv.saleNumber].batchNumber}, ${inv.batchNumber}`
-                : inv.batchNumber;
-            }
-          }
-        } else if (inv.purchaseOrderNumber) {
-          if (!purchaseGroups[inv.purchaseOrderNumber]) {
-            purchaseGroups[inv.purchaseOrderNumber] = {
-              ...inv,
-              type: 'purchase',
-              totalQuantity: inv.quantity,
-              totalAmount: inv.totalAmount ?? 0,
-              batchNumber: inv.batchNumber // 保留批號資訊
-            };
-          } else {
-            purchaseGroups[inv.purchaseOrderNumber].totalQuantity = (purchaseGroups[inv.purchaseOrderNumber].totalQuantity ?? 0) + inv.quantity;
-            purchaseGroups[inv.purchaseOrderNumber].totalAmount = (purchaseGroups[inv.purchaseOrderNumber].totalAmount ?? 0) + (inv.totalAmount ?? 0);
-            // 如果有多個批號，合併顯示
-            if (inv.batchNumber && purchaseGroups[inv.purchaseOrderNumber].batchNumber !== inv.batchNumber) {
-              purchaseGroups[inv.purchaseOrderNumber].batchNumber = purchaseGroups[inv.purchaseOrderNumber].batchNumber
-                ? `${purchaseGroups[inv.purchaseOrderNumber].batchNumber}, ${inv.batchNumber}`
-                : inv.batchNumber;
-            }
-          }
-        } else if (inv.shippingOrderNumber) {
-          if (!shipGroups[inv.shippingOrderNumber]) {
-            shipGroups[inv.shippingOrderNumber] = {
-              ...inv,
-              type: 'ship',
-              totalQuantity: inv.quantity,
-              totalAmount: inv.totalAmount ?? 0,
-              batchNumber: inv.batchNumber // 保留批號資訊
-            };
-          } else {
-            shipGroups[inv.shippingOrderNumber].totalQuantity = (shipGroups[inv.shippingOrderNumber].totalQuantity ?? 0) + inv.quantity;
-            shipGroups[inv.shippingOrderNumber].totalAmount = (shipGroups[inv.shippingOrderNumber].totalAmount ?? 0) + (inv.totalAmount ?? 0);
-            // 如果有多個批號，合併顯示
-            if (inv.batchNumber && shipGroups[inv.shippingOrderNumber].batchNumber !== inv.batchNumber) {
-              shipGroups[inv.shippingOrderNumber].batchNumber = shipGroups[inv.shippingOrderNumber].batchNumber
-                ? `${shipGroups[inv.shippingOrderNumber].batchNumber}, ${inv.batchNumber}`
-                : inv.batchNumber;
-            }
-          }
-        }
-      });
-      
-      // 將合併後的記錄添加到結果數組
-      mergedInventories.push(...Object.values(saleGroups));
-      mergedInventories.push(...Object.values(purchaseGroups));
-      mergedInventories.push(...Object.values(shipGroups));
-      
-      // 排序：取訂單號左邊八位數字進行數值比較，大的在上小的在下
-      mergedInventories.sort((a, b) => {
-        const aValue = a.saleNumber?.trim() ||
-                      a.purchaseOrderNumber?.trim() ||
-                      a.shippingOrderNumber?.trim() || '';
-        const bValue = b.saleNumber?.trim() ||
-                      b.purchaseOrderNumber?.trim() ||
-                      b.shippingOrderNumber?.trim() || '';
-        
-        const aMatch = aValue.match(/^\d{8}/);
-        const bMatch = bValue.match(/^\d{8}/);
-        
-        const aNumber = aMatch ? parseInt(aMatch[0]) : 0;
-        const bNumber = bMatch ? parseInt(bMatch[0]) : 0;
-        
-        return bNumber - aNumber;
-      });
-      
-      // 計算當前庫存
-      let stock = 0;
-      const processedInventories = [...mergedInventories].reverse().map((inv: any) => {
-        const quantity = inv.totalQuantity ?? 0;
-        stock += quantity;
-        return {
-          ...inv,
-          currentStock: stock
-        };
-      });
-      
-      // 反轉回來，保持從大到小的排序
-      processedInventories.reverse();
-      
-      // 計算損益總和：銷售-進貨+出貨
-      let totalProfitLoss = 0;
-      processedInventories.forEach((inv: any) => {
-        // 計算實際交易價格
-        let price = 0;
-        // Calculate unit price for any transaction type with totalAmount and totalQuantity
-        if (inv.totalAmount && inv.totalQuantity) {
-          // 使用實際交易價格（總金額/數量）
-          const unitPrice = inv.totalAmount / Math.abs(inv.totalQuantity);
-          price = unitPrice;
-        } else if (inv.product?.sellingPrice) {
-          // 其他記錄：使用產品售價 (使用可選鏈表達式)
-          price = inv.product.sellingPrice;
-        } else if (inv.product?.price) {
-          // 使用產品價格作為備選
-          price = inv.product.price;
-        }
-        
-        // 計算該記錄的損益
-        const recordCost = price * Math.abs(inv.totalQuantity ?? 0);
-        
-        if (inv.type === 'sale') {
-          // 銷售記錄：增加損益
-          totalProfitLoss += recordCost;
-        } else if (inv.type === 'purchase') {
-          // 進貨記錄：減少損益
-          totalProfitLoss -= recordCost;
-        } else if (inv.type === 'ship') {
-          // 出貨記錄：增加損益
-          totalProfitLoss += recordCost;
-        }
-      });
-      
-      // 準備圖表數據
-      const chartTransactions = processedInventories.map((inv: any) => {
-        // 獲取貨單號
-        let orderNumber = '';
-        if (inv.type === 'sale') {
-          orderNumber = inv.saleNumber ?? '-';
-        } else if (inv.type === 'purchase') {
-          orderNumber = inv.purchaseOrderNumber ?? '-';
-        } else if (inv.type === 'ship') {
-          orderNumber = inv.shippingOrderNumber ?? '-';
-        }
-        
-        // 轉換交易類型為中文
-        let typeText = '其他';
-        if (inv.type === 'sale') {
-          typeText = '銷售';
-        } else if (inv.type === 'purchase') {
-          typeText = '進貨';
-        } else if (inv.type === 'ship') {
-          typeText = '出貨';
-        }
-        
-        // 計算實際交易價格
-        let price = 0;
-        if (inv.totalAmount && inv.totalQuantity) {
-          price = inv.totalAmount / Math.abs(inv.totalQuantity);
-        } else if (inv.product?.sellingPrice) {
-          price = inv.product.sellingPrice;
-        } else if (inv.product?.price) {
-          price = inv.product.price;
-        }
-        
-        return {
-          purchaseOrderNumber: inv.type === 'purchase' ? orderNumber : '-',
-          shippingOrderNumber: inv.type === 'ship' ? orderNumber : '-',
-          saleNumber: inv.type === 'sale' ? orderNumber : '-',
-          type: typeText,
-          quantity: inv.totalQuantity || 0,
-          price: price,
-          cumulativeStock: inv.currentStock ?? 0,
-          cumulativeProfitLoss: 0 // 這個值會在SingleProductProfitLossChart中重新計算
-        };
-      });
-      
-      setChartData(chartTransactions);
-      setInventoryData(processedInventories);
-      // 儲存計算好的損益總和和當前庫存，供 ChartModal 使用
+      // 設置狀態並顯示圖表
+      setChartData(processedData.chartTransactions);
+      setInventoryData(processedData.processedInventories);
       setChartModalOpen(true);
     } catch (error) {
       console.error('獲取圖表數據失敗:', error);
@@ -380,25 +231,250 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
       setChartModalOpen(true);
     }
   };
+  
+  /**
+   * 處理庫存數據
+   * @param inventoryData 原始庫存數據
+   * @returns 處理後的數據，包含圖表數據和庫存記錄
+   */
+  const processInventoryData = (inventoryData: any[]): {
+    chartTransactions: any[],
+    processedInventories: any[]
+  } => {
+    // 篩選有效的庫存記錄
+    const filteredInventories = inventoryData.filter((inv: any) => {
+      const hasSaleNumber = inv.saleNumber?.trim() !== '';
+      const hasPurchaseOrderNumber = inv.purchaseOrderNumber?.trim() !== '';
+      const hasShippingOrderNumber = inv.shippingOrderNumber?.trim() !== '';
+      return hasSaleNumber || hasPurchaseOrderNumber || hasShippingOrderNumber;
+    });
+    
+    // 按類型分組並合併相同單號的記錄
+    const { mergedInventories } = mergeInventoriesByType(filteredInventories);
+    
+    // 排序記錄
+    sortInventoriesByOrderNumber(mergedInventories);
+    
+    // 計算庫存和損益
+    const processedInventories = calculateStockAndProfitLoss(mergedInventories);
+    
+    // 準備圖表數據
+    const chartTransactions = prepareChartData(processedInventories);
+    
+    return { chartTransactions, processedInventories };
+  };
+  
+  /**
+   * 按類型合併庫存記錄
+   * @param inventories 庫存記錄
+   * @returns 合併後的記錄
+   */
+  const mergeInventoriesByType = (inventories: any[]): { mergedInventories: any[] } => {
+    const saleGroups: { [key: string]: any } = {};
+    const purchaseGroups: { [key: string]: any } = {};
+    const shipGroups: { [key: string]: any } = {};
+    
+    // 按單號分組
+    inventories.forEach((inv: any) => {
+      // 處理銷售記錄
+      if (inv.saleNumber) {
+        if (!saleGroups[inv.saleNumber]) {
+          saleGroups[inv.saleNumber] = {
+            ...inv,
+            type: 'sale',
+            totalQuantity: inv.quantity,
+            totalAmount: inv.totalAmount ?? 0,
+            batchNumber: inv.batchNumber
+          };
+        } else {
+          saleGroups[inv.saleNumber].totalQuantity = (saleGroups[inv.saleNumber].totalQuantity ?? 0) + inv.quantity;
+          saleGroups[inv.saleNumber].totalAmount = (saleGroups[inv.saleNumber].totalAmount ?? 0) + (inv.totalAmount ?? 0);
+          
+          // 合併批號
+          if (inv.batchNumber && saleGroups[inv.saleNumber].batchNumber !== inv.batchNumber) {
+            saleGroups[inv.saleNumber].batchNumber = saleGroups[inv.saleNumber].batchNumber
+              ? `${saleGroups[inv.saleNumber].batchNumber}, ${inv.batchNumber}`
+              : inv.batchNumber;
+          }
+        }
+      }
+      // 處理進貨記錄
+      else if (inv.purchaseOrderNumber) {
+        if (!purchaseGroups[inv.purchaseOrderNumber]) {
+          purchaseGroups[inv.purchaseOrderNumber] = {
+            ...inv,
+            type: 'purchase',
+            totalQuantity: inv.quantity,
+            totalAmount: inv.totalAmount ?? 0,
+            batchNumber: inv.batchNumber
+          };
+        } else {
+          purchaseGroups[inv.purchaseOrderNumber].totalQuantity =
+            (purchaseGroups[inv.purchaseOrderNumber].totalQuantity ?? 0) + inv.quantity;
+          purchaseGroups[inv.purchaseOrderNumber].totalAmount =
+            (purchaseGroups[inv.purchaseOrderNumber].totalAmount ?? 0) + (inv.totalAmount ?? 0);
+          
+          // 合併批號
+          if (inv.batchNumber && purchaseGroups[inv.purchaseOrderNumber].batchNumber !== inv.batchNumber) {
+            purchaseGroups[inv.purchaseOrderNumber].batchNumber = purchaseGroups[inv.purchaseOrderNumber].batchNumber
+              ? `${purchaseGroups[inv.purchaseOrderNumber].batchNumber}, ${inv.batchNumber}`
+              : inv.batchNumber;
+          }
+        }
+      }
+      // 處理出貨記錄
+      else if (inv.shippingOrderNumber) {
+        if (!shipGroups[inv.shippingOrderNumber]) {
+          shipGroups[inv.shippingOrderNumber] = {
+            ...inv,
+            type: 'ship',
+            totalQuantity: inv.quantity,
+            totalAmount: inv.totalAmount ?? 0,
+            batchNumber: inv.batchNumber
+          };
+        } else {
+          shipGroups[inv.shippingOrderNumber].totalQuantity =
+            (shipGroups[inv.shippingOrderNumber].totalQuantity ?? 0) + inv.quantity;
+          shipGroups[inv.shippingOrderNumber].totalAmount =
+            (shipGroups[inv.shippingOrderNumber].totalAmount ?? 0) + (inv.totalAmount ?? 0);
+          
+          // 合併批號
+          if (inv.batchNumber && shipGroups[inv.shippingOrderNumber].batchNumber !== inv.batchNumber) {
+            shipGroups[inv.shippingOrderNumber].batchNumber = shipGroups[inv.shippingOrderNumber].batchNumber
+              ? `${shipGroups[inv.shippingOrderNumber].batchNumber}, ${inv.batchNumber}`
+              : inv.batchNumber;
+          }
+        }
+      }
+    });
+    
+    // 合併所有記錄
+    const mergedInventories: any[] = [
+      ...Object.values(saleGroups),
+      ...Object.values(purchaseGroups),
+      ...Object.values(shipGroups)
+    ];
+    
+    return { mergedInventories };
+  };
+  
+  /**
+   * 按訂單號排序庫存記錄
+   * @param inventories 庫存記錄
+   */
+  const sortInventoriesByOrderNumber = (inventories: any[]): void => {
+    inventories.sort((a, b) => {
+      const aValue = a.saleNumber?.trim() ||
+                    a.purchaseOrderNumber?.trim() ||
+                    a.shippingOrderNumber?.trim() || '';
+      const bValue = b.saleNumber?.trim() ||
+                    b.purchaseOrderNumber?.trim() ||
+                    b.shippingOrderNumber?.trim() || '';
+      
+      // 提取訂單號前8位數字進行比較
+      const aMatch = aValue.match(/^\d{8}/);
+      const bMatch = bValue.match(/^\d{8}/);
+      
+      const aNumber = aMatch ? parseInt(aMatch[0]) : 0;
+      const bNumber = bMatch ? parseInt(bMatch[0]) : 0;
+      
+      // 降序排序（新的訂單在前）
+      return bNumber - aNumber;
+    });
+  };
+  
+  /**
+   * 計算庫存和損益
+   * @param inventories 庫存記錄
+   * @returns 處理後的庫存記錄
+   */
+  const calculateStockAndProfitLoss = (inventories: any[]): any[] => {
+    // 計算當前庫存（從舊到新）
+    let stock = 0;
+    const processedInventories = [...inventories].reverse().map((inv: any) => {
+      const quantity = inv.totalQuantity ?? 0;
+      stock += quantity;
+      return {
+        ...inv,
+        currentStock: stock
+      };
+    });
+    
+    // 反轉回來，保持從新到舊的排序
+    processedInventories.reverse();
+    
+    return processedInventories;
+  };
+  
+  /**
+   * 準備圖表數據
+   * @param inventories 處理後的庫存記錄
+   * @returns 圖表數據
+   */
+  const prepareChartData = (inventories: any[]): any[] => {
+    return inventories.map((inv: any) => {
+      // 獲取訂單號
+      let orderNumber = '';
+      if (inv.type === 'sale') {
+        orderNumber = inv.saleNumber ?? '-';
+      } else if (inv.type === 'purchase') {
+        orderNumber = inv.purchaseOrderNumber ?? '-';
+      } else if (inv.type === 'ship') {
+        orderNumber = inv.shippingOrderNumber ?? '-';
+      }
+      
+      // 轉換交易類型為中文
+      const typeMap: { [key: string]: string } = {
+        'sale': '銷售',
+        'purchase': '進貨',
+        'ship': '出貨',
+      };
+      const typeText = typeMap[inv.type] || '其他';
+      
+      // 計算實際交易價格
+      let price = 0;
+      if (inv.totalAmount && inv.totalQuantity) {
+        price = inv.totalAmount / Math.abs(inv.totalQuantity);
+      } else if (inv.product?.sellingPrice) {
+        price = inv.product.sellingPrice;
+      } else if (inv.product?.price) {
+        price = inv.product.price;
+      }
+      
+      return {
+        purchaseOrderNumber: inv.type === 'purchase' ? orderNumber : '-',
+        shippingOrderNumber: inv.type === 'ship' ? orderNumber : '-',
+        saleNumber: inv.type === 'sale' ? orderNumber : '-',
+        type: typeText,
+        quantity: inv.totalQuantity || 0,
+        price: price,
+        cumulativeStock: inv.currentStock ?? 0,
+        cumulativeProfitLoss: 0 // 這個值會在SingleProductProfitLossChart中重新計算
+      };
+    });
+  };
 
-  // 更新選中的產品
+  /**
+   * 更新選中的產品並觸發產品變更事件
+   * @param event 合成事件
+   * @param product 選中的產品或null
+   */
   const handleProductChangeWithChart = (event: SyntheticEvent, product: Product | null) => {
     setSelectedProduct(product);
     handleProductChange(event, product);
   };
   
-  // 添加項目後重置輸入器數字並重置為基礎量輸入
+  /**
+   * 添加項目後重置所有輸入狀態
+   * 重置數量輸入、總數量和輸入模式
+   */
   const handleAddItemWithReset = () => {
-    // 先調用原始的 handleAddItem 函數
+    // 調用原始的添加項目函數
     handleAddItem();
     
-    // 重置輸入器數字
+    // 重置所有相關狀態
     setDisplayInputQuantity('');
-    
-    // 重置實際總數量
     setActualTotalQuantity(0);
-    
-    // 重置為基礎量輸入模式
     setInputMode('base');
   };
 
@@ -411,6 +487,7 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
             {/* 選擇藥品 */}
             <Grid item xs={12} sm={5.5}>
               <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                {/* 藥品選擇下拉框 */}
                 <Box sx={{ flex: 1 }}>
                   <Autocomplete
                     id="product-select"
@@ -459,14 +536,12 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
                     }}
                   />
                 </Box>
+                {/* 圖表按鈕 */}
                 <IconButton
                   onClick={handleChartButtonClick}
                   disabled={!selectedProduct}
                   color="primary"
-                  sx={{
-                    mt: 0.5,
-                    height: 30
-                  }}
+                  sx={{ mt: 0.5, height: 30 }}
                   title="查看商品圖表分析"
                 >
                   <BarChartIcon fontSize="small" />
@@ -494,7 +569,6 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
                   inputProps={{ min: "0", step: "1" }}
                   disabled={mainQuantityDisabled}
                   size="small"
-                  // 添加視覺提示，顯示當前的輸入模式
                   sx={{
                     '& .MuiInputLabel-root': {
                       color: inputMode === 'package' ? 'primary.main' : 'inherit',
@@ -507,7 +581,6 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
                       },
                     },
                   }}
-                
                 />
               </Box>
             </Grid>
@@ -523,6 +596,7 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
                 handleAddItem={handleAddItemWithReset}
               />
             </Grid>
+
             {/* 批號輸入 */}
             <Grid item xs={12} sm={1.5}>
               <TextField
@@ -577,8 +651,6 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
                 </Box>
               ) : null}
             </Grid>
-
-
           </Grid>
         </Grid>
       </Grid>
