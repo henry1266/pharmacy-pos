@@ -300,6 +300,8 @@ const AccountingCategoryPage: React.FC = () => {
       display: 'flex',
       flexDirection: 'column',
       overflow: 'hidden',
+      maxWidth: '1200px',
+      margin: '0 auto',
   
       '@media (max-width: 600px)': {
         height: 'calc(100vh - 56px)'
@@ -346,7 +348,7 @@ const AccountingCategoryPage: React.FC = () => {
                       icon: <AccountBalanceWalletIcon sx={{ fontSize: '1.1rem' }} />
                     },
                     {
-                      label: '名目類別管理',
+                      label: '名目管理',
                       icon: <AddIcon sx={{ fontSize: '1.1rem' }} />
                     }
                   ]}
@@ -375,22 +377,24 @@ const AccountingCategoryPage: React.FC = () => {
             >
               返回列表
             </Button>
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<AddIcon />}
+              onClick={handleOpenAddDialog}
+              sx={{
+                height: 44,
+                minWidth: 110
+              }}
+            >
+              新增類別
+            </Button>
+            
           </Box>
         </Box>
       </Paper>
       
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h5">類別列表</Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={handleOpenAddDialog}
-          >
-            新增類別
-          </Button>
-        </Box>
         
         <Paper sx={{ p: 2 }}>
           {/* 拆解巢狀三元運算子為獨立條件判斷 */}

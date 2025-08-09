@@ -423,7 +423,19 @@ const AccountingNewPage: React.FC = () => {
 
 
   return (
-    <Container maxWidth="lg">
+    <Box sx={{
+      p: { xs: 1, sm: 1, md: 1.5 },
+      height: 'calc(100vh - 120px)',
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden',
+      maxWidth: '1200px',
+      margin: '0 auto',
+  
+      '@media (max-width: 600px)': {
+        height: 'calc(100vh - 56px)'
+      }
+    }}>
       <Paper sx={{
           mb: 3,
           bgcolor: 'background.paper',
@@ -497,11 +509,11 @@ const AccountingNewPage: React.FC = () => {
             </Box>
           </Box>
         </Paper>
-      <Paper sx={{ p: 3, my: 3 }}>
         
-        
-        {/* Wrap form for onSubmit */}
-        <form onSubmit={handleSubmit}>
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
+          <Paper sx={{ p: 3, my: 3 }}>
+            {/* Wrap form for onSubmit */}
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column' }}>
           <Grid container spacing={3}>
             {/* Date, Shift, Status (use hook state and handlers) */}
             <Grid item md={4} sm={6} xs={12}>
@@ -677,7 +689,8 @@ const AccountingNewPage: React.FC = () => {
           {snackbarMessage}
         </Alert>
       </Snackbar>
-    </Container>
+    </Box>
+  </Box>
   );
 };
 
