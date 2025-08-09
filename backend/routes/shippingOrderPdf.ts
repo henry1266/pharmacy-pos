@@ -206,74 +206,78 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
           currentY += 20;
         }
         
+        // 增加行高
+        const rowHeight = 30; // 從原來的20增加到25
+        
         // 繪製項目行外框
         doc.lineWidth(0.2);
         doc.strokeColor('#c0c0c0');
-        doc.rect(50, currentY, doc.page.width - 100, 20).stroke();
+        doc.rect(50, currentY, doc.page.width - 100, rowHeight).stroke();
         
         // 繪製項目行
         currentX = 50;
         
-        // 序號
-        doc.text((index + 1).toString(), currentX, currentY, { width: columnWidths[0], align: 'center' } as PDFTextOptions);
+        // 序號 - 垂直居中
+        doc.text((index + 1).toString(), currentX, currentY + (rowHeight - 10) / 2, { width: columnWidths[0], align: 'center' } as PDFTextOptions);
         currentX += (columnWidths[0] || 30);
         
         // 繪製第一條垂直分隔線
         doc.moveTo(currentX, currentY)
-           .lineTo(currentX, currentY + 20)
+           .lineTo(currentX, currentY + rowHeight)
            .stroke();
         
         // 健保代碼
         // 從 item.healthInsuranceCode 取得健保代碼
-        doc.text(item.healthInsuranceCode ?? 'N/A', currentX, currentY, { width: columnWidths[1], align: 'center' } as PDFTextOptions);
+        doc.text(item.healthInsuranceCode ?? 'N/A', currentX, currentY + (rowHeight - 10) / 2, { width: columnWidths[1], align: 'center' } as PDFTextOptions);
         currentX += (columnWidths[1] || 60);
         
         // 繪製第二條垂直分隔線
         doc.moveTo(currentX, currentY)
-           .lineTo(currentX, currentY + 20)
+           .lineTo(currentX, currentY + rowHeight)
            .stroke();
         
-        // 項目名稱
-        doc.text(item.dname ?? 'N/A', currentX, currentY, { width: columnWidths[2], align: 'center' } as PDFTextOptions);
+        // 項目名稱 - 垂直居中
+        doc.text(item.dname ?? 'N/A', currentX, currentY + (rowHeight - 10) / 2, { width: columnWidths[2], align: 'center' } as PDFTextOptions);
         currentX += (columnWidths[2] || 220);
         
         // 繪製第三條垂直分隔線
         doc.moveTo(currentX, currentY)
-           .lineTo(currentX, currentY + 20)
+           .lineTo(currentX, currentY + rowHeight)
            .stroke();
         
         // 數量置中對齊
-        doc.text(item.dquantity?.toString() ?? '0', currentX, currentY, { width: columnWidths[3], align: 'center' } as PDFTextOptions);
+        doc.text(item.dquantity?.toString() ?? '0', currentX, currentY + (rowHeight - 10) / 2, { width: columnWidths[3], align: 'center' } as PDFTextOptions);
         currentX += (columnWidths[3] || 60);
         
         // 繪製第三條垂直分隔線
         doc.moveTo(currentX, currentY)
-           .lineTo(currentX, currentY + 20)
+           .lineTo(currentX, currentY + rowHeight)
            .stroke();
         
         // 單價靠右對齊，但保留右側空間
         const dprice = (item.dtotalCost ?? 0) / (item.dquantity ?? 1);
-        doc.text(formatCurrency(dprice), currentX, currentY, { width: (columnWidths[3] || 60), align: 'center' } as PDFTextOptions);
+        doc.text(formatCurrency(dprice), currentX, currentY + (rowHeight - 10) / 2, { width: (columnWidths[3] || 60), align: 'center' } as PDFTextOptions);
         currentX += (columnWidths[3] || 60);
         
         // 繪製第四條垂直分隔線
         doc.moveTo(currentX, currentY)
-           .lineTo(currentX, currentY + 20)
+           .lineTo(currentX, currentY + rowHeight)
            .stroke();
         
         // 小計靠右對齊，但保留右側空間
         const subtotal = (item.dtotalCost ?? 0) ;
-        doc.text(formatCurrency(subtotal), currentX, currentY, { width: (columnWidths[4] || 60) - 1, align: 'center' } as PDFTextOptions);
+        doc.text(formatCurrency(subtotal), currentX, currentY + (rowHeight - 10) / 2, { width: (columnWidths[4] || 60) - 1, align: 'center' } as PDFTextOptions);
         
-        currentY += 20;
+        currentY += rowHeight;
       });
     } else {
       // 無項目時繪製空行
+      const rowHeight = 30; // 從原來的20增加到25
       doc.lineWidth(0.2);
       doc.strokeColor('#c0c0c0');
-      doc.rect(50, currentY, doc.page.width - 100, 20).stroke();
-      doc.text('無項目', 50, currentY, { align: 'center', width: doc.page.width - 100 } as PDFTextOptions);
-      currentY += 20;
+      doc.rect(50, currentY, doc.page.width - 100, rowHeight).stroke();
+      doc.text('無項目', 50, currentY + (rowHeight - 10) / 2, { align: 'center', width: doc.page.width - 100 } as PDFTextOptions);
+      currentY += rowHeight;
     }
     
     // 添加分隔線
@@ -534,11 +538,12 @@ router.get('/pdf-v2/:id', async (req: Request, res: Response) => {
       });
     } else {
       // 無項目時繪製空行
+      const rowHeight = 30; // 從原來的20增加到25
       doc.lineWidth(0.2);
       doc.strokeColor('#c0c0c0');
-      doc.rect(50, currentY, doc.page.width - 100, 20).stroke();
-      doc.text('無項目', 50, currentY, { align: 'center', width: doc.page.width - 100 } as PDFTextOptions);
-      currentY += 20;
+      doc.rect(50, currentY, doc.page.width - 100, rowHeight).stroke();
+      doc.text('無項目', 50, currentY + (rowHeight - 10) / 2, { align: 'center', width: doc.page.width - 100 } as PDFTextOptions);
+      currentY += rowHeight;
     }
     
     // 添加分隔線
@@ -664,15 +669,18 @@ router.get('/pdf-v3/:id', async (req: Request, res: Response) => {
     const tableTop = doc.y;
     // 根據是否顯示大包裝信息來決定表頭
     const tableHeaders = showPackageInfo
-      ? ['序號', '健保代碼', '項目', '大包裝', '每盒數量', '總數量', '單價', '小計']
+      ? ['序號', '健保代碼', '項目', '包裝規格', '總數量', '單價', '小計']
       : ['序號', '健保代碼', '項目', '數量', '單價', '小計'];
     
     // 調整欄寬以避免數字重疊
     const columnWidths: number[] = showPackageInfo
-      ? [30, 60, 140, 60, 60, 60, 60, 60]
+      ? [30, 60, 140, 80, 60, 60, 60]
       : [30, 60, 220, 60, 60, 60];
     
     let currentY = tableTop;
+    
+    // 定義行高
+    const rowHeight = 30; // 從原來的20增加到25
     
     // 繪製表格標題
     doc.fontSize(10);
@@ -681,12 +689,12 @@ router.get('/pdf-v3/:id', async (req: Request, res: Response) => {
     // 繪製表格外框
     doc.lineWidth(0.2);
     doc.strokeColor('#c0c0c0');
-    doc.rect(50, currentY, doc.page.width - 100, 20).stroke();
+    doc.rect(50, currentY, doc.page.width - 100, rowHeight).stroke();
     
     // 繪製表格標題
     tableHeaders.forEach((header, i) => {
       const align = 'center';
-      doc.text(header, currentX, currentY, { width: columnWidths[i] || 50, align: align } as PDFTextOptions);
+      doc.text(header, currentX, currentY + (rowHeight - 10) / 2, { width: columnWidths[i] || 50, align: align } as PDFTextOptions);
       currentX += (columnWidths[i] || 50);
       
       // 繪製垂直分隔線（除了最後一列）
@@ -694,11 +702,11 @@ router.get('/pdf-v3/:id', async (req: Request, res: Response) => {
         doc.lineWidth(0.2);
         doc.strokeColor('#c0c0c0');
         doc.moveTo(50 + columnWidths.slice(0, i + 1).reduce((a, b) => a + b, 0), currentY)
-           .lineTo(50 + columnWidths.slice(0, i + 1).reduce((a, b) => a + b, 0), currentY + 20)
+           .lineTo(50 + columnWidths.slice(0, i + 1).reduce((a, b) => a + b, 0), currentY + rowHeight)
            .stroke();
       }
     });
-    currentY += 20;
+    currentY += rowHeight;
     
     // 繪製表格內容
     if (shippingOrder.items && shippingOrder.items.length > 0) {
@@ -714,11 +722,11 @@ router.get('/pdf-v3/:id', async (req: Request, res: Response) => {
           // 繪製表格外框
           doc.lineWidth(0.2);
           doc.strokeColor('#c0c0c0');
-          doc.rect(50, currentY, doc.page.width - 100, 20).stroke();
+          doc.rect(50, currentY, doc.page.width - 100, rowHeight).stroke();
           
           tableHeaders.forEach((header, i) => {
             const align = 'center';
-            doc.text(header, currentX, currentY, { width: columnWidths[i], align: align } as PDFTextOptions);
+            doc.text(header, currentX, currentY + (rowHeight - 10) / 2, { width: columnWidths[i], align: align } as PDFTextOptions);
             currentX += (columnWidths[i] || 50);
             
             // 繪製垂直分隔線（除了最後一列）
@@ -726,102 +734,100 @@ router.get('/pdf-v3/:id', async (req: Request, res: Response) => {
               doc.lineWidth(0.2);
               doc.strokeColor('#c0c0c0');
               doc.moveTo(50 + columnWidths.slice(0, i + 1).reduce((a, b) => a + b, 0), currentY)
-                 .lineTo(50 + columnWidths.slice(0, i + 1).reduce((a, b) => a + b, 0), currentY + 20)
+                 .lineTo(50 + columnWidths.slice(0, i + 1).reduce((a, b) => a + b, 0), currentY + rowHeight)
                  .stroke();
             }
           });
-          currentY += 20;
+          currentY += rowHeight;
         }
         
         // 繪製項目行外框
         doc.lineWidth(0.2);
         doc.strokeColor('#c0c0c0');
-        doc.rect(50, currentY, doc.page.width - 100, 20).stroke();
+        doc.rect(50, currentY, doc.page.width - 100, rowHeight).stroke();
         
         // 繪製項目行
         currentX = 50;
         
-        // 序號
-        doc.text((index + 1).toString(), currentX, currentY, { width: columnWidths[0], align: 'center' } as PDFTextOptions);
+        // 序號 - 垂直居中
+        doc.text((index + 1).toString(), currentX, currentY + (rowHeight - 10) / 2, { width: columnWidths[0], align: 'center' } as PDFTextOptions);
         currentX += (columnWidths[0] || 30);
         
         // 繪製第一條垂直分隔線
         doc.moveTo(currentX, currentY)
-           .lineTo(currentX, currentY + 20)
+           .lineTo(currentX, currentY + rowHeight)
            .stroke();
         
-        // 健保代碼
-        doc.text(item.healthInsuranceCode ?? 'N/A', currentX, currentY, { width: columnWidths[1], align: 'center' } as PDFTextOptions);
+        // 健保代碼 - 垂直居中
+        doc.text(item.healthInsuranceCode ?? 'N/A', currentX, currentY + (rowHeight - 10) / 2, { width: columnWidths[1], align: 'center' } as PDFTextOptions);
         currentX += (columnWidths[1] || 60);
         
         // 繪製第二條垂直分隔線
         doc.moveTo(currentX, currentY)
-           .lineTo(currentX, currentY + 20)
+           .lineTo(currentX, currentY + rowHeight)
            .stroke();
         
-        // 項目名稱
-        doc.text(item.dname ?? 'N/A', currentX, currentY, { width: columnWidths[2], align: 'center' } as PDFTextOptions);
+        // 項目名稱 - 垂直居中
+        doc.text(item.dname ?? 'N/A', currentX, currentY + (rowHeight - 10) / 2, { width: columnWidths[2], align: 'center' } as PDFTextOptions);
         currentX += (columnWidths[2] || (showPackageInfo ? 140 : 220));
         
         // 繪製第三條垂直分隔線
         doc.moveTo(currentX, currentY)
-           .lineTo(currentX, currentY + 20)
+           .lineTo(currentX, currentY + rowHeight)
            .stroke();
         
         if (showPackageInfo) {
-          // 大包裝數量
-          const packageQuantityText = item.packageQuantity ? `${item.packageQuantity} ${item.unit || '盒'}` : 'N/A';
-          doc.text(packageQuantityText, currentX, currentY, { width: columnWidths[3], align: 'center' } as PDFTextOptions);
-          currentX += (columnWidths[3] || 60);
+          // 合併大包裝和每盒數量為一欄，以 "28x30" 的方式呈現
+          let packageText = 'N/A';
+          if (item.packageQuantity && item.boxQuantity) {
+            packageText = `${item.packageQuantity}${item.unit || '盒'} x ${item.boxQuantity}`;
+          } else if (item.packageQuantity) {
+            packageText = `${item.packageQuantity}${item.unit || '盒'}`;
+          } else if (item.boxQuantity) {
+            packageText = `${item.boxQuantity}個/盒`;
+          }
+          
+          doc.text(packageText, currentX, currentY + (rowHeight - 10) / 2, { width: columnWidths[3], align: 'center' } as PDFTextOptions);
+          currentX += (columnWidths[3] || 80);
           
           // 繪製垂直分隔線
           doc.moveTo(currentX, currentY)
-             .lineTo(currentX, currentY + 20)
-             .stroke();
-          
-          // 每盒數量
-          const boxQuantityText = item.boxQuantity ? item.boxQuantity.toString() : 'N/A';
-          doc.text(boxQuantityText, currentX, currentY, { width: columnWidths[4], align: 'center' } as PDFTextOptions);
-          currentX += (columnWidths[4] || 60);
-          
-          // 繪製垂直分隔線
-          doc.moveTo(currentX, currentY)
-             .lineTo(currentX, currentY + 20)
+             .lineTo(currentX, currentY + rowHeight)
              .stroke();
         }
         
         // 數量置中對齊
-        doc.text(item.dquantity?.toString() ?? '0', currentX, currentY, { width: columnWidths[showPackageInfo ? 5 : 3], align: 'center' } as PDFTextOptions);
-        currentX += (columnWidths[showPackageInfo ? 5 : 3] || 60);
+        doc.text(item.dquantity?.toString() ?? '0', currentX, currentY + (rowHeight - 10) / 2, { width: columnWidths[showPackageInfo ? 4 : 3], align: 'center' } as PDFTextOptions);
+        currentX += (columnWidths[showPackageInfo ? 4 : 3] || 60);
         
         // 繪製垂直分隔線
         doc.moveTo(currentX, currentY)
-           .lineTo(currentX, currentY + 20)
+           .lineTo(currentX, currentY + rowHeight)
            .stroke();
         
         // 單價靠右對齊，但保留右側空間
         const dprice = (item.dtotalCost ?? 0) / (item.dquantity ?? 1);
-        doc.text(formatCurrency(dprice), currentX, currentY, { width: (columnWidths[showPackageInfo ? 6 : 4] || 60), align: 'center' } as PDFTextOptions);
-        currentX += (columnWidths[showPackageInfo ? 6 : 4] || 60);
+        doc.text(formatCurrency(dprice), currentX, currentY + (rowHeight - 10) / 2, { width: (columnWidths[showPackageInfo ? 5 : 4] || 60), align: 'center' } as PDFTextOptions);
+        currentX += (columnWidths[showPackageInfo ? 5 : 4] || 60);
         
         // 繪製垂直分隔線
         doc.moveTo(currentX, currentY)
-           .lineTo(currentX, currentY + 20)
+           .lineTo(currentX, currentY + rowHeight)
            .stroke();
         
         // 小計靠右對齊，但保留右側空間
         const subtotal = (item.dtotalCost ?? 0) ;
-        doc.text(formatCurrency(subtotal), currentX, currentY, { width: (columnWidths[showPackageInfo ? 7 : 5] || 60) - 1, align: 'center' } as PDFTextOptions);
+        doc.text(formatCurrency(subtotal), currentX, currentY + (rowHeight - 10) / 2, { width: (columnWidths[showPackageInfo ? 6 : 5] || 60) - 1, align: 'center' } as PDFTextOptions);
         
-        currentY += 20;
+        currentY += rowHeight;
       });
     } else {
       // 無項目時繪製空行
       doc.lineWidth(0.2);
       doc.strokeColor('#c0c0c0');
-      doc.rect(50, currentY, doc.page.width - 100, 20).stroke();
-      doc.text('無項目', 50, currentY, { align: 'center', width: doc.page.width - 100 } as PDFTextOptions);
-      currentY += 20;
+      doc.rect(50, currentY, doc.page.width - 100, rowHeight).stroke();
+      doc.text('無項目', 50, currentY + (rowHeight - 10) / 2, { align: 'center', width: doc.page.width - 100 } as PDFTextOptions);
+      currentY += rowHeight;
     }
     
     // 添加分隔線
