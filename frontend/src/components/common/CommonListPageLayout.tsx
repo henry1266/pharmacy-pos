@@ -93,7 +93,6 @@ const CommonListPageLayout: React.FC<CommonListPageLayoutProps> = ({
                 rows={rows}
                 columns={columns}
                 loading={loading}
-                title={title}
                 pageSize={10}
                 checkboxSelection={false}
                 {...(onRowClick && { onRowClick })}
