@@ -13,8 +13,10 @@ import {
 import {
   ArrowBack as ArrowBackIcon,
   Edit as EditIcon,
-  Print as PrintIcon
+  Print as PrintIcon,
+  Store as StoreIcon
 } from '@mui/icons-material';
+import PageHeaderSection from '../components/common/PageHeaderSection';
 
 import SupplierInfoCard from '../components/suppliers/SupplierInfoCard';
 import TwoColumnLayout from '../components/common/TwoColumnLayout';
@@ -154,37 +156,72 @@ const SupplierDetailPage: FC = () => {
   );
   
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h5" component="h1">
-          供應商詳情
-        </Typography>
-        <Box>
-          <Button
-            variant="outlined"
-            startIcon={<ArrowBackIcon />}
-            onClick={handleBack}
-            sx={{ mr: 1 }}
-          >
-            返回列表
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<EditIcon />}
-            onClick={handleEdit}
-            sx={{ mr: 1 }}
-          >
-            編輯
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<PrintIcon />}
-            onClick={() => window.print()} // 基本列印功能
-          >
-            列印
-          </Button>
-        </Box>
-      </Box>
+    <Box sx={{
+      p: { xs: 1, sm: 1, md: 1.5 },
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'visible',
+      width: '100%',
+      flexGrow: 1,
+      minHeight: '100%'
+    }}>
+      <PageHeaderSection
+        breadcrumbItems={[
+          {
+            label: '供應商管理',
+            path: '/suppliers',
+            icon: <StoreIcon sx={{ fontSize: '1.1rem' }} />
+          },
+          {
+            label: supplier?.name || '供應商詳情',
+            icon: null
+          }
+        ]}
+        actions={
+          <>
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<ArrowBackIcon />}
+              onClick={handleBack}
+              sx={{
+                height: 37,
+                minWidth: 110,
+                borderColor: 'primary.main',
+                color: 'primary.main',
+                mr: 1
+              }}
+            >
+              返回列表
+            </Button>
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<EditIcon />}
+              onClick={handleEdit}
+              sx={{
+                height: 37,
+                minWidth: 110,
+                mr: 1
+              }}
+            >
+              編輯
+            </Button>
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<PrintIcon />}
+              onClick={() => window.print()}
+              sx={{
+                height: 37,
+                minWidth: 110
+              }}
+            >
+              列印
+            </Button>
+          </>
+        }
+      />
       
       <TwoColumnLayout 
         leftContent={leftContent} 

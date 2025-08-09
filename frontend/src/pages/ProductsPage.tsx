@@ -9,6 +9,9 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { LocalOffer as PackageIcon } from '@mui/icons-material';
+import HomeIcon from '@mui/icons-material/Home';
+import InventoryIcon from '@mui/icons-material/Inventory';
+import PageHeaderSection from '../components/common/PageHeaderSection';
 import { useNavigate } from 'react-router-dom';
 import CsvImportDialog from '../components/products/CsvImportDialog';
 import ProductDetailCard from '../components/products/ProductDetailCard';
@@ -182,65 +185,95 @@ const ProductsPage: React.FC = () => {
   };
 
   return (
-    <Box sx={{ flexGrow: 1 }}>
+    <Box sx={{
+      p: { xs: 1, sm: 1, md: 1.5 },
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'visible',
+      width: '100%',
+      flexGrow: 1,
+      minHeight: '100%'
+    }}>
       {/* 頁面標題和頂部操作區域 */}
-      <Box sx={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        mb: 3
-      }}>
-        <Typography variant="h4" component="h1">
-          產品管理
-        </Typography>
-        
-        {/* 搜尋器和操作按鈕在同一行 */}
-        <Box sx={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 2
-        }}>
-          {/* 搜尋列 */}
-          <ProductSearchBar
-            filters={filters}
-            onFiltersChange={handleFiltersChange}
-            categories={categories}
-            suppliers={suppliers}
-            resultCount={displayProducts.length}
-            totalCount={allProducts.length}
-          />
-          
-          {/* 操作按鈕 */}
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={handleAddProduct}
-            >
-              新增產品
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<PackageIcon />}
-              onClick={() => navigate('/products/packages')}
-            >
-              套餐管理
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<CloudUploadIcon />}
-              onClick={handleOpenCsvImport}
-            >
-              CSV 匯入
-            </Button>
+      <PageHeaderSection
+        breadcrumbItems={[
+          {
+            label: '首頁',
+            path: '/',
+            icon: <HomeIcon sx={{ fontSize: '1.1rem' }} />
+          },
+          {
+            label: '產品管理',
+            icon: <InventoryIcon sx={{ fontSize: '1.1rem' }} />
+          }
+        ]}
+        actions={
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2
+          }}>
+            {/* 搜尋列 */}
+            <ProductSearchBar
+              filters={filters}
+              onFiltersChange={handleFiltersChange}
+              categories={categories}
+              suppliers={suppliers}
+              resultCount={displayProducts.length}
+              totalCount={allProducts.length}
+            />
+            
+            {/* 操作按鈕 */}
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<AddIcon />}
+                onClick={handleAddProduct}
+                sx={{
+                  height: 37,
+                  minWidth: 110
+                }}
+              >
+                新增產品
+              </Button>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<PackageIcon />}
+                onClick={() => navigate('/products/packages')}
+                sx={{
+                  height: 37,
+                  minWidth: 110,
+                  borderColor: 'primary.main',
+                  color: 'primary.main'
+                }}
+              >
+                套餐管理
+              </Button>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<CloudUploadIcon />}
+                onClick={handleOpenCsvImport}
+                sx={{
+                  height: 37,
+                  minWidth: 110,
+                  borderColor: 'primary.main',
+                  color: 'primary.main'
+                }}
+              >
+                CSV 匯入
+              </Button>
+            </Box>
           </Box>
-        </Box>
-      </Box>
+        }
+      />
       
       <Grid container spacing={2}>
         {/* 左側表格區域 */}
         <Grid item xs={12} md={8}>
-          <Paper sx={{ height: 'calc(100vh - 300px)', width: '100%' }}>
+          <Paper sx={{ minHeight: '500px', width: '100%' }}>
             <DataTable
               rows={displayProducts}
               columns={productColumns}
