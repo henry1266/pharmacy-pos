@@ -396,7 +396,17 @@ const AccountingCategoryPage: React.FC = () => {
       
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
         
-        <Paper sx={{ p: 2 }}>
+        <Box sx={{ p: 2, width: '100%', maxWidth: '100%', overflow: 'hidden', bgcolor: 'background.default' }}>
+          <Paper sx={{
+            width: '100%',
+            overflow: 'hidden',
+            bgcolor: 'background.paper',
+            borderRadius: 1,
+            border: 1,
+            borderColor: 'divider',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+            p: 2
+          }}>
           {/* 拆解巢狀三元運算子為獨立條件判斷 */}
           {loading && (
             <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
@@ -422,6 +432,13 @@ const AccountingCategoryPage: React.FC = () => {
                     <List
                       {...provided.droppableProps}
                       ref={provided.innerRef}
+                      sx={{
+                        bgcolor: 'background.paper',
+                        borderRadius: 1,
+                        '& > div:nth-of-type(odd)': {
+                          bgcolor: 'action.hover'
+                        }
+                      }}
                     >
                       {categories.map((category, index) => (
                         <Draggable
@@ -447,57 +464,58 @@ const AccountingCategoryPage: React.FC = () => {
               </DragDropContext>
             </Box>
           )}
-        </Paper>
+          </Paper>
         
-        {/* 新增/編輯對話框 */}
-        <Dialog open={openDialog} onClose={handleCloseDialog}>
-          <DialogTitle>
-            {dialogMode === 'add' ? '新增類別' : '編輯類別'}
-          </DialogTitle>
-          <DialogContent>
-            <TextField
-              autoFocus
-              margin="dense"
-              name="name"
-              label="名稱"
-              type="text"
-              fullWidth
-              value={currentCategory.name}
-              onChange={handleDialogInputChange}
-              required
-            />
-            <TextField
-              margin="dense"
-              name="description"
-              label="描述"
-              type="text"
-              fullWidth
-              value={currentCategory.description}
-              onChange={handleDialogInputChange}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDialog}>取消</Button>
-            <Button onClick={handleDialogSubmit} color="primary">
-              {dialogMode === 'add' ? '新增' : '更新'}
-            </Button>
-          </DialogActions>
-        </Dialog>
+          {/* 新增/編輯對話框 */}
+          <Dialog open={openDialog} onClose={handleCloseDialog}>
+            <DialogTitle>
+              {dialogMode === 'add' ? '新增類別' : '編輯類別'}
+            </DialogTitle>
+            <DialogContent>
+              <TextField
+                autoFocus
+                margin="dense"
+                name="name"
+                label="名稱"
+                type="text"
+                fullWidth
+                value={currentCategory.name}
+                onChange={handleDialogInputChange}
+                required
+              />
+              <TextField
+                margin="dense"
+                name="description"
+                label="描述"
+                type="text"
+                fullWidth
+                value={currentCategory.description}
+                onChange={handleDialogInputChange}
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseDialog}>取消</Button>
+              <Button onClick={handleDialogSubmit} color="primary">
+                {dialogMode === 'add' ? '新增' : '更新'}
+              </Button>
+            </DialogActions>
+          </Dialog>
         
-        {/* 提示訊息 */}
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={6000}
-          onClose={handleCloseSnackbar}
-        >
-          <Alert
+          {/* 提示訊息 */}
+          <Snackbar
+            open={snackbar.open}
+            autoHideDuration={6000}
             onClose={handleCloseSnackbar}
-            severity={snackbar.severity}
-            sx={{ width: '100%' }}
           >
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
+            <Alert
+              onClose={handleCloseSnackbar}
+              severity={snackbar.severity}
+              sx={{ width: '100%' }}
+            >
+              {snackbar.message}
+            </Alert>
+          </Snackbar>
+        </Box>
       </Box>
     </Box>
   );
