@@ -634,14 +634,15 @@ const SuppliersPage: FC<{}> = () => {
         tableGridWidth={9}
         detailGridWidth={3}
         dataTableProps={{
-          pageSizeOptions: [10, 25, 50],
+          pageSizeOptions: [15, 25, 50],
           initialState: {
-            pagination: { paginationModel: { pageSize: 10 } },
+            pagination: { paginationModel: { pageSize: 15 } },
             sorting: {
               sortModel: [{ field: 'code', sort: 'asc' }],
             },
           },
-          getRowId: (row: SupplierData) => row.id
+          getRowId: (row: SupplierData) => row.id,
+          sx: { height: 'calc(100vh - 200px)' }  // 增加表格高度
         }}
       />
 
