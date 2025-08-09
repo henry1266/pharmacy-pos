@@ -649,7 +649,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           <Box sx={{ overflow: 'auto', mt: 2 }}>
             <Box sx={{ px: 3, mb: 3 }}>
               <Typography variant="h6" component="div" sx={{ color: 'var(--text-light)', fontWeight: 600 }}>
-                {isTestMode ? '測試模式' : (user?.username ?? '興安藥局')}
+                {isTestMode ? '測試模式' : (user?.username ?? 'USER')}
               </Typography>
             </Box>
             <Divider sx={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
