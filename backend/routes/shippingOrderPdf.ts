@@ -632,10 +632,11 @@ router.get('/pdf-v3/:id', async (req: Request, res: Response) => {
 
     // Windows環境中的字體路徑
     const fontPath = path.join(process.cwd(), 'assets', 'fonts', 'NotoSansTC-Thin.ttf');
-    
+    const fontPath1 = path.join(process.cwd(), 'assets', 'fonts', 'NotoSansTC-Bold.ttf');
     try {
       // 嘗試註冊字體，如果失敗則使用默認字體
       doc.registerFont('NotoSansTC', fontPath);
+      doc.registerFont('Noto-Bold', fontPath1);
       doc.font('NotoSansTC');
     } catch (fontError) {
       console.warn('無法載入中文字體，使用默認字體:', fontError instanceof Error ? fontError.message : String(fontError));
@@ -688,7 +689,7 @@ router.get('/pdf-v3/:id', async (req: Request, res: Response) => {
     
     // 繪製表格外框
     doc.lineWidth(0.2);
-    doc.strokeColor('#c0c0c0');
+    doc.strokeColor('#666666ff');
     doc.rect(50, currentY, doc.page.width - 100, rowHeight).stroke();
     
     // 繪製表格標題
@@ -750,7 +751,7 @@ router.get('/pdf-v3/:id', async (req: Request, res: Response) => {
         currentX = 50;
         
         // 序號 - 垂直居中
-        doc.text((index + 1).toString(), currentX, currentY + (rowHeight - 10) / 2, { width: columnWidths[0], align: 'center' } as PDFTextOptions);
+        doc.font('NotoSansTC').text((index + 1).toString(), currentX, currentY + (rowHeight - 10) / 2, { width: columnWidths[0], align: 'center' } as PDFTextOptions);
         currentX += (columnWidths[0] || 30);
         
         // 繪製第一條垂直分隔線
@@ -797,7 +798,7 @@ router.get('/pdf-v3/:id', async (req: Request, res: Response) => {
         }
         
         // 數量置中對齊
-        doc.text(item.dquantity?.toString() ?? '0', currentX, currentY + (rowHeight - 10) / 2, { width: columnWidths[showPackageInfo ? 4 : 3], align: 'center' } as PDFTextOptions);
+        doc.font('Noto-Bold').text(item.dquantity?.toString() ?? '0', currentX, currentY + (rowHeight - 10) / 2, { width: columnWidths[showPackageInfo ? 4 : 3], align: 'center' } as PDFTextOptions);
         currentX += (columnWidths[showPackageInfo ? 4 : 3] || 60);
         
         // 繪製垂直分隔線
@@ -807,7 +808,7 @@ router.get('/pdf-v3/:id', async (req: Request, res: Response) => {
         
         // 單價靠右對齊，但保留右側空間
         const dprice = (item.dtotalCost ?? 0) / (item.dquantity ?? 1);
-        doc.text(formatCurrency(dprice), currentX, currentY + (rowHeight - 10) / 2, { width: (columnWidths[showPackageInfo ? 5 : 4] || 60), align: 'center' } as PDFTextOptions);
+        doc.font('NotoSansTC').text(formatCurrency(dprice), currentX, currentY + (rowHeight - 10) / 2, { width: (columnWidths[showPackageInfo ? 5 : 4] || 60), align: 'center' } as PDFTextOptions);
         currentX += (columnWidths[showPackageInfo ? 5 : 4] || 60);
         
         // 繪製垂直分隔線
@@ -817,7 +818,7 @@ router.get('/pdf-v3/:id', async (req: Request, res: Response) => {
         
         // 小計靠右對齊，但保留右側空間
         const subtotal = (item.dtotalCost ?? 0) ;
-        doc.text(formatCurrency(subtotal), currentX, currentY + (rowHeight - 10) / 2, { width: (columnWidths[showPackageInfo ? 6 : 5] || 60) - 1, align: 'center' } as PDFTextOptions);
+        doc.font('Noto-Bold').text(formatCurrency(subtotal), currentX, currentY + (rowHeight - 10) / 2, { width: (columnWidths[showPackageInfo ? 6 : 5] || 60) - 1, align: 'center' } as PDFTextOptions);
         
         currentY += rowHeight;
       });
@@ -835,7 +836,7 @@ router.get('/pdf-v3/:id', async (req: Request, res: Response) => {
     currentY += 20;
     
     // 添加金額信息
-    doc.fontSize(12).text(`總金額: ${formatCurrency(shippingOrder.totalAmount ?? 0)}`, 50, currentY,  { align: 'right' } as PDFTextOptions);
+    doc.fontSize(13).text(`總金額: ${formatCurrency(shippingOrder.totalAmount ?? 0)}`, 50, currentY,  { align: 'right' } as PDFTextOptions);
     currentY += 20;
     
     doc.moveDown(2);
