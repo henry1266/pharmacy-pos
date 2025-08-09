@@ -18,7 +18,10 @@ import {
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddIcon from '@mui/icons-material/Add';
+import HomeIcon from '@mui/icons-material/Home';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import { useNavigate } from 'react-router-dom';
+import BreadcrumbNavigation from '../components/common/BreadcrumbNavigation';
 import { DragDropContext, Draggable, DropResult } from 'react-beautiful-dnd';
 import { StrictModeDroppable } from '../components/common/StrictModeDroppable';
 import { accountingServiceV2 } from '../services/accountingServiceV2';
@@ -291,17 +294,92 @@ const AccountingCategoryPage: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="lg">
-      <Paper sx={{ p: 3, my: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-          <IconButton onClick={handleBack} sx={{ mr: 2 }}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h4">
-            記帳名目類別管理
-          </Typography>
+    <Box sx={{
+      p: { xs: 1, sm: 1, md: 1.5 },
+      height: 'calc(100vh - 120px)',
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden',
+  
+      '@media (max-width: 600px)': {
+        height: 'calc(100vh - 56px)'
+      }
+    }}>
+      <Paper sx={{
+        mb: 3,
+        bgcolor: 'background.paper',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+        position: 'relative',
+        zIndex: 1
+      }}>
+        <Box sx={{
+          p: 1.5,
+          borderBottom: 1,
+          borderColor: 'divider',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          minHeight: 48
+        }}>
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            height: '100%'
+          }}>
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              height: 44
+            }}>
+              <Box sx={{
+                '& > div': {
+                  marginBottom: 0,
+                  display: 'flex',
+                  alignItems: 'center'
+                }
+              }}>
+                <BreadcrumbNavigation
+                  items={[
+                    {
+                      label: '記帳管理',
+                      path: '/accounting',
+                      icon: <AccountBalanceWalletIcon sx={{ fontSize: '1.1rem' }} />
+                    },
+                    {
+                      label: '名目類別管理',
+                      icon: <AddIcon sx={{ fontSize: '1.1rem' }} />
+                    }
+                  ]}
+                  fontSize="0.975rem"
+                  padding={0}
+                />
+              </Box>
+            </Box>
+          </Box>
+          <Box sx={{
+            display: 'flex',
+            gap: 1,
+            alignItems: 'center',
+            height: '100%',
+            marginLeft: 'auto'
+          }}>
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<ArrowBackIcon />}
+              onClick={handleBack}
+              sx={{
+                height: 44,
+                minWidth: 110
+              }}
+            >
+              返回列表
+            </Button>
+          </Box>
         </Box>
-        
+      </Paper>
+      
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Typography variant="h5">類別列表</Typography>
           <Button
@@ -416,8 +494,8 @@ const AccountingCategoryPage: React.FC = () => {
             {snackbar.message}
           </Alert>
         </Snackbar>
-      </Paper>
-    </Container>
+      </Box>
+    </Box>
   );
 };
 
