@@ -296,16 +296,12 @@ const AccountingCategoryPage: React.FC = () => {
   return (
     <Box sx={{
       p: { xs: 1, sm: 1, md: 1.5 },
-      height: 'calc(100vh - 120px)',
       display: 'flex',
       flexDirection: 'column',
-      overflow: 'hidden',
+      overflow: 'visible',
       maxWidth: '1200px',
       margin: '0 auto',
-  
-      '@media (max-width: 600px)': {
-        height: 'calc(100vh - 56px)'
-      }
+      minHeight: '100%'
     }}>
       <Paper sx={{
         mb: 3,
@@ -331,7 +327,7 @@ const AccountingCategoryPage: React.FC = () => {
             <Box sx={{
               display: 'flex',
               alignItems: 'center',
-              height: 44
+              height: 37
             }}>
               <Box sx={{
                 '& > div': {
@@ -366,16 +362,18 @@ const AccountingCategoryPage: React.FC = () => {
             marginLeft: 'auto'
           }}>
             <Button
-              variant="contained"
+              variant="outlined"
               size="small"
               startIcon={<ArrowBackIcon />}
               onClick={handleBack}
               sx={{
-                height: 44,
-                minWidth: 110
+                height: 37,
+
+                borderColor: 'primary.main',
+                color: 'primary.main'
               }}
             >
-              返回列表
+              返回
             </Button>
             <Button
               variant="contained"
@@ -383,7 +381,7 @@ const AccountingCategoryPage: React.FC = () => {
               startIcon={<AddIcon />}
               onClick={handleOpenAddDialog}
               sx={{
-                height: 44,
+                height: 37,
                 minWidth: 110
               }}
             >
@@ -394,12 +392,10 @@ const AccountingCategoryPage: React.FC = () => {
         </Box>
       </Paper>
       
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
-        
-        <Box sx={{ p: 2, width: '100%', maxWidth: '100%', overflow: 'hidden', bgcolor: 'background.default' }}>
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ p: 2, width: '100%', maxWidth: '100%', bgcolor: 'background.default' }}>
           <Paper sx={{
             width: '100%',
-            overflow: 'hidden',
             bgcolor: 'background.paper',
             borderRadius: 1,
             border: 1,
@@ -407,116 +403,116 @@ const AccountingCategoryPage: React.FC = () => {
             boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
             p: 2
           }}>
-          {/* 拆解巢狀三元運算子為獨立條件判斷 */}
-          {loading && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-              <CircularProgress />
-            </Box>
-          )}
-          {!loading && error && (
-            <Alert severity="error">{error}</Alert>
-          )}
-          {!loading && !error && categories.length === 0 && (
-            <Typography align="center" sx={{ p: 2 }}>
-              尚無類別，請新增類別
-            </Typography>
-          )}
-          {!loading && !error && categories.length > 0 && (
-            <Box>
-              <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
-                拖動項目可調整順序。順序將影響記帳表單中的顯示順序。
+            {/* 拆解巢狀三元運算子為獨立條件判斷 */}
+            {loading && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                <CircularProgress />
+              </Box>
+            )}
+            {!loading && error && (
+              <Alert severity="error">{error}</Alert>
+            )}
+            {!loading && !error && categories.length === 0 && (
+              <Typography align="center" sx={{ p: 2 }}>
+                尚無類別，請新增類別
               </Typography>
-              <DragDropContext onDragEnd={handleDragEnd}>
-                <StrictModeDroppable droppableId="categories">
-                  {(provided) => (
-                    <List
-                      {...provided.droppableProps}
-                      ref={provided.innerRef}
-                      sx={{
-                        bgcolor: 'background.paper',
-                        borderRadius: 1,
-                        '& > div:nth-of-type(odd)': {
-                          bgcolor: 'action.hover'
-                        }
-                      }}
-                    >
-                      {categories.map((category, index) => (
-                        <Draggable
-                          key={category._id}
-                          draggableId={category._id}
-                          index={index}
-                        >
-                          {(provided) => (
-                            <CategoryListItem
-                              category={category}
-                              provided={provided}
-                              onEdit={handleEditButtonClick}
-                              onDelete={handleDeleteButtonClick}
-                              onDetail={handleDetailButtonClick}
-                            />
-                          )}
-                        </Draggable>
-                      ))}
-                      {provided.placeholder}
-                    </List>
-                  )}
-                </StrictModeDroppable>
-              </DragDropContext>
-            </Box>
-          )}
+            )}
+            {!loading && !error && categories.length > 0 && (
+              <Box>
+                <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
+                  拖動項目可調整順序。順序將影響記帳表單中的顯示順序。
+                </Typography>
+                <DragDropContext onDragEnd={handleDragEnd}>
+                  <StrictModeDroppable droppableId="categories">
+                    {(provided) => (
+                      <List
+                        {...provided.droppableProps}
+                        ref={provided.innerRef}
+                        sx={{
+                          bgcolor: 'background.paper',
+                          borderRadius: 1,
+                          '& > div:nth-of-type(odd)': {
+                            bgcolor: 'action.hover'
+                          }
+                        }}
+                      >
+                        {categories.map((category, index) => (
+                          <Draggable
+                            key={category._id}
+                            draggableId={category._id}
+                            index={index}
+                          >
+                            {(provided) => (
+                              <CategoryListItem
+                                category={category}
+                                provided={provided}
+                                onEdit={handleEditButtonClick}
+                                onDelete={handleDeleteButtonClick}
+                                onDetail={handleDetailButtonClick}
+                              />
+                            )}
+                          </Draggable>
+                        ))}
+                        {provided.placeholder}
+                      </List>
+                    )}
+                  </StrictModeDroppable>
+                </DragDropContext>
+              </Box>
+            )}
           </Paper>
-        
-          {/* 新增/編輯對話框 */}
-          <Dialog open={openDialog} onClose={handleCloseDialog}>
-            <DialogTitle>
-              {dialogMode === 'add' ? '新增類別' : '編輯類別'}
-            </DialogTitle>
-            <DialogContent>
-              <TextField
-                autoFocus
-                margin="dense"
-                name="name"
-                label="名稱"
-                type="text"
-                fullWidth
-                value={currentCategory.name}
-                onChange={handleDialogInputChange}
-                required
-              />
-              <TextField
-                margin="dense"
-                name="description"
-                label="描述"
-                type="text"
-                fullWidth
-                value={currentCategory.description}
-                onChange={handleDialogInputChange}
-              />
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleCloseDialog}>取消</Button>
-              <Button onClick={handleDialogSubmit} color="primary">
-                {dialogMode === 'add' ? '新增' : '更新'}
-              </Button>
-            </DialogActions>
-          </Dialog>
-        
-          {/* 提示訊息 */}
-          <Snackbar
-            open={snackbar.open}
-            autoHideDuration={6000}
-            onClose={handleCloseSnackbar}
-          >
-            <Alert
-              onClose={handleCloseSnackbar}
-              severity={snackbar.severity}
-              sx={{ width: '100%' }}
-            >
-              {snackbar.message}
-            </Alert>
-          </Snackbar>
         </Box>
       </Box>
+
+      {/* 新增/編輯對話框 */}
+      <Dialog open={openDialog} onClose={handleCloseDialog}>
+        <DialogTitle>
+          {dialogMode === 'add' ? '新增類別' : '編輯類別'}
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            name="name"
+            label="名稱"
+            type="text"
+            fullWidth
+            value={currentCategory.name}
+            onChange={handleDialogInputChange}
+            required
+          />
+          <TextField
+            margin="dense"
+            name="description"
+            label="描述"
+            type="text"
+            fullWidth
+            value={currentCategory.description}
+            onChange={handleDialogInputChange}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>取消</Button>
+          <Button onClick={handleDialogSubmit} color="primary">
+            {dialogMode === 'add' ? '新增' : '更新'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    
+      {/* 提示訊息 */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
