@@ -7,6 +7,8 @@ import {
   CircularProgress
 } from '@mui/material';
 import DataTable from '../tables/DataTable'; // Assuming DataTable is in ./tables/
+import PageHeaderSection from './PageHeaderSection';
+import HomeIcon from '@mui/icons-material/Home';
 
 // 直接使用 MuiGrid
 const Grid = MuiGrid;
@@ -54,13 +56,21 @@ const CommonListPageLayout: React.FC<CommonListPageLayoutProps> = ({
 }) => {
   return (
     <Box sx={{ maxWidth: '100%', pl: 0 }}>
-      {/* Header: Title and Action Buttons */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" component="h1">
-          {title}
-        </Typography>
-        {actionButtons && <Box>{actionButtons}</Box>}
-      </Box>
+      {/* Header: Title and Action Buttons using PageHeaderSection */}
+      <PageHeaderSection
+        breadcrumbItems={[
+          {
+            label: '首頁',
+            path: '/',
+            icon: <HomeIcon sx={{ fontSize: '1.1rem' }} />
+          },
+          {
+            label: title,
+            icon: null
+          }
+        ]}
+        actions={actionButtons}
+      />
 
       {/* Error Message */}
       {error && (

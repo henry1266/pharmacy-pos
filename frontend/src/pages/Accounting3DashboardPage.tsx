@@ -135,13 +135,10 @@ export const Accounting3DashboardPage: React.FC = () => {
       <Box sx={{ mb: 4 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
           <AccountBalanceIcon sx={{ fontSize: 40, color: 'primary.main' }} />
-          <Typography variant="h3" component="h1" fontWeight="bold">
+          <Typography variant="h4" component="h1" fontWeight="bold">
             會計管理系統
           </Typography>
         </Box>
-        <Typography variant="h6" color="text.secondary">
-          歡迎使用會計管理系統，這裡是您的財務管理中心
-        </Typography>
       </Box>
 
       {/* 錯誤提示 */}
@@ -157,85 +154,6 @@ export const Accounting3DashboardPage: React.FC = () => {
           <LinearProgress />
         </Box>
       )}
-
-      {/* 統計卡片區域 */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        {/* 總交易數 */}
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ height: '100%', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Box>
-                  <Typography variant="h4" fontWeight="bold">
-                    {stats.totalTransactions}
-                  </Typography>
-                  <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                    總交易數
-                  </Typography>
-                </Box>
-                <ReceiptIcon sx={{ fontSize: 48, opacity: 0.8 }} />
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* 本月交易 */}
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ height: '100%', background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', color: 'white' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Box>
-                  <Typography variant="h4" fontWeight="bold">
-                    {stats.thisMonthTransactions}
-                  </Typography>
-                  <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                    本月交易
-                  </Typography>
-                </Box>
-                <DateRangeIcon sx={{ fontSize: 48, opacity: 0.8 }} />
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* 總金額 */}
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ height: '100%', background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: 'white' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Box>
-                  <Typography variant="h5" fontWeight="bold">
-                    {formatAmount(stats.totalDebitAmount)}
-                  </Typography>
-                  <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                    總交易金額
-                  </Typography>
-                </Box>
-                <AttachMoneyIcon sx={{ fontSize: 48, opacity: 0.8 }} />
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* 會計科目數 */}
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ height: '100%', background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', color: 'white' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Box>
-                  <Typography variant="h4" fontWeight="bold">
-                    {stats.totalAccounts}
-                  </Typography>
-                  <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                    會計科目
-                  </Typography>
-                </Box>
-                <AccountTreeIcon sx={{ fontSize: 48, opacity: 0.8 }} />
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
 
       {/* 主要功能區域 */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
