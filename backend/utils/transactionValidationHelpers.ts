@@ -62,9 +62,9 @@ export const findAndValidateTransactionGroup = async (
   res: express.Response
 ): Promise<any | null> => {
   try {
+    // 移除 createdBy: userId 條件，讓所有人都能共用資料
     const transactionGroup = await TransactionGroupWithEntries.findOne({
-      _id: id,
-      createdBy: userId
+      _id: id
     });
 
     if (!transactionGroup) {
@@ -174,9 +174,9 @@ export const buildQueryFilter = (
   } = query;
 
   // 建立基本查詢條件
-  const filter: any = {
-    createdBy: userId
-  };
+    const filter: any = {
+      // 移除 createdBy: userId 條件，讓所有人都能共用資料
+    };
 
   // 機構過濾
   if (organizationId && organizationId !== 'undefined' && organizationId !== '') {

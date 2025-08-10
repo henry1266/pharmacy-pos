@@ -95,16 +95,16 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
     const userId = validateUserAuth(req, res);
     if (!userId) return;
 
-    console.log('🔍 GET /transaction-groups-with-entries - 查詢參數:', {
-      ...req.query,
-      userId
-    });
+    //console.log('🔍 GET /transaction-groups-with-entries - 查詢參數:', {
+      //...req.query,
+      //userId
+    //});
 
     // 建立查詢條件和分頁參數
     const filter = buildQueryFilter(userId, req.query);
     const { pageNum, limitNum, skip } = buildPaginationParams(req.query);
 
-    console.log('📋 最終查詢條件:', filter);
+    //console.log('📋 最終查詢條件:', filter);
 
     // 執行查詢 - 使用分頁參數限制返回數據筆數
     const [transactionGroups, total] = await Promise.all([
@@ -118,7 +118,7 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
       TransactionGroupWithEntries.countDocuments(filter)
     ]);
 
-    console.log('📊 查詢結果數量:', transactionGroups.length, '/', total, `(分頁: ${pageNum}/${Math.ceil(total/limitNum)}, 每頁 ${limitNum} 筆)`);
+    //console.log('📊 查詢結果數量:', transactionGroups.length, '/', total, `(分頁: ${pageNum}/${Math.ceil(total/limitNum)}, 每頁 ${limitNum} 筆)`);
 
     // 格式化交易群組列表
     const formattedTransactionGroups = await formatTransactionGroupsList(transactionGroups, userId);
@@ -145,9 +145,9 @@ router.get('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
       return;
     }
 
+    // 移除 createdBy: userId 條件，讓所有人都能共用資料
     const transactionGroup = await TransactionGroupWithEntries.findOne({
-      _id: id,
-      createdBy: userId
+      _id: id
     })
     .populate('entries.accountId', 'name code accountType normalBalance')
     .populate('entries.categoryId', 'name type color')
@@ -164,7 +164,7 @@ router.get('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
     
     // 處理資金來源資訊
     if (transactionGroupObj.linkedTransactionIds && transactionGroupObj.linkedTransactionIds.length > 0) {
-      console.log('🔍 GET /:id - 處理資金來源資訊，linkedTransactionIds:', transactionGroupObj.linkedTransactionIds);
+      //console.log('🔍 GET /:id - 處理資金來源資訊，linkedTransactionIds:', transactionGroupObj.linkedTransactionIds);
       
       responseData.fundingSourcesInfo = await Promise.all(
         transactionGroupObj.linkedTransactionIds.map((linkedTx: any) =>
@@ -172,14 +172,14 @@ router.get('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
         )
       );
       
-      console.log('🎯 GET /:id - 最終資金來源資訊:', responseData.fundingSourcesInfo);
+      //console.log('🎯 GET /:id - 最終資金來源資訊:', responseData.fundingSourcesInfo);
     } else {
-      console.log('ℹ️ GET /:id - 沒有資金來源需要處理');
+      //console.log('ℹ️ GET /:id - 沒有資金來源需要處理');
       responseData.fundingSourcesInfo = [];
     }
 
     // 查詢被引用情況
-    console.log('🔍 GET /:id - 查詢被引用情況');
+    //console.log('🔍 GET /:id - 查詢被引用情況');
     responseData.referencedByInfo = await getReferencedByInfo(transactionGroup._id, userId);
 
     console.log('🎯 GET /:id - 被引用情況:', {
@@ -244,7 +244,7 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
     }
 
     // 驗證借貸平衡
-    console.log('🔍 [Backend] 開始驗證借貸平衡...');
+    //console.log('🔍 [Backend] 開始驗證借貸平衡...');
     const balanceValidation = DoubleEntryValidator.validateDebitCreditBalance(entries);
     console.log('📊 [Backend] 借貸平衡驗證結果:', {
       isBalanced: balanceValidation.isBalanced,
@@ -259,7 +259,7 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
       return;
     }
     
-    console.log('✅ [Backend] 借貸平衡驗證通過');
+    //console.log('✅ [Backend] 借貸平衡驗證通過');
 
     // 計算交易總金額
     const totalAmount = calculateTotalAmount(entries);
@@ -272,7 +272,7 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
     }
 
     // 生成交易群組編號
-    console.log('🔍 [Backend] 生成交易群組編號...');
+    //console.log('🔍 [Backend] 生成交易群組編號...');
     let groupNumber: string;
     try {
       groupNumber = await generateGroupNumber();
@@ -300,7 +300,7 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
 
     // 處理精確資金來源使用追蹤
     if (req.body.fundingSourceUsages && Array.isArray(req.body.fundingSourceUsages)) {
-      console.log('🔍 處理精確資金來源使用明細:', req.body.fundingSourceUsages);
+      //console.log('🔍 處理精確資金來源使用明細:', req.body.fundingSourceUsages);
       
       transactionGroupData.fundingSourceUsages = req.body.fundingSourceUsages.map((usage: any) => ({
         sourceTransactionId: new mongoose.Types.ObjectId(usage.sourceTransactionId),
@@ -308,20 +308,20 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
         description: usage.description || ''
       }));
       
-      console.log('✅ 設定精確資金使用明細:', transactionGroupData.fundingSourceUsages);
+      //console.log('✅ 設定精確資金使用明細:', transactionGroupData.fundingSourceUsages);
     } else if (linkedTransactionIds && linkedTransactionIds.length > 0) {
       // 自動計算按比例分配
       const fundingSourceUsages = await calculateProportionalFundingUsage(linkedTransactionIds, totalAmount, userId);
       transactionGroupData.fundingSourceUsages = fundingSourceUsages;
     }
     
-    console.log('📝 建立交易群組資料:', transactionGroupData);
+    //console.log('📝 建立交易群組資料:', transactionGroupData);
 
     // 建立交易群組（包含內嵌分錄）
     const newTransactionGroup = new TransactionGroupWithEntries(transactionGroupData);
     const savedTransactionGroup = await newTransactionGroup.save();
 
-    console.log('✅ 交易群組建立成功:', savedTransactionGroup._id);
+    //console.log('✅ 交易群組建立成功:', savedTransactionGroup._id);
 
     sendSuccessResponse(res, savedTransactionGroup, '交易群組建立成功', 201);
 
@@ -432,7 +432,7 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
     )
     .populate('linkedTransactionIds', 'groupNumber description transactionDate totalAmount fundingType status createdAt updatedAt');
 
-    console.log('✅ 交易群組更新成功:', updatedTransactionGroup?._id);
+    //console.log('✅ 交易群組更新成功:', updatedTransactionGroup?._id);
 
     // 重新格式化資金來源資訊
     let responseData: any = updatedTransactionGroup?.toObject();
@@ -446,7 +446,7 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
         )
       );
       
-      console.log('🎯 更新後最終資金來源資訊:', responseData.fundingSourcesInfo);
+      //console.log('🎯 更新後最終資金來源資訊:', responseData.fundingSourcesInfo);
     }
 
     sendSuccessResponse(res, responseData || updatedTransactionGroup, '交易群組更新成功');
@@ -463,7 +463,7 @@ router.post('/:id/confirm', auth, async (req: AuthenticatedRequest, res: express
     if (!userId) return;
 
     const { id } = req.params;
-    console.log('🔍 POST /transaction-groups-with-entries/:id/confirm - 確認交易:', { id, userId });
+    //console.log('🔍 POST /transaction-groups-with-entries/:id/confirm - 確認交易:', { id, userId });
 
     // 查詢並驗證交易群組
     const transactionGroup = await findAndValidateTransactionGroup(id, userId, res);
@@ -486,7 +486,7 @@ router.post('/:id/confirm', auth, async (req: AuthenticatedRequest, res: express
       { new: true, runValidators: true }
     );
 
-    console.log('✅ 交易確認成功:', confirmedTransactionGroup?._id);
+    //console.log('✅ 交易確認成功:', confirmedTransactionGroup?._id);
     sendSuccessResponse(res, confirmedTransactionGroup, '交易確認成功');
 
   } catch (error) {
@@ -501,7 +501,7 @@ router.post('/:id/unlock', auth, async (req: AuthenticatedRequest, res: express.
     if (!userId) return;
 
     const { id } = req.params;
-    console.log('🔍 POST /transaction-groups-with-entries/:id/unlock - 解鎖交易:', { id, userId });
+    //console.log('🔍 POST /transaction-groups-with-entries/:id/unlock - 解鎖交易:', { id, userId });
 
     // 查詢並驗證交易群組
     const transactionGroup = await findAndValidateTransactionGroup(id, userId, res);
@@ -517,7 +517,7 @@ router.post('/:id/unlock', auth, async (req: AuthenticatedRequest, res: express.
       { new: true, runValidators: true }
     );
 
-    console.log('🔓 交易解鎖成功:', unlockedTransactionGroup?._id);
+    //console.log('🔓 交易解鎖成功:', unlockedTransactionGroup?._id);
     sendSuccessResponse(res, unlockedTransactionGroup, '交易解鎖成功，已回到草稿狀態');
 
   } catch (error) {
@@ -532,7 +532,7 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: express.Respo
     if (!userId) return;
 
     const { id } = req.params;
-    console.log('🔍 DELETE /transaction-groups-with-entries/:id - 刪除交易群組:', { id, userId });
+    //console.log('🔍 DELETE /transaction-groups-with-entries/:id - 刪除交易群組:', { id, userId });
 
     // 查詢並驗證交易群組
     const transactionGroup = await findAndValidateTransactionGroup(id, userId, res);
@@ -544,7 +544,7 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: express.Respo
     // 刪除交易群組（內嵌分錄會自動一起刪除）
     await TransactionGroupWithEntries.findByIdAndDelete(id);
 
-    console.log('🗑️ 交易群組已刪除（包含內嵌分錄）');
+    //console.log('🗑️ 交易群組已刪除（包含內嵌分錄）');
     sendSuccessResponse(res, null, '交易群組刪除成功');
 
   } catch (error) {
@@ -563,15 +563,15 @@ router.get('/funding/available-sources', auth, async (req: AuthenticatedRequest,
 
     const { organizationId, minAmount = 0 } = req.query;
 
-    console.log('🔍 GET /transaction-groups-with-entries/funding-sources/available - 查詢可用資金來源:', {
-      organizationId,
-      minAmount,
-      userId
-    });
+    //console.log('🔍 GET /transaction-groups-with-entries/funding-sources/available - 查詢可用資金來源:', {
+      //organizationId,
+      //minAmount,
+      //userId
+    //});
 
     // 建立查詢條件
     const filter: any = {
-      createdBy: userId,
+      // 移除 createdBy: userId 條件，讓所有人都能共用資料
       status: 'confirmed', // 只有已確認的交易才能作為資金來源
       fundingType: { $in: ['original', 'extended'] }, // 原始資金或延伸使用的資金
       totalAmount: { $gt: parseFloat(minAmount as string) } // 金額大於最小要求
@@ -593,8 +593,8 @@ router.get('/funding/available-sources', auth, async (req: AuthenticatedRequest,
         // 查找所有使用此資金來源的交易
         const linkedTransactions = await TransactionGroupWithEntries.find({
           linkedTransactionIds: source._id,
-          status: { $ne: 'cancelled' },
-          createdBy: userId
+          status: { $ne: 'cancelled' }
+          // 移除 createdBy: userId 條件，讓所有人都能共用資料
         }).populate('linkedTransactionIds', 'totalAmount');
 
         // 🆕 按比例分配計算已使用金額
@@ -616,13 +616,13 @@ router.get('/funding/available-sources', auth, async (req: AuthenticatedRequest,
               const allocatedAmount = (tx.totalAmount || 0) * sourceRatio;
               totalUsedAmount += allocatedAmount;
               
-              console.log(`💰 資金來源 ${source.groupNumber} 在交易 ${tx.groupNumber} 中的分配:`, {
-                sourceAmount: source.totalAmount,
-                totalSourceAmount,
-                sourceRatio: sourceRatio.toFixed(4),
-                transactionAmount: tx.totalAmount,
-                allocatedAmount: allocatedAmount.toFixed(2)
-              });
+              //console.log(`💰 資金來源 ${source.groupNumber} 在交易 ${tx.groupNumber} 中的分配:`, {
+                //sourceAmount: source.totalAmount,
+                //totalSourceAmount,
+                //sourceRatio: sourceRatio.toFixed(4),
+                //transactionAmount: tx.totalAmount,
+                //allocatedAmount: allocatedAmount.toFixed(2)
+              //});
             }
           } else {
             // 如果沒有多個資金來源，使用完整金額
@@ -686,12 +686,12 @@ router.get('/:id/funding-flow', auth, async (req: AuthenticatedRequest, res: exp
       return;
     }
 
-    console.log('🔍 GET /transaction-groups-with-entries/:id/funding-flow - 查詢資金流向:', { id, userId });
+    //console.log('🔍 GET /transaction-groups-with-entries/:id/funding-flow - 查詢資金流向:', { id, userId });
 
     // 檢查交易群組是否存在
     const transactionGroup = await TransactionGroupWithEntries.findOne({
-      _id: id,
-      createdBy: userId
+      _id: id
+      // 移除 createdBy: userId 條件，讓所有人都能共用資料
     });
 
     if (!transactionGroup) {
@@ -743,8 +743,8 @@ router.get('/:id/funding-flow', auth, async (req: AuthenticatedRequest, res: exp
 
     // 查找所有使用此交易作為資金來源的交易
     const linkedTransactions = await TransactionGroupWithEntries.find({
-      linkedTransactionIds: transactionGroup._id,
-      createdBy: userId
+      linkedTransactionIds: transactionGroup._id
+      // 移除 createdBy: userId 條件，讓所有人都能共用資料
     }).sort({ transactionDate: 1, createdAt: 1 });
 
     fundingFlow.linkedTransactions = linkedTransactions.map(tx => ({
@@ -788,11 +788,11 @@ router.post('/funding-sources/validate', auth, async (req: AuthenticatedRequest,
 
     const { sourceTransactionIds, requiredAmount } = req.body;
 
-    console.log('🔍 POST /transaction-groups-with-entries/funding-sources/validate - 驗證資金來源:', {
-      sourceTransactionIds,
-      requiredAmount,
-      userId
-    });
+    //console.log('🔍 POST /transaction-groups-with-entries/funding-sources/validate - 驗證資金來源:', {
+      //sourceTransactionIds,
+      //requiredAmount,
+      //userId
+    //});
 
     if (!sourceTransactionIds || !Array.isArray(sourceTransactionIds) || sourceTransactionIds.length === 0) {
       res.status(400).json({
@@ -808,7 +808,7 @@ router.post('/funding-sources/validate', auth, async (req: AuthenticatedRequest,
           // 檢查資金來源是否存在且已確認
           const sourceTransaction = await TransactionGroupWithEntries.findOne({
             _id: sourceId,
-            createdBy: userId,
+            // 移除 createdBy: userId 條件，讓所有人都能共用資料
             status: 'confirmed'
           });
 
@@ -823,8 +823,8 @@ router.post('/funding-sources/validate', auth, async (req: AuthenticatedRequest,
           // 計算已使用金額
           const linkedTransactions = await TransactionGroupWithEntries.find({
             linkedTransactionIds: sourceId,
-            status: { $ne: 'cancelled' },
-            createdBy: userId
+            status: { $ne: 'cancelled' }
+            // 移除 createdBy: userId 條件，讓所有人都能共用資料
           });
 
           const usedAmount = linkedTransactions.reduce((sum, tx) => sum + (tx.totalAmount || 0), 0);

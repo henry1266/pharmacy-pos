@@ -49,7 +49,7 @@ const validateObjectId = (id: string, fieldName: string): mongoose.Types.ObjectI
 // 輔助函數：建立查詢過濾條件
 const buildQueryFilter = (userId: string, organizationId?: string): any => {
   const filter: any = {
-    createdBy: userId,
+    // 移除 createdBy 條件，讓所有人都能共用資料
     isActive: true
   };
   
@@ -64,7 +64,7 @@ const buildQueryFilter = (userId: string, organizationId?: string): any => {
 const buildDuplicateFilter = (userId: string, name: string, organizationId?: string, excludeId?: string): any => {
   const filter: any = {
     name,
-    createdBy: userId,
+    // 移除 createdBy 條件，讓所有人都能共用資料
     isActive: true
   };
   
@@ -195,8 +195,8 @@ router.get('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
     }
 
     const account = await Account2.findOne({
-      _id: id,
-      createdBy: userId
+      _id: id
+      // 移除 createdBy 條件，讓所有人都能共用資料
     });
 
     if (!account) {
@@ -353,6 +353,7 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response):
       initialBalance,
       currency: currency || 'TWD',
       description,
+      // 保留 createdBy 欄位以記錄創建者，但不用於查詢限制
       createdBy: userId
     };
     
@@ -441,8 +442,8 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
 
     // 檢查帳戶是否存在
     const account = await Account2.findOne({
-      _id: id,
-      createdBy: userId
+      _id: id
+      // 移除 createdBy 條件，讓所有人都能共用資料
     });
 
     if (!account) {
@@ -541,8 +542,8 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: express.Respo
     console.log('🗑️ 開始刪除科目:', { id, userId });
 
     const account = await Account2.findOne({
-      _id: id,
-      createdBy: userId
+      _id: id
+      // 移除 createdBy 條件，讓所有人都能共用資料
     });
 
     if (!account) {
@@ -568,7 +569,7 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: express.Respo
     // 檢查是否有子科目
     const childAccounts = await Account2.find({
       parentId: id,
-      createdBy: userId,
+      // 移除 createdBy 條件，讓所有人都能共用資料
       isActive: true
     });
 
@@ -643,7 +644,7 @@ router.get('/:id/balance', auth, async (req: AuthenticatedRequest, res: express.
 
     const account = await Account2.findOne({
       _id: id,
-      createdBy: userId,
+      // 移除 createdBy 條件，讓所有人都能共用資料
       isActive: true
     });
 
@@ -682,7 +683,7 @@ router.put('/:id/balance', auth, async (req: AuthenticatedRequest, res: express.
 
     const account = await Account2.findOne({
       _id: id,
-      createdBy: userId,
+      // 移除 createdBy 條件，讓所有人都能共用資料
       isActive: true
     });
 
@@ -753,15 +754,15 @@ router.get('/tree/hierarchy', auth, async (req: AuthenticatedRequest, res: expre
             return count + 1 + (child.statistics?.descendantCount || 0);
           }, 0);
           
-          console.log(`🌳 建立樹狀節點 "${account.name}":`, {
-            ID: (account._id as any).toString(),
-            parentId: account.parentId?.toString() || null,
-            子節點數: childNodes.length,
-            子節點名稱: childNodes.map(child => child.name),
-            自身金額: accountObj.balance || 0,
-            子科目總金額: totalBalance - (accountObj.balance || 0),
-            統計總金額: totalBalance
-          });
+          //console.log(`🌳 建立樹狀節點 "${account.name}":`, {
+            //ID: (account._id as any).toString(),
+            //parentId: account.parentId?.toString() || null,
+            //子節點數: childNodes.length,
+            //子節點名稱: childNodes.map(child => child.name),
+            //自身金額: accountObj.balance || 0,
+            //子科目總金額: totalBalance - (accountObj.balance || 0),
+            //統計總金額: totalBalance
+          //});
           
           return {
             ...accountObj,
@@ -784,15 +785,15 @@ router.get('/tree/hierarchy', auth, async (req: AuthenticatedRequest, res: expre
 
     const tree = buildTree(accounts);
     
-    console.log('🌳 最終樹狀結構:', {
-      根節點數: tree.length,
-      根節點詳情: tree.map((node: any) => ({
-        名稱: node.name,
-        hasChildren: node.hasChildren,
-        子節點數: node.children?.length || 0,
-        子節點名稱: node.children?.map((child: any) => child.name) || []
-      }))
-    });
+    //console.log('🌳 最終樹狀結構:', {
+      //根節點數: tree.length,
+      //根節點詳情: tree.map((node: any) => ({
+        //名稱: node.name,
+        //hasChildren: node.hasChildren,
+        //子節點數: node.children?.length || 0,
+        //子節點名稱: node.children?.map((child: any) => child.name) || []
+      //}))
+    //});
 
     res.json(createSuccessResponse(tree));
   } catch (error) {
@@ -811,7 +812,7 @@ router.get('/by-type/:accountType', auth, async (req: AuthenticatedRequest, res:
     const filter = buildQueryFilter(userId, organizationId as string);
     filter.accountType = accountType;
     
-    console.log('📂 依類型查詢機構帳戶:', { accountType, organizationId });
+    //console.log('📂 依類型查詢機構帳戶:', { accountType, organizationId });
 
     const accounts = await Account2.find(filter).sort({ code: 1 });
 
@@ -876,7 +877,7 @@ router.post('/setup/standard-chart', auth, async (req: AuthenticatedRequest, res
       // 檢查科目是否已存在
       const existingAccount = await Account2.findOne({
         code: accountData.code,
-        createdBy: userId,
+        // 移除 createdBy 條件，讓所有人都能共用資料
         ...(organizationId ? { organizationId: new mongoose.Types.ObjectId(organizationId) } : {})
       });
 
