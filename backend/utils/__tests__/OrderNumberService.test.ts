@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import OrderNumberService from './OrderNumberService';
+import OrderNumberService from '../OrderNumberService';
 
 // 模擬 mongoose.model
 jest.mock('mongoose', () => {

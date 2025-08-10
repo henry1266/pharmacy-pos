@@ -1,6 +1,7 @@
 /**
  * 交易資料轉換工具 - 純函數，前後端共用
  */
+import { businessLogger } from './logger';
 
 export interface BackendTransactionData {
   transactionGroup?: any;
@@ -35,7 +36,7 @@ export class TransactionDataConverter {
    */
   static convertBackendToStandard(backendData: BackendTransactionData): Partial<StandardTransactionData> {
     if (!backendData) {
-      console.warn('⚠️ convertBackendToStandard: 收到空的後端資料');
+      businessLogger.warn('convertBackendToStandard: 收到空的後端資料');
       return {};
     }
 
@@ -43,7 +44,7 @@ export class TransactionDataConverter {
     const transactionData = backendData.transactionGroup || backendData;
     const entriesData = backendData.entries || [];
 
-    console.log('🔍 convertBackendToStandard - 處理資料:', {
+    businessLogger.debug('convertBackendToStandard - 處理資料', {
       hasTransactionData: !!transactionData,
       description: transactionData?.description,
       transactionDate: transactionData?.transactionDate,
@@ -69,7 +70,7 @@ export class TransactionDataConverter {
       fundingType: transactionData.fundingType || 'original'
     };
 
-    console.log('✅ convertBackendToStandard - 轉換結果:', {
+    businessLogger.info('convertBackendToStandard - 轉換結果', {
       description: result.description,
       transactionDate: result.transactionDate,
       organizationId: result.organizationId,
@@ -79,7 +80,7 @@ export class TransactionDataConverter {
 
     // 驗證轉換結果
     if (!this.validateConversionResult(result)) {
-      console.error('❌ 轉換結果驗證失敗:', result);
+      businessLogger.error('轉換結果驗證失敗', result);
       return {};
     }
 
@@ -158,7 +159,7 @@ export class TransactionDataConverter {
    * 安全地轉換日期
    */
   static safeDateConvert(dateValue: any): Date {
-    console.log('🔍 safeDateConvert - 輸入值:', {
+    businessLogger.debug('safeDateConvert - 輸入值', {
       dateValue,
       type: typeof dateValue,
       isObject: typeof dateValue === 'object',
@@ -167,46 +168,46 @@ export class TransactionDataConverter {
     });
 
     if (!dateValue) {
-      console.log('⚠️ safeDateConvert - 空值，使用今天日期');
+      businessLogger.warn('safeDateConvert - 空值，使用今天日期');
       return new Date();
     }
 
     try {
       // 處理 MongoDB 的日期格式 { $date: "..." }
       if (typeof dateValue === 'object' && dateValue.$date) {
-        console.log('🔍 safeDateConvert - 處理 MongoDB 格式:', dateValue.$date);
+        businessLogger.debug('safeDateConvert - 處理 MongoDB 格式', { date: dateValue.$date });
         const converted = new Date(dateValue.$date);
         const isValid = !isNaN(converted.getTime());
-        console.log('✅ safeDateConvert - MongoDB 轉換結果:', { converted, isValid });
+        businessLogger.info('safeDateConvert - MongoDB 轉換結果', { converted, isValid });
         return isValid ? converted : new Date();
       }
       
       // 處理 ISO 字串格式
       if (typeof dateValue === 'string') {
-        console.log('🔍 safeDateConvert - 處理字串格式:', dateValue);
+        businessLogger.debug('safeDateConvert - 處理字串格式', { dateValue });
         const converted = new Date(dateValue);
         const isValid = !isNaN(converted.getTime());
-        console.log('✅ safeDateConvert - 字串轉換結果:', { converted, isValid });
+        businessLogger.info('safeDateConvert - 字串轉換結果', { converted, isValid });
         return isValid ? converted : new Date();
       }
       
       // 處理 Date 物件
       if (dateValue instanceof Date) {
-        console.log('🔍 safeDateConvert - 已是 Date 物件:', dateValue);
+        businessLogger.debug('safeDateConvert - 已是 Date 物件', { dateValue });
         const isValid = !isNaN(dateValue.getTime());
-        console.log('✅ safeDateConvert - Date 物件驗證:', { dateValue, isValid });
+        businessLogger.info('safeDateConvert - Date 物件驗證', { dateValue, isValid });
         return isValid ? dateValue : new Date();
       }
       
       // 處理一般格式
-      console.log('🔍 safeDateConvert - 處理一般格式:', dateValue);
+      businessLogger.debug('safeDateConvert - 處理一般格式', { dateValue });
       const converted = new Date(dateValue);
       const isValid = !isNaN(converted.getTime());
-      console.log('✅ safeDateConvert - 一般轉換結果:', { converted, isValid });
+      businessLogger.info('safeDateConvert - 一般轉換結果', { converted, isValid });
       return isValid ? converted : new Date();
       
     } catch (error) {
-      console.warn('❌ safeDateConvert - 轉換失敗，使用今天日期:', error, dateValue);
+      businessLogger.error('safeDateConvert - 轉換失敗，使用今天日期', { error, dateValue });
       return new Date();
     }
   }
