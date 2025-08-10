@@ -202,8 +202,8 @@ const SalesNew2Page: FC = () => {
       // Simulate save for test mode
       console.log("Test Mode: Simulating save sale with data:", currentSale);
       
-      // 模擬銷貨單號生成
-      const mockSaleNumber = `TEST${Date.now().toString().slice(-8)}`;
+      // 如果用戶輸入了銷貨單號，使用用戶輸入的內容；否則模擬生成
+      const mockSaleNumber = currentSale.saleNumber || `TEST${Date.now().toString().slice(-8)}`;
       const saleData = {
         totalAmount: currentSale.totalAmount,
         saleNumber: mockSaleNumber
@@ -217,10 +217,12 @@ const SalesNew2Page: FC = () => {
     
     const success = await handleSaveSaleHook();
     if (success) {
-      // 實際模式下也需要傳遞銷售數據來觸發特效
+      // 實際模式下使用後端返回的銷貨單號來觸發特效
+      // 注意：handleSaveSaleHook 已經處理了銷貨單號的邏輯，
+      // 如果用戶輸入了銷貨單號，會使用用戶輸入的內容
       const saleData = {
         totalAmount: currentSale.totalAmount,
-        saleNumber: currentSale.saleNumber || `SALE${Date.now().toString().slice(-8)}`
+        saleNumber: currentSale.saleNumber || '' // 如果沒有用戶輸入，使用空字串，後端會自動生成
       };
       handleSaleCompleted(saleData);
     }

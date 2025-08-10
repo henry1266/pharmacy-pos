@@ -786,8 +786,13 @@ async function createSaleRecord(requestBody: SaleCreationRequest): Promise<SaleD
 
 // 生成銷貨單號
 async function generateSaleNumber(saleNumber?: string): Promise<string> {
-  // 不再使用前端提供的 saleNumber，一律由後端生成
-  logger.debug(`前端提供的銷貨單號: "${saleNumber}" (將被忽略)`);
+  // 如果前端提供了銷貨單號，就使用它
+  if (saleNumber && saleNumber.trim() !== '') {
+    logger.debug(`使用前端提供的銷貨單號: "${saleNumber}"`);
+    return saleNumber.trim();
+  }
+
+  logger.debug(`前端未提供銷貨單號，將由後端生成`);
 
   // 使用通用訂單單號生成服務
   const generatedNumber = await OrderNumberService.generateSaleOrderNumber();
