@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { FundingService } from '../../services/accounting2/FundingService';
 import { ValidationService } from '../../services/accounting2/ValidationService';
+import logger from '../../utils/logger';
 
 // 擴展 Request 介面以支援 user 屬性
 interface AuthenticatedRequest extends Request {
@@ -48,7 +49,7 @@ export class FundingController {
         req.body.organizationId
       );
       
-      console.log(`✅ 資金使用追蹤成功: ${transactionId} -> ${fundingSourceId}`);
+      logger.info('資金使用追蹤成功', { transactionId, fundingSourceId });
       
       res.status(201).json({
         success: true,
@@ -56,7 +57,7 @@ export class FundingController {
         data: result
       });
     } catch (error) {
-      console.error('追蹤資金使用錯誤:', error);
+      logger.error('追蹤資金使用錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '追蹤資金使用失敗'
@@ -109,7 +110,7 @@ export class FundingController {
         data: fundingSources
       });
     } catch (error) {
-      console.error('取得資金來源列表錯誤:', error);
+      logger.error('取得資金來源列表錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '取得資金來源列表失敗'
@@ -155,7 +156,7 @@ export class FundingController {
         data: analysis
       });
     } catch (error) {
-      console.error('分析資金流向錯誤:', error);
+      logger.error('分析資金流向錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '分析資金流向失敗'
@@ -199,7 +200,7 @@ export class FundingController {
         data: validation
       });
     } catch (error) {
-      console.error('驗證資金分配錯誤:', error);
+      logger.error('驗證資金分配錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '驗證資金分配失敗'
@@ -255,7 +256,7 @@ export class FundingController {
         data: statistics
       });
     } catch (error) {
-      console.error('取得資金使用統計錯誤:', error);
+      logger.error('取得資金使用統計錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '取得資金使用統計失敗'
@@ -308,7 +309,7 @@ export class FundingController {
         data: fundingSource
       });
     } catch (error) {
-      console.error('取得資金來源詳細資訊錯誤:', error);
+      logger.error('取得資金來源詳細資訊錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '取得資金來源詳細資訊失敗'
@@ -390,9 +391,9 @@ export class FundingController {
         });
       }
       
-      console.log(`📤 資金使用報告匯出完成: ${report.usageHistory.length} 筆記錄`);
+      logger.info('資金使用報告匯出完成', { recordCount: report.usageHistory.length });
     } catch (error) {
-      console.error('匯出資金使用報告錯誤:', error);
+      logger.error('匯出資金使用報告錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '匯出資金使用報告失敗'
@@ -439,7 +440,7 @@ export class FundingController {
         isActive: true
       };
       
-      console.log(`✅ 資金來源建立成功: ${fundingSource.name}`);
+      logger.info('資金來源建立成功', { name: fundingSource.name });
       
       res.status(201).json({
         success: true,
@@ -447,7 +448,7 @@ export class FundingController {
         data: fundingSource
       });
     } catch (error) {
-      console.error('建立資金來源錯誤:', error);
+      logger.error('建立資金來源錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '建立資金來源失敗'
@@ -489,7 +490,7 @@ export class FundingController {
         return;
       }
 
-      console.log(`✅ 資金來源更新成功: ${fundingSource.name}`);
+      logger.info('資金來源更新成功', { name: fundingSource.name });
       
       res.json({
         success: true,
@@ -497,7 +498,7 @@ export class FundingController {
         data: fundingSource
       });
     } catch (error) {
-      console.error('更新資金來源錯誤:', error);
+      logger.error('更新資金來源錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '更新資金來源失敗'
@@ -533,14 +534,14 @@ export class FundingController {
         return;
       }
 
-      console.log(`✅ 資金來源刪除成功: ${id}`);
+      logger.info('資金來源刪除成功', { id });
       
       res.json({
         success: true,
         message: '資金來源刪除成功'
       });
     } catch (error) {
-      console.error('刪除資金來源錯誤:', error);
+      logger.error('刪除資金來源錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '刪除資金來源失敗'
@@ -585,7 +586,7 @@ export class FundingController {
         }
       });
     } catch (error) {
-      console.error('驗證資金完整性錯誤:', error);
+      logger.error('驗證資金完整性錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '驗證資金完整性失敗'

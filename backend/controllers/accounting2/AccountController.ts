@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { AccountService } from '../../services/accounting2/AccountService';
 import { ValidationService } from '../../services/accounting2/ValidationService';
 import { IAccount2 } from '../../models/Account2';
+import logger from '../../utils/logger';
 
 // 擴展 Request 介面以支援 user 屬性
 interface AuthenticatedRequest extends Request {
@@ -45,7 +46,7 @@ export class AccountController {
 
       const account = await AccountService.createAccount(accountData, userId);
       
-      console.log(`✅ 帳戶建立成功: ${account.code} - ${account.name}`);
+      logger.info('帳戶建立成功', { code: account.code, name: account.name });
       
       res.status(201).json({
         success: true,
@@ -53,7 +54,7 @@ export class AccountController {
         data: account
       });
     } catch (error) {
-      console.error('建立帳戶錯誤:', error);
+      logger.error('建立帳戶錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '建立帳戶失敗'
@@ -97,7 +98,7 @@ export class AccountController {
         return;
       }
 
-      console.log(`✅ 帳戶更新成功: ${account.code} - ${account.name}`);
+      logger.info('帳戶更新成功', { code: account.code, name: account.name });
       
       res.json({
         success: true,
@@ -105,7 +106,7 @@ export class AccountController {
         data: account
       });
     } catch (error) {
-      console.error('更新帳戶錯誤:', error);
+      logger.error('更新帳戶錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '更新帳戶失敗'
@@ -148,14 +149,14 @@ export class AccountController {
         return;
       }
 
-      console.log(`✅ 帳戶刪除成功: ${id}`);
+      logger.info('帳戶刪除成功', { id });
       
       res.json({
         success: true,
         message: '帳戶刪除成功'
       });
     } catch (error) {
-      console.error('刪除帳戶錯誤:', error);
+      logger.error('刪除帳戶錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '刪除帳戶失敗'
@@ -203,7 +204,7 @@ export class AccountController {
         data: account
       });
     } catch (error) {
-      console.error('取得帳戶錯誤:', error);
+      logger.error('取得帳戶錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '取得帳戶失敗'
@@ -276,7 +277,7 @@ export class AccountController {
         }
       });
     } catch (error) {
-      console.error('取得帳戶列表錯誤:', error);
+      logger.error('取得帳戶列表錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '取得帳戶列表失敗'
@@ -318,7 +319,7 @@ export class AccountController {
         data: statistics
       });
     } catch (error) {
-      console.error('計算帳戶統計錯誤:', error);
+      logger.error('計算帳戶統計錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '計算帳戶統計失敗'
@@ -354,7 +355,7 @@ export class AccountController {
         data: validation
       });
     } catch (error) {
-      console.error('驗證帳戶錯誤:', error);
+      logger.error('驗證帳戶錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '驗證帳戶失敗'
@@ -434,9 +435,9 @@ export class AccountController {
         });
       }
       
-      console.log(`📤 帳戶資料匯出完成: ${result.total} 筆記錄`);
+      logger.info('帳戶資料匯出完成', { recordCount: result.total });
     } catch (error) {
-      console.error('匯出帳戶錯誤:', error);
+      logger.error('匯出帳戶錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '匯出帳戶失敗'
@@ -491,7 +492,10 @@ export class AccountController {
         }
       }
 
-      console.log(`📦 批次建立帳戶完成: 成功 ${results.length} 筆，失敗 ${errors.length} 筆`);
+      logger.info('批次建立帳戶完成', {
+        successCount: results.length,
+        failedCount: errors.length
+      });
       
       res.json({
         success: errors.length === 0,
@@ -507,7 +511,7 @@ export class AccountController {
         }
       });
     } catch (error) {
-      console.error('批次建立帳戶錯誤:', error);
+      logger.error('批次建立帳戶錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '批次建立帳戶失敗'

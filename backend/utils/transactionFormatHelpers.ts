@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 // import TransactionGroupWithEntries from '../models/TransactionGroupWithEntries';
 import { processFundingSourceUsages, getReferencedByInfo } from './fundingSourceHelpers';
-import logger, { businessLogger } from './logger';
+import { businessLogger } from './logger';
 
 /**
  * 交易格式化輔助函數
