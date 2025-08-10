@@ -168,14 +168,9 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
     const userId = validateAuth(req);
     const { organizationId } = req.query;
     
-    console.log('🔍 GET /accounts2 - 查詢參數:', { organizationId, userId });
-    
     // 建立查詢條件
     const filter = buildQueryFilter(userId, organizationId as string);
-    console.log('📋 最終查詢條件:', filter);
-
     const accounts = await Account2.find(filter).sort({ createdAt: -1 });
-    console.log('📊 查詢結果數量:', accounts.length);
 
     res.json(createSuccessResponse(accounts));
   } catch (error) {
@@ -217,24 +212,11 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response):
     const { name, type, accountType: requestedAccountType, initialBalance, currency, description, organizationId, parentId } = req.body;
     
     // 忽略前端發送的 code，我們會自動生成
-    if (req.body.code) {
-      console.log('⚠️ 忽略前端發送的 code:', req.body.code, '將自動生成新代碼');
-    }
-
-    // 除錯日誌
-    console.log('🔍 POST /accounts2 - 接收到的資料:', {
-      name, type, initialBalance, currency, description, organizationId,
-      organizationIdType: typeof organizationId,
-      organizationIdLength: organizationId ? organizationId.length : 'N/A',
-      parentId, parentIdType: typeof parentId, body: req.body
-    });
-
+    
     // 驗證 organizationId 格式
     if (organizationId) {
-      console.log('🔍 驗證 organizationId 格式:', organizationId);
       try {
         validateObjectId(organizationId, '機構ID');
-        console.log('✅ organizationId 格式有效');
       } catch (error) {
         console.error('❌ organizationId 格式無效:', organizationId);
         res.status(400).json(createErrorResponse('機構ID格式無效', 400));
@@ -261,8 +243,6 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response):
     const generateAccountCode = async (accountType: string, organizationId?: string): Promise<string> => {
       const prefix = ACCOUNT_CODE_PREFIX[accountType as keyof typeof ACCOUNT_CODE_PREFIX] || '1';
 
-      console.log('🔍 generateAccountCode 開始 - accountType:', accountType, 'organizationId:', organizationId);
-
       // 查詢該類型下最大的代碼 - 移除 createdBy 條件，確保機構內代碼唯一性
       const filter: any = {
         accountType,
@@ -270,17 +250,14 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response):
       };
       
       if (organizationId) {
-        console.log('🔍 加入機構篩選條件');
         try {
           const objectId = new mongoose.Types.ObjectId(organizationId);
-          console.log('✅ ObjectId 轉換成功:', objectId);
           filter.organizationId = objectId;
         } catch (objectIdError) {
           console.error('❌ ObjectId 轉換失敗:', objectIdError);
           throw new Error(`機構ID轉換失敗: ${objectIdError instanceof Error ? objectIdError.message : '未知錯誤'}`);
         }
       } else {
-        console.log('⚠️ 沒有機構ID，查詢個人科目');
         // 查詢個人科目（沒有 organizationId 或為 null）
         filter.$or = [
           { organizationId: { $exists: false } },
@@ -288,13 +265,9 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response):
         ];
       }
 
-      console.log('🔍 查詢條件:', JSON.stringify(filter, null, 2));
-
       const lastAccount = await Account2.findOne(filter)
         .sort({ code: -1 })
         .limit(1);
-
-      console.log('🔍 找到的最後科目:', lastAccount);
 
       let newCode: string;
       if (lastAccount) {
@@ -303,8 +276,6 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response):
       } else {
         newCode = `${prefix}001`;
       }
-
-      console.log('🔍 生成的新代碼:', newCode);
 
       // 檢查新代碼是否已存在（雙重確認）
       const duplicateCheckFilter = buildDuplicateFilter('', '', organizationId);
@@ -328,18 +299,15 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response):
     let code: string;
     try {
       code = await generateAccountCode(accountType, organizationId);
-      console.log('✅ 代碼生成成功:', code);
     } catch (codeGenError) {
       console.error('❌ 代碼生成失敗，使用時間戳後備方案:', codeGenError);
       // 使用時間戳作為後備方案
       const timestamp = Date.now().toString().slice(-4);
       const prefix = ACCOUNT_CODE_PREFIX[accountType as keyof typeof ACCOUNT_CODE_PREFIX] || '9';
       code = `${prefix}${timestamp}`;
-      console.log('🔄 後備代碼:', code);
     }
 
     const normalBalance = getNormalBalance(accountType);
-    console.log('🔧 自動生成資料:', { accountType, code, normalBalance });
 
     // 建立帳戶資料，包含會計科目必要欄位
     const accountData: any = {
@@ -359,16 +327,12 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response):
     
     // 如果有父科目 ID，加入到資料中
     if (parentId && parentId !== null && parentId !== '' && parentId.trim() !== '') {
-      console.log('✅ 設定父科目 ID:', parentId);
-      
       // 檢查是否為虛擬節點 ID（包含底線的格式）
       if (parentId.includes('_')) {
-        console.log('⚠️ 檢測到虛擬節點 ID，忽略 parentId:', parentId);
         // 不設定 parentId，讓它成為根節點
       } else {
         try {
           const parentObjectId = new mongoose.Types.ObjectId(parentId);
-          console.log('✅ 父科目 ObjectId 轉換成功:', parentObjectId);
           accountData.parentId = parentObjectId;
         } catch (parentIdError) {
           console.error('❌ 父科目 ObjectId 轉換失敗:', parentIdError);
@@ -379,16 +343,12 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response):
           return;
         }
       }
-    } else {
-      console.log('ℹ️ 無父科目 ID，建立為根節點');
     }
     
     // 只有當 organizationId 有值且不為 null 時才加入
     if (organizationId && organizationId !== null) {
-      console.log('✅ 設定 organizationId:', organizationId);
       try {
         const finalObjectId = new mongoose.Types.ObjectId(organizationId);
-        console.log('✅ 最終 ObjectId 轉換成功:', finalObjectId);
         accountData.organizationId = finalObjectId;
       } catch (finalObjectIdError) {
         console.error('❌ 最終 ObjectId 轉換失敗:', finalObjectIdError);
@@ -398,22 +358,10 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response):
         });
         return;
       }
-    } else {
-      console.log('❌ organizationId 為空或 null，不設定該欄位');
     }
-
-    console.log('📝 最終的 accountData:', accountData);
 
     const newAccount = new Account2(accountData);
     const savedAccount = await newAccount.save();
-    
-    console.log('✅ 會計科目建立成功:', {
-      id: savedAccount._id,
-      code: savedAccount.code,
-      name: savedAccount.name,
-      accountType: savedAccount.accountType,
-      organizationId: savedAccount.organizationId
-    });
 
     res.status(201).json(createSuccessResponse(savedAccount, '帳戶建立成功'));
   } catch (error) {
@@ -435,10 +383,7 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
 
     const { name, type, accountType, currency, description, isActive, parentId, code, initialBalance } = req.body;
 
-    console.log('🔍 PUT /accounts2/:id - 接收到的更新資料:', {
-      id, name, type, accountType, currency, description, isActive,
-      parentId, parentIdType: typeof parentId, code, initialBalance, body: req.body
-    });
+    // 更新帳戶資訊
 
     // 檢查帳戶是否存在
     const account = await Account2.findOne({
@@ -477,16 +422,12 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
     // 處理 parentId：過濾掉虛擬節點 ID
     if (parentId !== undefined) {
       if (parentId && parentId !== null && parentId !== '' && parentId.trim() !== '') {
-        console.log('✅ 處理父科目 ID:', parentId);
-        
         // 檢查是否為虛擬節點 ID（包含底線的格式）
         if (parentId.includes('_')) {
-          console.log('⚠️ 檢測到虛擬節點 ID，清除 parentId:', parentId);
           updateData.parentId = null; // 清除父科目關係
         } else {
           try {
             const parentObjectId = new mongoose.Types.ObjectId(parentId);
-            console.log('✅ 父科目 ObjectId 轉換成功:', parentObjectId);
             updateData.parentId = parentObjectId;
           } catch (parentIdError) {
             console.error('❌ 父科目 ObjectId 轉換失敗:', parentIdError);
@@ -495,12 +436,9 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
           }
         }
       } else {
-        console.log('ℹ️ 清除父科目 ID');
         updateData.parentId = null;
       }
     }
-
-    console.log('📝 最終的更新資料:', updateData);
 
     const updatedAccount = await Account2.findByIdAndUpdate(
       id,
@@ -513,13 +451,7 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
       return;
     }
 
-    console.log('✅ 帳戶更新成功:', {
-      id: updatedAccount._id,
-      code: updatedAccount.code,
-      name: updatedAccount.name,
-      accountType: updatedAccount.accountType,
-      parentId: updatedAccount.parentId
-    });
+    // 帳戶更新成功
 
     res.json(createSuccessResponse(updatedAccount, '帳戶更新成功'));
   } catch (error) {
@@ -539,29 +471,18 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: express.Respo
       return;
     }
 
-    console.log('🗑️ 開始刪除科目:', { id, userId });
-
     const account = await Account2.findOne({
       _id: id
       // 移除 createdBy 條件，讓所有人都能共用資料
     });
 
     if (!account) {
-      console.log('❌ 找不到指定的科目:', id);
       res.status(404).json(createErrorResponse('找不到指定的帳戶', 404));
       return;
     }
 
-    console.log('📋 找到科目:', {
-      name: account.name,
-      code: account.code,
-      balance: account.balance,
-      isActive: account.isActive
-    });
-
     // 檢查是否已經被刪除
     if (!account.isActive) {
-      console.log('⚠️ 科目已經被刪除');
       res.status(400).json(createErrorResponse('此科目已經被刪除', 400));
       return;
     }
@@ -574,10 +495,6 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: express.Respo
     });
 
     if (childAccounts.length > 0) {
-      console.log('❌ 科目有子科目，無法刪除:', {
-        子科目數量: childAccounts.length,
-        子科目名稱: childAccounts.map(child => child.name)
-      });
       res.status(400).json({
         ...createErrorResponse(`此科目有 ${childAccounts.length} 個子科目，請先刪除子科目後再刪除此科目`, 400),
         details: {
@@ -609,11 +526,7 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: express.Respo
       return;
     }
 
-    console.log('✅ 科目刪除成功:', {
-      id: updatedAccount._id,
-      name: updatedAccount.name,
-      isActive: updatedAccount.isActive
-    });
+    // 科目刪除成功
 
     res.json({
       ...createSuccessResponse({
@@ -714,17 +627,10 @@ router.get('/tree/hierarchy', auth, async (req: AuthenticatedRequest, res: expre
     
     // 建立查詢條件
     const filter = buildQueryFilter(userId, organizationId as string);
-    console.log('🌳 查詢機構樹狀結構:', organizationId);
 
     // 獲取所有科目並按層級排序
     const accounts = await Account2.find(filter)
       .sort({ level: 1, code: 1 });
-
-    console.log('🌳 找到的科目數量:', accounts.length);
-    console.log('🌳 科目層級分布:', accounts.reduce((acc, account) => {
-      acc[account.level] = (acc[account.level] || 0) + 1;
-      return acc;
-    }, {} as Record<number, number>));
 
     // 建立樹狀結構 - 支援完整多層級並計算統計金額
     const buildTree = (accounts: IAccount2[], parentId: string | null = null): any[] => {
@@ -929,7 +835,7 @@ router.get('/search', auth, async (req: AuthenticatedRequest, res: express.Respo
       filter.accountType = accountType;
     }
 
-    console.log('🔍 搜尋機構帳戶:', { q, organizationId });
+    // 搜尋機構帳戶
 
     const accounts = await Account2.find(filter)
       .sort({ code: 1 })

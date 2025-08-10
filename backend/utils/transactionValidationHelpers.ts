@@ -181,9 +181,6 @@ export const buildQueryFilter = (
   // 機構過濾
   if (organizationId && organizationId !== 'undefined' && organizationId !== '') {
     filter.organizationId = new mongoose.Types.ObjectId(organizationId as string);
-    console.log('🏢 查詢機構交易群組:', organizationId);
-  } else {
-    console.log('👤 查詢所有交易群組（包含個人和機構）');
   }
 
   // 狀態過濾
@@ -212,7 +209,7 @@ export const buildQueryFilter = (
       { 'entries.description': searchRegex },          // 搜尋分錄描述
       { 'entries.accountName': searchRegex }           // 搜尋科目名稱（流向）
     ];
-    console.log('🔍 搜尋條件:', search);
+    // 搜尋條件已設定
   }
 
   return filter;
@@ -229,7 +226,6 @@ export const buildPaginationParams = (query: any): {
   const limitNum = parseInt(limit as string);
   const skip = (pageNum - 1) * limitNum;
 
-  console.log(`🔢 分頁參數: page=${pageNum}, limit=${limitNum}, skip=${skip}`);
   return { pageNum, limitNum, skip };
 };
 

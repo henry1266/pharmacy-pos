@@ -182,14 +182,7 @@ router.get('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
     //console.log('🔍 GET /:id - 查詢被引用情況');
     responseData.referencedByInfo = await getReferencedByInfo(transactionGroup._id, userId);
 
-    console.log('🎯 GET /:id - 被引用情況:', {
-      count: responseData.referencedByInfo.length,
-      transactions: responseData.referencedByInfo.map((tx: any) => ({
-        groupNumber: tx.groupNumber,
-        description: tx.description,
-        status: tx.status
-      }))
-    });
+    // 被引用情況已由 getReferencedByInfo 函數處理
 
     sendSuccessResponse(res, responseData);
 
@@ -206,37 +199,17 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
 
     const { entries, linkedTransactionIds } = req.body;
 
-    console.log('🚀 [Backend] POST /transaction-groups-with-entries - 建立交易群組:', {
-      description: req.body.description?.substring(0, 50) + (req.body.description?.length > 50 ? '...' : ''),
-      transactionDate: req.body.transactionDate,
-      organizationId: req.body.organizationId,
-      entriesCount: entries?.length,
-      userId,
-      entriesDetail: entries?.map((entry: any, index: number) => ({
-        index: index + 1,
-        accountId: entry.accountId,
-        debitAmount: entry.debitAmount,
-        creditAmount: entry.creditAmount,
-        description: entry.description?.substring(0, 30)
-      }))
-    });
+    // 開始建立交易群組處理流程
 
     // 驗證基本交易資料
     if (!validateBasicTransactionData(req.body, res)) return;
 
     // 驗證每筆分錄的資料完整性
     try {
-      console.log('🔍 [Backend] 開始驗證分錄資料完整性...');
+      // 驗證每筆分錄的資料完整性
       entries.forEach((entry: any, index: number) => {
-        console.log(`🔍 [Backend] 驗證分錄 ${index + 1}:`, {
-          accountId: entry.accountId,
-          debitAmount: entry.debitAmount,
-          creditAmount: entry.creditAmount,
-          description: entry.description
-        });
         validateEntryData(entry, index);
       });
-      console.log('✅ [Backend] 分錄資料完整性驗證通過');
     } catch (error) {
       console.error('❌ [Backend] 分錄資料驗證失敗:', error);
       sendErrorResponse(res, 400, error instanceof Error ? error.message : '分錄資料驗證失敗');
@@ -246,12 +219,6 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
     // 驗證借貸平衡
     //console.log('🔍 [Backend] 開始驗證借貸平衡...');
     const balanceValidation = DoubleEntryValidator.validateDebitCreditBalance(entries);
-    console.log('📊 [Backend] 借貸平衡驗證結果:', {
-      isBalanced: balanceValidation.isBalanced,
-      message: balanceValidation.message,
-      totalDebit: entries.reduce((sum: number, entry: any) => sum + (parseFloat(entry.debitAmount) || 0), 0),
-      totalCredit: entries.reduce((sum: number, entry: any) => sum + (parseFloat(entry.creditAmount) || 0), 0)
-    });
     
     if (!balanceValidation.isBalanced) {
       console.error('❌ [Backend] 借貸平衡驗證失敗:', balanceValidation.message);
@@ -263,7 +230,6 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
 
     // 計算交易總金額
     const totalAmount = calculateTotalAmount(entries);
-    console.log(`💰 [Backend] 交易總金額: ${totalAmount}`);
 
     if (totalAmount <= 0) {
       console.error('❌ [Backend] 交易總金額必須大於0:', { totalAmount });
@@ -276,7 +242,6 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
     let groupNumber: string;
     try {
       groupNumber = await generateGroupNumber();
-      console.log(`✅ [Backend] 交易群組編號生成成功: ${groupNumber}`);
     } catch (error) {
       console.error('❌ [Backend] 生成交易群組編號失敗:', error);
       sendErrorResponse(res, 500, '生成交易群組編號失敗');
@@ -284,11 +249,9 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
     }
 
     // 建立內嵌分錄資料
-    console.log('🔍 [Backend] 建立內嵌分錄資料...');
     let embeddedEntries: any[];
     try {
       embeddedEntries = buildEmbeddedEntries(entries, req.body.description, req.body.organizationId);
-      console.log(`✅ [Backend] 內嵌分錄資料建立完成，共 ${embeddedEntries.length} 筆`);
     } catch (error) {
       console.error('❌ [Backend] 建立內嵌分錄資料失敗:', error);
       sendErrorResponse(res, 400, error instanceof Error ? error.message : '建立分錄資料失敗');
@@ -339,13 +302,7 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
     const { id } = req.params;
     const { entries, linkedTransactionIds } = req.body;
 
-    console.log('🔍 PUT /transaction-groups-with-entries/:id - 更新交易群組:', {
-      id,
-      description: req.body.description,
-      transactionDate: req.body.transactionDate,
-      entriesCount: entries?.length,
-      userId
-    });
+    // 開始更新交易群組處理流程
 
     // 查詢並驗證交易群組
     const transactionGroup = await findAndValidateTransactionGroup(id, userId, res);
@@ -384,18 +341,13 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
     // 處理精確資金來源使用追蹤更新
     if (req.body.fundingSourceUsages !== undefined) {
       if (Array.isArray(req.body.fundingSourceUsages)) {
-        console.log('🔍 更新精確資金來源使用明細:', req.body.fundingSourceUsages);
-        
         updateData.fundingSourceUsages = req.body.fundingSourceUsages.map((usage: any) => ({
           sourceTransactionId: new mongoose.Types.ObjectId(usage.sourceTransactionId),
           usedAmount: parseFloat(usage.usedAmount) || 0,
           description: usage.description || ''
         }));
-        
-        console.log('✅ 更新精確資金使用明細:', updateData.fundingSourceUsages);
       } else {
         updateData.fundingSourceUsages = [];
-        console.log('🗑️ 清空資金使用明細');
       }
     } else if (linkedTransactionIds !== undefined && linkedTransactionIds.length > 0) {
       // 重新計算按比例分配
@@ -412,16 +364,9 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
       const isBalanced = Math.abs(totalDebit - totalCredit) < 0.01;
 
       if (hasValidEntries && isBalanced && entries.length >= 2) {
-        console.log('🔄 開始更新內嵌分錄，新分錄數量:', entries.length);
-        console.log('💰 借方總額:', totalDebit, '貸方總額:', totalCredit);
-        
         const embeddedEntries = buildEmbeddedEntries(entries, description, transactionGroup.organizationId?.toString());
         updateData.entries = embeddedEntries;
         updateData.totalAmount = totalDebit;
-        
-        console.log('✅ 內嵌分錄更新準備完成');
-      } else {
-        console.log('⚠️ 分錄資料驗證失敗，跳過分錄更新');
       }
     }
 
@@ -438,8 +383,6 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
     let responseData: any = updatedTransactionGroup?.toObject();
     
     if (responseData && responseData.linkedTransactionIds && responseData.linkedTransactionIds.length > 0) {
-      console.log('🔍 更新後重新處理資金來源資訊');
-      
       responseData.fundingSourcesInfo = await Promise.all(
         responseData.linkedTransactionIds.map((linkedTx: any) =>
           formatFundingSourceInfo(linkedTx, userId)
