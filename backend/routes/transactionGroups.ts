@@ -152,10 +152,6 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
       limit = 20
     } = req.query;
 
-    //console.log('🔍 GET /transaction-groups - 查詢參數:', {
-      //organizationId, status, startDate, endDate, page, limit, userId
-    //});
-
     // 建立查詢條件
     const filter = buildQueryFilter(userId, organizationId as string);
 
@@ -175,8 +171,6 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
     const limitNum = parseInt(limit as string);
     const skip = (pageNum - 1) * limitNum;
 
-    //console.log('📋 最終查詢條件:', filter);
-
     const [transactionGroups, total] = await Promise.all([
       TransactionGroup.find(filter)
         .sort({ transactionDate: -1, createdAt: -1 })
@@ -184,8 +178,6 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
         .limit(limitNum),
       TransactionGroup.countDocuments(filter)
     ]);
-
-    //console.log('📊 查詢結果數量:', transactionGroups.length, '/', total);
 
     // 為每個交易群組獲取分錄資料
     const transactionGroupsWithEntries = await Promise.all(
@@ -198,19 +190,10 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
           .populate('categoryId', 'name type color')
           .sort({ sequence: 1 });
 
-          //console.log(`📋 交易群組 ${group._id} 的分錄數量:`, entries.length);
-
           // 將分錄資料轉換為前端期望的格式
           const formattedEntries = entries.map((entry, _index) => {
             const account = entry.accountId as any;
             const category = entry.categoryId as any;
-            
-            //console.log(`  分錄 ${index + 1}:`, {
-              //accountId: account?._id,
-              //accountName: account?.name,
-              //accountCode: account?.code,
-              //categoryName: category?.name
-            //});
 
             return {
               _id: entry._id,
@@ -312,10 +295,6 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
       fundingType = 'original'
     } = req.body;
 
-    //console.log('🔍 POST /transaction-groups - 建立交易群組:', {
-      //description, transactionDate, organizationId, receiptUrl, invoiceNo,
-      //entriesCount: entries?.length, userId
-    //});
 
     // 驗證必填欄位
     if (!description || !transactionDate || !entries || !Array.isArray(entries) || entries.length === 0) {
@@ -370,9 +349,8 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
       const validOrganizationId = safeObjectId(organizationId);
       if (validOrganizationId) {
         transactionGroupData.organizationId = validOrganizationId;
-        //console.log('✅ 設定 organizationId:', organizationId);
       } else {
-        //console.log('ℹ️ 個人記帳，不設定 organizationId');
+        console.log('ℹ️ 個人記帳，不設定 organizationId');
       }
     } catch (error) {
       console.error('❌ organizationId 處理錯誤:', organizationId, error);
@@ -383,8 +361,6 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
     // 生成交易群組編號
     const groupNumber = await generateGroupNumber();
     transactionGroupData.groupNumber = groupNumber;
-    
-    //console.log('📝 建立交易群組資料:', transactionGroupData);
 
     let savedTransactionGroup: any = null;
     
@@ -392,8 +368,6 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
       // 建立交易群組
       const newTransactionGroup = new TransactionGroup(transactionGroupData);
       savedTransactionGroup = await newTransactionGroup.save();
-
-      //console.log('✅ 交易群組建立成功:', savedTransactionGroup._id);
 
       // 建立記帳分錄
       const entryPromises = entries.map((entry: any, index: number) => {
@@ -426,13 +400,6 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
             entryData.organizationId = validOrganizationId;
           }
 
-          //console.log(`📝 建立分錄 ${index + 1}:`, {
-            //...entryData,
-            //accountId: entryData.accountId.toString(),
-            //categoryId: entryData.categoryId?.toString(),
-            //organizationId: entryData.organizationId?.toString()
-          //});
-
           const newEntry = new AccountingEntry(entryData);
           return newEntry.save();
         } catch (error) {
@@ -442,7 +409,6 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
       });
 
       const savedEntries = await Promise.all(entryPromises);
-      //console.log('✅ 所有分錄建立成功，數量:', savedEntries.length);
 
       res.status(201).json(createSuccessResponse({
         transactionGroup: savedTransactionGroup,
@@ -453,7 +419,6 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
       if (savedTransactionGroup) {
         try {
           await TransactionGroup.findByIdAndDelete(savedTransactionGroup._id);
-          //console.log('🧹 已清理失敗的交易群組');
         } catch (cleanupError) {
           console.error('❌ 清理交易群組失敗:', cleanupError);
         }
@@ -503,11 +468,6 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
       sourceTransactionId,
       fundingType
     } = req.body;
-
-    //console.log('🔍 PUT /transaction-groups/:id - 更新交易群組:', {
-      //id, description, transactionDate, receiptUrl, invoiceNo,
-      //entriesCount: entries?.length, userId
-    //});
 
     // 檢查交易群組是否存在
     const transactionGroup = await TransactionGroup.findOne({
@@ -566,8 +526,6 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
         { new: true, runValidators: true }
       );
 
-      //console.log('✅ 交易群組更新成功:', updatedTransactionGroup?._id);
-
       let updatedEntries = null;
 
       // 只有在明確提供了有效分錄且數量大於0時才更新分錄
@@ -587,15 +545,11 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
         const isBalanced = Math.abs(totalDebit - totalCredit) < 0.01;
 
         if (hasValidEntries && isBalanced && entries.length >= 2) {
-          //console.log('🔄 開始更新分錄，新分錄數量:', entries.length);
-          //console.log('💰 借方總額:', totalDebit, '貸方總額:', totalCredit);
           
           // 刪除舊分錄
           await AccountingEntry.deleteMany({
             transactionGroupId: id
           });
-
-          //console.log('🗑️ 舊分錄已刪除');
 
           // 建立新分錄
           const entryPromises = entries.map((entry: any, index: number) => {
@@ -618,7 +572,6 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
           });
 
           updatedEntries = await Promise.all(entryPromises);
-          //console.log('✅ 新分錄建立成功，數量:', updatedEntries.length);
         } else {
           console.log('⚠️ 分錄資料驗證失敗，跳過分錄更新');
           //console.log('📊 驗證結果:', {
@@ -655,8 +608,6 @@ router.post('/:id/confirm', auth, async (req: AuthenticatedRequest, res: express
       res.status(400).json(createErrorResponse('缺少交易群組ID參數', 400));
       return;
     }
-
-    //console.log('🔍 POST /transaction-groups/:id/confirm - 確認交易:', { id, userId });
 
     // 檢查交易群組是否存在
     const transactionGroup = await TransactionGroup.findOne({
@@ -704,8 +655,6 @@ router.post('/:id/confirm', auth, async (req: AuthenticatedRequest, res: express
       { new: true, runValidators: true }
     );
 
-    //console.log('✅ 交易確認成功:', confirmedTransactionGroup?._id);
-
     res.json(createSuccessResponse(confirmedTransactionGroup, '交易確認成功'));
   } catch (error) {
     handleErrorResponse(res, error, '確認交易失敗');
@@ -722,8 +671,6 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: express.Respo
       res.status(400).json(createErrorResponse('缺少交易群組ID參數', 400));
       return;
     }
-
-    //console.log('🔍 DELETE /transaction-groups/:id - 刪除交易群組:', { id, userId });
 
     // 檢查交易群組是否存在
     const transactionGroup = await TransactionGroup.findOne({
@@ -749,12 +696,8 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: express.Respo
         transactionGroupId: id
       });
 
-      //console.log('🗑️ 相關分錄已刪除');
-
       // 刪除交易群組
       await TransactionGroup.findByIdAndDelete(id);
-
-      //console.log('🗑️ 交易群組已刪除');
 
       res.json(createSuccessResponse(null, '交易群組刪除成功'));
     } catch (error) {
@@ -770,10 +713,6 @@ router.get('/funding-sources/available', auth, async (req: AuthenticatedRequest,
   try {
     const userId = validateAuth(req);
     const { organizationId, minAmount = 0 } = req.query;
-
-    //console.log('🔍 GET /transaction-groups/funding-sources/available - 查詢可用資金來源:', {
-      //organizationId, minAmount, userId
-    //});
 
     // 建立查詢條件
     const filter = buildQueryFilter(userId, organizationId as string);
@@ -837,8 +776,6 @@ router.get('/:id/funding-flow', auth, async (req: AuthenticatedRequest, res: exp
       res.status(400).json(createErrorResponse('缺少交易群組ID參數', 400));
       return;
     }
-
-    //console.log('🔍 GET /transaction-groups/:id/funding-flow - 查詢資金流向:', { id, userId });
 
     // 檢查交易群組是否存在
     const transactionGroup = await TransactionGroup.findOne({
@@ -924,10 +861,6 @@ router.post('/funding-sources/validate', auth, async (req: AuthenticatedRequest,
   try {
     const userId = validateAuth(req);
     const { sourceTransactionIds, requiredAmount } = req.body;
-
-    //console.log('🔍 POST /transaction-groups/funding-sources/validate - 驗證資金來源:', {
-      //sourceTransactionIds, requiredAmount, userId
-    //});
 
     if (!sourceTransactionIds || !Array.isArray(sourceTransactionIds) || sourceTransactionIds.length === 0) {
       res.status(400).json(createErrorResponse('請提供有效的資金來源ID列表', 400));

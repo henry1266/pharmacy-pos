@@ -94,7 +94,7 @@ export const processFundingSourceUsages = async (
     return [];
   }
   
-  console.log(`🔍 處理交易 ${groupObj.groupNumber} 的資金來源使用明細:`, groupObj.fundingSourceUsages);
+  //console.log(`🔍 處理交易 ${groupObj.groupNumber} 的資金來源使用明細:`, groupObj.fundingSourceUsages);
   
   const fundingSourceUsages = await Promise.all(
     groupObj.fundingSourceUsages.map(async (usage: any) => {
@@ -124,7 +124,7 @@ export const processFundingSourceUsages = async (
     })
   );
   
-  console.log(`✅ 交易 ${groupObj.groupNumber} 資金來源使用明細處理完成:`, fundingSourceUsages);
+  //console.log(`✅ 交易 ${groupObj.groupNumber} 資金來源使用明細處理完成:`, fundingSourceUsages);
   return fundingSourceUsages;
 };
 
@@ -134,7 +134,7 @@ export const calculateProportionalFundingUsage = async (
   totalAmount: number,
   userId: string
 ): Promise<any[]> => {
-  console.log('🔍 自動計算資金來源按比例分配...');
+  //console.log('🔍 自動計算資金來源按比例分配...');
   
   const fundingSourceUsages = [];
   
@@ -158,10 +158,10 @@ export const calculateProportionalFundingUsage = async (
         description: `按比例分配 (${(sourceRatio * 100).toFixed(2)}%)`
       });
       
-      console.log(`💰 資金來源 ${sourceTx.groupNumber} 分配金額: ${allocatedAmount.toFixed(2)} (${(sourceRatio * 100).toFixed(2)}%)`);
+      //console.log(`💰 資金來源 ${sourceTx.groupNumber} 分配金額: ${allocatedAmount.toFixed(2)} (${(sourceRatio * 100).toFixed(2)}%)`);
     }
     
-    console.log('✅ 自動設定按比例分配的資金使用明細');
+    //console.log('✅ 自動設定按比例分配的資金使用明細');
   }
   
   return fundingSourceUsages;
