@@ -6,6 +6,7 @@ import Account2 from '../models/Account2';
 import Supplier from '../models/Supplier';
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@pharmacy-pos/shared/constants';
+import logger from '../utils/logger';
 
 const router: express.Router = express.Router();
 
@@ -73,11 +74,18 @@ const processAccountId = (accountId: any): string => {
 const enrichAccountMappings = (accountIds: any[], accounts: any[]) => {
   return accountIds.map((accountId: any, index: number) => {
     const accountIdStr = processAccountId(accountId);
-    console.log(`處理會計科目 ID: ${accountIdStr}, 原始類型: ${typeof accountId}, 原始值:`, accountId);
+    logger.debug(`處理會計科目 ID:`, {
+      id: accountIdStr,
+      originalType: typeof accountId,
+      originalValue: accountId
+    });
     
     const account = accounts.find(acc => (acc._id as any).toString() === accountIdStr);
     if (!account) {
-      console.error(`找不到會計科目，ID: ${accountIdStr}, 可用科目:`, accounts.map(a => (a._id as any).toString()));
+      logger.error(`找不到會計科目:`, {
+        id: accountIdStr,
+        availableAccounts: accounts.map(a => (a._id as any).toString())
+      });
       throw new Error(`找不到會計科目 ID: ${accountIdStr}`);
     }
     
@@ -110,7 +118,7 @@ const handleCastError = (res: Response, err: any) => {
 };
 
 const handleServerError = (res: Response, err: any, operation: string) => {
-  console.error(`${operation}失敗:`, err);
+  logger.error(`${operation}失敗:`, err);
   if (!handleCastError(res, err)) {
     res.status(500).json(createErrorResponse(ERROR_MESSAGES.GENERIC.SERVER_ERROR));
   }
@@ -129,8 +137,11 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     if (organizationId) query.organizationId = organizationId;
     if (supplierId) query.supplierId = supplierId;
     
-    console.log('GET /api/supplier-account-mappings 查詢參數:', { organizationId, supplierId });
-    console.log('MongoDB 查詢條件:', query);
+    logger.debug('GET /api/supplier-account-mappings 查詢參數:', {
+      organizationId,
+      supplierId,
+      query
+    });
     
     const mappings = await SupplierAccountMapping.find(query)
       .populate('supplierId', POPULATE_CONFIG.supplier)
@@ -138,12 +149,13 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
       .populate(POPULATE_CONFIG.account)
       .sort({ supplierName: 1, 'accountMappings.priority': 1 });
 
-    console.log('查詢結果數量:', mappings.length);
-    console.log('查詢結果:', mappings);
+    logger.debug('查詢結果:', {
+      count: mappings.length
+    });
 
     res.json(createSuccessResponse(mappings));
   } catch (err) {
-    console.error('獲取供應商科目配對失敗:', err);
+    logger.error('獲取供應商科目配對失敗:', err);
     res.status(500).json(createErrorResponse(ERROR_MESSAGES.GENERIC.SERVER_ERROR));
   }
 });
@@ -160,7 +172,10 @@ router.get('/supplier/:supplierId/accounts', async (req: Request, res: Response)
     const { supplierId } = req.params;
     const { organizationId } = req.query;
 
-    console.log('GET /supplier/:supplierId/accounts 參數:', { supplierId, organizationId });
+    logger.debug('GET /supplier/:supplierId/accounts 參數:', {
+      supplierId,
+      organizationId
+    });
 
     const query: any = {
       supplierId: supplierId,
@@ -171,18 +186,20 @@ router.get('/supplier/:supplierId/accounts', async (req: Request, res: Response)
       query.organizationId = organizationId;
     }
     
-    console.log('查詢條件:', query);
+    logger.debug('查詢條件:', query);
     
     const mapping = await SupplierAccountMapping.findOne(query)
       .populate('supplierId', POPULATE_CONFIG.supplier)
       .populate('organizationId', POPULATE_CONFIG.organization)
       .populate(POPULATE_CONFIG.account);
 
-    console.log('查詢結果:', mapping);
+    logger.debug('查詢結果:', {
+      found: !!mapping
+    });
 
     res.json(createSuccessResponse(mapping));
   } catch (err) {
-    console.error('獲取供應商科目配對失敗:', err);
+    logger.error('獲取供應商科目配對失敗:', err);
     res.status(500).json(createErrorResponse(ERROR_MESSAGES.GENERIC.SERVER_ERROR));
   }
 });
@@ -232,7 +249,7 @@ const validateSupplierAndAccounts = async (supplierId: string, accountIds: any[]
     throw new Error('無法獲取會計科目的機構ID');
   }
 
-  console.log('允許混合不同機構的會計科目');
+  logger.debug('允許混合不同機構的會計科目');
   return { supplier, accounts, organizationId };
 };
 
@@ -253,8 +270,14 @@ router.post('/', [
 
   try {
     const { supplierId, accountIds, priority, notes } = req.body;
-    console.log('POST 請求資料:', { supplierId, accountIds, priority, notes });
-    console.log('accountIds 類型:', typeof accountIds, 'isArray:', Array.isArray(accountIds));
+    logger.debug('POST 請求資料:', {
+      supplierId,
+      accountIds,
+      priority,
+      notes,
+      accountIdsType: typeof accountIds,
+      isArray: Array.isArray(accountIds)
+    });
 
     const { supplier, accounts, organizationId } = await validateSupplierAndAccounts(supplierId, accountIds);
 
@@ -313,8 +336,13 @@ router.put('/:id', [
     if (!validateRequiredParam(res, req.params.id, '配對ID')) return;
 
     const { accountIds, notes, isActive } = req.body;
-    console.log('PUT 請求資料:', { accountIds, notes, isActive });
-    console.log('accountIds 類型:', typeof accountIds, 'isArray:', Array.isArray(accountIds));
+    logger.debug('PUT 請求資料:', {
+      accountIds,
+      notes,
+      isActive,
+      accountIdsType: typeof accountIds,
+      isArray: Array.isArray(accountIds)
+    });
 
     const mapping = await SupplierAccountMapping.findById(req.params.id);
     if (!mapping) {
@@ -335,7 +363,7 @@ router.put('/:id', [
       return;
     }
     
-    console.log('PUT: 允許混合不同機構的會計科目');
+    logger.debug('PUT: 允許混合不同機構的會計科目');
 
     // 使用共用函數處理科目映射
     const enrichedAccountMappings = enrichAccountMappings(accountIds, accounts);

@@ -4,6 +4,7 @@ import Inventory from '../models/Inventory';
 import Sale from '../models/Sale';
 import ShippingOrder from '../models/ShippingOrder';
 import { calculateProductFIFO, matchFIFOBatches, prepareInventoryForFIFO } from '../utils/fifoCalculator';
+import logger from '../utils/logger';
 
 const router: express.Router = express.Router();
 
@@ -56,14 +57,14 @@ router.get('/product/:productId', async (req: Request, res: Response): Promise<v
     
     // 檢查產品是否為「不扣庫存」
     const product = (inventories[0] as any).product;
-    console.log('🔍 產品詳情頁面 FIFO 計算:', {
+    logger.debug('產品詳情頁面 FIFO 計算:', {
       productId: req.params.productId,
       productName: product.name,
       excludeFromStock: product.excludeFromStock
     });
     
     if (product.excludeFromStock) {
-      console.log('🚫 不扣庫存產品，返回空的 FIFO 結果');
+      logger.debug('不扣庫存產品，返回空的 FIFO 結果');
       
       // 對於「不扣庫存」產品，返回空的 FIFO 結果
       res.json({
@@ -83,10 +84,10 @@ router.get('/product/:productId', async (req: Request, res: Response): Promise<v
     
     // 一般產品使用 FIFO 計算
     const fifoResult = calculateProductFIFO(inventories);
-    console.log('✅ 一般產品 FIFO 計算完成');
+    logger.debug('一般產品 FIFO 計算完成');
     res.json(fifoResult);
   } catch (err: any) {
-    console.error('FIFO計算錯誤:', err.message);
+    logger.error(`FIFO計算錯誤: ${err.message}`);
     res.status(500).json({ msg: 'Server Error', error: err.message });
   }
 });
@@ -104,7 +105,7 @@ router.get('/sale/:saleId', async (req: Request, res: Response): Promise<void> =
       return;
     }
     
-    console.log('🔍 處理銷售訂單:', req.params.saleId);
+    logger.debug(`處理銷售訂單: ${req.params.saleId}`);
     
     const itemsWithProfit: any[] = [];
     let totalProfit = 0;
@@ -112,8 +113,8 @@ router.get('/sale/:saleId', async (req: Request, res: Response): Promise<void> =
     let totalRevenue = 0;
     
     for (const item of (sale as any).items) {
-      console.log('📦 處理銷售項目:', item.product._id, '數量:', item.quantity);
-      console.log('🔍 產品資訊:', {
+      logger.debug(`處理銷售項目: ${item.product._id}, 數量: ${item.quantity}`);
+      logger.debug('產品資訊:', {
         name: item.product.name,
         excludeFromStock: item.product.excludeFromStock,
         purchasePrice: item.product.purchasePrice,
@@ -124,7 +125,7 @@ router.get('/sale/:saleId', async (req: Request, res: Response): Promise<void> =
       
       // 檢查是否為「不扣庫存」產品
       if (item.product.excludeFromStock) {
-        console.log('🚫 不扣庫存產品，直接計算毛利');
+        logger.debug('不扣庫存產品，直接計算毛利');
         
         const purchasePrice = item.product.purchasePrice || 0;
         const itemTotalCost = purchasePrice * item.quantity;
@@ -144,7 +145,7 @@ router.get('/sale/:saleId', async (req: Request, res: Response): Promise<void> =
         totalCost += itemTotalCost;
         totalRevenue += itemRevenue;
         
-        console.log('✅ 不扣庫存產品毛利計算完成:', {
+        logger.debug('不扣庫存產品毛利計算完成:', {
           itemTotalCost,
           itemTotalProfit,
           itemRevenue,
@@ -159,7 +160,7 @@ router.get('/sale/:saleId', async (req: Request, res: Response): Promise<void> =
         .populate('product')
         .sort({ lastUpdated: 1 });
       
-      console.log('📋 找到庫存記錄數量:', inventories.length);
+      logger.debug(`找到庫存記錄數量: ${inventories.length}`);
       
       if (inventories.length === 0) {
         itemsWithProfit.push({
@@ -176,7 +177,7 @@ router.get('/sale/:saleId', async (req: Request, res: Response): Promise<void> =
       
       // 使用 calculateProductFIFO 計算該產品的完整 FIFO 結果
       const fifoResult = calculateProductFIFO(inventories);
-      console.log('🧮 FIFO 計算結果:', {
+      logger.debug('FIFO 計算結果:', {
         success: fifoResult.success,
         profitMarginsCount: fifoResult.profitMargins?.length || 0,
         summary: fifoResult.summary
@@ -188,7 +189,7 @@ router.get('/sale/:saleId', async (req: Request, res: Response): Promise<void> =
         p.orderId === req.params.saleId
       ) || [];
       
-      console.log('💰 找到相關毛利記錄:', profitRecords.length);
+      logger.debug(`找到相關毛利記錄: ${profitRecords.length}`);
       
       if (profitRecords.length > 0) {
         // 計算該產品在此銷售中的總毛利
@@ -209,14 +210,14 @@ router.get('/sale/:saleId', async (req: Request, res: Response): Promise<void> =
         totalCost += itemTotalCost;
         totalRevenue += itemRevenue;
         
-        console.log('✅ FIFO 產品毛利計算完成:', {
+        logger.debug('FIFO 產品毛利計算完成:', {
           itemTotalCost,
           itemTotalProfit,
           itemRevenue
         });
       } else {
         // 沒有找到相關記錄，可能是數據問題
-        console.log('⚠️ 未找到相關毛利記錄，使用預設值');
+        logger.warn('未找到相關毛利記錄，使用預設值');
         itemsWithProfit.push({
           ...item.toObject(),
           fifoProfit: {
@@ -234,7 +235,7 @@ router.get('/sale/:saleId', async (req: Request, res: Response): Promise<void> =
       ? ((totalProfit / calculatedTotalRevenue) * 100).toFixed(2) + '%'
       : '0.00%';
     
-    console.log('📊 最終計算結果:', {
+    logger.debug('最終計算結果:', {
       totalCost,
       totalProfit,
       calculatedTotalRevenue,
@@ -253,7 +254,7 @@ router.get('/sale/:saleId', async (req: Request, res: Response): Promise<void> =
       }
     });
   } catch (err: any) {
-    console.error('銷售訂單FIFO計算錯誤:', err.message);
+    logger.error(`銷售訂單FIFO計算錯誤: ${err.message}`);
     res.status(500).json({ msg: 'Server Error', error: err.message });
   }
 });
@@ -352,7 +353,7 @@ router.get('/shipping-order/:shippingOrderId', async (req: Request, res: Respons
       }
     });
   } catch (err: any) {
-    console.error('出貨單FIFO計算錯誤:', err.message);
+    logger.error(`出貨單FIFO計算錯誤: ${err.message}`);
     res.status(500).json({ msg: 'Server Error', error: err.message });
   }
 });
@@ -397,7 +398,7 @@ router.get('/all', async (_req: Request, res: Response): Promise<void> => {
     
     res.json({ results, overallSummary });
   } catch (err: any) {
-    console.error('FIFO計算錯誤:', err.message);
+    logger.error(`FIFO計算錯誤: ${err.message}`);
     res.status(500).json({ msg: 'Server Error', error: err.message });
   }
 });
@@ -549,7 +550,7 @@ router.post('/simulate', async (req: Request<{}, {}, FIFOSimulationRequest>, res
       availableQuantity
     });
   } catch (err: any) {
-    console.error('FIFO模擬計算錯誤:', err.message);
+    logger.error(`FIFO模擬計算錯誤: ${err.message}`);
     res.status(500).json({ msg: 'Server Error', error: err.message });
   }
 });

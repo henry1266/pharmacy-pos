@@ -4,6 +4,7 @@ import TransactionGroup, { ITransactionGroup } from '../models/TransactionGroup'
 import AccountingEntry from '../models/AccountingEntry';
 import auth from '../middleware/auth';
 import DoubleEntryValidator from '../utils/doubleEntryValidation';
+import logger from '../utils/logger';
 
 // 擴展 Request 介面
 interface AuthenticatedRequest extends express.Request {
@@ -71,7 +72,7 @@ const buildQueryFilter = (userId: string, organizationId?: string): any => {
 
 // 輔助函數：處理錯誤回應
 const handleErrorResponse = (res: express.Response, error: any, defaultMessage: string, statusCode: number = 500): void => {
-  console.error(`❌ ${defaultMessage}:`, error);
+  logger.error(`${defaultMessage}:`, error);
   
   if (error.message === '未授權的請求') {
     res.status(401).json(createErrorResponse(error.message));
@@ -220,7 +221,7 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
             totalAmount: totalDebit // 使用借方總額作為交易總金額
           };
         } catch (error) {
-          console.error(`❌ 處理交易群組 ${group._id} 的分錄時發生錯誤:`, error);
+          logger.error(`處理交易群組 ${group._id} 的分錄時發生錯誤:`, error);
           return {
             ...group.toObject(),
             entries: [],
@@ -350,10 +351,10 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
       if (validOrganizationId) {
         transactionGroupData.organizationId = validOrganizationId;
       } else {
-        console.log('ℹ️ 個人記帳，不設定 organizationId');
+        logger.debug('個人記帳，不設定 organizationId');
       }
     } catch (error) {
-      console.error('❌ organizationId 處理錯誤:', organizationId, error);
+      logger.error('organizationId 處理錯誤:', { organizationId, error });
       res.status(400).json(createErrorResponse('機構ID格式錯誤', 400));
       return;
     }
@@ -403,7 +404,7 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
           const newEntry = new AccountingEntry(entryData);
           return newEntry.save();
         } catch (error) {
-          console.error(`❌ 分錄 ${index + 1} 資料處理錯誤:`, error);
+          logger.error(`分錄 ${index + 1} 資料處理錯誤:`, error);
           throw error;
         }
       });
@@ -420,20 +421,22 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
         try {
           await TransactionGroup.findByIdAndDelete(savedTransactionGroup._id);
         } catch (cleanupError) {
-          console.error('❌ 清理交易群組失敗:', cleanupError);
+          logger.error('清理交易群組失敗:', cleanupError);
         }
       }
       throw error;
     }
   } catch (error) {
-    console.error('❌ 建立交易群組錯誤:', error);
-    console.error('❌ 錯誤堆疊:', error instanceof Error ? error.stack : 'Unknown error');
-    console.error('❌ 錯誤詳情:', {
-      name: error instanceof Error ? error.name : 'Unknown',
-      message: error instanceof Error ? error.message : String(error),
-      code: (error as any)?.code,
-      keyPattern: (error as any)?.keyPattern,
-      keyValue: (error as any)?.keyValue
+    logger.error('建立交易群組錯誤:', {
+      error,
+      stack: error instanceof Error ? error.stack : 'Unknown error',
+      details: {
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : String(error),
+        code: (error as any)?.code,
+        keyPattern: (error as any)?.keyPattern,
+        keyValue: (error as any)?.keyValue
+      }
     });
     
     const errorResponse = createErrorResponse('建立交易群組失敗');
@@ -565,7 +568,7 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
               createdBy: userId
             };
 
-            //console.log(`📝 建立新分錄 ${index + 1}:`, entryData);
+            // logger.debug(`建立新分錄 ${index + 1}:`, entryData);
 
             const newEntry = new AccountingEntry(entryData);
             return newEntry.save();
@@ -573,17 +576,16 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
 
           updatedEntries = await Promise.all(entryPromises);
         } else {
-          console.log('⚠️ 分錄資料驗證失敗，跳過分錄更新');
-          //console.log('📊 驗證結果:', {
-            //hasValidEntries,
-            //isBalanced,
-            //entriesLength: entries.length,
-            //totalDebit,
-            //totalCredit
-          //});
+          logger.warn('分錄資料驗證失敗，跳過分錄更新', {
+            hasValidEntries,
+            isBalanced,
+            entriesLength: entries.length,
+            totalDebit,
+            totalCredit
+          });
         }
       } else {
-        console.log('ℹ️ 未提供分錄或分錄為空，僅更新交易群組基本資訊');
+        logger.debug('未提供分錄或分錄為空，僅更新交易群組基本資訊');
       }
 
       res.json(createSuccessResponse({

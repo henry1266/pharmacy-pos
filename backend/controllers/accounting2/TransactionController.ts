@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { TransactionService } from '../../services/accounting2/TransactionService';
 import { ValidationService } from '../../services/accounting2/ValidationService';
 import { ITransactionGroupWithEntries } from '../../models/TransactionGroupWithEntries';
+import logger from '../../utils/logger';
 
 // 擴展 Request 介面以支援 user 屬性
 interface AuthenticatedRequest extends Request {
@@ -53,7 +54,7 @@ export class TransactionController {
 
       const transaction = await TransactionService.createTransactionGroup(transactionData, userId);
       
-      console.log(`✅ 交易建立成功: ${transaction.groupNumber}`);
+      logger.info('交易建立成功', { groupNumber: transaction.groupNumber });
       
       res.status(201).json({
         success: true,
@@ -61,7 +62,7 @@ export class TransactionController {
         data: transaction
       });
     } catch (error) {
-      console.error('建立交易錯誤:', error);
+      logger.error('建立交易錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '建立交易失敗'
@@ -105,7 +106,7 @@ export class TransactionController {
         return;
       }
 
-      console.log(`✅ 交易更新成功: ${transaction.groupNumber}`);
+      logger.info('交易更新成功', { groupNumber: transaction.groupNumber });
       
       res.json({
         success: true,
@@ -113,7 +114,7 @@ export class TransactionController {
         data: transaction
       });
     } catch (error) {
-      console.error('更新交易錯誤:', error);
+      logger.error('更新交易錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '更新交易失敗'
@@ -158,14 +159,14 @@ export class TransactionController {
         return;
       }
 
-      console.log(`✅ 交易刪除成功: ${id}`);
+      logger.info('交易刪除成功', { id });
       
       res.json({
         success: true,
         message: '交易刪除成功'
       });
     } catch (error) {
-      console.error('刪除交易錯誤:', error);
+      logger.error('刪除交易錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '刪除交易失敗'
@@ -213,7 +214,7 @@ export class TransactionController {
         data: transaction
       });
     } catch (error) {
-      console.error('取得交易錯誤:', error);
+      logger.error('取得交易錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '取得交易失敗'
@@ -285,7 +286,7 @@ export class TransactionController {
         queryOptions.endDate = options.dateRange.endDate;
       }
 
-      console.log(`🔍 TransactionController.getTransactionsByUser - 查詢參數:`, {
+      logger.debug('TransactionController.getTransactionsByUser - 查詢參數', {
         userId,
         organizationId: options.organizationId,
         page: queryOptions.page,
@@ -297,7 +298,7 @@ export class TransactionController {
 
       const result = await TransactionService.getTransactionGroups(userId, options.organizationId, queryOptions);
       
-      console.log(`✅ TransactionController.getTransactionsByUser - 查詢結果:`, {
+      logger.debug('TransactionController.getTransactionsByUser - 查詢結果', {
         transactionsCount: result.transactions.length,
         totalRecords: result.total,
         currentPage: result.page,
@@ -316,7 +317,7 @@ export class TransactionController {
         }
       });
     } catch (error) {
-      console.error('取得交易列表錯誤:', error);
+      logger.error('取得交易列表錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '取得交易列表失敗'
@@ -359,7 +360,7 @@ export class TransactionController {
         return;
       }
 
-      console.log(`✅ 交易確認成功: ${transaction.groupNumber}`);
+      logger.info('交易確認成功', { groupNumber: transaction.groupNumber });
       
       res.json({
         success: true,
@@ -367,7 +368,7 @@ export class TransactionController {
         data: transaction
       });
     } catch (error) {
-      console.error('確認交易錯誤:', error);
+      logger.error('確認交易錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '確認交易失敗'
@@ -411,7 +412,7 @@ export class TransactionController {
         return;
       }
 
-      console.log(`✅ 交易取消成功: ${transaction.groupNumber}`);
+      logger.info('交易取消成功', { groupNumber: transaction.groupNumber });
       
       res.json({
         success: true,
@@ -419,7 +420,7 @@ export class TransactionController {
         data: transaction
       });
     } catch (error) {
-      console.error('取消交易錯誤:', error);
+      logger.error('取消交易錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '取消交易失敗'
@@ -466,7 +467,7 @@ export class TransactionController {
         data: statistics
       });
     } catch (error) {
-      console.error('取得交易統計錯誤:', error);
+      logger.error('取得交易統計錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '取得交易統計失敗'
@@ -502,7 +503,7 @@ export class TransactionController {
         data: validation
       });
     } catch (error) {
-      console.error('驗證交易錯誤:', error);
+      logger.error('驗證交易錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '驗證交易失敗'
@@ -596,9 +597,9 @@ export class TransactionController {
         });
       }
       
-      console.log(`📤 交易資料匯出完成: ${transactions.length} 筆記錄`);
+      logger.info('交易資料匯出完成', { recordCount: transactions.length });
     } catch (error) {
-      console.error('匯出交易錯誤:', error);
+      logger.error('匯出交易錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '匯出交易失敗'
@@ -658,13 +659,16 @@ export class TransactionController {
         { $sort: { _id: 1 } }
       ];
 
-      console.log('🔄 執行科目統計聚合查詢...');
+      logger.debug('執行科目統計聚合查詢');
       const startTime = Date.now();
       
       const aggregateResults = await TransactionGroupWithEntries.aggregate(pipeline);
       
       const endTime = Date.now();
-      console.log(`✅ 聚合查詢完成，耗時: ${endTime - startTime}ms，結果數量: ${aggregateResults.length}`);
+      logger.debug('聚合查詢完成', {
+        executionTime: `${endTime - startTime}ms`,
+        resultCount: aggregateResults.length
+      });
 
       // 轉換為前端期望的格式
       const statistics = aggregateResults.map((result: any) => ({
@@ -688,7 +692,7 @@ export class TransactionController {
         }
       });
     } catch (error) {
-      console.error('取得科目統計聚合資料錯誤:', error);
+      logger.error('取得科目統計聚合資料錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '取得科目統計聚合資料失敗'
@@ -728,7 +732,7 @@ export class TransactionController {
         data: balance
       });
     } catch (error) {
-      console.error('計算交易餘額錯誤:', error);
+      logger.error('計算交易餘額錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '計算交易餘額失敗'
@@ -767,7 +771,10 @@ export class TransactionController {
       const successful = balances.filter(b => b.success);
       const failed = balances.filter(b => !b.success);
       
-      console.log(`💰 批次餘額計算完成: 成功 ${successful.length} 筆，失敗 ${failed.length} 筆`);
+      logger.info('批次餘額計算完成', {
+        successCount: successful.length,
+        failedCount: failed.length
+      });
       
       res.json({
         success: failed.length === 0,
@@ -782,7 +789,7 @@ export class TransactionController {
         }
       });
     } catch (error) {
-      console.error('批次計算交易餘額錯誤:', error);
+      logger.error('批次計算交易餘額錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '批次計算交易餘額失敗'
@@ -837,7 +844,10 @@ export class TransactionController {
         }
       }
 
-      console.log(`📦 批次建立交易完成: 成功 ${results.length} 筆，失敗 ${errors.length} 筆`);
+      logger.info('批次建立交易完成', {
+        successCount: results.length,
+        failedCount: errors.length
+      });
       
       res.json({
         success: errors.length === 0,
@@ -853,7 +863,7 @@ export class TransactionController {
         }
       });
     } catch (error) {
-      console.error('批次建立交易錯誤:', error);
+      logger.error('批次建立交易錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '批次建立交易失敗'
@@ -897,7 +907,7 @@ export class TransactionController {
         }
       });
     } catch (error) {
-      console.error('取得應付帳款錯誤:', error);
+      logger.error('取得應付帳款錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '取得應付帳款失敗'
@@ -951,7 +961,7 @@ export class TransactionController {
       // 建立付款交易
       const paymentTransaction = await TransactionService.createPaymentTransaction(paymentData, userId);
 
-      console.log(`✅ 付款交易建立成功: ${paymentTransaction.groupNumber}`);
+      logger.info('付款交易建立成功', { groupNumber: paymentTransaction.groupNumber });
       
       res.status(201).json({
         success: true,
@@ -959,7 +969,7 @@ export class TransactionController {
         data: paymentTransaction
       });
     } catch (error) {
-      console.error('建立付款交易錯誤:', error);
+      logger.error('建立付款交易錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '建立付款交易失敗'
@@ -1040,7 +1050,7 @@ export class TransactionController {
         }
       });
     } catch (error) {
-      console.error('取得付款歷史錯誤:', error);
+      logger.error('取得付款歷史錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '取得付款歷史失敗'
@@ -1080,7 +1090,7 @@ export class TransactionController {
         data: paymentStatus
       });
     } catch (error) {
-      console.error('檢查進貨單付款狀態錯誤:', error);
+      logger.error('檢查進貨單付款狀態錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '檢查進貨單付款狀態失敗'
@@ -1125,7 +1135,7 @@ export class TransactionController {
         hasPaidAmount: paymentStatusMap[purchaseOrderId] || false
       }));
 
-      console.log('🔍 批量付款狀態檢查結果:', paymentStatuses);
+      logger.debug('批量付款狀態檢查結果', { paymentStatuses });
 
       res.json({
         success: true,
@@ -1136,7 +1146,7 @@ export class TransactionController {
         }
       });
     } catch (error) {
-      console.error('批量檢查進貨單付款狀態錯誤:', error);
+      logger.error('批量檢查進貨單付款狀態錯誤', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '批量檢查進貨單付款狀態失敗'

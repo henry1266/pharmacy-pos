@@ -12,6 +12,7 @@ import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@pharmacy-pos/shared/constants
 
 // 引入通用訂單單號生成服務
 import OrderNumberService from '../utils/OrderNumberService';
+import logger from '../utils/logger';
 
 const router: express.Router = express.Router();
 
@@ -183,7 +184,7 @@ async function performWildcardSearch(wildcardSearch: string): Promise<any[]> {
     const results = await Sale.aggregate(pipeline);
     return results;
   } catch (error) {
-    console.error('萬用字元搜尋 aggregation 錯誤:', error);
+    logger.error(`萬用字元搜尋 aggregation 錯誤: ${(error as Error).message}`);
     return [];
   }
 }
@@ -320,7 +321,7 @@ async function performRegularSearch(searchTerm: string): Promise<any[]> {
     const results = await Sale.aggregate(pipeline);
     return results;
   } catch (error) {
-    console.error('普通搜尋 aggregation 錯誤:', error);
+    logger.error(`普通搜尋 aggregation 錯誤: ${(error as Error).message}`);
     return [];
   }
 }
@@ -406,7 +407,7 @@ router.get('/', async (req: Request, res: Response) => {
     
     res.json(response);
   } catch (err: unknown) {
-    console.error(err instanceof Error ? err.message : 'Unknown error');
+    logger.error(`創建銷售記錄錯誤: ${err instanceof Error ? err.message : 'Unknown error'}`);
     const errorResponse: ErrorResponse = {
       success: false,
       message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
@@ -476,7 +477,7 @@ router.get('/:id', async (req: Request, res: Response) => {
     
     res.json(response);
   } catch (err: unknown) {
-    console.error(err instanceof Error ? err.message : 'Unknown error');
+    logger.error(`獲取單個銷售記錄錯誤: ${err instanceof Error ? err.message : 'Unknown error'}`);
     if (err instanceof Error && err.name === 'CastError') {
       const errorResponse: ErrorResponse = {
         success: false,
@@ -556,7 +557,7 @@ router.post(
       
       res.json(response);
     } catch (err: unknown) {
-      console.error(err instanceof Error ? err.message : 'Unknown error');
+      logger.error(`獲取所有銷售記錄錯誤: ${err instanceof Error ? err.message : 'Unknown error'}`);
       const errorResponse: ErrorResponse = {
         success: false,
         message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
@@ -647,27 +648,27 @@ async function checkProductInventory(product: mongoose.Document, quantity: numbe
     
     // 檢查產品是否設定為「不扣庫存」
     if (productDoc.excludeFromStock === true) {
-      console.log(`產品 ${productDoc.name ?? '未知'} 設定為不扣庫存，跳過庫存檢查`);
+      logger.debug(`產品 ${productDoc.name ?? '未知'} 設定為不扣庫存，跳過庫存檢查`);
       return { success: true };
     }
     
     // 獲取所有庫存記錄
     const inventories = await Inventory.find({ product: product._id }).lean();
-    console.log(`找到 ${inventories.length} 個庫存記錄`);
+    logger.debug(`找到 ${inventories.length} 個庫存記錄`);
     
     // 計算總庫存量
     let totalQuantity = calculateTotalInventory(inventories);
     
-    console.log(`產品 ${productDoc.name ?? '未知'} 總庫存量: ${totalQuantity}，銷售數量: ${quantity}`);
+    logger.debug(`產品 ${productDoc.name ?? '未知'} 總庫存量: ${totalQuantity}，銷售數量: ${quantity}`);
     
     // 不再檢查庫存是否足夠，允許負庫存
     if (totalQuantity < quantity) {
-      console.log(`警告: 產品 ${(product as any).name ?? '未知'} 庫存不足，當前總庫存: ${totalQuantity}，需求: ${quantity}，將允許負庫存`);
+      logger.warn(`產品 ${(product as any).name ?? '未知'} 庫存不足，當前總庫存: ${totalQuantity}，需求: ${quantity}，將允許負庫存`);
     }
     
     return { success: true };
   } catch (err: unknown) {
-    console.error(`庫存檢查錯誤:`, err);
+    logger.error(`庫存檢查錯誤: ${err instanceof Error ? err.message : '未知錯誤'}`);
     return {
       success: false,
       error: {
@@ -700,7 +701,7 @@ function calculateTotalInventory(inventories: any[]): number {
         recordId = inv._id;
       }
     }
-    console.log(`庫存記錄: ${recordId}, 類型: ${inv.type ?? 'purchase'}, 數量: ${inv.quantity}`);
+    logger.debug(`庫存記錄: ${recordId}, 類型: ${inv.type ?? 'purchase'}, 數量: ${inv.quantity}`);
   }
   return totalQuantity;
 }
@@ -728,7 +729,7 @@ async function validateSaleCreationRequest(requestBody: SaleCreationRequest): Pr
     const productName = productCheck.product && 'name' in productCheck.product
       ? (productCheck.product as any).name
       : '未知產品';
-    console.log(`檢查產品ID: ${item.product}, 名稱: ${productName}`);
+    logger.debug(`檢查產品ID: ${item.product}, 名稱: ${productName}`);
     
     // 檢查產品庫存
     if (productCheck.product) {
@@ -749,7 +750,7 @@ async function createSaleRecord(requestBody: SaleCreationRequest): Promise<SaleD
   
   // 確保銷貨單號不為空
   if (!finalSaleNumber) {
-    console.error('Error: Failed to generate valid sale number');
+    logger.error('無法生成有效的銷貨單號');
     throw new Error('無法生成有效的銷貨單號');
   }
   
@@ -786,14 +787,14 @@ async function createSaleRecord(requestBody: SaleCreationRequest): Promise<SaleD
 // 生成銷貨單號
 async function generateSaleNumber(saleNumber?: string): Promise<string> {
   // 不再使用前端提供的 saleNumber，一律由後端生成
-  console.log(`[Sale] Frontend provided saleNumber: "${saleNumber}" (Will be ignored)`);
+  logger.debug(`前端提供的銷貨單號: "${saleNumber}" (將被忽略)`);
 
   // 使用通用訂單單號生成服務
   const generatedNumber = await OrderNumberService.generateSaleOrderNumber();
   
   // 確保生成的銷貨單號不為空
   if (!generatedNumber || generatedNumber.trim() === '') {
-    console.error('Error: OrderNumberService returned empty sale number');
+    logger.error('OrderNumberService返回空的銷貨單號');
     throw new Error('系統無法生成銷貨單號，請稍後再試');
   }
   
@@ -827,7 +828,7 @@ interface SaleFieldsInput {
 function buildSaleFields(saleData: SaleFieldsInput): Record<string, any> {
   // Ensure saleNumber is never empty to prevent duplicate key errors
   if (!saleData.saleNumber) {
-    console.error('Warning: Attempted to create sale with empty saleNumber');
+    logger.error('嘗試創建銷售記錄時銷貨單號為空');
     throw new Error('Sale number cannot be empty');
   }
   
@@ -854,7 +855,7 @@ function buildSaleFields(saleData: SaleFieldsInput): Record<string, any> {
 async function handleInventoryForNewSale(sale: SaleDocument): Promise<void> {
   // 為每個銷售項目創建負數庫存記錄
   if (!sale.items || !Array.isArray(sale.items)) {
-    console.error('銷售記錄缺少有效的項目陣列');
+    logger.error('銷售記錄缺少有效的項目陣列');
     return;
   }
   
@@ -863,7 +864,7 @@ async function handleInventoryForNewSale(sale: SaleDocument): Promise<void> {
     try {
       await createInventoryRecord(item, sale);
     } catch (err) {
-      console.error(`處理庫存記錄時出錯: ${err instanceof Error ? err.message : '未知錯誤'}`);
+      logger.error(`處理庫存記錄時出錯: ${err instanceof Error ? err.message : '未知錯誤'}`);
       // 繼續處理其他項目，不中斷流程
     }
   }
@@ -879,13 +880,13 @@ interface SaleItem {
 async function createInventoryRecord(item: SaleItem, sale: SaleDocument): Promise<void> {
   // 確保產品ID有效
   if (!item.product) {
-    console.error('銷售項目缺少產品ID');
+    logger.error('銷售項目缺少產品ID');
     return;
   }
   
   // 確保數量有效
   if (typeof item.quantity !== 'number') {
-    console.error(`產品 ${item.product} 的數量無效`);
+    logger.error(`產品 ${item.product} 的數量無效`);
     return;
   }
 
@@ -893,7 +894,7 @@ async function createInventoryRecord(item: SaleItem, sale: SaleDocument): Promis
   try {
     const product = await BaseProduct.findById(item.product);
     if (!product) {
-      console.error(`找不到產品ID: ${item.product}`);
+      logger.error(`找不到產品ID: ${item.product}`);
       return;
     }
 
@@ -904,7 +905,7 @@ async function createInventoryRecord(item: SaleItem, sale: SaleDocument): Promis
       return;
     }
   } catch (err) {
-    console.error(`檢查產品 ${item.product} 的不扣庫存設定時出錯:`, err);
+    logger.error(`檢查產品 ${item.product} 的不扣庫存設定時出錯: ${(err as Error).message}`);
     // 如果檢查失敗，為了安全起見，仍然創建庫存記錄
   }
 
@@ -919,7 +920,7 @@ async function createInventoryRecord(item: SaleItem, sale: SaleDocument): Promis
   });
   
   await inventoryRecord.save();
-  console.log(`為產品 ${item.product} 創建銷售庫存記錄，數量: -${item.quantity}, 總金額: ${item.subtotal || 0}`);
+  logger.debug(`為產品 ${item.product} 創建銷售庫存記錄，數量: -${item.quantity}, 總金額: ${item.subtotal || 0}`);
 }
 
 // 為「不扣庫存」產品創建特殊的銷售記錄
@@ -950,9 +951,9 @@ async function createNoStockSaleRecord(item: SaleItem, sale: SaleDocument, produ
     });
     
     await inventoryRecord.save();
-    console.log(`為不扣庫存產品 ${product.name ?? '未知'} 創建毛利記錄，數量: ${item.quantity}, 售價: ${unitPrice}, 進價: ${costPrice}, 毛利: ${grossProfit}`);
+    logger.debug(`為不扣庫存產品 ${product.name ?? '未知'} 創建毛利記錄，數量: ${item.quantity}, 售價: ${unitPrice}, 進價: ${costPrice}, 毛利: ${grossProfit}`);
   } catch (err) {
-    console.error(`創建不扣庫存產品的毛利記錄時出錯:`, err);
+    logger.error(`創建不扣庫存產品的毛利記錄時出錯: ${(err as Error).message}`);
   }
 }
 
@@ -963,7 +964,7 @@ async function updateCustomerPoints(sale: SaleDocument): Promise<void> {
   
   // 驗證客戶ID格式，防止 NoSQL 注入
   if (!isValidObjectId(sale.customer.toString())) {
-    console.error(`客戶ID格式無效: ${sale.customer}`);
+    logger.error(`客戶ID格式無效: ${sale.customer}`);
     return;
   }
   
@@ -975,7 +976,7 @@ async function updateCustomerPoints(sale: SaleDocument): Promise<void> {
   customerToUpdate.lastPurchaseDate = new Date();
   await customerToUpdate.save();
   
-  console.log(`為客戶 ${customerToUpdate._id} 更新購買記錄，金額: ${sale.totalAmount}`);
+  logger.debug(`為客戶 ${customerToUpdate._id} 更新購買記錄，金額: ${sale.totalAmount}`);
 }
 
 // @route   PUT api/sales/:id
@@ -1069,7 +1070,7 @@ router.put('/:id', async (req: Request, res: Response) => {
 
     res.json(response);
   } catch (err: unknown) {
-    console.error('更新銷售記錄失敗:', err instanceof Error ? err.message : 'Unknown error');
+    logger.error(`更新銷售記錄失敗: ${err instanceof Error ? err.message : 'Unknown error'}`);
     const errorResponse: ErrorResponse = {
       success: false,
       message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
@@ -1157,12 +1158,12 @@ async function handleInventoryForUpdatedSale(originalSale: SaleDocument, updated
         try {
           await createInventoryRecord(item, updatedSale);
         } catch (err) {
-          console.error(`處理更新銷售的庫存記錄時出錯: ${err instanceof Error ? err.message : '未知錯誤'}`);
+          logger.error(`處理更新銷售的庫存記錄時出錯: ${err instanceof Error ? err.message : '未知錯誤'}`);
         }
       }
     }
   } catch (err) {
-    console.error(`處理更新銷售的庫存變更時出錯: ${err instanceof Error ? err.message : '未知錯誤'}`);
+    logger.error(`處理更新銷售的庫存變更時出錯: ${err instanceof Error ? err.message : '未知錯誤'}`);
     // 不拋出錯誤，避免影響銷售記錄更新
   }
 }
@@ -1222,7 +1223,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
 
     res.json(response);
   } catch (err: unknown) {
-    console.error('刪除銷售記錄失敗:', err instanceof Error ? err.message : 'Unknown error');
+    logger.error(`刪除銷售記錄失敗: ${err instanceof Error ? err.message : 'Unknown error'}`);
     const errorResponse: ErrorResponse = {
       success: false,
       message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
@@ -1241,17 +1242,17 @@ async function handleInventoryForDeletedSale(sale: SaleDocument): Promise<void> 
       type: { $in: ['sale', 'sale-no-stock'] }
     });
     
-    console.log(`已刪除 ${deletedInventories.deletedCount} 個與銷售 ${sale.saleNumber} 相關的庫存記錄`);
+    logger.info(`已刪除 ${deletedInventories.deletedCount} 個與銷售 ${sale.saleNumber} 相關的庫存記錄`);
     
     // 記錄庫存恢復日誌
     if (sale.items && Array.isArray(sale.items)) {
       const items = sale.items as any[];
       for (const item of items) {
-        console.log(`恢復產品 ${item.product} 的庫存，數量: +${item.quantity}`);
+        logger.debug(`恢復產品 ${item.product} 的庫存，數量: +${item.quantity}`);
       }
     }
   } catch (err) {
-    console.error(`處理刪除銷售的庫存恢復時出錯: ${err instanceof Error ? err.message : '未知錯誤'}`);
+    logger.error(`處理刪除銷售的庫存恢復時出錯: ${err instanceof Error ? err.message : '未知錯誤'}`);
     // 不拋出錯誤，避免影響銷售記錄刪除
   }
 }

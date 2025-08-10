@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 // import TransactionGroupWithEntries from '../models/TransactionGroupWithEntries';
 import { processFundingSourceUsages, getReferencedByInfo } from './fundingSourceHelpers';
+import logger, { businessLogger } from './logger';
 
 /**
  * 交易格式化輔助函數
@@ -13,7 +14,9 @@ export const formatEmbeddedEntries = (entries: any[]): any[] => {
     const category = entry.categoryId as any;
     const sourceTransaction = entry.sourceTransactionId as any;
     
-    console.log(`  分錄 ${index + 1}:`, {
+    // 使用logger替代console.log
+    businessLogger.debug('格式化內嵌分錄', {
+      entryIndex: index + 1,
       accountId: account?._id,
       accountName: account?.name,
       accountCode: account?.code,
@@ -89,12 +92,15 @@ export const formatTransactionGroupsList = async (
   userId: string
 ): Promise<any[]> => {
   // 為每筆交易查詢被引用情況
-  console.log('🔗 開始查詢被引用情況...');
+  businessLogger.info('開始查詢交易被引用情況');
   const transactionGroupsWithReferences = await Promise.all(
     transactionGroups.map(async (group) => {
       const referencedByInfo = await getReferencedByInfo(group._id, userId);
       
-      console.log(`📋 交易 ${group.groupNumber} 被 ${referencedByInfo.length} 筆交易引用`);
+      businessLogger.debug('交易被引用情況', {
+        groupNumber: group.groupNumber,
+        referencedCount: referencedByInfo.length
+      });
 
       return {
         ...group.toObject(),
@@ -105,7 +111,7 @@ export const formatTransactionGroupsList = async (
     })
   );
 
-  console.log('✅ 被引用情況查詢完成');
+  businessLogger.info('被引用情況查詢完成');
 
   // 格式化回應資料
   const formattedTransactionGroups = await Promise.all(
@@ -145,7 +151,8 @@ export const buildEmbeddedEntries = (
   organizationId?: string
 ): any[] => {
   return entries.map((entry: any, index: number) => {
-    console.log(`🔍 處理分錄 ${index + 1}:`, {
+    businessLogger.debug('處理分錄', {
+      entryIndex: index + 1,
       accountId: entry.accountId,
       categoryId: entry.categoryId,
       debitAmount: entry.debitAmount,
@@ -179,27 +186,40 @@ export const buildEmbeddedEntries = (
     // 只有當有效時才加入可選欄位
     if (validCategoryId) {
       entryData.categoryId = validCategoryId;
-      console.log(`✅ 分錄 ${index + 1} 設定分類:`, validCategoryId);
+      businessLogger.debug('分錄設定分類', {
+        entryIndex: index + 1,
+        categoryId: validCategoryId
+      });
     }
     
     if (validOrganizationId) {
       entryData.organizationId = validOrganizationId;
-      console.log(`✅ 分錄 ${index + 1} 設定機構:`, validOrganizationId);
+      businessLogger.debug('分錄設定機構', {
+        entryIndex: index + 1,
+        organizationId: validOrganizationId
+      });
     }
 
     // 處理分錄層級的資金來源
     if (validSourceTransactionId) {
       entryData.sourceTransactionId = validSourceTransactionId;
-      console.log(`✅ 分錄 ${index + 1} 設定資金來源:`, validSourceTransactionId);
+      businessLogger.debug('分錄設定資金來源', {
+        entryIndex: index + 1,
+        sourceTransactionId: validSourceTransactionId
+      });
     }
 
     // 處理資金路徑（如果有提供）
     if (entry.fundingPath && Array.isArray(entry.fundingPath)) {
       entryData.fundingPath = entry.fundingPath;
-      console.log(`✅ 分錄 ${index + 1} 設定資金路徑:`, entry.fundingPath);
+      businessLogger.debug('分錄設定資金路徑', {
+        entryIndex: index + 1,
+        fundingPath: entry.fundingPath
+      });
     }
 
-    console.log(`✅ 分錄 ${index + 1} 資料處理完成:`, {
+    businessLogger.debug('分錄資料處理完成', {
+      entryIndex: index + 1,
       sequence: entryData.sequence,
       accountId: entryData.accountId,
       debitAmount: entryData.debitAmount,
@@ -269,9 +289,9 @@ export const buildTransactionGroupData = (
   // 處理 organizationId
   if (organizationId && mongoose.Types.ObjectId.isValid(organizationId)) {
     transactionGroupData.organizationId = new mongoose.Types.ObjectId(organizationId);
-    console.log('✅ 設定 organizationId:', organizationId);
+    businessLogger.debug('設定交易群組機構ID', { organizationId });
   } else {
-    console.log('ℹ️ 個人記帳，不設定 organizationId');
+    businessLogger.debug('個人記帳，不設定機構ID');
   }
 
   return transactionGroupData;

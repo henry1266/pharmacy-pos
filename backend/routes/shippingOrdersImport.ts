@@ -8,6 +8,7 @@ import ShippingOrder from "../models/ShippingOrder";
 import BaseProduct from "../models/BaseProduct";
 import Inventory from "../models/Inventory";
 import Supplier from '../models/Supplier';
+import logger from '../utils/logger';
 
 // 使用 shared 架構的類型
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
@@ -109,12 +110,12 @@ async function createShippingInventoryRecords(shippingOrder: ShippingOrderDocume
   try {
     // 檢查是否已經存在該出貨單的庫存記錄
     // 修正：確保使用查詢物件包裝參數
-    const existingRecords = await Inventory.find({ 
-      shippingOrderId: shippingOrder._id.toString() 
+    const existingRecords = await Inventory.find({
+      shippingOrderId: shippingOrder._id.toString()
     });
     
     if (existingRecords.length > 0) {
-      console.log(`出貨單 ${shippingOrder.soid} 的庫存記錄已存在，跳過創建`);
+      logger.info(`出貨單 ${shippingOrder.soid} 的庫存記錄已存在，跳過創建`);
       return;
     }
     
@@ -135,12 +136,12 @@ async function createShippingInventoryRecords(shippingOrder: ShippingOrderDocume
       });
       
       await inventory.save();
-      console.log(`為產品 ${item.dname} 創建了庫存記錄，數量: ${-item.dquantity}`);
+      logger.debug(`為產品 ${item.dname} 創建了庫存記錄，數量: ${-item.dquantity}`);
     }
     
-    console.log(`成功為出貨單 ${shippingOrder.soid} 創建庫存記錄`);
+    logger.info(`成功為出貨單 ${shippingOrder.soid} 創建庫存記錄`);
   } catch (error) {
-    console.error(`創建出貨單庫存記錄時出錯:`, error);
+    logger.error(`創建出貨單庫存記錄時出錯: ${(error as Error).message}`);
     throw error;
   }
 }
@@ -172,7 +173,7 @@ function convertToWesternDate(dateStr: string): string | null {
       
       // 檢查月份和日期是否有效
       if (month < 1 || month > 12 || day < 1 || day > 31) {
-        console.warn(`無效的民國年日期格式: ${dateStr}`);
+        logger.warn(`無效的民國年日期格式: ${dateStr}`);
         return null;
       }
       
@@ -182,7 +183,7 @@ function convertToWesternDate(dateStr: string): string | null {
       // 格式化為 YYYY-MM-DD
       return `${westernYear}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     } catch (error) {
-      console.error(`轉換民國年日期時出錯: ${dateStr}`, error);
+      logger.error(`轉換民國年日期時出錯: ${dateStr}, ${(error as Error).message}`);
       return null;
     }
   }
@@ -194,7 +195,7 @@ function convertToWesternDate(dateStr: string): string | null {
       return dateObj.toISOString().split("T")[0] || null; // 返回YYYY-MM-DD格式
     }
   } catch (error) {
-    console.error(`解析日期時出錯: ${dateStr}`, error);
+    logger.error(`解析日期時出錯: ${dateStr}, ${(error as Error).message}`);
   }
   
   return null;
@@ -285,7 +286,7 @@ async function generateOrderNumberByDate(dateStr: string): Promise<string> {
     // 生成新訂單號，序號部分固定3位數
     return `${prefix}${String(sequence).padStart(3, "0")}${suffix}`;
   } catch (error) {
-    console.error("根據日期生成訂單號時出錯:", error);
+    logger.error(`根據日期生成訂單號時出錯: ${(error as Error).message}`);
     throw error;
   }
 }
@@ -352,7 +353,7 @@ function processCsvLine(data: Record<string, string>, lineIndex: number, result:
   let updatedFirstValidDate = firstValidDate;
   if (updatedFirstValidDate === null && date) {
     updatedFirstValidDate = date;
-    console.log(`首個有效日期已轉換: ${rawDate} -> ${date}`);
+    logger.debug(`首個有效日期已轉換: ${rawDate} -> ${date}`);
   }
 
   if (nhCode && quantity > 0 && nhPrice > 0) {
@@ -476,7 +477,7 @@ router.get("/generate-number", async (_req: Request, res: Response) => {
     
     res.json(response);
   } catch (err) {
-    console.error("生成出貨單號時出錯:", (err as Error).message);
+    logger.error(`生成出貨單號時出錯: ${(err as Error).message}`);
     const errorResponse: ErrorResponse = {
       success: false,
       message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
@@ -511,7 +512,7 @@ router.post("/import/medicine", upload.single("file"), async (req: Request, res:
         defaultSupplier = JSON.parse(req.body.defaultSupplier);
       }
     } catch (error) {
-      console.error("解析預設供應商數據時出錯:", error);
+      logger.error(`解析預設供應商數據時出錯: ${(error as Error).message}`);
     }
 
     // 初始化處理結果
@@ -642,11 +643,11 @@ router.post("/import/medicine", upload.single("file"), async (req: Request, res:
 
     // 保存出貨單
     const savedOrder = await shippingOrder.save();
-    console.log(`出貨單 ${savedOrder.soid} 已保存，狀態: ${savedOrder.status}`);
+    logger.info(`出貨單 ${savedOrder.soid} 已保存，狀態: ${savedOrder.status}`);
     
     // 創建庫存記錄
     await createShippingInventoryRecords(savedOrder);
-    console.log(`已為出貨單 ${savedOrder.soid} 創建庫存記錄`);
+    logger.info(`已為出貨單 ${savedOrder.soid} 創建庫存記錄`);
 
     const response: ApiResponse<any> = {
       success: true,
@@ -674,7 +675,7 @@ router.post("/import/medicine", upload.single("file"), async (req: Request, res:
     
     res.json(response);
   } catch (err) {
-    console.error("匯入藥品明細CSV時出錯:", (err as Error).message);
+    logger.error(`匯入藥品明細CSV時出錯: ${(err as Error).message}`);
     const errorResponse: ErrorResponse = {
       success: false,
       message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,

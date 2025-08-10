@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import TransactionGroupWithEntries, { ITransactionGroupWithEntries } from '../models/TransactionGroupWithEntries';
 import auth from '../middleware/auth';
 import DoubleEntryValidator from '../utils/doubleEntryValidation';
+import logger from '../utils/logger';
 
 // 導入重構後的輔助函數
 import {
@@ -95,16 +96,16 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
     const userId = validateUserAuth(req, res);
     if (!userId) return;
 
-    //console.log('🔍 GET /transaction-groups-with-entries - 查詢參數:', {
-      //...req.query,
-      //userId
-    //});
+    // logger.debug('GET /transaction-groups-with-entries - 查詢參數:', {
+    //   ...req.query,
+    //   userId
+    // });
 
     // 建立查詢條件和分頁參數
     const filter = buildQueryFilter(userId, req.query);
     const { pageNum, limitNum, skip } = buildPaginationParams(req.query);
 
-    //console.log('📋 最終查詢條件:', filter);
+    // logger.debug('最終查詢條件:', filter);
 
     // 執行查詢 - 使用分頁參數限制返回數據筆數
     const [transactionGroups, total] = await Promise.all([
@@ -118,7 +119,12 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
       TransactionGroupWithEntries.countDocuments(filter)
     ]);
 
-    //console.log('📊 查詢結果數量:', transactionGroups.length, '/', total, `(分頁: ${pageNum}/${Math.ceil(total/limitNum)}, 每頁 ${limitNum} 筆)`);
+    // logger.debug('查詢結果數量:', {
+    //   count: transactionGroups.length,
+    //   total,
+    //   page: `${pageNum}/${Math.ceil(total/limitNum)}`,
+    //   limit: limitNum
+    // });
 
     // 格式化交易群組列表
     const formattedTransactionGroups = await formatTransactionGroupsList(transactionGroups, userId);
@@ -164,7 +170,9 @@ router.get('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
     
     // 處理資金來源資訊
     if (transactionGroupObj.linkedTransactionIds && transactionGroupObj.linkedTransactionIds.length > 0) {
-      //console.log('🔍 GET /:id - 處理資金來源資訊，linkedTransactionIds:', transactionGroupObj.linkedTransactionIds);
+      // logger.debug('GET /:id - 處理資金來源資訊:', {
+      //   linkedTransactionIds: transactionGroupObj.linkedTransactionIds
+      // });
       
       responseData.fundingSourcesInfo = await Promise.all(
         transactionGroupObj.linkedTransactionIds.map((linkedTx: any) =>
@@ -172,14 +180,14 @@ router.get('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
         )
       );
       
-      //console.log('🎯 GET /:id - 最終資金來源資訊:', responseData.fundingSourcesInfo);
+      // logger.debug('GET /:id - 最終資金來源資訊:', responseData.fundingSourcesInfo);
     } else {
-      //console.log('ℹ️ GET /:id - 沒有資金來源需要處理');
+      // logger.debug('GET /:id - 沒有資金來源需要處理');
       responseData.fundingSourcesInfo = [];
     }
 
     // 查詢被引用情況
-    //console.log('🔍 GET /:id - 查詢被引用情況');
+    // logger.debug('GET /:id - 查詢被引用情況');
     responseData.referencedByInfo = await getReferencedByInfo(transactionGroup._id, userId);
 
     // 被引用情況已由 getReferencedByInfo 函數處理
@@ -211,39 +219,39 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
         validateEntryData(entry, index);
       });
     } catch (error) {
-      console.error('❌ [Backend] 分錄資料驗證失敗:', error);
+      logger.error('[Backend] 分錄資料驗證失敗:', error);
       sendErrorResponse(res, 400, error instanceof Error ? error.message : '分錄資料驗證失敗');
       return;
     }
 
     // 驗證借貸平衡
-    //console.log('🔍 [Backend] 開始驗證借貸平衡...');
+    // logger.debug('[Backend] 開始驗證借貸平衡...');
     const balanceValidation = DoubleEntryValidator.validateDebitCreditBalance(entries);
     
     if (!balanceValidation.isBalanced) {
-      console.error('❌ [Backend] 借貸平衡驗證失敗:', balanceValidation.message);
+      logger.error('[Backend] 借貸平衡驗證失敗:', balanceValidation.message);
       sendErrorResponse(res, 400, balanceValidation.message);
       return;
     }
     
-    //console.log('✅ [Backend] 借貸平衡驗證通過');
+    // logger.debug('[Backend] 借貸平衡驗證通過');
 
     // 計算交易總金額
     const totalAmount = calculateTotalAmount(entries);
 
     if (totalAmount <= 0) {
-      console.error('❌ [Backend] 交易總金額必須大於0:', { totalAmount });
+      logger.error('[Backend] 交易總金額必須大於0:', { totalAmount });
       sendErrorResponse(res, 400, '交易總金額必須大於0');
       return;
     }
 
     // 生成交易群組編號
-    //console.log('🔍 [Backend] 生成交易群組編號...');
+    // logger.debug('[Backend] 生成交易群組編號...');
     let groupNumber: string;
     try {
       groupNumber = await generateGroupNumber();
     } catch (error) {
-      console.error('❌ [Backend] 生成交易群組編號失敗:', error);
+      logger.error('[Backend] 生成交易群組編號失敗:', error);
       sendErrorResponse(res, 500, '生成交易群組編號失敗');
       return;
     }
@@ -253,7 +261,7 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
     try {
       embeddedEntries = buildEmbeddedEntries(entries, req.body.description, req.body.organizationId);
     } catch (error) {
-      console.error('❌ [Backend] 建立內嵌分錄資料失敗:', error);
+      logger.error('[Backend] 建立內嵌分錄資料失敗:', error);
       sendErrorResponse(res, 400, error instanceof Error ? error.message : '建立分錄資料失敗');
       return;
     }
@@ -263,7 +271,7 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
 
     // 處理精確資金來源使用追蹤
     if (req.body.fundingSourceUsages && Array.isArray(req.body.fundingSourceUsages)) {
-      //console.log('🔍 處理精確資金來源使用明細:', req.body.fundingSourceUsages);
+      // logger.debug('處理精確資金來源使用明細:', req.body.fundingSourceUsages);
       
       transactionGroupData.fundingSourceUsages = req.body.fundingSourceUsages.map((usage: any) => ({
         sourceTransactionId: new mongoose.Types.ObjectId(usage.sourceTransactionId),
@@ -271,20 +279,20 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
         description: usage.description || ''
       }));
       
-      //console.log('✅ 設定精確資金使用明細:', transactionGroupData.fundingSourceUsages);
+      // logger.debug('設定精確資金使用明細:', transactionGroupData.fundingSourceUsages);
     } else if (linkedTransactionIds && linkedTransactionIds.length > 0) {
       // 自動計算按比例分配
       const fundingSourceUsages = await calculateProportionalFundingUsage(linkedTransactionIds, totalAmount, userId);
       transactionGroupData.fundingSourceUsages = fundingSourceUsages;
     }
     
-    //console.log('📝 建立交易群組資料:', transactionGroupData);
+    // logger.debug('建立交易群組資料:', transactionGroupData);
 
     // 建立交易群組（包含內嵌分錄）
     const newTransactionGroup = new TransactionGroupWithEntries(transactionGroupData);
     const savedTransactionGroup = await newTransactionGroup.save();
 
-    //console.log('✅ 交易群組建立成功:', savedTransactionGroup._id);
+    // logger.debug('交易群組建立成功:', savedTransactionGroup._id);
 
     sendSuccessResponse(res, savedTransactionGroup, '交易群組建立成功', 201);
 
@@ -377,7 +385,7 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
     )
     .populate('linkedTransactionIds', 'groupNumber description transactionDate totalAmount fundingType status createdAt updatedAt');
 
-    //console.log('✅ 交易群組更新成功:', updatedTransactionGroup?._id);
+    // logger.debug('交易群組更新成功:', updatedTransactionGroup?._id);
 
     // 重新格式化資金來源資訊
     let responseData: any = updatedTransactionGroup?.toObject();
@@ -389,7 +397,7 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
         )
       );
       
-      //console.log('🎯 更新後最終資金來源資訊:', responseData.fundingSourcesInfo);
+      // logger.debug('更新後最終資金來源資訊:', responseData.fundingSourcesInfo);
     }
 
     sendSuccessResponse(res, responseData || updatedTransactionGroup, '交易群組更新成功');
@@ -406,7 +414,7 @@ router.post('/:id/confirm', auth, async (req: AuthenticatedRequest, res: express
     if (!userId) return;
 
     const { id } = req.params;
-    //console.log('🔍 POST /transaction-groups-with-entries/:id/confirm - 確認交易:', { id, userId });
+    // logger.debug('POST /transaction-groups-with-entries/:id/confirm - 確認交易:', { id, userId });
 
     // 查詢並驗證交易群組
     const transactionGroup = await findAndValidateTransactionGroup(id, userId, res);
@@ -429,7 +437,7 @@ router.post('/:id/confirm', auth, async (req: AuthenticatedRequest, res: express
       { new: true, runValidators: true }
     );
 
-    //console.log('✅ 交易確認成功:', confirmedTransactionGroup?._id);
+    // logger.debug('交易確認成功:', confirmedTransactionGroup?._id);
     sendSuccessResponse(res, confirmedTransactionGroup, '交易確認成功');
 
   } catch (error) {
@@ -444,7 +452,7 @@ router.post('/:id/unlock', auth, async (req: AuthenticatedRequest, res: express.
     if (!userId) return;
 
     const { id } = req.params;
-    //console.log('🔍 POST /transaction-groups-with-entries/:id/unlock - 解鎖交易:', { id, userId });
+    // logger.debug('POST /transaction-groups-with-entries/:id/unlock - 解鎖交易:', { id, userId });
 
     // 查詢並驗證交易群組
     const transactionGroup = await findAndValidateTransactionGroup(id, userId, res);
@@ -460,7 +468,7 @@ router.post('/:id/unlock', auth, async (req: AuthenticatedRequest, res: express.
       { new: true, runValidators: true }
     );
 
-    //console.log('🔓 交易解鎖成功:', unlockedTransactionGroup?._id);
+    // logger.debug('交易解鎖成功:', unlockedTransactionGroup?._id);
     sendSuccessResponse(res, unlockedTransactionGroup, '交易解鎖成功，已回到草稿狀態');
 
   } catch (error) {
@@ -475,7 +483,7 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: express.Respo
     if (!userId) return;
 
     const { id } = req.params;
-    //console.log('🔍 DELETE /transaction-groups-with-entries/:id - 刪除交易群組:', { id, userId });
+    // logger.debug('DELETE /transaction-groups-with-entries/:id - 刪除交易群組:', { id, userId });
 
     // 查詢並驗證交易群組
     const transactionGroup = await findAndValidateTransactionGroup(id, userId, res);
@@ -487,7 +495,7 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: express.Respo
     // 刪除交易群組（內嵌分錄會自動一起刪除）
     await TransactionGroupWithEntries.findByIdAndDelete(id);
 
-    //console.log('🗑️ 交易群組已刪除（包含內嵌分錄）');
+    // logger.debug('交易群組已刪除（包含內嵌分錄）');
     sendSuccessResponse(res, null, '交易群組刪除成功');
 
   } catch (error) {
@@ -506,11 +514,11 @@ router.get('/funding/available-sources', auth, async (req: AuthenticatedRequest,
 
     const { organizationId, minAmount = 0 } = req.query;
 
-    //console.log('🔍 GET /transaction-groups-with-entries/funding-sources/available - 查詢可用資金來源:', {
-      //organizationId,
-      //minAmount,
-      //userId
-    //});
+    // logger.debug('GET /transaction-groups-with-entries/funding-sources/available - 查詢可用資金來源:', {
+    //   organizationId,
+    //   minAmount,
+    //   userId
+    // });
 
     // 建立查詢條件
     const filter: any = {
@@ -559,13 +567,15 @@ router.get('/funding/available-sources', auth, async (req: AuthenticatedRequest,
               const allocatedAmount = (tx.totalAmount || 0) * sourceRatio;
               totalUsedAmount += allocatedAmount;
               
-              //console.log(`💰 資金來源 ${source.groupNumber} 在交易 ${tx.groupNumber} 中的分配:`, {
-                //sourceAmount: source.totalAmount,
-                //totalSourceAmount,
-                //sourceRatio: sourceRatio.toFixed(4),
-                //transactionAmount: tx.totalAmount,
-                //allocatedAmount: allocatedAmount.toFixed(2)
-              //});
+              // logger.debug(`資金來源分配:`, {
+              //   sourceGroupNumber: source.groupNumber,
+              //   targetGroupNumber: tx.groupNumber,
+              //   sourceAmount: source.totalAmount,
+              //   totalSourceAmount,
+              //   sourceRatio: sourceRatio.toFixed(4),
+              //   transactionAmount: tx.totalAmount,
+              //   allocatedAmount: allocatedAmount.toFixed(2)
+              // });
             }
           } else {
             // 如果沒有多個資金來源，使用完整金額
@@ -602,7 +612,7 @@ router.get('/funding/available-sources', auth, async (req: AuthenticatedRequest,
       }
     });
   } catch (error) {
-    console.error('獲取可用資金來源錯誤:', error);
+    logger.error('獲取可用資金來源錯誤:', error);
     res.status(500).json({
       success: false,
       message: '獲取可用資金來源失敗'
@@ -629,7 +639,7 @@ router.get('/:id/funding-flow', auth, async (req: AuthenticatedRequest, res: exp
       return;
     }
 
-    //console.log('🔍 GET /transaction-groups-with-entries/:id/funding-flow - 查詢資金流向:', { id, userId });
+    // logger.debug('GET /transaction-groups-with-entries/:id/funding-flow - 查詢資金流向:', { id, userId });
 
     // 檢查交易群組是否存在
     const transactionGroup = await TransactionGroupWithEntries.findOne({
@@ -712,7 +722,7 @@ router.get('/:id/funding-flow', auth, async (req: AuthenticatedRequest, res: exp
       data: fundingFlow
     });
   } catch (error) {
-    console.error('獲取資金流向錯誤:', error);
+    logger.error('獲取資金流向錯誤:', error);
     res.status(500).json({
       success: false,
       message: '獲取資金流向失敗'
@@ -731,11 +741,11 @@ router.post('/funding-sources/validate', auth, async (req: AuthenticatedRequest,
 
     const { sourceTransactionIds, requiredAmount } = req.body;
 
-    //console.log('🔍 POST /transaction-groups-with-entries/funding-sources/validate - 驗證資金來源:', {
-      //sourceTransactionIds,
-      //requiredAmount,
-      //userId
-    //});
+    // logger.debug('POST /transaction-groups-with-entries/funding-sources/validate - 驗證資金來源:', {
+    //   sourceTransactionIds,
+    //   requiredAmount,
+    //   userId
+    // });
 
     if (!sourceTransactionIds || !Array.isArray(sourceTransactionIds) || sourceTransactionIds.length === 0) {
       res.status(400).json({
@@ -818,7 +828,7 @@ router.post('/funding-sources/validate', auth, async (req: AuthenticatedRequest,
       }
     });
   } catch (error) {
-    console.error('驗證資金來源錯誤:', error);
+    logger.error('驗證資金來源錯誤:', error);
     res.status(500).json({
       success: false,
       message: '驗證資金來源失敗'

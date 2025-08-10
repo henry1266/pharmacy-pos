@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import Account2, { IAccount2 } from '../models/Account2';
 import TransactionGroupWithEntries, { ITransactionGroupWithEntries, IEmbeddedAccountingEntry } from '../models/TransactionGroupWithEntries';
 import { IPurchaseOrderDocument } from '../models/PurchaseOrder';
+import logger from '../utils/logger';
 
 /**
  * 自動會計分錄服務
@@ -17,11 +18,11 @@ export class AutoAccountingEntryService {
    */
   static async handlePurchaseOrderCompletion(purchaseOrder: IPurchaseOrderDocument, userId?: string): Promise<mongoose.Types.ObjectId | null> {
     try {
-      console.log(`🔍 檢查進貨單 ${purchaseOrder.poid} 的自動會計分錄條件`);
+      logger.debug(`檢查進貨單自動會計分錄條件:`, { poid: purchaseOrder.poid });
       
       // 檢查是否滿足自動分錄條件
       if (!this.shouldCreateAutoEntry(purchaseOrder)) {
-        console.log('❌ 不滿足自動會計分錄條件，跳過');
+        logger.warn('不滿足自動會計分錄條件，跳過');
         return null;
       }
 
@@ -34,25 +35,25 @@ export class AutoAccountingEntryService {
       // 如果沒有指定分錄類型，根據科目類型自動推斷
       if (!entryType) {
         entryType = this.inferEntryTypeFromAccounts(accounts);
-        console.log(`🔍 自動推斷分錄類型: ${entryType}`);
+        logger.debug(`自動推斷分錄類型:`, { entryType });
         
         // 將推斷的分錄類型回寫到進貨單
         purchaseOrder.accountingEntryType = entryType;
         await purchaseOrder.save();
-        console.log(`✅ 已更新進貨單 ${purchaseOrder.poid} 的分錄類型為: ${entryType}`);
+        logger.info(`已更新進貨單分錄類型:`, { poid: purchaseOrder.poid, entryType });
       }
       
       const { debitAccount, creditAccount } = this.determineDebitCreditAccounts(accounts, entryType);
       
       if (!debitAccount || !creditAccount) {
-        console.log(`❌ 無法根據 ${entryType} 格式找到合適的借貸科目`);
+        logger.warn(`無法根據分錄格式找到合適的借貸科目:`, { entryType });
         return null;
       }
 
       // 從會計科目推斷機構ID
       const organizationId = await this.inferOrganizationFromAccounts(accounts);
       if (!organizationId) {
-        console.log('❌ 無法從會計科目推斷機構ID，跳過自動分錄');
+        logger.warn('無法從會計科目推斷機構ID，跳過自動分錄');
         return null;
       }
 
@@ -65,11 +66,11 @@ export class AutoAccountingEntryService {
         userId
       );
       
-      console.log(`✅ 成功為進貨單 ${purchaseOrder.poid} 創建自動會計分錄，機構ID: ${organizationId}`);
+      logger.info(`成功創建自動會計分錄:`, { poid: purchaseOrder.poid, organizationId: organizationId.toString() });
       return transactionGroup._id as mongoose.Types.ObjectId;
       
     } catch (error) {
-      console.error('❌ 創建自動會計分錄時發生錯誤:', error);
+      logger.error('創建自動會計分錄時發生錯誤:', error);
       throw error;
     }
   }
@@ -80,15 +81,15 @@ export class AutoAccountingEntryService {
    */
   static async deletePurchaseOrderEntries(transactionGroupId: mongoose.Types.ObjectId): Promise<void> {
     try {
-      console.log(`🗑️ 刪除交易群組 ${transactionGroupId} 的會計分錄`);
+      logger.debug(`刪除交易群組會計分錄:`, { transactionGroupId: transactionGroupId.toString() });
       
       // 使用嵌入式模型直接刪除交易群組（包含內嵌的分錄）
       await TransactionGroupWithEntries.findByIdAndDelete(transactionGroupId);
       
-      console.log(`✅ 成功刪除交易群組 ${transactionGroupId} 及其相關分錄`);
+      logger.info(`成功刪除交易群組及其相關分錄:`, { transactionGroupId: transactionGroupId.toString() });
       
     } catch (error) {
-      console.error('❌ 刪除會計分錄時發生錯誤:', error);
+      logger.error('刪除會計分錄時發生錯誤:', error);
       throw error;
     }
   }
@@ -101,22 +102,26 @@ export class AutoAccountingEntryService {
   private static shouldCreateAutoEntry(purchaseOrder: IPurchaseOrderDocument): boolean {
     // 檢查是否有選擇會計科目
     if (!purchaseOrder.selectedAccountIds || purchaseOrder.selectedAccountIds.length < 2) {
-      console.log('❌ 選擇的會計科目少於2個');
+      logger.debug('選擇的會計科目少於2個');
       return false;
     }
 
     // 檢查總金額是否大於0
     if (!purchaseOrder.totalAmount || purchaseOrder.totalAmount <= 0) {
-      console.log('❌ 進貨單總金額無效');
+      logger.debug('進貨單總金額無效');
       return false;
     }
 
     // 檢查機構ID（重要：會計系統需要機構ID來過濾資料）
     if (!purchaseOrder.organizationId) {
-      console.log('⚠️ 進貨單沒有機構ID，將嘗試從會計科目獲取');
+      logger.debug('進貨單沒有機構ID，將嘗試從會計科目獲取');
     }
 
-    console.log(`✅ 滿足自動會計分錄條件：${purchaseOrder.selectedAccountIds.length}個科目，總金額：${purchaseOrder.totalAmount}，機構ID：${purchaseOrder.organizationId || '未設置'}`);
+    logger.debug(`滿足自動會計分錄條件:`, {
+      accountCount: purchaseOrder.selectedAccountIds.length,
+      totalAmount: purchaseOrder.totalAmount,
+      organizationId: purchaseOrder.organizationId || '未設置'
+    });
     return true;
   }
 
@@ -132,9 +137,14 @@ export class AutoAccountingEntryService {
   ): { debitAccount: IAccount2 | null; creditAccount: IAccount2 | null } {
     
     // 詳細記錄所有科目資訊
-    console.log(`🔍 分析 ${accounts.length} 個會計科目：`);
-    accounts.forEach((account, index) => {
-      console.log(`  ${index + 1}. ${account.name} (類型: ${account.accountType}, ID: ${account._id})`);
+    logger.debug(`分析會計科目:`, {
+      count: accounts.length,
+      accounts: accounts.map((account, index) => ({
+        index: index + 1,
+        name: account.name,
+        type: account.accountType,
+        id: (account._id as mongoose.Types.ObjectId).toString()
+      }))
     });
     
     if (entryType === 'expense-asset') {
@@ -149,15 +159,21 @@ export class AutoAccountingEntryService {
       
       // 如果沒有找到expense科目，但有asset和liability科目，則使用asset-liability組合
       if (!expenseAccount && assetAccount && liabilityAccount) {
-        console.log(`🔄 支出-資產格式：未找到支出科目，改用資產-負債組合`);
-        console.log(`✅ 支出-資產格式（替代）：借方=${assetAccount?.name}, 貸方=${liabilityAccount?.name}`);
+        logger.debug(`支出-資產格式替代方案:`, {
+          reason: '未找到支出科目，改用資產-負債組合',
+          debitAccount: assetAccount?.name,
+          creditAccount: liabilityAccount?.name
+        });
         return {
           debitAccount: assetAccount,
           creditAccount: liabilityAccount
         };
       }
       
-      console.log(`✅ 支出-資產格式（標準）：借方=${expenseAccount?.name}, 貸方=${assetAccount?.name}`);
+      logger.debug(`支出-資產格式(標準):`, {
+        debitAccount: expenseAccount?.name,
+        creditAccount: assetAccount?.name
+      });
       return {
         debitAccount: expenseAccount || null,
         creditAccount: assetAccount || null
@@ -168,14 +184,17 @@ export class AutoAccountingEntryService {
       const assetAccount = accounts.find(account => account.accountType === 'asset');
       const liabilityAccount = accounts.find(account => account.accountType === 'liability');
       
-      console.log(`✅ 資產-負債格式：借方=${assetAccount?.name}, 貸方=${liabilityAccount?.name}`);
+      logger.debug(`資產-負債格式:`, {
+        debitAccount: assetAccount?.name,
+        creditAccount: liabilityAccount?.name
+      });
       return {
         debitAccount: assetAccount || null,
         creditAccount: liabilityAccount || null
       };
     }
     
-    console.log(`❌ 不支援的分錄類型: ${entryType}`);
+    logger.warn(`不支援的分錄類型:`, { entryType });
     return { debitAccount: null, creditAccount: null };
   }
 
@@ -208,22 +227,24 @@ export class AutoAccountingEntryService {
         .map(orgId => orgId!.toString());
 
       if (organizationIds.length === 0) {
-        console.log('❌ 所有會計科目都沒有關聯的機構');
+        logger.warn('所有會計科目都沒有關聯的機構');
         return null;
       }
 
       // 檢查是否所有科目都屬於同一機構
       const uniqueOrgIds = [...new Set(organizationIds)];
       if (uniqueOrgIds.length > 1) {
-        console.log('⚠️ 會計科目屬於不同機構，使用第一個科目的機構');
+        logger.warn('會計科目屬於不同機構，使用第一個科目的機構', {
+          organizationIds: uniqueOrgIds
+        });
       }
 
       const organizationId = new mongoose.Types.ObjectId(uniqueOrgIds[0]);
-      console.log(`✅ 從會計科目推斷機構ID: ${organizationId}`);
+      logger.debug(`從會計科目推斷機構ID:`, { organizationId: organizationId.toString() });
       return organizationId;
 
     } catch (error) {
-      console.error('❌ 推斷機構ID時發生錯誤:', error);
+      logger.error('推斷機構ID時發生錯誤:', error);
       return null;
     }
   }
@@ -280,7 +301,7 @@ export class AutoAccountingEntryService {
     });
 
     await transactionGroup.save();
-    console.log(`✅ 創建嵌入式交易群組，機構ID: ${organizationId}`);
+    logger.debug(`創建嵌入式交易群組:`, { organizationId: organizationId.toString() });
     return transactionGroup;
   }
 
@@ -307,16 +328,19 @@ export class AutoAccountingEntryService {
             parsedDate.getFullYear() === year &&
             parsedDate.getMonth() === month &&
             parsedDate.getDate() === day) {
-          console.log(`✅ 從進貨單號 ${poid} 解析日期: ${parsedDate.toISOString().split('T')[0]}`);
+          logger.debug(`從進貨單號解析日期:`, {
+            poid,
+            date: parsedDate.toISOString().split('T')[0]
+          });
           return parsedDate;
         }
       }
       
-      console.log(`⚠️ 無法從進貨單號 ${poid} 解析有效日期，使用當前日期`);
+      logger.warn(`無法從進貨單號解析有效日期，使用當前日期:`, { poid });
       return new Date();
       
     } catch (error) {
-      console.error(`❌ 解析進貨單號日期時出錯: ${error}, 使用當前日期`);
+      logger.error(`解析進貨單號日期時出錯，使用當前日期:`, { error });
       return new Date();
     }
   }
@@ -331,30 +355,34 @@ export class AutoAccountingEntryService {
     const hasAsset = accounts.some(account => account.accountType === 'asset');
     const hasLiability = accounts.some(account => account.accountType === 'liability');
     
-    console.log(`🔍 科目類型分析: expense=${hasExpense}, asset=${hasAsset}, liability=${hasLiability}`);
+    logger.debug(`科目類型分析:`, {
+      expense: hasExpense,
+      asset: hasAsset,
+      liability: hasLiability
+    });
     
     // 嚴格根據科目組合判斷，不使用預設值
     // 如果有 asset + liability，使用 asset-liability 格式
     if (hasAsset && hasLiability && !hasExpense) {
-      console.log(`✅ 判斷為資產-負債格式: 資產科目 + 負債科目`);
+      logger.debug(`判斷為資產-負債格式: 資產科目 + 負債科目`);
       return 'asset-liability';
     }
     
     // 如果有 expense + asset，使用 expense-asset 格式
     if (hasExpense && hasAsset) {
-      console.log(`✅ 判斷為支出-資產格式: 支出科目 + 資產科目`);
+      logger.debug(`判斷為支出-資產格式: 支出科目 + 資產科目`);
       return 'expense-asset';
     }
     
     // 如果只有 asset + liability（即使有其他科目類型），優先使用 asset-liability
     if (hasAsset && hasLiability) {
-      console.log(`✅ 判斷為資產-負債格式: 包含資產科目 + 負債科目`);
+      logger.debug(`判斷為資產-負債格式: 包含資產科目 + 負債科目`);
       return 'asset-liability';
     }
     
     // 如果只有 expense 相關科目，使用 expense-asset 格式
     if (hasExpense) {
-      console.log(`✅ 判斷為支出-資產格式: 包含支出科目`);
+      logger.debug(`判斷為支出-資產格式: 包含支出科目`);
       return 'expense-asset';
     }
     

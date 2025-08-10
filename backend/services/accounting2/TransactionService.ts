@@ -2,6 +2,7 @@ import TransactionGroupWithEntries, { ITransactionGroupWithEntries } from '../..
 import Account2 from '../../models/Account2';
 import { Accounting3To2Adapter } from '../../../shared/adapters/accounting3to2';
 import { TransactionGroupWithEntries as TransactionGroupType } from '../../../shared/types/accounting2';
+import logger from '../../utils/logger';
 
 /**
  * Accounting2 交易服務層
@@ -52,10 +53,10 @@ export class TransactionService {
 
       const savedTransaction = await transaction.save();
 
-      console.log(`✅ 交易群組建立成功: ${savedTransaction.groupNumber}`);
+      logger.info(`交易群組建立成功: ${savedTransaction.groupNumber}`);
       return savedTransaction;
     } catch (error) {
-      console.error('建立交易群組錯誤:', error);
+      logger.error('建立交易群組錯誤:', error);
       throw error;
     }
   }
@@ -112,7 +113,7 @@ export class TransactionService {
       const limit = filters?.limit && filters.limit > 0 ? filters.limit : 25; // 將默認值改為25，與前端一致
       const skip = (page - 1) * limit;
 
-      console.log(`🔢 分頁參數: page=${page}, limit=${limit}, skip=${skip}`);
+      logger.debug(`分頁參數: page=${page}, limit=${limit}, skip=${skip}`);
 
       const [transactions, total] = await Promise.all([
         TransactionGroupWithEntries.find(query)
@@ -124,7 +125,7 @@ export class TransactionService {
         TransactionGroupWithEntries.countDocuments(query)
       ]);
 
-      console.log(`📊 查詢交易群組數量: ${transactions.length}/${total}, 分頁: ${page}/${Math.ceil(total/limit)}`);
+      logger.debug(`查詢交易群組數量: ${transactions.length}/${total}, 分頁: ${page}/${Math.ceil(total/limit)}`);
       return {
         transactions,
         total,
@@ -132,7 +133,7 @@ export class TransactionService {
         limit
       };
     } catch (error) {
-      console.error('取得交易群組列表錯誤:', error);
+      logger.error('取得交易群組列表錯誤:', error);
       throw error;
     }
   }
@@ -192,7 +193,7 @@ export class TransactionService {
 
       return result;
     } catch (error) {
-      console.error('取得交易群組詳細資料錯誤:', error);
+      logger.error('取得交易群組詳細資料錯誤:', error);
       throw error;
     }
   }
@@ -257,10 +258,10 @@ export class TransactionService {
         throw new Error('更新交易群組失敗');
       }
 
-      console.log(`✅ 交易群組更新成功: ${updatedTransaction.groupNumber}`);
+      logger.info(`交易群組更新成功: ${updatedTransaction.groupNumber}`);
       return updatedTransaction;
     } catch (error) {
-      console.error('更新交易群組錯誤:', error);
+      logger.error('更新交易群組錯誤:', error);
       throw error;
     }
   }
@@ -321,10 +322,10 @@ export class TransactionService {
         throw new Error('確認交易群組失敗');
       }
 
-      console.log(`✅ 交易群組確認成功: ${confirmedTransaction.groupNumber}`);
+      logger.info(`交易群組確認成功: ${confirmedTransaction.groupNumber}`);
       return confirmedTransaction;
     } catch (error) {
-      console.error('確認交易群組錯誤:', error);
+      logger.error('確認交易群組錯誤:', error);
       throw error;
     }
   }
@@ -382,10 +383,10 @@ export class TransactionService {
         throw new Error('取消交易群組失敗');
       }
 
-      console.log(`✅ 交易群組取消成功: ${cancelledTransaction.groupNumber}`);
+      logger.info(`交易群組取消成功: ${cancelledTransaction.groupNumber}`);
       return cancelledTransaction;
     } catch (error) {
-      console.error('取消交易群組錯誤:', error);
+      logger.error('取消交易群組錯誤:', error);
       throw error;
     }
   }
@@ -397,15 +398,19 @@ export class TransactionService {
    * @private
    */
   private static async validateEntries(entries: any[], userId: string): Promise<void> {
-    console.log('🔍 開始驗證分錄資料:', entries.length, '筆分錄');
+    logger.debug('開始驗證分錄資料:', { entriesCount: entries.length });
     
     const accountIds = entries.map((entry, index) => {
       const accountId = typeof entry.accountId === 'string' ? entry.accountId : entry.accountId?._id;
-      console.log(`分錄 ${index + 1}: accountId = ${accountId}, debit = ${entry.debitAmount}, credit = ${entry.creditAmount}`);
+      logger.debug(`分錄 ${index + 1} 資料:`, {
+        accountId,
+        debitAmount: entry.debitAmount,
+        creditAmount: entry.creditAmount
+      });
       return accountId;
     }).filter(Boolean);
 
-    console.log('📋 提取的科目 ID:', accountIds);
+    logger.debug('提取的科目 ID:', accountIds);
 
     if (accountIds.length === 0) {
       throw new Error('分錄必須指定會計科目');
@@ -413,7 +418,7 @@ export class TransactionService {
 
     // 去重處理，避免重複查詢
     const uniqueAccountIds = [...new Set(accountIds)];
-    console.log('🔄 去重後的科目 ID:', uniqueAccountIds);
+    logger.debug('去重後的科目 ID:', uniqueAccountIds);
 
     // 驗證會計科目是否存在
     const accounts = await Account2.find({
@@ -422,16 +427,20 @@ export class TransactionService {
       isActive: true
     });
 
-    console.log('✅ 找到的有效科目:', accounts.length, '個');
-    console.log('📊 有效科目詳情:', accounts.map(a => ({ id: (a._id as any).toString(), code: a.code, name: a.name })));
+    logger.debug('找到的有效科目:', {
+      count: accounts.length,
+      details: accounts.map(a => ({ id: (a._id as any).toString(), code: a.code, name: a.name }))
+    });
 
     if (accounts.length !== uniqueAccountIds.length) {
       const existingAccountIds = accounts.map(a => (a._id as any).toString());
       const missingAccountIds = uniqueAccountIds.filter(id => !existingAccountIds.includes(id?.toString()));
       
-      console.error('❌ 缺少的科目 ID:', missingAccountIds);
-      console.error('📋 現有科目 ID:', existingAccountIds);
-      console.error('🔍 查詢條件:', { uniqueAccountIds, userId });
+      logger.error('缺少的科目 ID:', {
+        missingAccountIds,
+        existingAccountIds,
+        queryConditions: { uniqueAccountIds, userId }
+      });
       
       throw new Error(`以下會計科目不存在或無權限存取: ${missingAccountIds.join(', ')}`);
     }
@@ -454,7 +463,7 @@ export class TransactionService {
       }
     }
 
-    console.log('✅ 分錄驗證完成');
+    logger.debug('分錄驗證完成');
   }
 
   /**
@@ -503,7 +512,7 @@ export class TransactionService {
       .populate('entries.accountId', 'name code')
       .lean();
 
-      console.log(`🔍 找到 ${referencingTransactions.length} 筆引用交易`);
+      logger.debug(`找到引用交易:`, { count: referencingTransactions.length });
 
       // 3. 計算每筆引用交易使用的金額
       const referencedByTransactions = [];
@@ -545,7 +554,7 @@ export class TransactionService {
         referencedByTransactions
       };
 
-      console.log(`💰 交易餘額計算完成:`, {
+      logger.debug(`交易餘額計算完成:`, {
         transactionId,
         totalAmount,
         usedAmount: totalUsedAmount,
@@ -555,7 +564,7 @@ export class TransactionService {
 
       return result;
     } catch (error) {
-      console.error('計算交易餘額錯誤:', error);
+      logger.error('計算交易餘額錯誤:', error);
       throw error;
     }
   }
@@ -601,10 +610,10 @@ export class TransactionService {
         }
       }
 
-      console.log(`📊 批次餘額計算完成: ${results.length} 筆交易`);
+      logger.debug(`批次餘額計算完成:`, { count: results.length });
       return results;
     } catch (error) {
-      console.error('批次計算交易餘額錯誤:', error);
+      logger.error('批次計算交易餘額錯誤:', error);
       throw error;
     }
   }
@@ -662,7 +671,7 @@ export class TransactionService {
         count: count as number
       }));
 
-      console.log(`📊 交易統計完成: 總計 ${totalTransactions} 筆交易`);
+      logger.debug(`交易統計完成:`, { totalTransactions });
       return {
         totalTransactions,
         confirmedTransactions,
@@ -673,7 +682,7 @@ export class TransactionService {
         transactionsByStatus
       };
     } catch (error) {
-      console.error('取得交易統計資訊錯誤:', error);
+      logger.error('取得交易統計資訊錯誤:', error);
       throw error;
     }
   }
@@ -719,10 +728,13 @@ export class TransactionService {
         ...(organizationId ? { organizationId } : {})
       }).lean();
 
-      console.log(`🔍 找到 ${payableAccounts.length} 個應付帳款科目:`, payableAccounts.map(a => `${a.code} - ${a.name}`));
+      logger.debug(`找到應付帳款科目:`, {
+        count: payableAccounts.length,
+        accounts: payableAccounts.map(a => `${a.code} - ${a.name}`)
+      });
 
       if (payableAccounts.length === 0) {
-        console.log('⚠️ 沒有找到應付帳款科目，返回空列表');
+        logger.warn('沒有找到應付帳款科目，返回空列表');
         return [];
       }
 
@@ -746,7 +758,7 @@ export class TransactionService {
         .populate('entries.accountId', 'name code accountType')
         .lean();
 
-      console.log(`📋 找到 ${transactions.length} 筆包含應付帳款科目的交易`);
+      logger.debug(`找到包含應付帳款科目的交易:`, { count: transactions.length });
 
       // 計算每筆交易的付款狀態
       const payableTransactions = [];
@@ -857,10 +869,13 @@ export class TransactionService {
         return new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime();
       });
 
-      console.log(`📋 查詢應付帳款: 找到 ${payableTransactions.length} 筆，未付清 ${payableTransactions.filter(p => !p.isPaidOff).length} 筆`);
+      logger.debug(`查詢應付帳款結果:`, {
+        total: payableTransactions.length,
+        unpaid: payableTransactions.filter(p => !p.isPaidOff).length
+      });
       return payableTransactions;
     } catch (error) {
-      console.error('取得應付帳款錯誤:', error);
+      logger.error('取得應付帳款錯誤:', error);
       throw error;
     }
   }
@@ -893,10 +908,14 @@ export class TransactionService {
         }
       });
 
-      console.log(`💰 計算已付金額: 交易 ${transactionId}, 所有付款 ${paymentTransactions.length} 筆, 總已付金額 ${totalPaidAmount}`);
+      logger.debug(`計算已付金額:`, {
+        transactionId,
+        paymentCount: paymentTransactions.length,
+        totalPaidAmount
+      });
       return totalPaidAmount;
     } catch (error) {
-      console.error('計算已付金額錯誤:', error);
+      logger.error('計算已付金額錯誤:', error);
       return 0;
     }
   }
@@ -972,7 +991,11 @@ export class TransactionService {
           break;
       }
 
-      console.log(`💰 付款帳戶類型: ${paymentAccount.type} (${paymentAccount.name}), 狀態: ${statusDescription}`);
+      logger.debug(`付款帳戶資訊:`, {
+        type: paymentAccount.type,
+        name: paymentAccount.name,
+        status: statusDescription
+      });
 
       // 建立付款交易
       const paymentTransaction = await this.createTransactionGroup({
@@ -996,10 +1019,10 @@ export class TransactionService {
         statusDescription
       );
 
-      console.log(`✅ 付款交易建立成功: ${paymentTransaction.groupNumber} - ${statusDescription}`);
+      logger.info(`付款交易建立成功: ${paymentTransaction.groupNumber} - ${statusDescription}`);
       return paymentTransaction;
     } catch (error) {
-      console.error('建立付款交易錯誤:', error);
+      logger.error('建立付款交易錯誤:', error);
       throw error;
     }
   }
@@ -1095,7 +1118,7 @@ export class TransactionService {
         errors
       };
     } catch (error) {
-      console.error('驗證付款交易錯誤:', error);
+      logger.error('驗證付款交易錯誤:', error);
       return {
         isValid: false,
         errors: ['驗證過程發生錯誤']
@@ -1138,10 +1161,15 @@ export class TransactionService {
         
         await payableTransaction.save();
 
-        console.log(`✅ 更新應付帳款狀態: ${payableTransaction.groupNumber} - ${isPaidOff ? '已付清' : '部分付款'} (${paidAmount}/${payableTransaction.totalAmount})`);
+        logger.debug(`更新應付帳款狀態:`, {
+          groupNumber: payableTransaction.groupNumber,
+          status: isPaidOff ? '已付清' : '部分付款',
+          paidAmount,
+          totalAmount: payableTransaction.totalAmount
+        });
       }
     } catch (error) {
-      console.error('更新應付帳款狀態錯誤:', error);
+      logger.error('更新應付帳款狀態錯誤:', error);
       throw error;
     }
   }
@@ -1215,7 +1243,11 @@ export class TransactionService {
       const hasPaidAmount = totalPaidAmount > 0;
       const isPaidOff = totalPaidAmount >= relatedPayable.totalAmount;
 
-      console.log(`💰 檢查進貨單付款狀態: ${purchaseOrderId}, 已付金額: ${totalPaidAmount}, 總金額: ${relatedPayable.totalAmount}`);
+      logger.debug(`檢查進貨單付款狀態:`, {
+        purchaseOrderId,
+        paidAmount: totalPaidAmount,
+        totalAmount: relatedPayable.totalAmount
+      });
 
       return {
         hasPaidAmount,
@@ -1225,7 +1257,7 @@ export class TransactionService {
         paymentTransactions: paymentDetails
       };
     } catch (error) {
-      console.error('檢查進貨單付款狀態錯誤:', error);
+      logger.error('檢查進貨單付款狀態錯誤:', error);
       return {
         hasPaidAmount: false,
         paidAmount: 0,
@@ -1247,7 +1279,7 @@ export class TransactionService {
     userId: string
   ): Promise<{ [key: string]: boolean }> {
     try {
-      console.log('🔍 批量檢查進貨單付款狀態，數量:', purchaseOrderIds.length);
+      logger.debug('批量檢查進貨單付款狀態:', { count: purchaseOrderIds.length });
       
       // 建立付款狀態映射
       const paymentStatusMap: { [key: string]: boolean } = {};
@@ -1264,17 +1296,17 @@ export class TransactionService {
         _id: { $in: purchaseOrderIds }
       }).lean();
       
-      console.log(`📋 找到進貨單: ${purchaseOrders.length} 筆`);
+      logger.debug(`找到進貨單:`, { count: purchaseOrders.length });
       
       // 提取所有相關的交易 ID
       const relatedTransactionIds = purchaseOrders
         .filter((po: any) => po.relatedTransactionGroupId)
         .map((po: any) => po.relatedTransactionGroupId.toString());
       
-      console.log(`🔗 相關交易 ID: ${relatedTransactionIds.length} 筆`);
+      logger.debug(`相關交易 ID:`, { count: relatedTransactionIds.length });
       
       if (relatedTransactionIds.length === 0) {
-        console.log('❌ 沒有找到相關的交易 ID');
+        logger.warn('沒有找到相關的交易 ID');
         return paymentStatusMap;
       }
       
@@ -1288,17 +1320,17 @@ export class TransactionService {
         }
       }).lean();
       
-      console.log(`💰 找到付款交易: ${paymentTransactions.length} 筆`);
+      logger.debug(`找到付款交易:`, { count: paymentTransactions.length });
       
       // 處理每個進貨單
       for (const purchaseOrder of purchaseOrders) {
         const purchaseOrderId = purchaseOrder._id.toString();
         const relatedTransactionId = purchaseOrder.relatedTransactionGroupId?.toString();
         
-        console.log(`🔍 檢查進貨單: ${purchaseOrderId}, 相關交易: ${relatedTransactionId}`);
+        logger.debug(`檢查進貨單:`, { purchaseOrderId, relatedTransactionId });
         
         if (!relatedTransactionId) {
-          console.log(`❌ 進貨單 ${purchaseOrderId} 沒有相關交易 ID`);
+          logger.warn(`進貨單 ${purchaseOrderId} 沒有相關交易 ID`);
           continue;
         }
         
@@ -1309,7 +1341,7 @@ export class TransactionService {
           )
         );
         
-        console.log(`💰 找到相關付款交易: ${relatedPayments.length} 筆`);
+        logger.debug(`找到相關付款交易:`, { count: relatedPayments.length });
         
         if (relatedPayments.length > 0) {
           // 計算總付款金額
@@ -1320,18 +1352,18 @@ export class TransactionService {
             return sum + (payableTransaction?.paidAmount || 0);
           }, 0);
           
-          console.log(`💵 進貨單 ${purchaseOrderId} 總付款金額: ${totalPaidAmount}`);
+          logger.debug(`進貨單付款金額:`, { purchaseOrderId, totalPaidAmount });
           paymentStatusMap[purchaseOrderId] = totalPaidAmount > 0;
         } else {
-          console.log(`❌ 進貨單 ${purchaseOrderId} 沒有找到付款交易`);
+          logger.warn(`進貨單 ${purchaseOrderId} 沒有找到付款交易`);
         }
       }
       
-      console.log('✅ 批量付款狀態檢查完成:', paymentStatusMap);
+      logger.debug('批量付款狀態檢查完成:', paymentStatusMap);
       
       return paymentStatusMap;
     } catch (error) {
-      console.error('❌ 批量檢查進貨單付款狀態失敗:', error);
+      logger.error('批量檢查進貨單付款狀態失敗:', error);
       
       // 返回所有為 false 的映射
       const errorMap: { [key: string]: boolean } = {};
@@ -1353,7 +1385,10 @@ export class TransactionService {
     paymentStatus: string
   ): Promise<void> {
     try {
-      console.log(`🔄 更新進貨單付款狀態: ${transactionIds.length} 筆交易, 狀態: ${paymentStatus}`);
+      logger.debug(`更新進貨單付款狀態:`, {
+        transactionCount: transactionIds.length,
+        status: paymentStatus
+      });
       
       // 查找與這些交易相關的進貨單
       const PurchaseOrder = require('../../models/PurchaseOrder').default;
@@ -1361,7 +1396,7 @@ export class TransactionService {
         relatedTransactionGroupId: { $in: transactionIds }
       });
 
-      console.log(`📋 找到相關進貨單: ${purchaseOrders.length} 筆`);
+      logger.debug(`找到相關進貨單:`, { count: purchaseOrders.length });
 
       // 更新每個進貨單的付款狀態
       for (const purchaseOrder of purchaseOrders) {
@@ -1369,12 +1404,12 @@ export class TransactionService {
         purchaseOrder.updatedAt = new Date();
         await purchaseOrder.save();
         
-        console.log(`✅ 更新進貨單付款狀態: ${purchaseOrder.poid} -> ${paymentStatus}`);
+        logger.debug(`更新進貨單付款狀態:`, { poid: purchaseOrder.poid, status: paymentStatus });
       }
 
-      console.log(`✅ 進貨單付款狀態更新完成: ${purchaseOrders.length} 筆`);
+      logger.info(`進貨單付款狀態更新完成:`, { count: purchaseOrders.length });
     } catch (error) {
-      console.error('❌ 更新進貨單付款狀態失敗:', error);
+      logger.error('更新進貨單付款狀態失敗:', error);
       // 不拋出錯誤，避免影響付款交易的建立
     }
   }

@@ -10,6 +10,7 @@ import Inventory from '../models/Inventory';
 import Customer from '../models/Customer';
 import Supplier from '../models/Supplier';
 import OrderNumberService from '../utils/OrderNumberService';
+import logger from '../utils/logger';
 
 // 使用 shared 架構的類型
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
@@ -156,7 +157,7 @@ function createErrorResponse(message: string, errors?: any[]): ErrorResponse {
  * @param customMessage - 自定義錯誤消息（可選）
  */
 function handleDatabaseError(res: Response, err: Error, customMessage?: string): void {
-  console.error(err.message);
+  logger.error(`資料庫錯誤: ${err.message}`);
   
   if (err.name === 'CastError') {
     res.status(404).json(createErrorResponse(customMessage || ERROR_MESSAGES.GENERIC.NOT_FOUND));
@@ -284,7 +285,7 @@ async function validateProductsAndInventory(items: ShippingOrderItem[], allowNeg
     // 檢查產品是否設定為「不扣庫存」
     const productDoc = product as any;
     if (productDoc.excludeFromStock === true) {
-      console.log(`產品 ${item.dname} (${item.did}) 設定為不扣庫存，跳過庫存檢查`);
+      logger.debug(`產品 ${item.dname} (${item.did}) 設定為不扣庫存，跳過庫存檢查`);
     } else {
       // 檢查庫存
       const inventorySum = await Inventory.aggregate([
@@ -301,7 +302,7 @@ async function validateProductsAndInventory(items: ShippingOrderItem[], allowNeg
           error: `藥品 ${item.dname} (${item.did}) 庫存不足，目前庫存: ${availableQuantity}，需要: ${item.dquantity}`
         };
       } else if (allowNegativeInventory && availableQuantity < item.dquantity) {
-        console.log(`產品 ${item.dname} (${item.did}) 允許負庫存，目前庫存: ${availableQuantity}，需要: ${item.dquantity}，將產生負庫存: ${availableQuantity - item.dquantity}`);
+        logger.info(`產品 ${item.dname} (${item.did}) 允許負庫存，目前庫存: ${availableQuantity}，需要: ${item.dquantity}，將產生負庫存: ${availableQuantity - item.dquantity}`);
       }
     }
   }
@@ -703,17 +704,17 @@ async function createShippingInventoryRecords(shippingOrder: ShippingOrderDocume
       try {
         const product = await BaseProduct.findById(item.product);
         if (!product) {
-          console.error(`找不到產品ID: ${item.product}`);
+          logger.error(`找不到產品ID: ${item.product}`);
           continue;
         }
 
         const productDoc = product as any;
         if (productDoc.excludeFromStock === true) {
-          console.log(`產品 ${item.dname} (${item.did}) 設定為不扣庫存，跳過庫存記錄創建`);
+          logger.debug(`產品 ${item.dname} (${item.did}) 設定為不扣庫存，跳過庫存記錄創建`);
           continue;
         }
       } catch (err) {
-        console.error(`檢查產品 ${item.product} 的不扣庫存設定時出錯:`, err);
+        logger.error(`檢查產品 ${item.product} 的不扣庫存設定時出錯: ${(err as Error).message}`);
         // 如果檢查失敗，為了安全起見，仍然創建庫存記錄
       }
       
@@ -727,40 +728,24 @@ async function createShippingInventoryRecords(shippingOrder: ShippingOrderDocume
         type: 'ship' // 設置類型為'ship'
       };
       
-      // 添加調試日誌，查看項目的大包裝相關屬性
-      console.log(`項目大包裝數據:`, {
-        did: item.did,
-        dname: item.dname,
-        packageQuantity: item.packageQuantity,
-        boxQuantity: item.boxQuantity,
-        unit: item.unit,
-        batchNumber: item.batchNumber
-      });
-      
       // 添加大包裝相關屬性 - 使用條件運算符處理空字符串，將其轉換為 undefined
       inventoryData.packageQuantity = item.packageQuantity ? Number(item.packageQuantity) : undefined;
       inventoryData.boxQuantity = item.boxQuantity ? Number(item.boxQuantity) : undefined;
       inventoryData.unit = item.unit ? item.unit : undefined;
       
-      console.log(`設置大包裝相關屬性:`, {
-        packageQuantity: inventoryData.packageQuantity,
-        boxQuantity: inventoryData.boxQuantity,
-        unit: inventoryData.unit
-      });
       if (item.batchNumber) {
         inventoryData.batchNumber = item.batchNumber;
-        console.log(`設置 batchNumber: ${item.batchNumber}`);
       }
       
       const inventory = new Inventory(inventoryData);
       
       await inventory.save();
-      console.log(`已為產品 ${item.product} 創建新庫存記錄，出貨單號: ${shippingOrder.orderNumber}, 數量: -${item.dquantity}, 總金額: ${item.dtotalCost}, 類型: ship`);
+      logger.debug(`已為產品 ${item.product} 創建新庫存記錄，出貨單號: ${shippingOrder.orderNumber}, 數量: -${item.dquantity}, 總金額: ${item.dtotalCost}, 類型: ship`);
     }
     
-    console.log(`已成功為出貨單 ${shippingOrder._id} 創建所有ship類型庫存記錄`);
+    logger.info(`已成功為出貨單 ${shippingOrder._id} 創建所有ship類型庫存記錄`);
   } catch (err) {
-    console.error(`創建ship類型庫存記錄時出錯: ${(err as Error).message}`);
+    logger.error(`創建ship類型庫存記錄時出錯: ${(err as Error).message}`);
     throw err; // 重新拋出錯誤，讓調用者知道出了問題
   }
 }
@@ -770,10 +755,10 @@ async function createShippingInventoryRecords(shippingOrder: ShippingOrderDocume
 async function deleteShippingInventoryRecords(shippingOrderId?: Types.ObjectId): Promise<any> {
   try {
     const result = await Inventory.deleteMany({ shippingOrderId: shippingOrderId, type: 'ship' });
-    console.log(`已刪除 ${result.deletedCount} 筆與出貨單 ${shippingOrderId} 相關的ship類型庫存記錄`);
+    logger.info(`已刪除 ${result.deletedCount} 筆與出貨單 ${shippingOrderId} 相關的ship類型庫存記錄`);
     return result;
   } catch (err) {
-    console.error(`刪除ship類型庫存記錄時出錯: ${(err as Error).message}`);
+    logger.error(`刪除ship類型庫存記錄時出錯: ${(err as Error).message}`);
     throw err;
   }
 }
@@ -839,7 +824,7 @@ router.post('/import/basic', upload.single('file'), async (req: Request, res: Re
             await shippingOrder.save();
             successCount++;
           } catch (err) {
-            console.error(`處理行 ${results.indexOf(row) + 1} 時出錯:`, (err as Error).message);
+            logger.error(`處理行 ${results.indexOf(row) + 1} 時出錯: ${(err as Error).message}`);
             errors.push(`行 ${results.indexOf(row) + 1}: ${(err as Error).message}`);
           }
         }

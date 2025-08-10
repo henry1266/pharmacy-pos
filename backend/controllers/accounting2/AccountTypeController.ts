@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import AccountType, { initializeSystemAccountTypes } from '../../models/AccountType';
 import { ApiResponse } from '@pharmacy-pos/shared/types/api';
+import logger from '../../utils/logger';
 
 // 擴展 Request 介面以包含用戶資訊
 interface AuthenticatedRequest extends Request {
@@ -36,7 +37,7 @@ export class AccountTypeController {
 
       res.json(response);
     } catch (error) {
-      console.error('取得帳戶類型失敗:', error);
+      logger.error('取得帳戶類型失敗', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: '取得帳戶類型失敗'
@@ -77,7 +78,7 @@ export class AccountTypeController {
 
       res.json(response);
     } catch (error) {
-      console.error('取得帳戶類型失敗:', error);
+      logger.error('取得帳戶類型失敗', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: '取得帳戶類型失敗'
@@ -155,7 +156,7 @@ export class AccountTypeController {
 
       res.status(201).json(response);
     } catch (error) {
-      console.error('建立帳戶類型失敗:', error);
+      logger.error('建立帳戶類型失敗', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: '建立帳戶類型失敗'
@@ -247,7 +248,7 @@ export class AccountTypeController {
 
       res.json(response);
     } catch (error) {
-      console.error('更新帳戶類型失敗:', error);
+      logger.error('更新帳戶類型失敗', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: '更新帳戶類型失敗'
@@ -299,7 +300,7 @@ export class AccountTypeController {
 
       res.json(response);
     } catch (error) {
-      console.error('刪除帳戶類型失敗:', error);
+      logger.error('刪除帳戶類型失敗', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: '刪除帳戶類型失敗'
@@ -350,7 +351,7 @@ export class AccountTypeController {
 
       res.json(response);
     } catch (error) {
-      console.error('重新排序失敗:', error);
+      logger.error('重新排序失敗', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: '重新排序失敗'
@@ -382,7 +383,7 @@ export class AccountTypeController {
 
       res.json(response);
     } catch (error) {
-      console.error('初始化系統類型失敗:', error);
+      logger.error('初始化系統類型失敗', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         message: '初始化系統類型失敗'

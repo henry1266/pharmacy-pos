@@ -12,6 +12,7 @@ import Inventory from '../models/Inventory';
 import Supplier from '../models/Supplier';
 import OrderNumberService from '../utils/OrderNumberService';
 import AccountingIntegrationService from '../services/AccountingIntegrationService';
+import logger from '../utils/logger';
 
 // 導入認證中間件和類型
 import auth from '../middleware/auth';
@@ -70,7 +71,7 @@ router.get('/', async (_req: Request, res: Response) => {
     
     res.json(response);
   } catch (err) {
-    console.error((err as Error).message);
+    logger.error(`獲取最近的進貨單錯誤: ${(err as Error).message}`);
     const errorResponse: ErrorResponse = {
       success: false,
       message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
@@ -112,8 +113,8 @@ router.get('/:id', async (req: Request, res: Response) => {
     
     // 確保批號欄位被正確序列化
     const serializedPurchaseOrder = purchaseOrder.toObject();
-    console.log('🔍 後端序列化後的進貨單資料:', JSON.stringify(serializedPurchaseOrder, null, 2));
-    console.log('🔍 第一個項目的批號:', serializedPurchaseOrder.items?.[0]?.batchNumber);
+    logger.debug('後端序列化後的進貨單資料:', JSON.stringify(serializedPurchaseOrder, null, 2));
+    logger.debug('第一個項目的批號:', serializedPurchaseOrder.items?.[0]?.batchNumber);
     
     const response: ApiResponse<any> = {
       success: true,
@@ -124,7 +125,7 @@ router.get('/:id', async (req: Request, res: Response) => {
     
     res.json(response);
   } catch (err) {
-    console.error((err as Error).message);
+    logger.error(`獲取單個進貨單錯誤: ${(err as Error).message}`);
     if (err instanceof Error && err.name === 'CastError') {
       const errorResponse: ErrorResponse = {
         success: false,
@@ -227,8 +228,8 @@ router.post('/', [
   try {
     const { poid, pobill, pobilldate, posupplier, supplier, items, notes, status, paymentStatus, organizationId, transactionType, selectedAccountIds, accountingEntryType } = req.body as PurchaseOrderRequest;
     
-    console.log('🔍 創建進貨單 - selectedAccountIds:', selectedAccountIds);
-    console.log('🔍 創建進貨單 - items:', JSON.stringify(items, null, 2));
+    logger.debug('創建進貨單 - selectedAccountIds:', selectedAccountIds);
+    logger.debug('創建進貨單 - items:', JSON.stringify(items, null, 2));
 
     // 如果進貨單號為空，自動生成
     let finalPoid: string;
@@ -271,7 +272,7 @@ router.post('/', [
       boxQuantity: item.boxQuantity || undefined
     }));
     
-    console.log('🔍 創建進貨單 - processedItems:', JSON.stringify(processedItems, null, 2));
+    logger.debug('創建進貨單 - processedItems:', JSON.stringify(processedItems, null, 2));
 
     // 嘗試查找供應商
     const supplierId = await findSupplierId(posupplier, supplier);
@@ -298,7 +299,7 @@ router.post('/', [
 
     await purchaseOrder.save();
     
-    console.log('🔍 進貨單已儲存 - selectedAccountIds:', purchaseOrder.selectedAccountIds);
+    logger.debug('進貨單已儲存 - selectedAccountIds:', purchaseOrder.selectedAccountIds);
 
     // 如果狀態為已完成，則更新庫存
     if (purchaseOrder.status === 'completed') {
@@ -324,7 +325,7 @@ router.post('/', [
 
     res.json(response);
   } catch (err) {
-    console.error('創建進貨單錯誤:', (err as Error).message);
+    logger.error(`創建進貨單錯誤: ${(err as Error).message}`);
     const errorResponse: ErrorResponse = {
       success: false,
       message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
@@ -426,7 +427,7 @@ async function handleStatusChange(
   
   // 如果狀態從已完成改為其他狀態，刪除相關庫存記錄和會計分錄
   if (oldStatus === 'completed' && newStatus !== 'completed') {
-    console.log(`🔓 進貨單 ${purchaseOrderId} 狀態從完成變為 ${newStatus}，執行解鎖操作`);
+    logger.info(`進貨單 ${purchaseOrderId} 狀態從完成變為 ${newStatus}，執行解鎖操作`);
     
     // 刪除庫存記錄
     await deleteInventoryRecords(purchaseOrderId);
@@ -441,12 +442,12 @@ async function handleStatusChange(
         if (purchaseOrder.relatedTransactionGroupId) {
           (purchaseOrder as any).relatedTransactionGroupId = undefined;
           await purchaseOrder.save();
-          console.log(`✅ 已清除進貨單 ${purchaseOrder.poid} 的關聯交易群組ID`);
+          logger.info(`已清除進貨單 ${purchaseOrder.poid} 的關聯交易群組ID`);
         }
         
         result.accountingEntriesDeleted = true;
       } catch (err) {
-        console.error(`❌ 刪除會計分錄時出錯: ${(err as Error).message}`);
+        logger.error(`刪除會計分錄時出錯: ${(err as Error).message}`);
         // 不拋出錯誤，避免影響其他操作
       }
     }
@@ -541,7 +542,7 @@ const applyUpdatesToPurchaseOrder = (purchaseOrder: IPurchaseOrderDocument, upda
  * 處理進貨單更新錯誤
  */
 const handlePurchaseOrderUpdateError = (res: Response, err: Error): void => {
-  console.error('更新進貨單錯誤:', err.message);
+  logger.error(`更新進貨單錯誤: ${err.message}`);
   
   if (err.name === 'CastError') {
     res.status(404).json({ msg: '找不到該進貨單' });
@@ -575,7 +576,7 @@ router.put('/:id', auth, async (req: Request, res: Response) => {
     const { poid, status, items, selectedAccountIds } = req.body as PurchaseOrderRequest;
     const id = req.params.id;
     
-    console.log('🔍 更新進貨單 - selectedAccountIds:', selectedAccountIds);
+    logger.debug('更新進貨單 - selectedAccountIds:', selectedAccountIds);
 
     // 驗證進貨單ID並獲取進貨單
     const validation = await validateAndGetPurchaseOrder(id);
@@ -635,7 +636,7 @@ router.put('/:id', auth, async (req: Request, res: Response) => {
     // 保存更新後的進貨單，這樣會觸發pre-save中間件
     await purchaseOrder.save();
     
-    console.log('🔍 進貨單已更新 - selectedAccountIds:', purchaseOrder.selectedAccountIds);
+    logger.debug('進貨單已更新 - selectedAccountIds:', purchaseOrder.selectedAccountIds);
 
     // 如果需要更新庫存
     if (statusResult.needUpdateInventory) {
@@ -705,7 +706,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
     
     res.json(response);
   } catch (err) {
-    console.error((err as Error).message);
+    logger.error(`刪除進貨單錯誤: ${(err as Error).message}`);
     if (err instanceof Error && err.name === 'CastError') {
       res.status(404).json({ msg: '找不到該進貨單' });
       return;
@@ -750,7 +751,7 @@ router.get('/supplier/:supplierId', async (req: Request, res: Response) => {
     
     res.json(response);
   } catch (err) {
-    console.error((err as Error).message);
+    logger.error(`獲取所有進貨單錯誤: ${(err as Error).message}`);
     const errorResponse: ErrorResponse = {
       success: false,
       message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
@@ -796,7 +797,7 @@ router.get('/product/:productId', async (req: Request, res: Response) => {
     
     res.json(response);
   } catch (err) {
-    console.error((err as Error).message);
+    logger.error(`獲取特定供應商的進貨單錯誤: ${(err as Error).message}`);
     const errorResponse: ErrorResponse = {
       success: false,
       message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
@@ -826,7 +827,7 @@ router.get('/recent/list', async (_req: Request, res: Response) => {
     
     res.json(response);
   } catch (err) {
-    console.error((err as Error).message);
+    logger.error(`獲取特定產品的進貨單錯誤: ${(err as Error).message}`);
     const errorResponse: ErrorResponse = {
       success: false,
       message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
@@ -854,7 +855,7 @@ async function updateInventory(purchaseOrder: IPurchaseOrderDocument, userId?: s
       });
       
       await inventory.save();
-      console.log(`已為產品 ${item.product} 創建新庫存記錄，進貨單號: ${purchaseOrder.orderNumber}, 數量: ${item.dquantity}, 總金額: ${item.dtotalCost}`);
+      logger.debug(`已為產品 ${item.product} 創建新庫存記錄，進貨單號: ${purchaseOrder.orderNumber}, 數量: ${item.dquantity}, 總金額: ${item.dtotalCost}`);
       
       // 更新藥品的採購價格
       await BaseProduct.findOne({ _id: item.product.toString() })
@@ -866,7 +867,7 @@ async function updateInventory(purchaseOrder: IPurchaseOrderDocument, userId?: s
           return null;
         });
     } catch (err) {
-      console.error(`更新庫存時出錯: ${(err as Error).message}`);
+      logger.error(`更新庫存時出錯: ${(err as Error).message}`);
       // 繼續處理其他項目
     }
   }
@@ -879,10 +880,10 @@ async function updateInventory(purchaseOrder: IPurchaseOrderDocument, userId?: s
     if (transactionGroupId) {
       purchaseOrder.relatedTransactionGroupId = transactionGroupId;
       await purchaseOrder.save();
-      console.log(`✅ 進貨單 ${purchaseOrder.poid} 已關聯交易群組 ${transactionGroupId}`);
+      logger.info(`進貨單 ${purchaseOrder.poid} 已關聯交易群組 ${transactionGroupId}`);
     }
   } catch (err) {
-    console.error(`❌ 處理會計整合時出錯: ${(err as Error).message}`);
+    logger.error(`處理會計整合時出錯: ${(err as Error).message}`);
     // 不拋出錯誤，避免影響庫存更新流程
   }
 }
@@ -891,10 +892,10 @@ async function updateInventory(purchaseOrder: IPurchaseOrderDocument, userId?: s
 async function deleteInventoryRecords(purchaseOrderId: string): Promise<mongoose.mongo.DeleteResult> {
   try {
     const result = await Inventory.deleteMany({ purchaseOrderId: purchaseOrderId.toString() });
-    console.log(`已刪除 ${result.deletedCount} 筆與進貨單 ${purchaseOrderId} 相關的庫存記錄`);
+    logger.info(`已刪除 ${result.deletedCount} 筆與進貨單 ${purchaseOrderId} 相關的庫存記錄`);
     return result;
   } catch (err) {
-    console.error(`刪除庫存記錄時出錯: ${(err as Error).message}`);
+    logger.error(`刪除庫存記錄時出錯: ${(err as Error).message}`);
     throw err;
   }
 }
