@@ -58,7 +58,7 @@ export const validateUserAuth = (req: AuthenticatedRequest, res: express.Respons
 // 查詢並驗證交易群組存在性和所有權
 export const findAndValidateTransactionGroup = async (
   id: string,
-  userId: string,
+  _userId: string,
   res: express.Response
 ): Promise<any | null> => {
   try {
@@ -162,7 +162,7 @@ export const validateTransactionForUnlock = async (
 
 // 建立查詢過濾條件
 export const buildQueryFilter = (
-  userId: string,
+  _userId: string,  // 使用底線前綴表示此參數暫時未使用
   query: any
 ): any => {
   const {

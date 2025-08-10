@@ -47,7 +47,7 @@ const validateObjectId = (id: string, fieldName: string): mongoose.Types.ObjectI
 };
 
 // 輔助函數：建立查詢過濾條件
-const buildQueryFilter = (userId: string, organizationId?: string): any => {
+const buildQueryFilter = (_userId: string, organizationId?: string): any => {
   const filter: any = {
     // 移除 createdBy 條件，讓所有人都能共用資料
     isActive: true
@@ -61,7 +61,7 @@ const buildQueryFilter = (userId: string, organizationId?: string): any => {
 };
 
 // 輔助函數：建立重複檢查過濾條件
-const buildDuplicateFilter = (userId: string, name: string, organizationId?: string, excludeId?: string): any => {
+const buildDuplicateFilter = (_userId: string, name: string, organizationId?: string, excludeId?: string): any => {
   const filter: any = {
     name,
     // 移除 createdBy 條件，讓所有人都能共用資料
@@ -165,11 +165,11 @@ const ACCOUNT_CODE_PREFIX = {
 // 獲取所有帳戶
 router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) => {
   try {
-    const userId = validateAuth(req);
+    const _userId = validateAuth(req);
     const { organizationId } = req.query;
     
     // 建立查詢條件
-    const filter = buildQueryFilter(userId, organizationId as string);
+    const filter = buildQueryFilter(_userId, organizationId as string);
     const accounts = await Account2.find(filter).sort({ createdAt: -1 });
 
     res.json(createSuccessResponse(accounts));
@@ -181,7 +181,7 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
 // 獲取單一帳戶
 router.get('/:id', auth, async (req: AuthenticatedRequest, res: express.Response) => {
   try {
-    const userId = validateAuth(req);
+    validateAuth(req);
     const { id } = req.params;
 
     if (!id) {
@@ -463,7 +463,7 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
 // 刪除帳戶（軟刪除）
 router.delete('/:id', auth, async (req: AuthenticatedRequest, res: express.Response) => {
   try {
-    const userId = validateAuth(req);
+    validateAuth(req);
     const { id } = req.params;
 
     if (!id) {
@@ -547,7 +547,7 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: express.Respo
 // 獲取帳戶餘額
 router.get('/:id/balance', auth, async (req: AuthenticatedRequest, res: express.Response) => {
   try {
-    const userId = validateAuth(req);
+    validateAuth(req);
     const { id } = req.params;
 
     if (!id) {
@@ -580,7 +580,7 @@ router.get('/:id/balance', auth, async (req: AuthenticatedRequest, res: express.
 // 調整帳戶餘額
 router.put('/:id/balance', auth, async (req: AuthenticatedRequest, res: express.Response) => {
   try {
-    const userId = validateAuth(req);
+    validateAuth(req);
     const { id } = req.params;
     const { balance } = req.body;
 
@@ -622,11 +622,11 @@ router.put('/:id/balance', auth, async (req: AuthenticatedRequest, res: express.
 // 獲取會計科目樹狀結構
 router.get('/tree/hierarchy', auth, async (req: AuthenticatedRequest, res: express.Response) => {
   try {
-    const userId = validateAuth(req);
+    const _userId = validateAuth(req);
     const { organizationId } = req.query;
     
     // 建立查詢條件
-    const filter = buildQueryFilter(userId, organizationId as string);
+    const filter = buildQueryFilter(_userId, organizationId as string);
 
     // 獲取所有科目並按層級排序
     const accounts = await Account2.find(filter)
@@ -710,12 +710,12 @@ router.get('/tree/hierarchy', auth, async (req: AuthenticatedRequest, res: expre
 // 依會計科目類型獲取科目
 router.get('/by-type/:accountType', auth, async (req: AuthenticatedRequest, res: express.Response) => {
   try {
-    const userId = validateAuth(req);
+    const _userId = validateAuth(req);
     const { accountType } = req.params;
     const { organizationId } = req.query;
     
     // 建立查詢條件
-    const filter = buildQueryFilter(userId, organizationId as string);
+    const filter = buildQueryFilter(_userId, organizationId as string);
     filter.accountType = accountType;
     
     //console.log('📂 依類型查詢機構帳戶:', { accountType, organizationId });
@@ -816,7 +816,7 @@ router.post('/setup/standard-chart', auth, async (req: AuthenticatedRequest, res
 // 搜尋會計科目
 router.get('/search', auth, async (req: AuthenticatedRequest, res: express.Response) => {
   try {
-    const userId = validateAuth(req);
+    const _userId = validateAuth(req);
     const { q, organizationId, accountType } = req.query;
     
     if (!q || typeof q !== 'string') {
@@ -825,7 +825,7 @@ router.get('/search', auth, async (req: AuthenticatedRequest, res: express.Respo
     }
 
     // 建立查詢條件
-    const filter = buildQueryFilter(userId, organizationId as string);
+    const filter = buildQueryFilter(_userId, organizationId as string);
     filter.$or = [
       { name: { $regex: q, $options: 'i' } },
       { code: { $regex: q, $options: 'i' } }

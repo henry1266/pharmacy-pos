@@ -201,7 +201,7 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
           //console.log(`📋 交易群組 ${group._id} 的分錄數量:`, entries.length);
 
           // 將分錄資料轉換為前端期望的格式
-          const formattedEntries = entries.map((entry, index) => {
+          const formattedEntries = entries.map((entry, _index) => {
             const account = entry.accountId as any;
             const category = entry.categoryId as any;
             
