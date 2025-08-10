@@ -32,3 +32,101 @@
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m為不扣庫存產品 J7 腫瘤預防保健檢查 創建毛利記錄，數量: 1, 售價: 1800, 進價: 900, 毛利: 900\u001b[39m","timestamp":"2025-08-10 22:37:36:3736"}
 {"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已刪除 1 個與銷售 20250810001 相關的庫存記錄\u001b[39m","timestamp":"2025-08-10 22:37:47:3747"}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m恢復產品 686e852ed4e7f2b508f779fb 的庫存，數量: +1\u001b[39m","timestamp":"2025-08-10 22:37:47:3747"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m檢查產品ID: 686e852ed4e7f2b508f779fb, 名稱: J7 腫瘤預防保健檢查\u001b[39m","timestamp":"2025-08-10 22:41:31:4131"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m產品 J7 腫瘤預防保健檢查 設定為不扣庫存，跳過庫存檢查\u001b[39m","timestamp":"2025-08-10 22:41:31:4131"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m使用前端提供的銷貨單號: \"20250407008\"\u001b[39m","timestamp":"2025-08-10 22:41:31:4131"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m為不扣庫存產品 J7 腫瘤預防保健檢查 創建毛利記錄，數量: 1, 售價: 1800, 進價: 900, 毛利: 900\u001b[39m","timestamp":"2025-08-10 22:41:31:4131"}
+{"count":549,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-10 22:41:50:4150"}
+{"count":549,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-10 22:41:50:4150"}
+{"hasPaymentCount":92,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":59,"missingTransactionIdCount":398,"paymentTransactionsCount":27,"timestamp":"2025-08-10 22:41:50:4150","totalOrders":549}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":92,"timestamp":"2025-08-10 22:41:50:4150","totalCount":549,"unpaidCount":457}
+{"hasPaymentCount":92,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":59,"missingTransactionIdCount":398,"paymentTransactionsCount":27,"timestamp":"2025-08-10 22:41:50:4150","totalOrders":549}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":92,"timestamp":"2025-08-10 22:41:50:4150","totalCount":549,"unpaidCount":457}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已刪除 1 個與銷售 20250407008 相關的庫存記錄\u001b[39m","timestamp":"2025-08-10 22:42:50:4250"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m恢復產品 686e852ed4e7f2b508f779fb 的庫存，數量: +1\u001b[39m","timestamp":"2025-08-10 22:42:50:4250"}
+{"count":549,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-10 22:43:13:4313"}
+{"count":549,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-10 22:43:13:4313"}
+{"hasPaymentCount":92,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":59,"missingTransactionIdCount":398,"paymentTransactionsCount":27,"timestamp":"2025-08-10 22:43:13:4313","totalOrders":549}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":92,"timestamp":"2025-08-10 22:43:13:4313","totalCount":549,"unpaidCount":457}
+{"hasPaymentCount":92,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":59,"missingTransactionIdCount":398,"paymentTransactionsCount":27,"timestamp":"2025-08-10 22:43:13:4313","totalOrders":549}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":92,"timestamp":"2025-08-10 22:43:13:4313","totalCount":549,"unpaidCount":457}
+{"count":549,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-10 22:43:14:4314"}
+{"hasPaymentCount":92,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":59,"missingTransactionIdCount":398,"paymentTransactionsCount":27,"timestamp":"2025-08-10 22:43:14:4314","totalOrders":549}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":92,"timestamp":"2025-08-10 22:43:14:4314","totalCount":549,"unpaidCount":457}
+{"count":549,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-10 22:43:14:4314"}
+{"hasPaymentCount":92,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":59,"missingTransactionIdCount":398,"paymentTransactionsCount":27,"timestamp":"2025-08-10 22:43:14:4314","totalOrders":549}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":92,"timestamp":"2025-08-10 22:43:14:4314","totalCount":549,"unpaidCount":457}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m處理銷售訂單: 686e8a16d4e7f2b508f7f381\u001b[39m","timestamp":"2025-08-10 22:43:34:4334"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m處理銷售項目: 686e852ed4e7f2b508f779fb, 數量: 1\u001b[39m","timestamp":"2025-08-10 22:43:34:4334"}
+{"excludeFromStock":true,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m產品資訊:\u001b[39m","name":"J7 腫瘤預防保健檢查","purchasePrice":900,"sellingPrice":1800,"timestamp":"2025-08-10 22:43:34:4334"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m不扣庫存產品，直接計算毛利\u001b[39m","timestamp":"2025-08-10 22:43:34:4334"}
+{"itemRevenue":1800,"itemTotalCost":900,"itemTotalProfit":900,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m不扣庫存產品毛利計算完成:\u001b[39m","profitMargin":"50.00%","timestamp":"2025-08-10 22:43:34:4334"}
+{"calculatedTotalRevenue":1800,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m最終計算結果:\u001b[39m","timestamp":"2025-08-10 22:43:34:4334","totalCost":900,"totalProfit":900,"totalProfitMargin":"50.00%"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m處理銷售訂單: 686e8a16d4e7f2b508f7f381\u001b[39m","timestamp":"2025-08-10 22:43:34:4334"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m處理銷售項目: 686e852ed4e7f2b508f779fb, 數量: 1\u001b[39m","timestamp":"2025-08-10 22:43:34:4334"}
+{"excludeFromStock":true,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m產品資訊:\u001b[39m","name":"J7 腫瘤預防保健檢查","purchasePrice":900,"sellingPrice":1800,"timestamp":"2025-08-10 22:43:34:4334"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m不扣庫存產品，直接計算毛利\u001b[39m","timestamp":"2025-08-10 22:43:34:4334"}
+{"itemRevenue":1800,"itemTotalCost":900,"itemTotalProfit":900,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m不扣庫存產品毛利計算完成:\u001b[39m","profitMargin":"50.00%","timestamp":"2025-08-10 22:43:34:4334"}
+{"calculatedTotalRevenue":1800,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m最終計算結果:\u001b[39m","timestamp":"2025-08-10 22:43:34:4334","totalCost":900,"totalProfit":900,"totalProfitMargin":"50.00%"}
+{"excludeFromStock":true,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m產品詳情頁面 FIFO 計算:\u001b[39m","productId":"686e852ed4e7f2b508f779fb","productName":"J7 腫瘤預防保健檢查","timestamp":"2025-08-10 22:43:35:4335"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m不扣庫存產品，返回空的 FIFO 結果\u001b[39m","timestamp":"2025-08-10 22:43:35:4335"}
+{"excludeFromStock":true,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m產品詳情頁面 FIFO 計算:\u001b[39m","productId":"686e852ed4e7f2b508f779fb","productName":"J7 腫瘤預防保健檢查","timestamp":"2025-08-10 22:43:35:4335"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m不扣庫存產品，返回空的 FIFO 結果\u001b[39m","timestamp":"2025-08-10 22:43:35:4335"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m檢查產品ID: 686e852ed4e7f2b508f779fb, 名稱: J7 腫瘤預防保健檢查\u001b[39m","timestamp":"2025-08-10 22:44:02:442"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m產品 J7 腫瘤預防保健檢查 設定為不扣庫存，跳過庫存檢查\u001b[39m","timestamp":"2025-08-10 22:44:02:442"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m使用前端提供的銷貨單號: \"20250710006\"\u001b[39m","timestamp":"2025-08-10 22:44:02:442"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m為不扣庫存產品 J7 腫瘤預防保健檢查 創建毛利記錄，數量: 1, 售價: 1800, 進價: 900, 毛利: 900\u001b[39m","timestamp":"2025-08-10 22:44:02:442"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已刪除 1 個與銷售 20250710006 相關的庫存記錄\u001b[39m","timestamp":"2025-08-10 22:44:57:4457"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m恢復產品 686e852ed4e7f2b508f779fb 的庫存，數量: +1\u001b[39m","timestamp":"2025-08-10 22:44:57:4457"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m檢查產品ID: 686e852ed4e7f2b508f779fb, 名稱: J7 腫瘤預防保健檢查\u001b[39m","timestamp":"2025-08-10 22:45:16:4516"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m產品 J7 腫瘤預防保健檢查 設定為不扣庫存，跳過庫存檢查\u001b[39m","timestamp":"2025-08-10 22:45:16:4516"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m使用前端提供的銷貨單號: \"20250704008\"\u001b[39m","timestamp":"2025-08-10 22:45:16:4516"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m為不扣庫存產品 J7 腫瘤預防保健檢查 創建毛利記錄，數量: 1, 售價: 1800, 進價: 900, 毛利: 900\u001b[39m","timestamp":"2025-08-10 22:45:16:4516"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m處理銷售訂單: 6898b07c3dc49cf7e3134b47\u001b[39m","timestamp":"2025-08-10 22:46:00:460"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m處理銷售項目: 686e852ed4e7f2b508f779fb, 數量: 1\u001b[39m","timestamp":"2025-08-10 22:46:00:460"}
+{"excludeFromStock":true,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m產品資訊:\u001b[39m","name":"J7 腫瘤預防保健檢查","purchasePrice":900,"sellingPrice":1800,"timestamp":"2025-08-10 22:46:00:460"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m不扣庫存產品，直接計算毛利\u001b[39m","timestamp":"2025-08-10 22:46:00:460"}
+{"itemRevenue":1800,"itemTotalCost":900,"itemTotalProfit":900,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m不扣庫存產品毛利計算完成:\u001b[39m","profitMargin":"50.00%","timestamp":"2025-08-10 22:46:00:460"}
+{"calculatedTotalRevenue":1800,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m最終計算結果:\u001b[39m","timestamp":"2025-08-10 22:46:00:460","totalCost":900,"totalProfit":900,"totalProfitMargin":"50.00%"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m處理銷售訂單: 6898b07c3dc49cf7e3134b47\u001b[39m","timestamp":"2025-08-10 22:46:00:460"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m處理銷售項目: 686e852ed4e7f2b508f779fb, 數量: 1\u001b[39m","timestamp":"2025-08-10 22:46:00:460"}
+{"excludeFromStock":true,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m產品資訊:\u001b[39m","name":"J7 腫瘤預防保健檢查","purchasePrice":900,"sellingPrice":1800,"timestamp":"2025-08-10 22:46:00:460"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m不扣庫存產品，直接計算毛利\u001b[39m","timestamp":"2025-08-10 22:46:00:460"}
+{"itemRevenue":1800,"itemTotalCost":900,"itemTotalProfit":900,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m不扣庫存產品毛利計算完成:\u001b[39m","profitMargin":"50.00%","timestamp":"2025-08-10 22:46:00:460"}
+{"calculatedTotalRevenue":1800,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m最終計算結果:\u001b[39m","timestamp":"2025-08-10 22:46:00:460","totalCost":900,"totalProfit":900,"totalProfitMargin":"50.00%"}
+{"excludeFromStock":true,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m產品詳情頁面 FIFO 計算:\u001b[39m","productId":"686e852ed4e7f2b508f779fb","productName":"J7 腫瘤預防保健檢查","timestamp":"2025-08-10 22:46:01:461"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m不扣庫存產品，返回空的 FIFO 結果\u001b[39m","timestamp":"2025-08-10 22:46:01:461"}
+{"excludeFromStock":true,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m產品詳情頁面 FIFO 計算:\u001b[39m","productId":"686e852ed4e7f2b508f779fb","productName":"J7 腫瘤預防保健檢查","timestamp":"2025-08-10 22:46:01:461"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m不扣庫存產品，返回空的 FIFO 結果\u001b[39m","timestamp":"2025-08-10 22:46:01:461"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m檢查產品ID: 686e852ed4e7f2b508f779fb, 名稱: J7 腫瘤預防保健檢查\u001b[39m","timestamp":"2025-08-10 22:50:12:5012"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m產品 J7 腫瘤預防保健檢查 設定為不扣庫存，跳過庫存檢查\u001b[39m","timestamp":"2025-08-10 22:50:12:5012"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m使用前端提供的銷貨單號: \"20250725011\"\u001b[39m","timestamp":"2025-08-10 22:50:12:5012"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m為不扣庫存產品 J7 腫瘤預防保健檢查 創建毛利記錄，數量: 2, 售價: 1800, 進價: 900, 毛利: 1800\u001b[39m","timestamp":"2025-08-10 22:50:12:5012"}
+{"excludeFromStock":true,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m產品詳情頁面 FIFO 計算:\u001b[39m","productId":"686e852ed4e7f2b508f779fb","productName":"J7 腫瘤預防保健檢查","timestamp":"2025-08-10 22:50:45:5045"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m不扣庫存產品，返回空的 FIFO 結果\u001b[39m","timestamp":"2025-08-10 22:50:45:5045"}
+{"excludeFromStock":true,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m產品詳情頁面 FIFO 計算:\u001b[39m","productId":"686e852ed4e7f2b508f779fb","productName":"J7 腫瘤預防保健檢查","timestamp":"2025-08-10 22:50:45:5045"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m不扣庫存產品，返回空的 FIFO 結果\u001b[39m","timestamp":"2025-08-10 22:50:45:5045"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-10 23:01:43:143"}
+{"executionTime":"7ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":43,"timestamp":"2025-08-10 23:01:43:143"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-10 23:01:43:143"}
+{"executionTime":"6ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":43,"timestamp":"2025-08-10 23:01:43:143"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-10 23:01:43:143"}
+{"executionTime":"6ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":43,"timestamp":"2025-08-10 23:01:43:143"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-10 23:01:43:143"}
+{"executionTime":"6ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":43,"timestamp":"2025-08-10 23:01:43:143"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-10 23:02:41:241"}
+{"executionTime":"124ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":43,"timestamp":"2025-08-10 23:02:41:241"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-10 23:02:41:241"}
+{"executionTime":"81ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":43,"timestamp":"2025-08-10 23:02:41:241"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-10 23:02:41:241"}
+{"executionTime":"10ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":43,"timestamp":"2025-08-10 23:02:41:241"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-10 23:02:41:241"}
+{"executionTime":"12ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":43,"timestamp":"2025-08-10 23:02:41:241"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-10 23:04:54:454"}
+{"executionTime":"12ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":43,"timestamp":"2025-08-10 23:04:54:454"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-10 23:04:54:454"}
+{"executionTime":"6ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":43,"timestamp":"2025-08-10 23:04:54:454"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-10 23:04:54:454"}
+{"executionTime":"5ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":43,"timestamp":"2025-08-10 23:04:54:454"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-10 23:04:54:454"}
+{"executionTime":"5ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":43,"timestamp":"2025-08-10 23:04:54:454"}

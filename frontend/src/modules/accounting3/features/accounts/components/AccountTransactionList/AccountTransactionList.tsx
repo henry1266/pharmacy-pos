@@ -268,7 +268,7 @@ export const AccountTransactionList: React.FC<AccountTransactionListProps> = ({
 
   return (
     <Paper sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* 標題區域 */}
+      {/* 標題區域 /accounting3/accounts/:id */}
       <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>

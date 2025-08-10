@@ -146,10 +146,8 @@ export const AccountTransactionListTable: React.FC<AccountTransactionListTablePr
                 '&:hover': {
                   backgroundColor: 'action.hover'
                 },
-                cursor: 'pointer',
                 transition: 'background-color 0.2s'
               }}
-              onClick={() => onTransactionView && onTransactionView(transaction)}
             >
               <TableCell>
                 <Typography variant="body1" fontWeight="medium">
