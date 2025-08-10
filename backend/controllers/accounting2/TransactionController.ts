@@ -1135,7 +1135,13 @@ export class TransactionController {
         hasPaidAmount: paymentStatusMap[purchaseOrderId] || false
       }));
 
-      logger.debug('批量付款狀態檢查結果', { paymentStatuses });
+      // 只記錄摘要信息，不輸出完整的付款狀態數組
+      const paidCount = paymentStatuses.filter(status => status.hasPaidAmount).length;
+      logger.debug('批量付款狀態檢查結果', {
+        totalCount: paymentStatuses.length,
+        paidCount,
+        unpaidCount: paymentStatuses.length - paidCount
+      });
 
       res.json({
         success: true,

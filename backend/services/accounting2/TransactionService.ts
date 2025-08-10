@@ -1243,11 +1243,14 @@ export class TransactionService {
       const hasPaidAmount = totalPaidAmount > 0;
       const isPaidOff = totalPaidAmount >= relatedPayable.totalAmount;
 
-      logger.debug(`檢查進貨單付款狀態:`, {
-        purchaseOrderId,
-        paidAmount: totalPaidAmount,
-        totalAmount: relatedPayable.totalAmount
-      });
+      // 只在開發環境輸出詳細日誌
+      if (process.env.NODE_ENV === 'development') {
+        logger.debug(`檢查進貨單付款狀態:`, {
+          purchaseOrderId,
+          paidAmount: totalPaidAmount,
+          totalAmount: relatedPayable.totalAmount
+        });
+      }
 
       return {
         hasPaidAmount,
@@ -1279,7 +1282,8 @@ export class TransactionService {
     userId: string
   ): Promise<{ [key: string]: boolean }> {
     try {
-      logger.debug('批量檢查進貨單付款狀態:', { count: purchaseOrderIds.length });
+      // 只記錄總數，不輸出詳細內容
+      logger.debug('批量檢查進貨單付款狀態開始', { count: purchaseOrderIds.length });
       
       // 建立付款狀態映射
       const paymentStatusMap: { [key: string]: boolean } = {};
@@ -1290,23 +1294,19 @@ export class TransactionService {
       });
       
       // 首先需要找到進貨單對應的交易 ID
-      // 這需要查詢進貨單數據庫來獲取 relatedTransactionGroupId
       const PurchaseOrder = require('../../models/PurchaseOrder').default;
       const purchaseOrders = await PurchaseOrder.find({
         _id: { $in: purchaseOrderIds }
       }).lean();
-      
-      logger.debug(`找到進貨單:`, { count: purchaseOrders.length });
       
       // 提取所有相關的交易 ID
       const relatedTransactionIds = purchaseOrders
         .filter((po: any) => po.relatedTransactionGroupId)
         .map((po: any) => po.relatedTransactionGroupId.toString());
       
-      logger.debug(`相關交易 ID:`, { count: relatedTransactionIds.length });
-      
       if (relatedTransactionIds.length === 0) {
-        logger.warn('沒有找到相關的交易 ID');
+        // 只記錄一次警告，不輸出詳細內容
+        logger.warn('批量檢查：沒有找到相關的交易 ID');
         return paymentStatusMap;
       }
       
@@ -1320,17 +1320,20 @@ export class TransactionService {
         }
       }).lean();
       
-      logger.debug(`找到付款交易:`, { count: paymentTransactions.length });
+      // 記錄找到的付款交易數量
+      const paymentCount = paymentTransactions.length;
       
       // 處理每個進貨單
+      let missingTransactionIdCount = 0;
+      let missingPaymentCount = 0;
+      let hasPaymentCount = 0;
+      
       for (const purchaseOrder of purchaseOrders) {
         const purchaseOrderId = purchaseOrder._id.toString();
         const relatedTransactionId = purchaseOrder.relatedTransactionGroupId?.toString();
         
-        logger.debug(`檢查進貨單:`, { purchaseOrderId, relatedTransactionId });
-        
         if (!relatedTransactionId) {
-          logger.warn(`進貨單 ${purchaseOrderId} 沒有相關交易 ID`);
+          missingTransactionIdCount++;
           continue;
         }
         
@@ -1341,8 +1344,6 @@ export class TransactionService {
           )
         );
         
-        logger.debug(`找到相關付款交易:`, { count: relatedPayments.length });
-        
         if (relatedPayments.length > 0) {
           // 計算總付款金額
           const totalPaidAmount = relatedPayments.reduce((sum, payment) => {
@@ -1352,14 +1353,25 @@ export class TransactionService {
             return sum + (payableTransaction?.paidAmount || 0);
           }, 0);
           
-          logger.debug(`進貨單付款金額:`, { purchaseOrderId, totalPaidAmount });
           paymentStatusMap[purchaseOrderId] = totalPaidAmount > 0;
+          if (totalPaidAmount > 0) {
+            hasPaymentCount++;
+          } else {
+            missingPaymentCount++;
+          }
         } else {
-          logger.warn(`進貨單 ${purchaseOrderId} 沒有找到付款交易`);
+          missingPaymentCount++;
         }
       }
       
-      logger.debug('批量付款狀態檢查完成:', paymentStatusMap);
+      // 只在最後輸出摘要信息
+      logger.debug('批量付款狀態檢查完成', {
+        totalOrders: purchaseOrders.length,
+        missingTransactionIdCount,
+        missingPaymentCount,
+        hasPaymentCount,
+        paymentTransactionsCount: paymentCount
+      });
       
       return paymentStatusMap;
     } catch (error) {
@@ -1385,7 +1397,8 @@ export class TransactionService {
     paymentStatus: string
   ): Promise<void> {
     try {
-      logger.debug(`更新進貨單付款狀態:`, {
+      // 只記錄開始的摘要信息
+      logger.debug(`開始更新進貨單付款狀態`, {
         transactionCount: transactionIds.length,
         status: paymentStatus
       });
@@ -1396,18 +1409,18 @@ export class TransactionService {
         relatedTransactionGroupId: { $in: transactionIds }
       });
 
-      logger.debug(`找到相關進貨單:`, { count: purchaseOrders.length });
-
-      // 更新每個進貨單的付款狀態
+      // 更新每個進貨單的付款狀態，不再為每個進貨單記錄日誌
       for (const purchaseOrder of purchaseOrders) {
         purchaseOrder.paymentStatus = paymentStatus;
         purchaseOrder.updatedAt = new Date();
         await purchaseOrder.save();
-        
-        logger.debug(`更新進貨單付款狀態:`, { poid: purchaseOrder.poid, status: paymentStatus });
       }
 
-      logger.info(`進貨單付款狀態更新完成:`, { count: purchaseOrders.length });
+      // 只記錄完成的摘要信息
+      logger.info(`進貨單付款狀態更新完成`, {
+        count: purchaseOrders.length,
+        status: paymentStatus
+      });
     } catch (error) {
       logger.error('更新進貨單付款狀態失敗:', error);
       // 不拋出錯誤，避免影響付款交易的建立
