@@ -17,6 +17,37 @@ interface UseTransactionDetailReturn {
 
 /**
  * 自定義 Hook 用於處理交易詳細資料載入
+ *
+ * 此 Hook 負責從 API 獲取交易詳細資料，包括交易基本資訊和相關的科目資料。
+ * 它處理資料載入狀態、錯誤處理，並提供重新載入的功能。
+ *
+ * 功能：
+ * - 根據交易 ID 載入交易詳細資料
+ * - 載入交易相關的科目資料
+ * - 處理載入狀態和錯誤
+ * - 提供重新載入交易資料的方法
+ *
+ * @param {string} transactionId - 要載入的交易 ID
+ * @returns {UseTransactionDetailReturn} 包含交易資料、載入狀態和錯誤資訊的物件
+ * @returns {TransactionGroupWithEntries3 | null} return.transaction - 交易資料
+ * @returns {Record<string, Account3>} return.accounts - 交易相關的科目資料
+ * @returns {boolean} return.loading - 載入狀態
+ * @returns {string | null} return.error - 錯誤訊息
+ * @returns {() => Promise<void>} return.loadTransaction - 重新載入交易資料的方法
+ *
+ * @example
+ * // 在元件中使用
+ * const { transaction, accounts, loading, error } = useTransactionDetail(transactionId);
+ *
+ * if (loading) {
+ *   return <LoadingIndicator />;
+ * }
+ *
+ * if (error) {
+ *   return <ErrorMessage message={error} />;
+ * }
+ *
+ * return <TransactionView transaction={transaction} accounts={accounts} />;
  */
 export const useTransactionDetail = (transactionId: string): UseTransactionDetailReturn => {
   const [transaction, setTransaction] = useState<TransactionGroupWithEntries3 | null>(null);

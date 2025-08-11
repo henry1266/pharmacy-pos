@@ -31,7 +31,39 @@ interface TransactionDetailViewProps {
 
 /**
  * 交易詳細檢視組件
- * 顯示單一交易的完整資訊，包括基本資訊和所有分錄
+ *
+ * 顯示單一交易的完整資訊，包括基本資訊、分錄明細和資金流向。
+ * 此組件是交易詳情頁面的核心顯示元件，負責呈現交易的所有相關資訊。
+ *
+ * 功能：
+ * - 顯示交易的基本資訊（日期、描述、金額等）
+ * - 顯示交易的分錄明細
+ * - 顯示交易的資金流向
+ * - 提供編輯、複製和刪除交易的操作按鈕
+ *
+ * @component
+ * @param {object} props - 元件屬性
+ * @param {string} props.transactionId - 要顯示的交易 ID
+ * @param {function} [props.onEdit] - 編輯交易的回調函數
+ * @param {function} [props.onDelete] - 刪除交易的回調函數
+ * @param {function} [props.onCopy] - 複製交易的回調函數
+ * @param {boolean} [props.showActions=true] - 是否顯示操作按鈕
+ * @returns {React.ReactElement} 交易詳情視圖元件
+ *
+ * @example
+ * // 基本用法
+ * <TransactionDetailView
+ *   transactionId="60f1e5b3e6b1f83b3c7a1b5a"
+ *   onEdit={handleEdit}
+ *   onDelete={handleDelete}
+ *   onCopy={handleCopy}
+ * />
+ *
+ * // 不顯示操作按鈕
+ * <TransactionDetailView
+ *   transactionId="60f1e5b3e6b1f83b3c7a1b5a"
+ *   showActions={false}
+ * />
  */
 export const TransactionDetailView: React.FC<TransactionDetailViewProps> = ({
   transactionId,

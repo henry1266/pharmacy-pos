@@ -16,7 +16,52 @@ import { safeDateConvert } from '../utils/dateUtils';
 
 /**
  * 交易編輯頁面的主要 Hook
- * 處理頁面狀態、數據加載和事件處理
+ *
+ * 處理交易編輯頁面的狀態管理、數據加載和事件處理。
+ * 此 Hook 負責從 Redux store 或 API 獲取交易資料，處理表單提交，
+ * 並管理頁面的各種狀態（載入中、錯誤、通知等）。
+ *
+ * 功能：
+ * - 從 Redux store 或 API 載入交易資料
+ * - 處理表單提交和資料驗證
+ * - 管理頁面狀態（載入中、錯誤、通知等）
+ * - 處理交易更新操作
+ * - 提供取消編輯的功能
+ *
+ * @returns {object} 包含頁面狀態和事件處理函數的物件
+ * @returns {TransactionGroupWithEntries | null} return.editingTransaction - 正在編輯的交易資料
+ * @returns {boolean} return.loading - 載入狀態
+ * @returns {string | null} return.error - 錯誤訊息
+ * @returns {object} return.snackbar - 通知狀態
+ * @returns {string | undefined} return.transactionId - 交易 ID
+ * @returns {function} return.handleFormSubmit - 處理表單提交的函數
+ * @returns {function} return.handleCancel - 處理取消編輯的函數
+ * @returns {function} return.handleCloseSnackbar - 處理關閉通知的函數
+ * @returns {function} return.safeDateConvert - 安全的日期轉換函數
+ * @returns {function} return.convertFormDataToApiData - 轉換表單資料為 API 資料的函數
+ * @returns {object} return.navigate - React Router 的 navigate 函數
+ *
+ * @example
+ * // 在交易編輯頁面中使用
+ * const {
+ *   editingTransaction,
+ *   loading,
+ *   error,
+ *   handleFormSubmit,
+ *   handleCancel
+ * } = useTransactionEditPage();
+ *
+ * if (loading) {
+ *   return <LoadingIndicator />;
+ * }
+ *
+ * return (
+ *   <TransactionForm
+ *     initialData={editingTransaction}
+ *     onSubmit={handleFormSubmit}
+ *     onCancel={handleCancel}
+ *   />
+ * );
  */
 export const useTransactionEditPage = () => {
   const dispatch = useAppDispatch();

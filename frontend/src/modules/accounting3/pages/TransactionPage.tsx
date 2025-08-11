@@ -57,9 +57,21 @@ import {
 } from '../../../../../shared/types/accounting2';
 
 /**
- * /accounting3/transaction
- * 會計系統交易列表頁面
- * 專門用於管理交易的頁面
+ * /accounting3/transaction 路由的主要頁面元件
+ *
+ * 會計系統交易列表頁面，專門用於管理交易的頁面。
+ * 提供交易的列表顯示、篩選、搜尋、新增、編輯、複製、刪除和確認等功能。
+ *
+ * 頁面功能：
+ * - 顯示交易列表，支援分頁和搜尋
+ * - 提供新增、編輯、複製、刪除和確認交易的功能
+ * - 支援交易狀態管理（草稿、已確認、已取消）
+ * - 整合內嵌分錄功能，簡化交易管理
+ *
+ * @component
+ * @example
+ * // 在 AppRouter.tsx 中使用
+ * <Route path="/accounting3/transaction" element={<Accounting3TransactionPage />} />
  */
 export const Accounting3TransactionPage: React.FC = () => {
   const dispatch = useAppDispatch();
