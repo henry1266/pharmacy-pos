@@ -831,7 +831,7 @@ async function generateSaleNumber(saleNumber?: string): Promise<string> {
     // 如果找到了當天的銷貨單號，提取序號部分並加1
     if (latestSales.length > 0 && latestSales[0] && latestSales[0].saleNumber) {
       const latestSaleNumber = latestSales[0].saleNumber;
-      logger.debug(`找到當天最後一個銷貨單號: ${latestSaleNumber}`);
+      //logger.debug(`找到當天最後一個銷貨單號: ${latestSaleNumber}`);
       
       // 提取序號部分（最後3位）
       const sequencePart = latestSaleNumber.slice(-3);
@@ -839,7 +839,7 @@ async function generateSaleNumber(saleNumber?: string): Promise<string> {
       
       if (!isNaN(sequence)) {
         sequenceNumber = sequence + 1;
-        logger.debug(`提取序號: ${sequence}, 新序號: ${sequenceNumber}`);
+        //logger.debug(`提取序號: ${sequence}, 新序號: ${sequenceNumber}`);
       } else {
         logger.warn(`無法從銷貨單號 ${latestSaleNumber} 提取有效序號，使用默認值1`);
       }
@@ -862,14 +862,14 @@ async function generateSaleNumber(saleNumber?: string): Promise<string> {
       if (allSequences.length > 0) {
         // 找出最大序號
         const maxSequence = Math.max(...allSequences);
-        logger.debug(`使用數字排序找到的最大序號: ${maxSequence}`);
+        //logger.debug(`使用數字排序找到的最大序號: ${maxSequence}`);
         
         // 比較兩種方法找到的最大序號
         if (maxSequence + 1 !== sequenceNumber) {
           logger.warn(`警告：兩種方法找到的最大序號不一致！字典序: ${sequenceNumber - 1}, 數字排序: ${maxSequence}`);
           // 使用數字排序找到的最大序號
           sequenceNumber = maxSequence + 1;
-          logger.debug(`使用數字排序的結果，新序號: ${sequenceNumber}`);
+          //logger.debug(`使用數字排序的結果，新序號: ${sequenceNumber}`);
         }
       }
     }
