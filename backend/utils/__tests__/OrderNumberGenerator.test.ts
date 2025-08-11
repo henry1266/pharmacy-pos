@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 // Mock Mongoose Model
 const mockModel = {
   findOne: jest.fn(),
+  find: jest.fn(), // 添加 find 方法
   sort: jest.fn(),
   lean: jest.fn()
 } as unknown as Model<any>;
@@ -140,10 +141,9 @@ describe('OrderNumberGenerator', () => {
     it('應該生成第一個訂單號', async () => {
       // Mock no existing orders
       const mockQuery = {
-        sort: jest.fn().mockReturnThis(),
-        lean: jest.fn().mockResolvedValue(null)
+        lean: jest.fn().mockResolvedValue([])
       };
-      (mockModel.findOne as jest.Mock).mockReturnValue(mockQuery);
+      (mockModel.find as jest.Mock).mockReturnValue(mockQuery);
 
       const orderNumber = await generator.generate();
       expect(orderNumber).toBe('SO20240315001');
@@ -152,12 +152,11 @@ describe('OrderNumberGenerator', () => {
     it('應該生成下一個序號', async () => {
       // Mock existing order
       const mockQuery = {
-        sort: jest.fn().mockReturnThis(),
-        lean: jest.fn().mockResolvedValue({
+        lean: jest.fn().mockResolvedValue([{
           orderNumber: 'SO20240315005'
-        })
+        }])
       };
-      (mockModel.findOne as jest.Mock).mockReturnValue(mockQuery);
+      (mockModel.find as jest.Mock).mockReturnValue(mockQuery);
 
       const orderNumber = await generator.generate();
       expect(orderNumber).toBe('SO20240315006');
@@ -166,12 +165,11 @@ describe('OrderNumberGenerator', () => {
     it('應該處理序號進位', async () => {
       // Mock existing order with max sequence
       const mockQuery = {
-        sort: jest.fn().mockReturnThis(),
-        lean: jest.fn().mockResolvedValue({
+        lean: jest.fn().mockResolvedValue([{
           orderNumber: 'SO20240315999'
-        })
+        }])
       };
-      (mockModel.findOne as jest.Mock).mockReturnValue(mockQuery);
+      (mockModel.find as jest.Mock).mockReturnValue(mockQuery);
 
       const orderNumber = await generator.generate();
       expect(orderNumber).toBe('SO20240315001'); // Should wrap around
@@ -184,10 +182,9 @@ describe('OrderNumberGenerator', () => {
       });
 
       const mockQuery = {
-        sort: jest.fn().mockReturnThis(),
-        lean: jest.fn().mockResolvedValue(null)
+        lean: jest.fn().mockResolvedValue([])
       };
-      (mockModel.findOne as jest.Mock).mockReturnValue(mockQuery);
+      (mockModel.find as jest.Mock).mockReturnValue(mockQuery);
 
       const orderNumber = await fiveDigitGenerator.generate();
       expect(orderNumber).toBe('SO2024031500001');
@@ -196,12 +193,11 @@ describe('OrderNumberGenerator', () => {
     it('應該處理複雜的訂單號格式', async () => {
       // Mock existing order with complex format
       const mockQuery = {
-        sort: jest.fn().mockReturnThis(),
-        lean: jest.fn().mockResolvedValue({
+        lean: jest.fn().mockResolvedValue([{
           orderNumber: 'SO20240315-ABC-010'
-        })
+        }])
       };
-      (mockModel.findOne as jest.Mock).mockReturnValue(mockQuery);
+      (mockModel.find as jest.Mock).mockReturnValue(mockQuery);
 
       const orderNumber = await generator.generate();
       expect(orderNumber).toBe('SO20240315011'); // Should extract last 3 digits
@@ -210,19 +206,18 @@ describe('OrderNumberGenerator', () => {
     it('應該處理無效的序號格式', async () => {
       // Mock existing order with invalid sequence
       const mockQuery = {
-        sort: jest.fn().mockReturnThis(),
-        lean: jest.fn().mockResolvedValue({
+        lean: jest.fn().mockResolvedValue([{
           orderNumber: 'SO20240315ABC'
-        })
+        }])
       };
-      (mockModel.findOne as jest.Mock).mockReturnValue(mockQuery);
+      (mockModel.find as jest.Mock).mockReturnValue(mockQuery);
 
       const orderNumber = await generator.generate();
       expect(orderNumber).toBe('SO20240315001'); // Should use default sequence
     });
 
     it('應該處理數據庫錯誤', async () => {
-      (mockModel.findOne as jest.Mock).mockImplementation(() => {
+      (mockModel.find as jest.Mock).mockImplementation(() => {
         throw new Error('Database error');
       });
 
@@ -236,10 +231,9 @@ describe('OrderNumberGenerator', () => {
       });
 
       const mockQuery = {
-        sort: jest.fn().mockReturnThis(),
-        lean: jest.fn().mockResolvedValue(null)
+        lean: jest.fn().mockResolvedValue([])
       };
-      (mockModel.findOne as jest.Mock).mockReturnValue(mockQuery);
+      (mockModel.find as jest.Mock).mockReturnValue(mockQuery);
 
       const orderNumber = await customStartGenerator.generate();
       expect(orderNumber).toBe('SO20240315100');
@@ -335,10 +329,9 @@ describe('OrderNumberGenerator', () => {
         jest.spyOn(global, 'Date').mockImplementation(() => date);
         
         const mockQuery = {
-          sort: jest.fn().mockReturnThis(),
-          lean: jest.fn().mockResolvedValue(null)
+          lean: jest.fn().mockResolvedValue([])
         };
-        (mockModel.findOne as jest.Mock).mockReturnValue(mockQuery);
+        (mockModel.find as jest.Mock).mockReturnValue(mockQuery);
 
         const orderNumber = await generator.generate();
         expect(orderNumber).toBe(expected);
@@ -366,10 +359,9 @@ describe('OrderNumberGenerator', () => {
         const testGenerator = new OrderNumberGenerator(options);
         
         const mockQuery = {
-          sort: jest.fn().mockReturnThis(),
-          lean: jest.fn().mockResolvedValue(null)
+          lean: jest.fn().mockResolvedValue([])
         };
-        (mockModel.findOne as jest.Mock).mockReturnValue(mockQuery);
+        (mockModel.find as jest.Mock).mockReturnValue(mockQuery);
 
         const orderNumber = await testGenerator.generate();
         expect(orderNumber).toBe(expected);

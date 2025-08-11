@@ -154,7 +154,7 @@ describe('TransactionService', () => {
       expect(result.transactions).toEqual(mockTransactions);
       expect(result.total).toBe(1);
       expect(result.page).toBe(1);
-      expect(result.limit).toBe(20);
+      expect(result.limit).toBe(25);
     });
 
     it('應該支援篩選條件', async () => {
