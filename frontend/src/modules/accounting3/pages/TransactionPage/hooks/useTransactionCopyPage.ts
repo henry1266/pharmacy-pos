@@ -82,7 +82,15 @@ export const useTransactionCopyPage = () => {
     severity: 'success'
   });
 
-  // 直接透過 API 獲取單一交易
+  /**
+   * 直接透過 API 獲取單一交易
+   *
+   * 當 Redux store 中找不到指定交易時，直接從 API 獲取交易詳細資料。
+   * 處理 API 請求、回應解析和錯誤處理，並更新本地狀態。
+   *
+   * @param {string} id - 要獲取的交易 ID
+   * @returns {Promise<void>}
+   */
   const fetchTransactionDirectly = async (id: string) => {
     try {
       if (process.env.NODE_ENV === 'development') {
@@ -118,7 +126,14 @@ export const useTransactionCopyPage = () => {
     }
   };
 
-  // 數據加載函數
+  /**
+   * 載入初始資料
+   *
+   * 並行載入交易複製頁面所需的基礎資料，包括科目和組織資料。
+   * 使用 Promise.all 優化載入效能。
+   *
+   * @returns {Promise<void>}
+   */
   const loadInitialData = useCallback(async () => {
     if (process.env.NODE_ENV === 'development') {
       console.log('🔄 Accounting3TransactionCopyPage 初始化載入資料');
@@ -131,22 +146,49 @@ export const useTransactionCopyPage = () => {
     ]);
   }, [dispatch]);
 
-  // 顯示通知
+  /**
+   * 顯示通知訊息
+   *
+   * 更新 snackbar 狀態，顯示指定的訊息和嚴重性。
+   * 用於向用戶提供操作結果的反饋。
+   *
+   * @param {string} message - 要顯示的通知訊息
+   * @param {'success' | 'error' | 'warning' | 'info'} severity - 通知的嚴重性
+   */
   const showSnackbar = (message: string, severity: 'success' | 'error' | 'warning' | 'info') => {
     setSnackbar({ open: true, message, severity });
   };
 
-  // 關閉通知
+  /**
+   * 關閉通知訊息
+   *
+   * 更新 snackbar 狀態，關閉當前顯示的通知。
+   * 保留通知的訊息和嚴重性，僅更改顯示狀態。
+   */
   const handleCloseSnackbar = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
   };
 
-  // 處理取消複製
+  /**
+   * 處理取消複製操作
+   *
+   * 導航回交易列表頁面，放棄當前的複製操作。
+   * 不會提示用戶確認，直接執行導航。
+   */
   const handleCancel = () => {
     navigate('/accounting3/transaction');
   };
 
-  // 轉換表單資料為 API 資料
+  /**
+   * 轉換表單資料為 API 資料格式
+   *
+   * 將表單收集的資料轉換為符合 API 要求的格式。
+   * 處理資料清理、格式轉換和預設值設定。
+   * 在複製模式下，特別設定狀態為草稿。
+   *
+   * @param {TransactionGroupWithEntriesFormData} data - 表單收集的原始資料
+   * @returns {TransactionApiData} 轉換後符合 API 格式的資料
+   */
   const convertFormDataToApiData = (data: TransactionGroupWithEntriesFormData): TransactionApiData => {
     const converted = {
       description: data.description?.trim() || '',
@@ -176,7 +218,21 @@ export const useTransactionCopyPage = () => {
     return converted;
   };
 
-  // 處理表單提交
+  /**
+   * 處理表單提交
+   *
+   * 驗證表單資料，轉換為 API 格式，並提交建立請求。
+   * 處理成功和失敗的情況，顯示適當的通知訊息。
+   * 成功時延遲導航回列表頁面，讓用戶看到成功訊息。
+   *
+   * 驗證包括：
+   * - 交易描述不能為空
+   * - 至少需要兩筆分錄
+   * - 借貸必須平衡
+   *
+   * @param {TransactionGroupWithEntriesFormData} formData - 表單提交的資料
+   * @returns {Promise<void>}
+   */
   const handleFormSubmit = async (formData: TransactionGroupWithEntriesFormData) => {
     try {
       if (process.env.NODE_ENV === 'development') {

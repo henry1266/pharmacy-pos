@@ -81,40 +81,57 @@ class OrderNumberGenerator {
   async generate(): Promise<string> {
     try {
       const datePrefix = this.generateDatePrefix();
+      console.log(`[OrderGen] 生成日期前綴: ${datePrefix}`);
 
-      // 查詢條件 - 查找以日期前綴開頭的訂單
+      // 查詢條件 - 查找以日期前綴開頭的訂單，並確保格式正確
+      // 使用更精確的正則表達式，確保只匹配符合特定格式的訂單號
+      // 格式: 日期前綴 + 指定位數的數字序號
+      const regexPattern = `^${datePrefix}[0-9]{${this.sequenceDigits}}$`;
+      console.log(`[OrderGen] 使用查詢正則表達式: ${regexPattern}`);
+
       const query: Record<string, any> = {};
-      query[this.field] = { $regex: new RegExp(`^${datePrefix}`) };
+      query[this.field] = { $regex: new RegExp(regexPattern) };
 
-      // 排序條件 - 在測試中，我們需要模擬 sort 和 lean 方法的鏈式調用
-      const sort: { [key: string]: SortOrder } = {};
-      sort[this.field] = -1;
-
-      // 查找當天最後一個訂單號 - 使用 findOne 而不是 find
-      const mockQuery = this.Model.findOne(query);
+      // 查找所有符合條件的訂單號
+      const allOrders = await this.Model.find(query)
+        .lean() as Record<string, any>[];
       
-      // 在測試中，mockQuery 已經包含了 sort 和 lean 方法
-      const latestOrder = await mockQuery.sort(sort).lean() as Record<string, any> | null;
+      console.log(`[OrderGen] 找到 ${allOrders.length} 個符合條件的訂單號`);
 
       // 設置默認序號
       let sequenceNumber = this.sequenceStart;
 
-      // 如果找到了當天的訂單，提取序號部分
-      if (latestOrder) {
-        const orderNumber = latestOrder[this.field] as string;
-        // 直接從字串尾端提取序號，更穩健
-        const sequencePart = orderNumber.slice(-this.sequenceDigits);
-        const sequence = parseInt(sequencePart, 10);
+      // 如果找到了符合條件的訂單
+      if (allOrders.length > 0) {
+        // 提取所有訂單的序號部分，並找出最大值
+        const sequences = allOrders.map(order => {
+          const orderNumber = order[this.field] as string;
+          const sequencePart = orderNumber.slice(-this.sequenceDigits);
+          return parseInt(sequencePart, 10);
+        }).filter(seq => !isNaN(seq)); // 過濾掉無效的序號
 
-        if (!isNaN(sequence)) {
-          sequenceNumber = sequence + 1;
+        console.log(`[OrderGen] 提取的所有序號: ${JSON.stringify(sequences)}`);
+
+        if (sequences.length > 0) {
+          // 找出最大序號
+          const maxSequence = Math.max(...sequences);
+          console.log(`[OrderGen] 最大序號: ${maxSequence}`);
+          
+          // 序號加1
+          sequenceNumber = maxSequence + 1;
+          console.log(`[OrderGen] 序號增加為: ${sequenceNumber}`);
+        } else {
+          console.log(`[OrderGen] 未找到有效序號，使用默認起始值: ${this.sequenceStart}`);
         }
+      } else {
+        console.log(`[OrderGen] 未找到當天訂單，使用默認起始值: ${this.sequenceStart}`);
       }
 
       // 處理序號循環，例如 999 之後回到 1
       const maxSequenceValue = Math.pow(10, this.sequenceDigits);
       if (sequenceNumber >= maxSequenceValue) {
         sequenceNumber = this.sequenceStart;
+        console.log(`[OrderGen] 序號達到最大值 ${maxSequenceValue}，重置為: ${this.sequenceStart}`);
       }
 
       // 格式化序號為指定位數
@@ -124,13 +141,13 @@ class OrderNumberGenerator {
       const finalOrderNumber = `${datePrefix}${formattedSequence}`;
 
       console.log(
-        `[OrderGen] Generated: ${finalOrderNumber} (Prefix: ${datePrefix}, Last: ${ latestOrder ? latestOrder[this.field] : 'N/A'}, Seq: ${sequenceNumber})`
+        `[OrderGen] 生成訂單號: ${finalOrderNumber} (日期前綴: ${datePrefix}, 當前序號: ${sequenceNumber}, 格式化序號: ${formattedSequence})`
       );
 
       return finalOrderNumber;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error(`[OrderGen] Error for field "${this.field}": ${errorMessage}`);
+      console.error(`[OrderGen] 生成訂單號時出錯，字段: "${this.field}", 錯誤: ${errorMessage}`);
       // 讓呼叫者處理錯誤，而不是回傳一個備用號碼
       throw error;
     }

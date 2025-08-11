@@ -61,7 +61,12 @@ export const useTransactionActions = ({
 }: UseTransactionActionsProps): UseTransactionActionsReturn => {
   const navigate = useNavigate();
 
-  // 處理編輯
+  /**
+   * 處理編輯交易操作
+   *
+   * 如果提供了外部的 onEdit 回調函數，則調用該函數；
+   * 否則使用預設的導航邏輯，導航到交易編輯頁面。
+   */
   const handleEdit = () => {
     if (transaction && onEdit) {
       onEdit(transaction);
@@ -70,7 +75,12 @@ export const useTransactionActions = ({
     }
   };
 
-  // 處理複製
+  /**
+   * 處理複製交易操作
+   *
+   * 如果提供了外部的 onCopy 回調函數，則調用該函數；
+   * 否則使用預設的導航邏輯，導航到交易複製頁面。
+   */
   const handleCopy = () => {
     if (transaction && onCopy) {
       onCopy(transaction);
@@ -79,7 +89,13 @@ export const useTransactionActions = ({
     }
   };
 
-  // 處理刪除
+  /**
+   * 處理刪除交易操作
+   *
+   * 顯示確認對話框，確認後執行刪除操作。
+   * 如果提供了外部的 onDelete 回調函數，則調用該函數；
+   * 否則使用預設的刪除邏輯，調用 API 刪除交易，成功後導航回交易列表頁面。
+   */
   const handleDelete = () => {
     if (transaction && window.confirm('確定要刪除這筆交易嗎？此操作無法復原。')) {
       if (onDelete) {
@@ -98,7 +114,11 @@ export const useTransactionActions = ({
     }
   };
 
-  // 處理返回列表
+  /**
+   * 處理返回交易列表操作
+   *
+   * 導航回交易列表頁面。
+   */
   const handleBackToList = () => {
     navigate('/accounting3/transaction');
   };

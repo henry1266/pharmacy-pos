@@ -55,7 +55,15 @@ export const useTransactionDetail = (transactionId: string): UseTransactionDetai
   const [error, setError] = useState<string | null>(null);
   const [accounts, setAccounts] = useState<Record<string, Account3>>({});
 
-  // 載入科目資料
+  /**
+   * 載入交易相關的科目資料
+   *
+   * 此函數根據交易分錄中的科目ID，批量載入相關科目的詳細資料。
+   * 它會去除重複的科目ID，並將載入的科目資料存儲在狀態中。
+   *
+   * @param {EmbeddedAccountingEntry3[]} entries - 交易分錄陣列
+   * @returns {Promise<void>}
+   */
   const loadAccountsData = async (entries: EmbeddedAccountingEntry3[]) => {
     try {
       const accountIds = entries
