@@ -253,3 +253,23 @@
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m使用數字排序找到的最大序號: 368\u001b[39m","timestamp":"2025-08-11 12:29:44:2944"}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m生成銷貨單號: 20250811369\u001b[39m","timestamp":"2025-08-11 12:29:44:2944"}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m為產品 67eb60d00f2cf9d2647e3ca8 創建銷售庫存記錄，數量: -200, 總金額: 250\u001b[39m","timestamp":"2025-08-11 12:29:44:2944"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到庫存記錄數量: 107\u001b[39m","timestamp":"2025-08-11 14:18:29:1829"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到相關毛利記錄: 1\u001b[39m","timestamp":"2025-08-11 14:18:29:1829"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到庫存記錄數量: 160\u001b[39m","timestamp":"2025-08-11 14:18:29:1829"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到相關毛利記錄: 1\u001b[39m","timestamp":"2025-08-11 14:18:29:1829"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到庫存記錄數量: 36\u001b[39m","timestamp":"2025-08-11 14:18:29:1829"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到相關毛利記錄: 1\u001b[39m","timestamp":"2025-08-11 14:18:29:1829"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到庫存記錄數量: 44\u001b[39m","timestamp":"2025-08-11 14:18:29:1829"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到相關毛利記錄: 1\u001b[39m","timestamp":"2025-08-11 14:18:29:1829"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到庫存記錄數量: 107\u001b[39m","timestamp":"2025-08-11 14:18:30:1830"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到相關毛利記錄: 1\u001b[39m","timestamp":"2025-08-11 14:18:30:1830"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到庫存記錄數量: 160\u001b[39m","timestamp":"2025-08-11 14:18:30:1830"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到相關毛利記錄: 1\u001b[39m","timestamp":"2025-08-11 14:18:30:1830"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到庫存記錄數量: 36\u001b[39m","timestamp":"2025-08-11 14:18:30:1830"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到相關毛利記錄: 1\u001b[39m","timestamp":"2025-08-11 14:18:30:1830"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到庫存記錄數量: 44\u001b[39m","timestamp":"2025-08-11 14:18:30:1830"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到相關毛利記錄: 1\u001b[39m","timestamp":"2025-08-11 14:18:30:1830"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m一般產品 FIFO 計算完成\u001b[39m","timestamp":"2025-08-11 14:18:32:1832"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m一般產品 FIFO 計算完成\u001b[39m","timestamp":"2025-08-11 14:18:32:1832"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m一般產品 FIFO 計算完成\u001b[39m","timestamp":"2025-08-11 14:18:37:1837"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m一般產品 FIFO 計算完成\u001b[39m","timestamp":"2025-08-11 14:18:37:1837"}

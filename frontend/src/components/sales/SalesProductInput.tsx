@@ -365,11 +365,9 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
                 if (e.key === 'Enter') {
                   e.preventDefault();
                   
-                  // 如果沒有搜尋結果，執行提交邏輯
-                  if (filteredItems.length === 0) {
-                    handleBarcodeSubmit();
-                  }
-                  // 如果有搜尋結果，讓 Autocomplete 的內建邏輯處理
+                  // 無論是否有搜尋結果，都執行提交邏輯
+                  // 這樣在有搜尋結果時會選擇第一個項目
+                  handleBarcodeSubmit();
                 }
               }}
               />

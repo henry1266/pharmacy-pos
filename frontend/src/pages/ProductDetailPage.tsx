@@ -214,19 +214,12 @@ const ProductDetailPage: React.FC = () => {
             返回列表
           </Button>
           <Button
-            variant="outlined"
+            variant="contained"
             startIcon={<EditIcon />}
             onClick={handleEdit}
             sx={{ mr: 1 }}
           >
             編輯
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<PrintIcon />}
-            onClick={() => window.print()}
-          >
-            列印
           </Button>
         </Box>
       </Box>
