@@ -1,7 +1,10 @@
 import winston from 'winston';
 import path from 'path';
 
-// 定義日誌級別
+/**
+ * @description 定義日誌級別
+ * @type {Object.<string, number>}
+ */
 const levels = {
   error: 0,
   warn: 1,
@@ -10,7 +13,10 @@ const levels = {
   debug: 4,
 };
 
-// 定義日誌顏色
+/**
+ * @description 定義日誌顏色
+ * @type {Object.<string, string>}
+ */
 const colors = {
   error: 'red',
   warn: 'yellow',
@@ -22,7 +28,10 @@ const colors = {
 // 告訴 winston 使用這些顏色
 winston.addColors(colors);
 
-// 自定義格式
+/**
+ * @description 自定義日誌格式
+ * @type {winston.Logform.Format}
+ */
 const format = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
   winston.format.colorize({ all: true }),
@@ -31,14 +40,20 @@ const format = winston.format.combine(
   ),
 );
 
-// 定義不同環境的日誌級別
+/**
+ * @description 根據環境定義日誌級別
+ * @returns {string} 日誌級別
+ */
 const level = () => {
   const env = process.env.NODE_ENV || 'development';
   const isDevelopment = env === 'development';
   return isDevelopment ? 'debug' : 'warn';
 };
 
-// 定義傳輸方式
+/**
+ * @description 定義日誌傳輸方式
+ * @type {winston.transport[]}
+ */
 const transports = [
   // 控制台輸出
   new winston.transports.Console({
@@ -75,7 +90,10 @@ const transports = [
   }),
 ];
 
-// 創建 logger 實例
+/**
+ * @description 創建主要日誌實例
+ * @type {winston.Logger}
+ */
 const logger = winston.createLogger({
   level: level(),
   levels,
@@ -83,7 +101,10 @@ const logger = winston.createLogger({
   transports,
 });
 
-// 性能監控日誌
+/**
+ * @description 性能監控專用日誌實例
+ * @type {winston.Logger}
+ */
 export const performanceLogger = winston.createLogger({
   level: 'info',
   format: winston.format.combine(
@@ -99,7 +120,10 @@ export const performanceLogger = winston.createLogger({
   ]
 });
 
-// API 請求日誌
+/**
+ * @description API請求專用日誌實例
+ * @type {winston.Logger}
+ */
 export const apiLogger = winston.createLogger({
   level: 'info',
   format: winston.format.combine(
@@ -115,7 +139,10 @@ export const apiLogger = winston.createLogger({
   ]
 });
 
-// 資料庫操作日誌
+/**
+ * @description 資料庫操作專用日誌實例
+ * @type {winston.Logger}
+ */
 export const dbLogger = winston.createLogger({
   level: 'info',
   format: winston.format.combine(
@@ -131,7 +158,10 @@ export const dbLogger = winston.createLogger({
   ]
 });
 
-// 業務邏輯日誌
+/**
+ * @description 業務邏輯專用日誌實例
+ * @type {winston.Logger}
+ */
 export const businessLogger = winston.createLogger({
   level: 'info',
   format: winston.format.combine(
@@ -147,7 +177,13 @@ export const businessLogger = winston.createLogger({
   ]
 });
 
-// 輔助函數：記錄 API 請求
+/**
+ * @description 記錄API請求的輔助函數
+ * @param {any} req - Express請求對象
+ * @param {any} res - Express響應對象
+ * @param {number} responseTime - 請求處理時間(毫秒)
+ * @returns {void}
+ */
 export const logApiRequest = (req: any, res: any, responseTime: number) => {
   apiLogger.info('API Request', {
     method: req.method,
@@ -160,7 +196,14 @@ export const logApiRequest = (req: any, res: any, responseTime: number) => {
   });
 };
 
-// 輔助函數：記錄資料庫查詢
+/**
+ * @description 記錄資料庫查詢的輔助函數
+ * @param {string} operation - 操作類型(如find, update, insert等)
+ * @param {string} collection - 集合/表名
+ * @param {number} duration - 查詢執行時間(毫秒)
+ * @param {Error} [error] - 錯誤對象(如果有)
+ * @returns {void}
+ */
 export const logDbQuery = (operation: string, collection: string, duration: number, error?: Error) => {
   const logData = {
     operation,
@@ -180,7 +223,15 @@ export const logDbQuery = (operation: string, collection: string, duration: numb
   }
 };
 
-// 輔助函數：記錄業務操作
+/**
+ * @description 記錄業務操作的輔助函數
+ * @param {string} operation - 操作名稱
+ * @param {string} userId - 用戶ID
+ * @param {any} details - 操作詳情
+ * @param {boolean} [success=true] - 操作是否成功
+ * @param {Error} [error] - 錯誤對象(如果有)
+ * @returns {void}
+ */
 export const logBusinessOperation = (
   operation: string, 
   userId: string, 
@@ -207,7 +258,14 @@ export const logBusinessOperation = (
   }
 };
 
-// 輔助函數：記錄性能指標
+/**
+ * @description 記錄性能指標的輔助函數
+ * @param {string} metric - 指標名稱
+ * @param {number} value - 指標值
+ * @param {string} [unit='ms'] - 單位(默認為毫秒)
+ * @param {any} [tags] - 附加標籤
+ * @returns {void}
+ */
 export const logPerformance = (metric: string, value: number, unit: string = 'ms', tags?: any) => {
   performanceLogger.info('Performance Metric', {
     metric,
@@ -218,11 +276,16 @@ export const logPerformance = (metric: string, value: number, unit: string = 'ms
   });
 };
 
-// 創建日誌目錄
+/**
+ * @description 創建日誌目錄(如不存在)
+ */
 import fs from 'fs';
 const logsDir = path.join(process.cwd(), 'logs');
 if (!fs.existsSync(logsDir)) {
   fs.mkdirSync(logsDir, { recursive: true });
 }
 
+/**
+ * @description 導出主要日誌實例
+ */
 export default logger;

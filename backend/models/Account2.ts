@@ -1,5 +1,10 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
+/**
+ * @description 會計科目模型接口
+ * @interface IAccount2
+ * @extends {Document} Mongoose文檔接口
+ */
 export interface IAccount2 extends Document {
   code: string;               // 會計科目代碼 (如: 1101, 2201)
   name: string;               // 科目名稱
@@ -21,6 +26,10 @@ export interface IAccount2 extends Document {
   createdBy: string;
 }
 
+/**
+ * @description 會計科目模型模式定義
+ * @type {Schema}
+ */
 const Account2Schema: Schema = new Schema({
   code: {
     type: String,
@@ -103,8 +112,10 @@ const Account2Schema: Schema = new Schema({
   collection: 'accounts2'
 });
 
-// 索引
-// 機構隔離的代碼唯一性：同一機構內代碼唯一，不同機構可重複
+/**
+ * @description 索引定義
+ * 機構隔離的代碼唯一性：同一機構內代碼唯一，不同機構可重複
+ */
 Account2Schema.index(
   { organizationId: 1, code: 1 },
   {
@@ -128,18 +139,27 @@ Account2Schema.index({ type: 1, isActive: 1 });
 Account2Schema.index({ parentId: 1, level: 1 });
 Account2Schema.index({ level: 1, code: 1 });
 
-// 虛擬欄位：子科目
+/**
+ * @description 虛擬欄位：子科目
+ * 用於獲取當前科目的所有子科目
+ */
 Account2Schema.virtual('children', {
   ref: 'Account2',
   localField: '_id',
   foreignField: 'parentId'
 });
 
-// 確保 JSON 輸出包含虛擬欄位
+/**
+ * @description 確保 JSON 輸出包含虛擬欄位
+ */
 Account2Schema.set('toJSON', { virtuals: true });
 Account2Schema.set('toObject', { virtuals: true });
 
-// 根據會計科目類型自動設定正常餘額方向
+/**
+ * @description 保存前中間件
+ * 1. 根據會計科目類型自動設定正常餘額方向
+ * 2. 根據父科目設定層級
+ */
 Account2Schema.pre('save', function(this: IAccount2, next) {
   if (this.isNew || this.isModified('accountType')) {
     switch (this.accountType) {
@@ -170,4 +190,8 @@ Account2Schema.pre('save', function(this: IAccount2, next) {
   }
 });
 
+/**
+ * @description 會計科目模型
+ * @type {mongoose.Model<IAccount2>}
+ */
 export default mongoose.model<IAccount2>('Account2', Account2Schema);

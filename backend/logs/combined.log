@@ -223,3 +223,33 @@
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m產品 LOPEDIN 2MG 易必寧膠囊 總庫存量: 2594，銷售數量: 200\u001b[39m","timestamp":"2025-08-11 12:25:28:2528"}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m使用前端提供的銷貨單號: \"20250811968\"\u001b[39m","timestamp":"2025-08-11 12:25:28:2528"}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m為產品 67eb60d00f2cf9d2647e3ca8 創建銷售庫存記錄，數量: -200, 總金額: 250\u001b[39m","timestamp":"2025-08-11 12:25:29:2529"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已刪除 1 個與銷售 20250811968 相關的庫存記錄\u001b[39m","timestamp":"2025-08-11 12:29:25:2925"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m恢復產品 67eb60d00f2cf9d2647e3ca8 的庫存，數量: +200\u001b[39m","timestamp":"2025-08-11 12:29:25:2925"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m檢查產品ID: 67eb60d00f2cf9d2647e3ca8, 名稱: LOPEDIN 2MG 易必寧膠囊\u001b[39m","timestamp":"2025-08-11 12:29:44:2944"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到 14 個庫存記錄\u001b[39m","timestamp":"2025-08-11 12:29:44:2944"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67ff11298cd383dad08f2fd6, 類型: purchase, 數量: 1000\u001b[39m","timestamp":"2025-08-11 12:29:44:2944"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 6814807f430068b88ebed5bc, 類型: ship, 數量: -3000\u001b[39m","timestamp":"2025-08-11 12:29:44:2944"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 683659809e3abfee6c6548a8, 類型: ship, 數量: -1000\u001b[39m","timestamp":"2025-08-11 12:29:44:2944"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 685b4836e6665d7d0af58f0e, 類型: sale, 數量: -100\u001b[39m","timestamp":"2025-08-11 12:29:44:2944"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 685b488ae6665d7d0af596f4, 類型: sale, 數量: -100\u001b[39m","timestamp":"2025-08-11 12:29:44:2944"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68672d0287107c6d64bcd1d9, 類型: sale, 數量: -100\u001b[39m","timestamp":"2025-08-11 12:29:44:2944"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 687468868ab022663ead30ae, 類型: ship, 數量: -6\u001b[39m","timestamp":"2025-08-11 12:29:44:2944"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 688b25b59593bdf46678964d, 類型: sale, 數量: -100\u001b[39m","timestamp":"2025-08-11 12:29:44:2944"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 688e17f50c1f4a3e0f2ad627, 類型: purchase, 數量: 1000\u001b[39m","timestamp":"2025-08-11 12:29:44:2944"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 688f3ce2c942f3edf6fc1b63, 類型: purchase, 數量: 1000\u001b[39m","timestamp":"2025-08-11 12:29:44:2944"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 688f76c050daca5a7cb94500, 類型: purchase, 數量: 1000\u001b[39m","timestamp":"2025-08-11 12:29:44:2944"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 688f778a50daca5a7cb9b27c, 類型: purchase, 數量: 1000\u001b[39m","timestamp":"2025-08-11 12:29:44:2944"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 688f780a50daca5a7cba2944, 類型: purchase, 數量: 1000\u001b[39m","timestamp":"2025-08-11 12:29:44:2944"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 688f782550daca5a7cba4cf4, 類型: purchase, 數量: 1000\u001b[39m","timestamp":"2025-08-11 12:29:44:2944"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m產品 LOPEDIN 2MG 易必寧膠囊 總庫存量: 2594，銷售數量: 200\u001b[39m","timestamp":"2025-08-11 12:29:44:2944"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m前端提供了銷貨單號: \"20250811005\"，但將被忽略以確保序號連續性\u001b[39m","timestamp":"2025-08-11 12:29:44:2944"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m由後端生成銷貨單號\u001b[39m","timestamp":"2025-08-11 12:29:44:2944"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m生成日期前綴: 20250811\u001b[39m","timestamp":"2025-08-11 12:29:44:2944"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢當日銷貨單號，日期前綴: 20250811, 正則表達式: ^20250811\\d{3}$\u001b[39m","timestamp":"2025-08-11 12:29:44:2944"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到 5 個匹配的銷貨單號\u001b[39m","timestamp":"2025-08-11 12:29:44:2944"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m所有匹配的銷貨單號: [\"20250811001\",\"20250811242\",\"20250811366\",\"20250811367\",\"20250811368\"]\u001b[39m","timestamp":"2025-08-11 12:29:44:2944"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到當天最後一個銷貨單號: 20250811368\u001b[39m","timestamp":"2025-08-11 12:29:44:2944"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m提取序號: 368, 新序號: 369\u001b[39m","timestamp":"2025-08-11 12:29:44:2944"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m使用數字排序找到的最大序號: 368\u001b[39m","timestamp":"2025-08-11 12:29:44:2944"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m生成銷貨單號: 20250811369\u001b[39m","timestamp":"2025-08-11 12:29:44:2944"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m為產品 67eb60d00f2cf9d2647e3ca8 創建銷售庫存記錄，數量: -200, 總金額: 250\u001b[39m","timestamp":"2025-08-11 12:29:44:2944"}

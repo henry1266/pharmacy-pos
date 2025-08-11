@@ -7,11 +7,15 @@ import {
 } from '@pharmacy-pos/shared/types/utils';
 
 /**
- * 密碼處理工具函數
- * 提供密碼加密、驗證和強度檢查功能
+ * @module passwordUtils
+ * @description 密碼處理工具函數
+ * @summary 提供密碼加密、驗證、強度檢查和生成功能
  */
 
-// 默認密碼政策
+/**
+ * @description 默認密碼政策配置
+ * @type {PasswordPolicy}
+ */
 const DEFAULT_PASSWORD_POLICY: PasswordPolicy = {
   minLength: 6,
   maxLength: 128,
@@ -112,7 +116,10 @@ export const verifyPassword = async (
  * @returns 驗證結果
  */
 /**
- * 基本驗證檢查
+ * @description 執行密碼基本驗證檢查
+ * @param {string} password - 要驗證的密碼
+ * @returns {PasswordValidation|null} 驗證結果，如果通過基本驗證則返回null
+ * @private
  */
 const performBasicValidation = (password: string): PasswordValidation | null => {
   if (!password) {
@@ -137,7 +144,12 @@ const performBasicValidation = (password: string): PasswordValidation | null => 
 };
 
 /**
- * 長度檢查
+ * @description 驗證密碼長度是否符合政策要求
+ * @param {string} password - 要驗證的密碼
+ * @param {PasswordPolicy} policy - 密碼政策
+ * @param {string[]} errors - 錯誤訊息陣列，用於添加驗證錯誤
+ * @returns {number} 長度驗證得分
+ * @private
  */
 const validateLength = (password: string, policy: PasswordPolicy, errors: string[]): number => {
   let score = 0;
@@ -156,7 +168,12 @@ const validateLength = (password: string, policy: PasswordPolicy, errors: string
 };
 
 /**
- * 字符類型檢查
+ * @description 驗證密碼字符類型是否符合政策要求
+ * @param {string} password - 要驗證的密碼
+ * @param {PasswordPolicy} policy - 密碼政策
+ * @param {string[]} errors - 錯誤訊息陣列，用於添加驗證錯誤
+ * @returns {number} 字符類型驗證得分
+ * @private
  */
 const validateCharacterTypes = (password: string, policy: PasswordPolicy, errors: string[]): number => {
   let score = 0;
@@ -193,7 +210,12 @@ const validateCharacterTypes = (password: string, policy: PasswordPolicy, errors
 };
 
 /**
- * 禁用內容檢查
+ * @description 檢查密碼是否包含禁用的內容
+ * @param {string} password - 要驗證的密碼
+ * @param {PasswordPolicy} policy - 密碼政策
+ * @param {string[]} errors - 錯誤訊息陣列，用於添加驗證錯誤
+ * @returns {void}
+ * @private
  */
 const validateForbiddenContent = (password: string, policy: PasswordPolicy, errors: string[]): void => {
   // 禁用模式檢查
@@ -219,7 +241,10 @@ const validateForbiddenContent = (password: string, policy: PasswordPolicy, erro
 };
 
 /**
- * 額外強度檢查
+ * @description 執行額外的密碼強度檢查
+ * @param {string} password - 要驗證的密碼
+ * @returns {number} 額外強度檢查得分
+ * @private
  */
 const performAdditionalStrengthChecks = (password: string): number => {
   let score = 0;
@@ -232,7 +257,10 @@ const performAdditionalStrengthChecks = (password: string): number => {
 };
 
 /**
- * 計算強度等級
+ * @description 根據得分計算密碼強度等級
+ * @param {number} score - 密碼強度得分
+ * @returns {'weak'|'medium'|'strong'|'very_strong'} 密碼強度等級
+ * @private
  */
 const calculateStrengthLevel = (score: number): 'weak' | 'medium' | 'strong' | 'very_strong' => {
   if (score <= 1) return 'weak';
@@ -241,6 +269,12 @@ const calculateStrengthLevel = (score: number): 'weak' | 'medium' | 'strong' | '
   return 'very_strong';
 };
 
+/**
+ * @description 驗證密碼強度
+ * @param {string} password - 要驗證的密碼
+ * @param {Partial<PasswordPolicy>} [policy={}] - 自定義密碼政策(可選)
+ * @returns {PasswordValidation} 密碼驗證結果，包含有效性、錯誤訊息、強度等級和得分
+ */
 export const validatePasswordStrength = (
   password: string,
   policy: Partial<PasswordPolicy> = {}
@@ -354,10 +388,15 @@ export const calculatePasswordEntropy = (password: string): number => {
   return password.length * Math.log2(charsetSize);
 };
 
-// 導出默認密碼政策
+/**
+ * @description 導出默認密碼政策
+ */
 export { DEFAULT_PASSWORD_POLICY };
 
-// 導出所有函數作為默認對象
+/**
+ * @description 導出所有密碼工具函數作為默認對象
+ * @exports passwordUtils
+ */
 export default {
   hashPassword,
   verifyPassword,

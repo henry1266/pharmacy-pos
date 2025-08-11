@@ -1,6 +1,7 @@
 /**
- * Accounting3 資料結構到 Accounting2 介面格式的反向適配器
- * 確保 Accounting3 內嵌分錄資料能在 Accounting2 科目管理介面中正確顯示
+ * @module accounting3to2
+ * @description Accounting3 資料結構到 Accounting2 介面格式的反向適配器
+ * @summary 確保 Accounting3 內嵌分錄資料能在 Accounting2 科目管理介面中正確顯示
  */
 
 import {
@@ -12,13 +13,18 @@ import {
 } from '../types/accounting2';
 
 /**
- * Accounting3 到 Accounting2 反向適配器
- * 將內嵌分錄結構轉換為科目管理介面可用的格式
+ * @description Accounting3 到 Accounting2 反向適配器
+ * @class Accounting3To2Adapter
+ * @classdesc 將內嵌分錄結構轉換為科目管理介面可用的格式
  */
 export class Accounting3To2Adapter {
   /**
-   * 將內嵌分錄轉換為獨立分錄格式
-   * 用於科目管理介面需要獨立分錄資料的場景
+   * @description 將內嵌分錄轉換為獨立分錄格式
+   * @method convertEmbeddedEntryToStandalone
+   * @static
+   * @param {EmbeddedAccountingEntry} embeddedEntry - 內嵌分錄
+   * @param {TransactionGroupWithEntries} transactionGroup - 交易群組
+   * @returns {AccountingEntry} 獨立分錄格式
    */
   static convertEmbeddedEntryToStandalone(
     embeddedEntry: EmbeddedAccountingEntry,
@@ -43,8 +49,11 @@ export class Accounting3To2Adapter {
   }
 
   /**
-   * 將 TransactionGroupWithEntries 轉換為傳統 TransactionGroup
-   * 移除內嵌分錄，保留基本交易群組資訊
+   * @description 將 TransactionGroupWithEntries 轉換為傳統 TransactionGroup
+   * @method convertToLegacyTransactionGroup
+   * @static
+   * @param {TransactionGroupWithEntries} transactionWithEntries - 包含內嵌分錄的交易群組
+   * @returns {TransactionGroup} 傳統交易群組格式
    */
   static convertToLegacyTransactionGroup(
     transactionWithEntries: TransactionGroupWithEntries
@@ -69,8 +78,11 @@ export class Accounting3To2Adapter {
   }
 
   /**
-   * 批量轉換內嵌分錄為獨立分錄
-   * 用於需要傳統分錄列表的場景
+   * @description 批量轉換內嵌分錄為獨立分錄
+   * @method extractAllEntriesFromTransactions
+   * @static
+   * @param {TransactionGroupWithEntries[]} transactions - 交易群組陣列
+   * @returns {AccountingEntry[]} 獨立分錄陣列
    */
   static extractAllEntriesFromTransactions(
     transactions: TransactionGroupWithEntries[]
@@ -93,8 +105,12 @@ export class Accounting3To2Adapter {
   }
 
   /**
-   * 為特定科目提取分錄資料
-   * 格式化為科目管理介面需要的分錄格式
+   * @description 為特定科目提取分錄資料
+   * @method extractEntriesForAccount
+   * @static
+   * @param {string} accountId - 科目ID
+   * @param {TransactionGroupWithEntries[]} transactions - 交易群組陣列
+   * @returns {AccountingEntry[]} 特定科目的分錄陣列
    */
   static extractEntriesForAccount(
     accountId: string,
@@ -124,8 +140,12 @@ export class Accounting3To2Adapter {
   }
 
   /**
-   * 轉換為科目管理介面的顯示格式
-   * 包含額外的顯示資訊和計算欄位
+   * @description 轉換為科目管理介面的顯示格式
+   * @method convertForAccountManagementDisplay
+   * @static
+   * @param {string} accountId - 科目ID
+   * @param {TransactionGroupWithEntries[]} transactions - 交易群組陣列
+   * @returns {Array<AccountingEntry & Object>} 擴展的分錄陣列，包含額外的顯示資訊
    */
   static convertForAccountManagementDisplay(
     accountId: string,
@@ -154,8 +174,13 @@ export class Accounting3To2Adapter {
   }
 
   /**
-   * 驗證轉換的完整性
-   * 確保轉換過程中沒有資料遺失
+   * @description 驗證轉換的完整性
+   * @method validateConversion
+   * @static
+   * @param {TransactionGroupWithEntries} original - 原始交易群組
+   * @param {TransactionGroup} convertedGroup - 轉換後的交易群組
+   * @param {AccountingEntry[]} convertedEntries - 轉換後的分錄陣列
+   * @returns {Object} 驗證結果，包含是否有效和錯誤訊息
    */
   static validateConversion(
     original: TransactionGroupWithEntries,
@@ -200,13 +225,18 @@ export class Accounting3To2Adapter {
 }
 
 /**
- * 科目管理介面資料格式化器
- * 專門處理科目管理介面需要的特殊格式
+ * @description 科目管理介面資料格式化器
+ * @class AccountManagementFormatter
+ * @classdesc 專門處理科目管理介面需要的特殊格式
  */
 export class AccountManagementFormatter {
   /**
-   * 格式化科目餘額資訊
-   * 基於 Accounting3 資料計算科目餘額
+   * @description 格式化科目餘額資訊
+   * @method formatAccountBalance
+   * @static
+   * @param {Account2} account - 科目資料
+   * @param {TransactionGroupWithEntries[]} transactions - 交易群組陣列
+   * @returns {Account2 & Object} 擴展的科目資料，包含餘額資訊
    */
   static formatAccountBalance(
     account: Account2,
@@ -241,8 +271,12 @@ export class AccountManagementFormatter {
   }
 
   /**
-   * 格式化分錄明細為表格顯示格式
-   * 包含所有科目管理介面需要的顯示欄位
+   * @description 格式化分錄明細為表格顯示格式
+   * @method formatEntriesForDataGrid
+   * @static
+   * @param {string} accountId - 科目ID
+   * @param {TransactionGroupWithEntries[]} transactions - 交易群組陣列
+   * @returns {Array<Object>} 表格顯示格式的分錄資料陣列
    */
   static formatEntriesForDataGrid(
     accountId: string,
@@ -289,8 +323,12 @@ export class AccountManagementFormatter {
   }
 
   /**
-   * 格式化科目統計資訊
-   * 提供科目管理介面需要的統計數據
+   * @description 格式化科目統計資訊
+   * @method formatAccountStatistics
+   * @static
+   * @param {string} accountId - 科目ID
+   * @param {TransactionGroupWithEntries[]} transactions - 交易群組陣列
+   * @returns {Object} 科目統計資訊，包含各種統計數據
    */
   static formatAccountStatistics(
     accountId: string,
@@ -348,7 +386,10 @@ export class AccountManagementFormatter {
 }
 
 /**
- * 匯出主要轉換函數供向後相容
+ * @description 匯出主要轉換函數供向後相容
+ * @exports convertEmbeddedEntryToStandalone
+ * @exports convertToLegacyTransactionGroup
+ * @exports extractEntriesForAccount
  */
 export const convertEmbeddedEntryToStandalone = Accounting3To2Adapter.convertEmbeddedEntryToStandalone;
 export const convertToLegacyTransactionGroup = Accounting3To2Adapter.convertToLegacyTransactionGroup;

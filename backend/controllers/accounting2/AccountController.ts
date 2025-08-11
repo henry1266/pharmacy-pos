@@ -4,7 +4,11 @@ import { ValidationService } from '../../services/accounting2/ValidationService'
 import { IAccount2 } from '../../models/Account2';
 import logger from '../../utils/logger';
 
-// 擴展 Request 介面以支援 user 屬性
+/**
+ * @description 擴展 Request 介面以支援已認證用戶的屬性
+ * @interface AuthenticatedRequest
+ * @extends {Request}
+ */
 interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
@@ -13,14 +17,21 @@ interface AuthenticatedRequest extends Request {
 }
 
 /**
- * Accounting2 帳戶管理控制器
- * 處理帳戶相關的 HTTP 請求和回應
+ * @description Accounting2 帳戶管理控制器
+ * @class AccountController
+ * @classdesc 處理帳戶相關的 HTTP 請求和回應，提供帳戶的CRUD操作和其他功能
  */
 export class AccountController {
 
   /**
-   * 建立新帳戶
-   * POST /api/accounting2/accounts
+   * @description 建立新帳戶
+   * @method createAccount
+   * @static
+   * @async
+   * @param {AuthenticatedRequest} req - Express請求對象，包含帳戶數據和用戶ID
+   * @param {Response} res - Express響應對象
+   * @returns {Promise<void>} 無返回值，通過res發送JSON響應
+   * @route POST /api/accounting2/accounts
    */
   static async createAccount(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
@@ -63,8 +74,14 @@ export class AccountController {
   }
 
   /**
-   * 更新帳戶資訊
-   * PUT /api/accounting2/accounts/:id
+   * @description 更新帳戶資訊
+   * @method updateAccount
+   * @static
+   * @async
+   * @param {AuthenticatedRequest} req - Express請求對象，包含帳戶ID、更新數據和用戶ID
+   * @param {Response} res - Express響應對象
+   * @returns {Promise<void>} 無返回值，通過res發送JSON響應
+   * @route PUT /api/accounting2/accounts/:id
    */
   static async updateAccount(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
@@ -115,8 +132,14 @@ export class AccountController {
   }
 
   /**
-   * 刪除帳戶
-   * DELETE /api/accounting2/accounts/:id
+   * @description 刪除帳戶
+   * @method deleteAccount
+   * @static
+   * @async
+   * @param {AuthenticatedRequest} req - Express請求對象，包含帳戶ID和用戶ID
+   * @param {Response} res - Express響應對象
+   * @returns {Promise<void>} 無返回值，通過res發送JSON響應
+   * @route DELETE /api/accounting2/accounts/:id
    */
   static async deleteAccount(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
@@ -165,8 +188,14 @@ export class AccountController {
   }
 
   /**
-   * 取得單一帳戶
-   * GET /api/accounting2/accounts/:id
+   * @description 取得單一帳戶
+   * @method getAccountById
+   * @static
+   * @async
+   * @param {AuthenticatedRequest} req - Express請求對象，包含帳戶ID和用戶ID
+   * @param {Response} res - Express響應對象
+   * @returns {Promise<void>} 無返回值，通過res發送JSON響應
+   * @route GET /api/accounting2/accounts/:id
    */
   static async getAccountById(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
@@ -213,8 +242,14 @@ export class AccountController {
   }
 
   /**
-   * 取得使用者帳戶列表
-   * GET /api/accounting2/accounts
+   * @description 取得使用者帳戶列表
+   * @method getAccountsByUser
+   * @static
+   * @async
+   * @param {AuthenticatedRequest} req - Express請求對象，包含用戶ID和查詢參數
+   * @param {Response} res - Express響應對象
+   * @returns {Promise<void>} 無返回值，通過res發送JSON響應
+   * @route GET /api/accounting2/accounts
    */
   static async getAccountsByUser(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
@@ -286,8 +321,14 @@ export class AccountController {
   }
 
   /**
-   * 計算帳戶統計
-   * GET /api/accounting2/accounts/:id/statistics
+   * @description 計算帳戶統計
+   * @method getAccountStatistics
+   * @static
+   * @async
+   * @param {AuthenticatedRequest} req - Express請求對象，包含用戶ID和組織ID
+   * @param {Response} res - Express響應對象
+   * @returns {Promise<void>} 無返回值，通過res發送JSON響應
+   * @route GET /api/accounting2/accounts/:id/statistics
    */
   static async getAccountStatistics(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
@@ -328,8 +369,14 @@ export class AccountController {
   }
 
   /**
-   * 驗證帳戶完整性
-   * POST /api/accounting2/accounts/validate
+   * @description 驗證帳戶完整性
+   * @method validateAccounts
+   * @static
+   * @async
+   * @param {AuthenticatedRequest} req - Express請求對象，包含用戶ID和組織ID
+   * @param {Response} res - Express響應對象
+   * @returns {Promise<void>} 無返回值，通過res發送JSON響應
+   * @route POST /api/accounting2/accounts/validate
    */
   static async validateAccounts(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
@@ -364,8 +411,14 @@ export class AccountController {
   }
 
   /**
-   * 匯出帳戶資料
-   * GET /api/accounting2/accounts/export
+   * @description 匯出帳戶資料
+   * @method exportAccounts
+   * @static
+   * @async
+   * @param {AuthenticatedRequest} req - Express請求對象，包含用戶ID和匯出格式選項
+   * @param {Response} res - Express響應對象
+   * @returns {Promise<void>} 無返回值，通過res發送JSON或CSV響應
+   * @route GET /api/accounting2/accounts/export
    */
   static async exportAccounts(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
@@ -446,8 +499,14 @@ export class AccountController {
   }
 
   /**
-   * 批次建立帳戶
-   * POST /api/accounting2/accounts/batch
+   * @description 批次建立帳戶
+   * @method batchCreateAccounts
+   * @static
+   * @async
+   * @param {AuthenticatedRequest} req - Express請求對象，包含用戶ID和帳戶陣列
+   * @param {Response} res - Express響應對象
+   * @returns {Promise<void>} 無返回值，通過res發送JSON響應
+   * @route POST /api/accounting2/accounts/batch
    */
   static async batchCreateAccounts(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
@@ -520,4 +579,7 @@ export class AccountController {
   }
 }
 
+/**
+ * @description 導出帳戶控制器
+ */
 export default AccountController;

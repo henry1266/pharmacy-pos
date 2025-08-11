@@ -62,7 +62,10 @@ import supplierAccountMappingsRoutes from "./routes/supplierAccountMappings";
 // 監控路由
 import monitoringRoutes from "./routes/monitoring";
 
-// 創建應用程序實例的函數
+/**
+ * @description 創建Express應用程序實例
+ * @returns {Application} 配置好的Express應用程序實例
+ */
 export function createApp(): Application {
   const app: Application = express();
 
@@ -147,13 +150,20 @@ export function createApp(): Application {
   return app;
 }
 
-// 連接資料庫的函數
+/**
+ * @description 連接到MongoDB資料庫
+ * @async
+ * @returns {Promise<void>} 連接成功時解析的Promise
+ */
 export async function initializeDatabase() {
   if (process.env.NODE_ENV !== 'test') {
     await connectDB();
   }
 }
 
-// 為了向後兼容，導出應用程序實例
+/**
+ * @description 為了向後兼容，導出預先配置的Express應用程序實例
+ * @type {Application} Express應用程序實例
+ */
 const app = createApp();
 export default app;

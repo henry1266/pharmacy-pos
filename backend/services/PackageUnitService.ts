@@ -9,15 +9,16 @@ import {
 } from '@pharmacy-pos/shared/types/package';
 
 /**
- * 包裝單位服務
- * 提供包裝單位的驗證、轉換和管理功能
+ * @description 包裝單位服務
+ * @class PackageUnitService
+ * @classdesc 提供包裝單位的驗證、轉換和管理功能，包括單位配置驗證、數量轉換和資料庫操作
  */
 export class PackageUnitService {
   
   /**
-   * 驗證包裝單位配置的合理性
-   * @param units 包裝單位配置陣列
-   * @returns 驗證結果
+   * @description 驗證包裝單位配置的合理性
+   * @param {Omit<IProductPackageUnit, '_id' | 'productId' | 'createdAt' | 'updatedAt'>[]} units 包裝單位配置陣列
+   * @returns {PackageUnitValidationResult} 驗證結果，包含是否有效、錯誤和警告訊息
    */
   static validatePackageUnits(units: Omit<IProductPackageUnit, '_id' | 'productId' | 'createdAt' | 'updatedAt'>[]): PackageUnitValidationResult {
     const errors: string[] = [];
@@ -91,10 +92,10 @@ export class PackageUnitService {
   }
   
   /**
-   * 將基礎單位數量轉換為包裝單位顯示
-   * @param baseQuantity 基礎單位數量
-   * @param packageUnits 包裝單位配置
-   * @returns 包裝顯示結果
+   * @description 將基礎單位數量轉換為包裝單位顯示
+   * @param {number} baseQuantity 基礎單位數量
+   * @param {IProductPackageUnit[]} packageUnits 包裝單位配置
+   * @returns {PackageDisplayResult} 包裝顯示結果，包含基礎數量、包裝明細和顯示文字
    */
   static convertToPackageDisplay(
     baseQuantity: number,
@@ -155,10 +156,10 @@ export class PackageUnitService {
   }
   
   /**
-   * 將包裝單位輸入轉換為基礎單位
-   * @param input 用戶輸入字串
-   * @param packageUnits 包裝單位配置
-   * @returns 轉換結果
+   * @description 將包裝單位輸入轉換為基礎單位
+   * @param {string} input 用戶輸入字串，如 "1盒 5排 3粒"
+   * @param {IProductPackageUnit[]} packageUnits 包裝單位配置
+   * @returns {PackageInputParseResult} 轉換結果，包含基礎數量、解析結果和錯誤訊息
    */
   static convertToBaseUnit(
     input: string,
@@ -241,9 +242,10 @@ export class PackageUnitService {
   }
   
   /**
-   * 根據產品ID獲取包裝單位配置
-   * @param productId 產品ID
-   * @returns 包裝單位配置陣列
+   * @description 根據產品ID獲取包裝單位配置
+   * @param {string} productId 產品ID
+   * @returns {Promise<IProductPackageUnit[]>} 包裝單位配置陣列
+   * @throws {Error} 當查詢失敗時
    */
   static async getProductPackageUnits(productId: string): Promise<IProductPackageUnit[]> {
     try {
@@ -256,10 +258,11 @@ export class PackageUnitService {
   }
   
   /**
-   * 根據產品ID和指定日期獲取包裝單位配置（支援歷史配置）
-   * @param productId 產品ID
-   * @param date 指定日期
-   * @returns 包裝單位配置陣列
+   * @description 根據產品ID和指定日期獲取包裝單位配置（支援歷史配置）
+   * @param {string} productId 產品ID
+   * @param {Date} date 指定日期
+   * @returns {Promise<IProductPackageUnit[]>} 包裝單位配置陣列
+   * @throws {Error} 當查詢失敗時
    */
   static async getProductPackageUnitsAtDate(
     productId: string, 
@@ -275,10 +278,11 @@ export class PackageUnitService {
   }
   
   /**
-   * 創建或更新產品的包裝單位配置
-   * @param productId 產品ID
-   * @param units 包裝單位配置
-   * @returns 創建結果
+   * @description 創建或更新產品的包裝單位配置
+   * @param {string} productId 產品ID
+   * @param {Omit<IProductPackageUnit, '_id' | 'productId' | 'createdAt' | 'updatedAt'>[]} units 包裝單位配置
+   * @returns {Promise<{ success: boolean; data?: IProductPackageUnit[]; error?: string }>} 創建結果
+   * @throws {Error} 當數據庫操作失敗時
    */
   static async createOrUpdatePackageUnits(
     productId: string,
@@ -335,9 +339,10 @@ export class PackageUnitService {
   }
   
   /**
-   * 刪除產品的包裝單位配置
-   * @param productId 產品ID
-   * @returns 刪除結果
+   * @description 刪除產品的包裝單位配置
+   * @param {string} productId 產品ID
+   * @returns {Promise<{ success: boolean; error?: string }>} 刪除結果
+   * @throws {Error} 當數據庫操作失敗時
    */
   static async deletePackageUnits(productId: string): Promise<{ success: boolean; error?: string }> {
     try {
@@ -360,4 +365,7 @@ export class PackageUnitService {
   }
 }
 
+/**
+ * @description 導出包裝單位服務
+ */
 export default PackageUnitService;

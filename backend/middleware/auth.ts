@@ -3,20 +3,37 @@ import config from 'config';
 import { Request, Response, NextFunction } from 'express';
 import { ErrorResponse } from '@pharmacy-pos/shared/types/api';
 
-// 擴展 Request 介面以包含用戶資訊
+/**
+ * @description 擴展 Request 介面以包含用戶資訊
+ * @interface AuthenticatedRequest
+ * @extends {Request}
+ */
 interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
   };
 }
 
-// 測試模式配置
+/**
+ * @description 測試模式配置
+ * @constant {boolean} TEST_MODE_ENABLED - 是否啟用測試模式
+ * @constant {string} TEST_MODE_TOKEN - 測試模式使用的令牌
+ * @constant {Object} TEST_MODE_USER - 測試模式使用的用戶對象
+ */
 const TEST_MODE_ENABLED = process.env.REACT_APP_TEST_MODE === 'true';
 const TEST_MODE_TOKEN = 'test-mode-token';
 const TEST_MODE_USER = {
   id: 'test-user-id'
 };
 
+/**
+ * @description 身份驗證中間件
+ * @function auth
+ * @param {AuthenticatedRequest} req - Express請求對象
+ * @param {Response} res - Express響應對象
+ * @param {NextFunction} next - Express下一個中間件函數
+ * @returns {void}
+ */
 const auth = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
   // 從請求頭獲取 token - 支援兩種格式
   let token = req.header("x-auth-token");
@@ -87,4 +104,8 @@ const auth = (req: AuthenticatedRequest, res: Response, next: NextFunction): voi
   }
 };
 
+/**
+ * @description 導出身份驗證中間件
+ * @exports auth
+ */
 export default auth;

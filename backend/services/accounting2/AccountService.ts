@@ -5,17 +5,19 @@ import { VersionCompatibilityManager } from '../../../shared/services/compatibil
 import { Account2 as Account2Type, TransactionGroupWithEntries as TransactionGroupType } from '../../../shared/types/accounting2';
 
 /**
- * Accounting2 帳戶服務層
- * 提供帳戶管理功能，與 Accounting3 資料結構相容
+ * @description Accounting2 帳戶服務層
+ * @class AccountService
+ * @classdesc 提供帳戶管理功能，包括CRUD操作、統計分析和資料驗證，與 Accounting3 資料結構相容
  */
 export class AccountService {
   
   /**
-   * 建立新帳戶
-   * @param accountData 帳戶資料
-   * @param userId 使用者ID
-   * @param organizationId 機構ID（可選）
-   * @returns 建立的帳戶資料
+   * @description 建立新帳戶
+   * @param {Partial<IAccount2>} accountData 帳戶資料
+   * @param {string} userId 使用者ID
+   * @param {string} [organizationId] 機構ID（可選）
+   * @returns {Promise<IAccount2>} 建立的帳戶資料
+   * @throws {Error} 當帳戶代碼已存在或建立失敗時
    */
   static async createAccount(
     accountData: Partial<IAccount2>,
@@ -55,11 +57,15 @@ console.log(`✅ 帳戶建立成功: ${savedAccount.name} (${savedAccount.code})
   }
 
   /**
-   * 取得帳戶列表
-   * @param userId 使用者ID
-   * @param organizationId 機構ID（可選）
-   * @param filters 篩選條件
-   * @returns 帳戶列表
+   * @description 取得帳戶列表
+   * @param {string} userId 使用者ID
+   * @param {string} [organizationId] 機構ID（可選）
+   * @param {Object} [filters] 篩選條件
+   * @param {string} [filters.accountType] 帳戶類型篩選
+   * @param {boolean} [filters.isActive] 是否啟用篩選
+   * @param {string} [filters.search] 搜尋關鍵字
+   * @returns {Promise<IAccount2[]>} 帳戶列表
+   * @throws {Error} 當查詢失敗時
    */
   static async getAccounts(
     userId: string,
@@ -106,11 +112,12 @@ console.log(`✅ 帳戶建立成功: ${savedAccount.name} (${savedAccount.code})
   }
 
   /**
-   * 取得單一帳戶詳細資料
-   * @param accountId 帳戶ID
-   * @param userId 使用者ID
-   * @param includeStatistics 是否包含統計資料
-   * @returns 帳戶詳細資料
+   * @description 取得單一帳戶詳細資料
+   * @param {string} accountId 帳戶ID
+   * @param {string} userId 使用者ID
+   * @param {boolean} [includeStatistics=false] 是否包含統計資料
+   * @returns {Promise<IAccount2 & { statistics?: any }>} 帳戶詳細資料，若includeStatistics為true則包含統計資料
+   * @throws {Error} 當帳戶不存在或無權限存取時
    */
   static async getAccountById(
     accountId: string,
@@ -155,11 +162,12 @@ console.log(`✅ 帳戶建立成功: ${savedAccount.name} (${savedAccount.code})
   }
 
   /**
-   * 更新帳戶
-   * @param accountId 帳戶ID
-   * @param updateData 更新資料
-   * @param userId 使用者ID
-   * @returns 更新後的帳戶資料
+   * @description 更新帳戶
+   * @param {string} accountId 帳戶ID
+   * @param {Partial<IAccount2>} updateData 更新資料
+   * @param {string} userId 使用者ID
+   * @returns {Promise<IAccount2>} 更新後的帳戶資料
+   * @throws {Error} 當帳戶不存在、無權限存取、代碼重複或更新失敗時
    */
   static async updateAccount(
     accountId: string,
@@ -215,10 +223,11 @@ console.log(`✅ 帳戶建立成功: ${savedAccount.name} (${savedAccount.code})
   }
 
   /**
-   * 軟刪除帳戶
-   * @param accountId 帳戶ID
-   * @param userId 使用者ID
-   * @returns 刪除結果
+   * @description 軟刪除帳戶
+   * @param {string} accountId 帳戶ID
+   * @param {string} userId 使用者ID
+   * @returns {Promise<boolean>} 刪除結果，成功返回true
+   * @throws {Error} 當帳戶不存在、無權限存取或有相關交易無法刪除時
    */
   static async deleteAccount(accountId: string, userId: string): Promise<boolean> {
     try {
@@ -266,10 +275,11 @@ console.log(`✅ 帳戶建立成功: ${savedAccount.name} (${savedAccount.code})
   }
 
   /**
-   * 取得帳戶類型統計
-   * @param userId 使用者ID
-   * @param organizationId 機構ID（可選）
-   * @returns 帳戶類型統計
+   * @description 取得帳戶類型統計
+   * @param {string} userId 使用者ID
+   * @param {string} [organizationId] 機構ID（可選）
+   * @returns {Promise<Array<{ accountType: string; count: number; accounts: IAccount2[] }>>} 帳戶類型統計，包含每種類型的帳戶數量和詳細資料
+   * @throws {Error} 當統計失敗時
    */
   static async getAccountTypeStatistics(
     userId: string,
@@ -309,11 +319,11 @@ console.log(`✅ 帳戶建立成功: ${savedAccount.name} (${savedAccount.code})
   }
 
   /**
-   * 批量建立帳戶
-   * @param accountsData 帳戶資料陣列
-   * @param userId 使用者ID
-   * @param organizationId 機構ID（可選）
-   * @returns 建立結果
+   * @description 批量建立帳戶
+   * @param {Partial<IAccount2>[]} accountsData 帳戶資料陣列
+   * @param {string} userId 使用者ID
+   * @param {string} [organizationId] 機構ID（可選）
+   * @returns {Promise<{ success: IAccount2[]; failed: Array<{ data: Partial<IAccount2>; error: string }> }>} 建立結果，包含成功和失敗的帳戶資料
    */
   static async createMultipleAccounts(
     accountsData: Partial<IAccount2>[],
@@ -340,10 +350,14 @@ console.log(`✅ 帳戶建立成功: ${savedAccount.name} (${savedAccount.code})
   }
 
   /**
-   * 驗證帳戶資料完整性
-   * @param userId 使用者ID
-   * @param organizationId 機構ID（可選）
-   * @returns 驗證結果
+   * @description 驗證帳戶資料完整性
+   * @param {string} userId 使用者ID
+   * @param {string} [organizationId] 機構ID（可選）
+   * @returns {Promise<{
+   *   isValid: boolean;
+   *   issues: Array<{ accountId: string; accountName: string; issue: string }>;
+   * }>} 驗證結果，包含是否有效和問題列表
+   * @throws {Error} 當驗證失敗時
    */
   static async validateAccountIntegrity(
     userId: string,
@@ -398,4 +412,7 @@ console.log(`✅ 帳戶建立成功: ${savedAccount.name} (${savedAccount.code})
   }
 }
 
+/**
+ * @description 導出帳戶服務
+ */
 export default AccountService;

@@ -1,6 +1,7 @@
 /**
- * Accounting2 科目管理介面與 Accounting3 資料結構相容性適配器
- * 確保科目管理介面能完美整合 Accounting3 內嵌分錄資料結構
+ * @module accounting2to3
+ * @description Accounting2 科目管理介面與 Accounting3 資料結構相容性適配器
+ * @summary 確保科目管理介面能完美整合 Accounting3 內嵌分錄資料結構
  */
 
 import {
@@ -9,13 +10,17 @@ import {
 } from '../types/accounting2';
 
 /**
- * 科目管理介面適配器
- * 確保 Accounting2 科目管理介面能正確處理 Accounting3 資料
+ * @description 科目管理介面適配器
+ * @class AccountManagementAdapter
+ * @classdesc 確保 Accounting2 科目管理介面能正確處理 Accounting3 資料
  */
 export class AccountManagementAdapter {
   /**
-   * 標準化科目資料格式
-   * 確保科目資料符合管理介面需求
+   * @description 標準化科目資料格式
+   * @method normalizeAccount
+   * @static
+   * @param {Account2} account - 原始科目資料
+   * @returns {Account2} 標準化後的科目資料
    */
   static normalizeAccount(account: Account2): Account2 {
     return {
@@ -34,7 +39,12 @@ export class AccountManagementAdapter {
   }
 
   /**
-   * 根據會計科目類型取得預設正常餘額方向
+   * @description 根據會計科目類型取得預設正常餘額方向
+   * @method getDefaultNormalBalance
+   * @static
+   * @private
+   * @param {Account2['accountType']} accountType - 科目類型
+   * @returns {'debit'|'credit'} 正常餘額方向
    */
   private static getDefaultNormalBalance(accountType: Account2['accountType']): 'debit' | 'credit' {
     switch (accountType) {
@@ -51,8 +61,12 @@ export class AccountManagementAdapter {
   }
 
   /**
-   * 從 Accounting3 內嵌分錄中提取科目相關資訊
-   * 用於科目管理介面顯示分錄明細
+   * @description 從 Accounting3 內嵌分錄中提取科目相關資訊
+   * @method extractAccountEntriesFromTransactions
+   * @static
+   * @param {string} accountId - 科目ID
+   * @param {TransactionGroupWithEntries[]} transactions - 交易群組陣列
+   * @returns {Array<Object>} 科目相關分錄資訊陣列
    */
   static extractAccountEntriesFromTransactions(
     accountId: string,
@@ -113,8 +127,12 @@ export class AccountManagementAdapter {
   }
 
   /**
-   * 計算科目餘額統計
-   * 基於 Accounting3 內嵌分錄資料計算科目統計資訊
+   * @description 計算科目餘額統計
+   * @method calculateAccountStatistics
+   * @static
+   * @param {string} accountId - 科目ID
+   * @param {TransactionGroupWithEntries[]} transactions - 交易群組陣列
+   * @returns {Object} 科目統計資訊，包含總分錄數、總借方、總貸方、餘額和最後交易日期
    */
   static calculateAccountStatistics(
     accountId: string,
@@ -146,8 +164,12 @@ export class AccountManagementAdapter {
   }
 
   /**
-   * 驗證科目是否可以安全刪除
-   * 檢查科目是否在 Accounting3 交易中被使用
+   * @description 驗證科目是否可以安全刪除
+   * @method canDeleteAccount
+   * @static
+   * @param {string} accountId - 科目ID
+   * @param {TransactionGroupWithEntries[]} transactions - 交易群組陣列
+   * @returns {Object} 刪除驗證結果，包含是否可刪除、原因和使用次數
    */
   static canDeleteAccount(
     accountId: string,
@@ -184,7 +206,11 @@ export class AccountManagementAdapter {
   }
 
   /**
-   * 批量處理科目資料標準化
+   * @description 批量處理科目資料標準化
+   * @method normalizeAccounts
+   * @static
+   * @param {Account2[]} accounts - 科目資料陣列
+   * @returns {Account2[]} 標準化後的科目資料陣列
    */
   static normalizeAccounts(accounts: Account2[]): Account2[] {
     return accounts.map(account => this.normalizeAccount(account));
@@ -192,13 +218,18 @@ export class AccountManagementAdapter {
 }
 
 /**
- * 科目管理介面資料提供器
- * 專門為科目管理介面提供格式化的資料
+ * @description 科目管理介面資料提供器
+ * @class AccountManagementDataProvider
+ * @classdesc 專門為科目管理介面提供格式化的資料
  */
 export class AccountManagementDataProvider {
   /**
-   * 為科目管理介面準備完整的科目資料
-   * 包含統計資訊和使用狀況
+   * @description 為科目管理介面準備完整的科目資料
+   * @method prepareAccountDataForManagement
+   * @static
+   * @param {Account2[]} accounts - 科目資料陣列
+   * @param {TransactionGroupWithEntries[]} transactions - 交易群組陣列
+   * @returns {Array<Account2 & Object>} 擴展的科目資料陣列，包含統計資訊和使用狀況
    */
   static prepareAccountDataForManagement(
     accounts: Account2[],
@@ -237,8 +268,12 @@ export class AccountManagementDataProvider {
   }
 
   /**
-   * 為科目詳情頁面準備分錄資料
-   * 格式化為科目管理介面需要的格式
+   * @description 為科目詳情頁面準備分錄資料
+   * @method prepareAccountEntriesForDisplay
+   * @static
+   * @param {string} accountId - 科目ID
+   * @param {TransactionGroupWithEntries[]} transactions - 交易群組陣列
+   * @returns {Array<Object>} 格式化的分錄資料陣列，包含累計餘額和交易狀態
    */
   static prepareAccountEntriesForDisplay(
     accountId: string,
@@ -286,7 +321,9 @@ export class AccountManagementDataProvider {
 }
 
 /**
- * 匯出主要適配器函數供向後相容
+ * @description 匯出主要適配器函數供向後相容
+ * @exports convertAccount2ToCompatible
+ * @exports convertAccountsForCompatibility
  */
 export const convertAccount2ToCompatible = AccountManagementAdapter.normalizeAccount;
 export const convertAccountsForCompatibility = AccountManagementAdapter.normalizeAccounts;

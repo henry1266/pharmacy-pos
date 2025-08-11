@@ -1,10 +1,20 @@
+/**
+ * @module config/db
+ * @description MongoDB數據庫連接配置
+ */
 import mongoose, { ConnectOptions } from "mongoose";
 import config from "config";
 
-// 獲取MongoDB連接URI
+/**
+ * @description MongoDB連接URI，從配置文件中獲取
+ * @type {string}
+ */
 const db: string = config.get("mongoURI");
 
-// 定義客戶端選項
+/**
+ * @description MongoDB客戶端連接選項
+ * @type {ConnectOptions}
+ */
 const clientOptions: ConnectOptions = {
   serverApi: {
     version: "1" as const, // 使用 const 斷言確保version是字面量類型"1"
@@ -16,7 +26,11 @@ const clientOptions: ConnectOptions = {
 };
 
 /**
- * 連接到MongoDB數據庫
+ * @description 連接到MongoDB數據庫
+ * @async
+ * @function connectDB
+ * @returns {Promise<void>} 連接成功時解析的Promise
+ * @throws {Error} 連接失敗時拋出錯誤並終止進程
  */
 const connectDB = async (): Promise<void> => {
   try {
@@ -32,4 +46,7 @@ const connectDB = async (): Promise<void> => {
   }
 };
 
+/**
+ * @description 導出數據庫連接函數
+ */
 export default connectDB;

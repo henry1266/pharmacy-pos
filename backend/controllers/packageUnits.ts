@@ -6,14 +6,21 @@ import {
 } from '@pharmacy-pos/shared/types/package';
 
 /**
- * 包裝單位控制器
- * 處理包裝單位相關的 HTTP 請求
+ * @description 包裝單位控制器
+ * @class PackageUnitsController
+ * @classdesc 處理包裝單位相關的 HTTP 請求，提供包裝單位的CRUD操作和轉換功能
  */
 export class PackageUnitsController {
 
   /**
-   * 獲取產品的包裝單位配置
-   * GET /api/products/:productId/package-units
+   * @description 獲取產品的包裝單位配置
+   * @method getPackageUnits
+   * @static
+   * @async
+   * @param {Request} req - Express請求對象，需包含productId參數
+   * @param {Response} res - Express響應對象
+   * @returns {Promise<void>} 無返回值，通過res發送JSON響應
+   * @route GET /api/products/:productId/package-units
    */
   static async getPackageUnits(req: Request, res: Response): Promise<void> {
     try {
@@ -46,8 +53,14 @@ export class PackageUnitsController {
   }
 
   /**
-   * 獲取產品在指定日期的包裝單位配置（歷史配置）
-   * GET /api/products/:productId/package-units/history?date=2024-01-01
+   * @description 獲取產品在指定日期的包裝單位配置（歷史配置）
+   * @method getPackageUnitsAtDate
+   * @static
+   * @async
+   * @param {Request} req - Express請求對象，需包含productId參數和date查詢參數
+   * @param {Response} res - Express響應對象
+   * @returns {Promise<void>} 無返回值，通過res發送JSON響應
+   * @route GET /api/products/:productId/package-units/history?date=2024-01-01
    */
   static async getPackageUnitsAtDate(req: Request, res: Response): Promise<void> {
     try {
@@ -93,8 +106,14 @@ export class PackageUnitsController {
   }
 
   /**
-   * 創建或更新產品的包裝單位配置
-   * POST /api/products/:productId/package-units
+   * @description 創建或更新產品的包裝單位配置
+   * @method createOrUpdatePackageUnits
+   * @static
+   * @async
+   * @param {Request} req - Express請求對象，需包含productId參數和packageUnits請求體
+   * @param {Response} res - Express響應對象
+   * @returns {Promise<void>} 無返回值，通過res發送JSON響應
+   * @route POST /api/products/:productId/package-units
    */
   static async createOrUpdatePackageUnits(req: Request, res: Response): Promise<void> {
     try {
@@ -147,8 +166,14 @@ export class PackageUnitsController {
   }
 
   /**
-   * 批量更新包裝單位配置
-   * PUT /api/products/:productId/package-units
+   * @description 批量更新包裝單位配置
+   * @method updatePackageUnits
+   * @static
+   * @async
+   * @param {Request} req - Express請求對象，需包含productId參數和packageUnits請求體
+   * @param {Response} res - Express響應對象
+   * @returns {Promise<void>} 無返回值，通過res發送JSON響應
+   * @route PUT /api/products/:productId/package-units
    */
   static async updatePackageUnits(req: Request, res: Response): Promise<void> {
     try {
@@ -201,8 +226,14 @@ export class PackageUnitsController {
   }
 
   /**
-   * 刪除產品的包裝單位配置
-   * DELETE /api/products/:productId/package-units
+   * @description 刪除產品的包裝單位配置
+   * @method deletePackageUnits
+   * @static
+   * @async
+   * @param {Request} req - Express請求對象，需包含productId參數
+   * @param {Response} res - Express響應對象
+   * @returns {Promise<void>} 無返回值，通過res發送JSON響應
+   * @route DELETE /api/products/:productId/package-units
    */
   static async deletePackageUnits(req: Request, res: Response): Promise<void> {
     try {
@@ -244,8 +275,14 @@ export class PackageUnitsController {
   }
 
   /**
-   * 驗證包裝單位配置
-   * POST /api/package-units/validate
+   * @description 驗證包裝單位配置
+   * @method validatePackageUnits
+   * @static
+   * @async
+   * @param {Request} req - Express請求對象，需包含packageUnits請求體
+   * @param {Response} res - Express響應對象
+   * @returns {Promise<void>} 無返回值，通過res發送JSON響應
+   * @route POST /api/package-units/validate
    */
   static async validatePackageUnits(req: Request, res: Response): Promise<void> {
     try {
@@ -280,8 +317,14 @@ export class PackageUnitsController {
   }
 
   /**
-   * 將基礎單位轉換為包裝顯示
-   * POST /api/inventory/convert-to-package-display
+   * @description 將基礎單位轉換為包裝顯示
+   * @method convertToPackageDisplay
+   * @static
+   * @async
+   * @param {Request} req - Express請求對象，需包含productId、baseQuantity、useHistoricalConfig和configDate請求體
+   * @param {Response} res - Express響應對象
+   * @returns {Promise<void>} 無返回值，通過res發送JSON響應
+   * @route POST /api/inventory/convert-to-package-display
    */
   static async convertToPackageDisplay(req: Request, res: Response): Promise<void> {
     try {
@@ -345,8 +388,14 @@ export class PackageUnitsController {
   }
 
   /**
-   * 將包裝單位輸入轉換為基礎單位
-   * POST /api/inventory/convert-to-base-unit
+   * @description 將包裝單位輸入轉換為基礎單位
+   * @method convertToBaseUnit
+   * @static
+   * @async
+   * @param {Request} req - Express請求對象，需包含productId和packageInput請求體
+   * @param {Response} res - Express響應對象
+   * @returns {Promise<void>} 無返回值，通過res發送JSON響應
+   * @route POST /api/inventory/convert-to-base-unit
    */
   static async convertToBaseUnit(req: Request, res: Response): Promise<void> {
     try {
@@ -394,4 +443,7 @@ export class PackageUnitsController {
   }
 }
 
+/**
+ * @description 導出包裝單位控制器
+ */
 export default PackageUnitsController;

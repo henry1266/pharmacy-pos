@@ -1,7 +1,11 @@
 import { createServer } from "http";
 import { createApp, initializeDatabase } from "./app";
 
-// 初始化應用程序
+/**
+ * @description 初始化並啟動HTTP伺服器
+ * @async
+ * @returns {Promise<Express.Application>} 啟動的Express應用程序實例
+ */
 async function startServer() {
   // 初始化資料庫
   await initializeDatabase();
@@ -38,5 +42,8 @@ if (require.main === module) {
   startServer().catch(console.error);
 }
 
-// 為了向後兼容，導出應用程序創建函數
+/**
+ * @description 為了向後兼容，導出應用程序創建函數
+ * @type {Function} 創建Express應用程序的函數
+ */
 export default createApp;

@@ -6,14 +6,19 @@ import { TransactionGroupWithEntries as TransactionGroupType, Account2 as Accoun
 /**
  * Accounting2 驗證服務層
  * 提供版本一致性驗證和資料完整性檢查
+ *
+ * 此服務負責檢查帳戶和交易資料的完整性、關聯性和版本相容性
+ * 可用於系統診斷和資料品質保證
  */
 export class ValidationService {
   
   /**
    * 驗證系統資料完整性
+   * 全面檢查系統中的帳戶和交易資料，包括資料完整性、關聯性和版本相容性
+   *
    * @param userId 使用者ID
    * @param organizationId 機構ID（可選）
-   * @returns 驗證結果
+   * @returns 包含驗證結果、摘要統計和問題清單的物件
    */
   static async validateSystemIntegrity(
     userId: string,
@@ -116,7 +121,10 @@ export class ValidationService {
 
   /**
    * 驗證帳戶資料
+   * 檢查帳戶的必要欄位、唯一性和資料完整性
+   *
    * @param accounts 帳戶陣列
+   * @returns 包含無效帳戶數量和問題清單的物件
    * @private
    */
   private static async validateAccounts(accounts: any[]): Promise<{
@@ -251,7 +259,10 @@ export class ValidationService {
 
   /**
    * 驗證交易資料
+   * 檢查交易的必要欄位、唯一性、借貸平衡和分錄完整性
+   *
    * @param transactions 交易陣列
+   * @returns 包含無效交易數量和問題清單的物件
    * @private
    */
   private static async validateTransactions(transactions: any[]): Promise<{
@@ -389,8 +400,11 @@ export class ValidationService {
 
   /**
    * 驗證資料關聯性
+   * 檢查交易分錄中的帳戶引用是否有效、資金來源引用是否存在，以及識別孤立帳戶
+   *
    * @param accounts 帳戶陣列
    * @param transactions 交易陣列
+   * @returns 包含關聯性問題清單的物件
    * @private
    */
   private static async validateDataRelationships(
@@ -488,8 +502,11 @@ export class ValidationService {
 
   /**
    * 驗證版本相容性
+   * 使用 VersionCompatibilityManager 檢查系統資料與當前版本的相容性
+   *
    * @param accounts 帳戶陣列
    * @param transactions 交易陣列
+   * @returns 包含相容性問題和建議的物件
    * @private
    */
   private static async validateVersionCompatibility(
@@ -568,7 +585,10 @@ export class ValidationService {
 
   /**
    * 取得預設正常餘額方向
-   * @param accountType 帳戶類型
+   * 根據帳戶類型判斷其預設的正常餘額方向（借方或貸方）
+   *
+   * @param accountType 帳戶類型 (asset, liability, equity, revenue, expense)
+   * @returns 正常餘額方向 - 'debit' 借方 或 'credit' 貸方
    * @private
    */
   private static getDefaultNormalBalance(accountType: string): 'debit' | 'credit' {
@@ -587,9 +607,11 @@ export class ValidationService {
 
   /**
    * 生成驗證報告
+   * 執行系統完整性驗證並生成包含摘要、詳細資訊和建議的報告
+   *
    * @param userId 使用者ID
    * @param organizationId 機構ID（可選）
-   * @returns 驗證報告
+   * @returns 包含報告ID、生成時間、摘要、詳細資訊和建議的驗證報告
    */
   static async generateValidationReport(
     userId: string,

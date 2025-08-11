@@ -1,14 +1,20 @@
 /**
- * 管理員權限中間件
- * 確保只有管理員角色的用戶可以訪問特定路由
+ * @module adminAuth
+ * @description 管理員權限中間件
+ * @summary 確保只有管理員角色的用戶可以訪問特定路由
  */
 import { Request, Response, NextFunction } from 'express';
 import { AuthenticatedRequest, AdminAuthMiddleware } from '../src/types/express';
 import User from '../models/User';
 
 /**
- * 管理員權限中間件
- * 驗證用戶是否具有管理員權限
+ * @description 管理員權限中間件
+ * @function adminAuth
+ * @param {Request} req - Express請求對象
+ * @param {Response} res - Express響應對象
+ * @param {NextFunction} next - Express下一個中間件函數
+ * @returns {Promise<void>} 無返回值
+ * @throws {Error} 當用戶驗證失敗時拋出錯誤
  */
 const adminAuth: AdminAuthMiddleware = async (
   req: Request,
@@ -56,4 +62,8 @@ const adminAuth: AdminAuthMiddleware = async (
   }
 };
 
+/**
+ * @description 導出管理員權限中間件
+ * @exports adminAuth
+ */
 export default adminAuth;

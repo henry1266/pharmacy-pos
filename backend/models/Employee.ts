@@ -1,11 +1,20 @@
 import mongoose, { Schema } from 'mongoose';
 import { Employee as IEmployee } from '@pharmacy-pos/shared/types/entities';
 
-// 擴展 Mongoose Document 介面
+/**
+ * @description 員工文檔接口，擴展自共享類型
+ * @interface IEmployeeDocument
+ * @extends {Omit<IEmployee, '_id' | 'createdAt' | 'updatedAt'>}
+ * @extends {mongoose.Document}
+ */
 interface IEmployeeDocument extends Omit<IEmployee, '_id' | 'createdAt' | 'updatedAt'>, mongoose.Document {
   userId?: mongoose.Types.ObjectId;
 }
 
+/**
+ * @description 員工模型模式定義
+ * @type {Schema<IEmployeeDocument>}
+ */
 const EmployeeSchema = new Schema<IEmployeeDocument>({
   name: {
     type: String,
@@ -99,12 +108,20 @@ const EmployeeSchema = new Schema<IEmployeeDocument>({
   timestamps: true
 });
 
+/**
+ * @description 員工模型
+ * @type {mongoose.Model<IEmployeeDocument>}
+ */
 const Employee = mongoose.model<IEmployeeDocument>("employee", EmployeeSchema);
 
-// 雙重導出策略以確保兼容性
+/**
+ * @description 雙重導出策略以確保兼容性
+ */
 export default Employee;
 export type { IEmployee, IEmployeeDocument };
 
-// CommonJS 兼容性
+/**
+ * @description CommonJS 兼容性導出
+ */
 module.exports = Employee;
 module.exports.default = Employee;

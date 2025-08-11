@@ -1,10 +1,16 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { UserTheme } from '@pharmacy-pos/shared/types/theme';
 
-// 用戶角色枚舉
+/**
+ * @description 用戶角色類型定義
+ * @typedef {('admin'|'pharmacist'|'staff')} UserRole
+ */
 export type UserRole = 'admin' | 'pharmacist' | 'staff';
 
-// 用戶設定介面
+/**
+ * @description 用戶設定介面
+ * @interface IUserSettings
+ */
 export interface IUserSettings {
   shortcuts?: Array<{
     id: string;
@@ -23,7 +29,10 @@ export interface IUserSettings {
   [key: string]: any; // 保持彈性以支援其他設定
 }
 
-// 用戶介面
+/**
+ * @description 用戶基本介面
+ * @interface IUser
+ */
 export interface IUser {
   name: string;
   username: string;
@@ -38,12 +47,21 @@ export interface IUser {
   updatedAt: Date;
 }
 
-// 用戶文檔介面
+/**
+ * @description 用戶文檔介面，擴展自基本用戶介面和Mongoose文檔
+ * @interface IUserDocument
+ * @extends {IUser}
+ * @extends {Document}
+ */
 export interface IUserDocument extends IUser, Document {
   _id: mongoose.Types.ObjectId;
   id: string; // 添加 Mongoose 虛擬屬性 id
 }
 
+/**
+ * @description 用戶模型模式定義
+ * @type {Schema<IUserDocument>}
+ */
 const UserSchema = new Schema<IUserDocument>({
   name: {
     type: String,
@@ -104,11 +122,19 @@ const UserSchema = new Schema<IUserDocument>({
   timestamps: true // 自動添加 createdAt 和 updatedAt
 });
 
+/**
+ * @description 用戶模型
+ * @type {mongoose.Model<IUserDocument>}
+ */
 const User = mongoose.model<IUserDocument>("user", UserSchema);
 
-// 雙重導出策略以確保兼容性
+/**
+ * @description 雙重導出策略以確保兼容性
+ */
 export default User;
 
-// CommonJS 兼容性
+/**
+ * @description CommonJS 兼容性導出
+ */
 module.exports = User;
 module.exports.default = User;
