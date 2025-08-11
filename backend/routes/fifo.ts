@@ -57,14 +57,8 @@ router.get('/product/:productId', async (req: Request, res: Response): Promise<v
     
     // 檢查產品是否為「不扣庫存」
     const product = (inventories[0] as any).product;
-    logger.debug('產品詳情頁面 FIFO 計算:', {
-      productId: req.params.productId,
-      productName: product.name,
-      excludeFromStock: product.excludeFromStock
-    });
     
     if (product.excludeFromStock) {
-      logger.debug('不扣庫存產品，返回空的 FIFO 結果');
       
       // 對於「不扣庫存」產品，返回空的 FIFO 結果
       res.json({
@@ -105,27 +99,18 @@ router.get('/sale/:saleId', async (req: Request, res: Response): Promise<void> =
       return;
     }
     
-    logger.debug(`處理銷售訂單: ${req.params.saleId}`);
-    
     const itemsWithProfit: any[] = [];
     let totalProfit = 0;
     let totalCost = 0;
     let totalRevenue = 0;
     
     for (const item of (sale as any).items) {
-      logger.debug(`處理銷售項目: ${item.product._id}, 數量: ${item.quantity}`);
-      logger.debug('產品資訊:', {
-        name: item.product.name,
-        excludeFromStock: item.product.excludeFromStock,
-        purchasePrice: item.product.purchasePrice,
-        sellingPrice: item.price
-      });
       
       const itemRevenue = item.price * item.quantity;
       
       // 檢查是否為「不扣庫存」產品
       if (item.product.excludeFromStock) {
-        logger.debug('不扣庫存產品，直接計算毛利');
+        //logger.debug('不扣庫存產品，直接計算毛利');
         
         const purchasePrice = item.product.purchasePrice || 0;
         const itemTotalCost = purchasePrice * item.quantity;
@@ -144,13 +129,6 @@ router.get('/sale/:saleId', async (req: Request, res: Response): Promise<void> =
         totalProfit += itemTotalProfit;
         totalCost += itemTotalCost;
         totalRevenue += itemRevenue;
-        
-        logger.debug('不扣庫存產品毛利計算完成:', {
-          itemTotalCost,
-          itemTotalProfit,
-          itemRevenue,
-          profitMargin: itemProfit.fifoProfit.profitMargin
-        });
         
         continue;
       }
@@ -177,11 +155,6 @@ router.get('/sale/:saleId', async (req: Request, res: Response): Promise<void> =
       
       // 使用 calculateProductFIFO 計算該產品的完整 FIFO 結果
       const fifoResult = calculateProductFIFO(inventories);
-      logger.debug('FIFO 計算結果:', {
-        success: fifoResult.success,
-        profitMarginsCount: fifoResult.profitMargins?.length || 0,
-        summary: fifoResult.summary
-      });
       
       // 查找與此銷售訂單相關的毛利記錄
       const profitRecords = fifoResult.profitMargins?.filter((p: any) =>
@@ -209,12 +182,7 @@ router.get('/sale/:saleId', async (req: Request, res: Response): Promise<void> =
         totalProfit += itemTotalProfit;
         totalCost += itemTotalCost;
         totalRevenue += itemRevenue;
-        
-        logger.debug('FIFO 產品毛利計算完成:', {
-          itemTotalCost,
-          itemTotalProfit,
-          itemRevenue
-        });
+
       } else {
         // 沒有找到相關記錄，可能是數據問題
         logger.warn('未找到相關毛利記錄，使用預設值');
@@ -234,13 +202,6 @@ router.get('/sale/:saleId', async (req: Request, res: Response): Promise<void> =
     const totalProfitMargin = calculatedTotalRevenue > 0
       ? ((totalProfit / calculatedTotalRevenue) * 100).toFixed(2) + '%'
       : '0.00%';
-    
-    logger.debug('最終計算結果:', {
-      totalCost,
-      totalProfit,
-      calculatedTotalRevenue,
-      totalProfitMargin
-    });
     
     res.json({
       success: true,

@@ -92,7 +92,7 @@ export const formatTransactionGroupsList = async (
   userId: string
 ): Promise<any[]> => {
   // 為每筆交易查詢被引用情況
-  businessLogger.info('開始查詢交易被引用情況');
+  //businessLogger.info('開始查詢交易被引用情況');
   const transactionGroupsWithReferences = await Promise.all(
     transactionGroups.map(async (group) => {
       const referencedByInfo = await getReferencedByInfo(group._id, userId);
@@ -111,7 +111,7 @@ export const formatTransactionGroupsList = async (
     })
   );
 
-  businessLogger.info('被引用情況查詢完成');
+  //businessLogger.info('被引用情況查詢完成');
 
   // 格式化回應資料
   const formattedTransactionGroups = await Promise.all(
