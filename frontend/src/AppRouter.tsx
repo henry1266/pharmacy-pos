@@ -101,7 +101,7 @@ const AppRouter: React.FC = () => {
       <Route path="/accounting3/transaction/new" element={<Accounting3TransactionPage />} />
       <Route path="/accounting3/transaction/:transactionId" element={<TransactionDetailPage />} />
       <Route path="/accounting3/transaction/:transactionId/edit" element={<TransactionEditPage />} />
-      <Route path="/accounting3/transaction/:transactionId/copy" element={<TransactionCopyPage />} />
+      <Route path="/accounting3/transaction/:transactionId/copy" element={<Accounting3TransactionPage />} />
       
       {/* Accounting3 科目管理路由 */}
       <Route path="/accounting3/accounts" element={<AccountsManagementPage />} />

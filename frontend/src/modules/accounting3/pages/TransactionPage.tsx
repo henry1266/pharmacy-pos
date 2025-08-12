@@ -79,7 +79,7 @@ export const Accounting3TransactionPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { transactionId } = useParams<{ transactionId?: string }>();
   const isCopyMode = window.location.pathname.includes('/copy');
-  const isNewMode = window.location.pathname.includes('/new');
+  const isNewMode = window.location.pathname.includes('/new') || window.location.pathname.includes('/copy');
   // 移除 returnTo 參數
   const defaultAccountId = searchParams.get('defaultAccountId');
   const defaultOrganizationId = searchParams.get('defaultOrganizationId');
@@ -543,6 +543,29 @@ export const Accounting3TransactionPage: React.FC = () => {
     }
   };
 
+  // 在快速模式下處理複製交易資料的獲取
+  useEffect(() => {
+    if (isNewMode && isCopyMode && transactionId && !copyingTransaction) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔍 快速模式下獲取複製交易資料:', transactionId);
+      }
+      
+      const transactionToProcess = transactionGroups.find(t => t._id === transactionId);
+      
+      if (transactionToProcess) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('📋 快速模式下從 Redux store 獲取複製交易資料:', transactionToProcess);
+        }
+        setCopyingTransaction(transactionToProcess);
+      } else if (transactionGroups.length > 0) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🔍 快速模式下 Redux store 中找不到交易，透過 API 直接獲取:', transactionId);
+        }
+        fetchTransactionDirectly(transactionId);
+      }
+    }
+  }, [isNewMode, isCopyMode, transactionId, transactionGroups, copyingTransaction]);
+
   // 如果是新增模式，直接顯示新增表單
   if (isNewMode) {
     return (
@@ -594,7 +617,7 @@ export const Accounting3TransactionPage: React.FC = () => {
                         icon: <ReceiptIcon sx={{ fontSize: '1.1rem' }} />
                       },
                       {
-                        label: '新增交易',
+                        label: window.location.pathname.includes('/copy') ? '複製交易' : '新增交易',
                         icon: <AddIcon sx={{ fontSize: '1.1rem' }} />
                       }
                     ]}
@@ -642,6 +665,35 @@ export const Accounting3TransactionPage: React.FC = () => {
             mode="create"
             defaultAccountId={defaultAccountId || ''}
             defaultOrganizationId={defaultOrganizationId || ''}
+            isCopyMode={isCopyMode}
+            {...(isCopyMode && copyingTransaction && {
+              initialData: (() => {
+                const convertEntries = (entries: EmbeddedAccountingEntry[]): EmbeddedAccountingEntryFormData[] => {
+                  return Array.isArray(entries) ? entries.map(entry => ({
+                    _id: entry._id,
+                    sequence: entry.sequence || 1,
+                    accountId: typeof entry.accountId === 'string' ? entry.accountId : entry.accountId?._id || '',
+                    debitAmount: entry.debitAmount || 0,
+                    creditAmount: entry.creditAmount || 0,
+                    description: entry.description || '',
+                    sourceTransactionId: entry.sourceTransactionId || '',
+                    fundingPath: entry.fundingPath || []
+                  })) : [];
+                };
+                
+                return {
+                  description: copyingTransaction.description || '',
+                  transactionDate: safeDateConvert(copyingTransaction.transactionDate),
+                  organizationId: copyingTransaction.organizationId || '',
+                  receiptUrl: '',
+                  invoiceNo: '',
+                  entries: convertEntries(copyingTransaction.entries || []),
+                  linkedTransactionIds: [],
+                  sourceTransactionId: '',
+                  fundingType: 'original' as const
+                };
+              })()
+            })}
             onSubmit={async (formData) => {
               await handleFormSubmit(formData);
               navigate('/accounting3/transaction');
