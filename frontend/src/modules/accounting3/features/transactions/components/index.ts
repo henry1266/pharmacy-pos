@@ -12,8 +12,5 @@ export { default as PaymentPage } from './PaymentPage';
 // 表單相關組件
 export * from './form';
 
-// 共享組件
-export * from './shared';
-
 // 詳情組件
 export * from './detail';

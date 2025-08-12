@@ -1,1 +1,2 @@
-export { BalanceValidator } from './BalanceValidator';
+// 共享組件導出
+export {};
