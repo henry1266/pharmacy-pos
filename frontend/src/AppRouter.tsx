@@ -27,13 +27,10 @@ import ShippingOrdersPage from './pages/ShippingOrdersPage';
 import ShippingOrderFormPage from './pages/ShippingOrderFormPage';
 import ShippingOrderDetailPage from './pages/ShippingOrderDetailPage';
 // 記帳管理頁面元件
-import AccountingPage from './pages/AccountingPage';
-import AccountingNewPage from './pages/AccountingNewPage';
-import AccountingCategoryPage from './pages/AccountingCategoryPage';
-import AccountingCategoryDetailPage from './pages/AccountingCategoryDetailPage';
+import { JournalPage, NewEntryPage, CategoryPage, CategoryDetailPage } from './modules/daily-journal/pages';
 import AllCategoriesDetailPage from './pages/AllCategoriesDetailPage';
 import ProductCategoryPage from './pages/ProductCategoryPage';
-import CategoryDetailPage from './pages/CategoryDetailPage';
+// 使用 daily-journal 模塊中的 CategoryDetailPage 替代
 import MonitoredProductsSettingsPage from './pages/MonitoredProductsSettingsPage';
 import SettingsPage from './pages/SettingsPage';
 import AccountSettingsPage from './pages/settings/AccountSettingsPage';
@@ -92,12 +89,12 @@ const AppRouter: React.FC = () => {
       
       <Route path="/reports" element={<ReportsPage />} />
       
-      {/* Accounting routes */}
-      <Route path="/accounting" element={<AccountingPage />} />
-      <Route path="/accounting/new" element={<AccountingNewPage />} />
-      <Route path="/accounting/categories" element={<AccountingCategoryPage />} />
+      {/* 日常記帳路由 */}
+      <Route path="/accounting" element={<JournalPage />} />
+      <Route path="/accounting/new" element={<NewEntryPage />} />
+      <Route path="/accounting/categories" element={<CategoryPage />} />
       <Route path="/accounting/categories/all" element={<AllCategoriesDetailPage />} />
-      <Route path="/accounting/categories/:categoryId" element={<AccountingCategoryDetailPage />} />
+      <Route path="/accounting/categories/:categoryId" element={<CategoryDetailPage />} />
 
       {/* Accounting3 routes - 內嵌分錄記帳系統 */}
       <Route path="/accounting3" element={<Accounting3DashboardPage />} />
