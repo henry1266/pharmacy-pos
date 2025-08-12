@@ -28,8 +28,7 @@ import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  Save as SaveIcon,
-  Cancel as CancelIcon
+  Save as SaveIcon
 } from '@mui/icons-material';
 import {
   Supplier,
@@ -37,8 +36,6 @@ import {
   SupplierAccountMappingFormData,
   SelectedAccount
 } from '@pharmacy-pos/shared/types/entities';
-import { Account3 } from '@pharmacy-pos/shared/types/accounting3';
-import { Organization } from '@pharmacy-pos/shared/types/organization';
 import AccountSelector3 from '../modules/accounting3/features/accounts/components/AccountSelector';
 import { useOrganizations } from '../hooks/useOrganizations';
 import { useAppDispatch } from '../hooks/redux';

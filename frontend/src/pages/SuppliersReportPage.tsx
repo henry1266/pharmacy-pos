@@ -273,28 +273,6 @@ const SuppliersReportPage: React.FC = () => {
                 backgroundColor: '#f5f5f5',
               },
             }}
-            localeText={{
-              // 中文化
-              noRowsLabel: '無資料',
-              noResultsOverlayLabel: '找不到結果',
-              errorOverlayDefaultLabel: '發生錯誤',
-              toolbarColumns: '欄位',
-              toolbarColumnsLabel: '選擇欄位',
-              toolbarFilters: '篩選',
-              toolbarFiltersLabel: '顯示篩選',
-              toolbarDensity: '密度',
-              toolbarDensityLabel: '密度',
-              toolbarDensityCompact: '緊密',
-              toolbarDensityStandard: '標準',
-              toolbarDensityComfortable: '舒適',
-              toolbarExport: '匯出',
-              toolbarExportLabel: '匯出',
-              toolbarExportCSV: '下載 CSV',
-              toolbarExportPrint: '列印',
-              toolbarQuickFilterPlaceholder: '搜尋...',
-              toolbarQuickFilterLabel: '搜尋',
-              toolbarQuickFilterDeleteIconLabel: '清除',
-            }}
           />
         </Paper>
       </Box>
