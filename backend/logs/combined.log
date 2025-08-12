@@ -852,3 +852,11 @@
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到相關毛利記錄: 1\u001b[39m","timestamp":"2025-08-12 11:18:56:1856"}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m一般產品 FIFO 計算完成\u001b[39m","timestamp":"2025-08-12 11:18:57:1857"}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m一般產品 FIFO 計算完成\u001b[39m","timestamp":"2025-08-12 11:18:57:1857"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-12 16:16:00:160"}
+{"executionTime":"34ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":43,"timestamp":"2025-08-12 16:16:00:160"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-12 16:16:00:160"}
+{"executionTime":"12ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":43,"timestamp":"2025-08-12 16:16:00:160"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-12 16:16:00:160"}
+{"executionTime":"8ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":43,"timestamp":"2025-08-12 16:16:00:160"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-12 16:16:00:160"}
+{"executionTime":"6ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":43,"timestamp":"2025-08-12 16:16:00:160"}

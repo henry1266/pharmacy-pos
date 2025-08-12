@@ -47,9 +47,9 @@ import PaymentManagementPage from './modules/accounting3/pages/PaymentManagement
   import TransactionEditPage from './modules/accounting3/pages/TransactionEditPage/TransactionEditPage';
   import TransactionCopyPage from './modules/accounting3/pages/TransactionPage/TransactionCopyPage';
   import AccountsManagementPage from './modules/accounting3/pages/AccountsManagementPage';
-  import Accounting3DashboardPage from './pages/Accounting3DashboardPage';
-  import AccountDetailPage from './pages/AccountDetailPage';
-  import TransactionDetailPage from './pages/TransactionDetailPage';
+  import Accounting3DashboardPage from './modules/accounting3/pages/Accounting3DashboardPage';
+  import AccountDetailPage from './modules/accounting3/pages/AccountDetailPage';
+  import TransactionDetailPage from './modules/accounting3/pages/TransactionDetailPage';
 
 // AppRouter now only contains routes accessible *after* login
 const AppRouter: React.FC = () => {
