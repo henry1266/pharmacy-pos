@@ -36,7 +36,6 @@ import ClearIcon from '@mui/icons-material/Clear';
 import { InputAdornment } from '@mui/material';
 import CommonListPageLayout from '../components/common/CommonListPageLayout';
 import useSupplierData from '../hooks/useSupplierData';
-import { TestModeConfig } from '../testMode';
 import testModeDataService from '../testMode/services/TestModeDataService';
 import SupplierAccountMappingForm from '../components/suppliers/SupplierAccountMappingForm';
 import SupplierAccountMappingDisplay from '../components/suppliers/SupplierAccountMappingDisplay';

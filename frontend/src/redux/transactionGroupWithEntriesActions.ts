@@ -20,17 +20,6 @@ export type AppThunk<ReturnType = void> = ThunkAction<
   Action
 >;
 
-// 設置認證令牌
-const setAuthToken = (token: string | null): void => {
-  if (token) {
-    axios.defaults.headers.common['x-auth-token'] = token;
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-  } else {
-    delete axios.defaults.headers.common['x-auth-token'];
-    delete axios.defaults.headers.common['Authorization'];
-  }
-};
-
 // 獲取認證配置
 const getAuthConfig = () => ({
   headers: {

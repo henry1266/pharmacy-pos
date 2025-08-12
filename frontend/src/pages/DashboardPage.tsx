@@ -42,7 +42,7 @@ import { getAllSales } from '../services/salesServiceV2';
 import testModeDataService from '../testMode/services/TestModeDataService';
 
 // Import Types
-import { DashboardSummary, SalesTrend, CategorySales } from '../services/dashboardService';
+import { DashboardSummary } from '../services/dashboardService';
 import type { ExtendedAccountingRecord, FormData } from '@pharmacy-pos/shared/types/accounting';
 import type { Sale, AccountingRecord } from '@pharmacy-pos/shared/types/entities';
 

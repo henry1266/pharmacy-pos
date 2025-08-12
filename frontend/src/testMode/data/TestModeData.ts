@@ -1,5 +1,5 @@
-import type { Product, Customer, Sale, Category } from '@pharmacy-pos/shared/types/entities';
-import type { DashboardSummary, SalesTrend, CategorySales } from '../../services/dashboardService';
+import type { Product, Customer, Category } from '@pharmacy-pos/shared/types/entities';
+import type { SalesTrend, CategorySales } from '../../services/dashboardService';
 
 /**
  * 測試模式統一數據模組
