@@ -46,8 +46,8 @@ const auth = (req: AuthenticatedRequest, res: Response, next: NextFunction): voi
     }
   }
   
-  console.log(`Auth middleware - Request path: ${req.originalUrl}`);
-  console.log(`Token found: ${token ? 'Yes' : 'No'}`);
+  //console.log(`Auth middleware - Request path: ${req.originalUrl}`);
+  //console.log(`Token found: ${token ? 'Yes' : 'No'}`);
   console.log(`Test mode enabled: ${TEST_MODE_ENABLED}`);
 
   // 檢查是否有 token

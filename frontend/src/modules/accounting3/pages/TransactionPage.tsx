@@ -696,7 +696,21 @@ export const Accounting3TransactionPage: React.FC = () => {
             })}
             onSubmit={async (formData) => {
               await handleFormSubmit(formData);
-              navigate('/accounting3/transaction');
+              
+              // 複製模式下存檔送出後直接關閉分頁
+              if (isCopyMode) {
+                if (process.env.NODE_ENV === 'development') {
+                  console.log('📋 複製模式存檔送出後關閉分頁');
+                }
+                // 使用 setTimeout 確保資料已經保存後再關閉分頁
+                setTimeout(() => {
+                  window.close();
+                  // 如果 window.close() 被瀏覽器阻擋，則導航回交易列表頁面
+                  navigate('/accounting3/transaction');
+                }, 500);
+              } else {
+                navigate('/accounting3/transaction');
+              }
             }}
             onCancel={() => navigate('/accounting3/transaction')}
           />

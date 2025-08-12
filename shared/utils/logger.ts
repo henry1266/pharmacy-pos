@@ -16,8 +16,13 @@ let backendBusinessLogger: any;
 
 if (isBackend) {
   try {
-    // 動態導入後端logger
-    const backendLoggerModule = require('../../backend/utils/logger');
+    // 僅在後端環境中導入path模組
+    const path = require('path');
+    
+    // 使用絕對路徑動態導入後端logger
+    const projectRoot = path.resolve(__dirname, '../../..');
+    const backendLoggerPath = path.join(projectRoot, 'backend/utils/logger');
+    const backendLoggerModule = require(backendLoggerPath);
     backendLogger = backendLoggerModule.default;
     backendBusinessLogger = backendLoggerModule.businessLogger;
   } catch (error) {
