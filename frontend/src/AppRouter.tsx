@@ -26,11 +26,10 @@ import PurchaseOrdersSupplierFilterPage from './pages/PurchaseOrdersSupplierFilt
 import ShippingOrdersPage from './pages/ShippingOrdersPage';
 import ShippingOrderFormPage from './pages/ShippingOrderFormPage';
 import ShippingOrderDetailPage from './pages/ShippingOrderDetailPage';
-// 記帳管理頁面元件
+// 日常記帳管理頁面元件
 import { JournalPage, NewEntryPage, CategoryPage, CategoryDetailPage } from './modules/daily-journal/pages';
-import AllCategoriesDetailPage from './pages/AllCategoriesDetailPage';
+import AllCategoriesDetailComponent from './modules/daily-journal/components/AllCategoriesDetailComponent';
 import ProductCategoryPage from './pages/ProductCategoryPage';
-// 使用 daily-journal 模塊中的 CategoryDetailPage 替代
 import MonitoredProductsSettingsPage from './pages/MonitoredProductsSettingsPage';
 import SettingsPage from './pages/SettingsPage';
 import AccountSettingsPage from './pages/settings/AccountSettingsPage';
@@ -93,7 +92,7 @@ const AppRouter: React.FC = () => {
       <Route path="/accounting" element={<JournalPage />} />
       <Route path="/accounting/new" element={<NewEntryPage />} />
       <Route path="/accounting/categories" element={<CategoryPage />} />
-      <Route path="/accounting/categories/all" element={<AllCategoriesDetailPage />} />
+      <Route path="/accounting/categories/all" element={<AllCategoriesDetailComponent />} />
       <Route path="/accounting/categories/:categoryId" element={<CategoryDetailPage />} />
 
       {/* Accounting3 routes - 內嵌分錄記帳系統 */}
