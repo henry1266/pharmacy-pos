@@ -25,9 +25,6 @@ import {
   fetchProducts
 } from '../redux/actions';
 
-// 導入共享型別
-import { ShippingOrderCreateRequest } from '@pharmacy-pos/shared/types/api';
-
 // 導入拆分後的組件
 import PageHeader from '../components/shipping-orders/PageHeader';
 import ActionButtons from '../components/shipping-orders/form/ActionButtons';

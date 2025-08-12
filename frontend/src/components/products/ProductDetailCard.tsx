@@ -5,8 +5,6 @@ import {
   CardHeader,
   CardContent,
   Typography,
-  Grid,
-  Divider,
   Paper,
   Chip
 } from '@mui/material';

@@ -3,9 +3,7 @@ import {
   Popover,
   Box,
   Typography,
-  IconButton,
-  CircularProgress,
-  Alert
+  IconButton
 } from '@mui/material';
 import {
   Close as CloseIcon,

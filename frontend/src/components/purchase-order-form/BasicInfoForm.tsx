@@ -303,13 +303,4 @@ BasicInfoForm.propTypes = {
   invoiceInputRef: PropTypes.object
 } as any; // 使用 any 類型來避免 TypeScript 錯誤
 
-// 過濾供應商的函數
-const filterSuppliers = (options: Supplier[], inputValue?: string): Supplier[] => {
-  const filterValue = inputValue?.toLowerCase() || '';
-  return options.filter(option =>
-    option.name.toLowerCase().includes(filterValue) ||
-    (option.shortCode?.toLowerCase().includes(filterValue))
-  );
-};
-
 export default BasicInfoForm;

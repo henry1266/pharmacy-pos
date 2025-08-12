@@ -3,8 +3,6 @@ import {
   Box,
   Typography,
   Button,
-  Card,
-  CardContent,
   Tooltip,
   Fab,
   Snackbar,
@@ -20,7 +18,7 @@ import {
   Search as SearchIcon,
   CalculateOutlined
 } from '@mui/icons-material';
-import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppDispatch } from '../hooks/redux';
 
 // Import Hook
@@ -94,7 +92,6 @@ const ShippingOrdersPage: React.FC = () => {
   // 使用批量 FIFO 計算 hook
   const {
     calculateBatchFifoProfit,
-    batchFifoLoading,
     batchFifoError
   } = useShippingOrdersBatchFifo();
   
@@ -149,7 +146,7 @@ const ShippingOrdersPage: React.FC = () => {
   }, [handleClearSearch, setUrlSearchParams]);
 
   // --- Local UI State ---
-  const [showFilters, setShowFilters] = useState<boolean>(false);
+  const [showFilters] = useState<boolean>(false);
   const [showImportOptions, setShowImportOptions] = useState<boolean>(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [shippingOrderToDelete, setShippingOrderToDelete] = useState<ShippingOrder | null>(null);

@@ -34,7 +34,7 @@ import MDEditor, { commands } from '@uiw/react-md-editor';
 import '@uiw/react-md-editor/markdown-editor.css';
 import axios from 'axios';
 import '../../styles/force-light-theme.css';
-import { prepareMarkdownForDisplay, prepareMarkdownForDisplaySync } from '../../utils/markdownUtils';
+import { prepareMarkdownForDisplay } from '../../utils/markdownUtils';
 import LinkReferenceManager from '../common/LinkReferenceManager';
 
 

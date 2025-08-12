@@ -11,10 +11,6 @@ interface CsvImportHook {
   resetCsvImport: () => void;
 }
 
-interface LocalErrorResponse {
-  msg?: string;
-}
-
 interface RequestConfig {
   headers: {
     [key: string]: string | undefined;

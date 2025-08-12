@@ -82,8 +82,6 @@ const ChartModal: FC<ChartModalProps> = ({
 }) => {
   // 選取狀態管理
   const [selectedOrderNumber, setSelectedOrderNumber] = useState<string | null>(null);
-  const [tooltipData, setTooltipData] = useState<any>(null);
-  const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number } | null>(null);
   
   // 篩選狀態管理
   const [filterType, setFilterType] = useState<'purchase' | 'ship' | 'sale' | null>(null);

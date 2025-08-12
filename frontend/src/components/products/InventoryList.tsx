@@ -55,12 +55,6 @@ interface ChartTransaction {
   cumulativeProfitLoss: number;
 }
 
-// 定義型別顯示的型別
-interface TypeDisplay {
-  text: string;
-  color: string;
-}
-
 // 定義訂單資訊的型別
 interface OrderInfo {
   orderNumber: string;
@@ -406,20 +400,6 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName, p
     }
     
     return '';
-  };
-
-  // 修復條件操作返回相同值的問題
-  const getTypeDisplay = (type?: string): TypeDisplay => {
-    switch(type) {
-      case 'sale':
-        return { text: '銷售', color: 'error.main' };
-      case 'purchase':
-        return { text: '進貨', color: 'primary.main' };
-      case 'ship':
-        return { text: '出貨', color: 'error.main' };
-      default:
-        return { text: '其他', color: 'text.secondary' };
-    }
   };
 
   // 輔助函數：獲取訂單號和訂單連結

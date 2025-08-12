@@ -78,14 +78,12 @@ const SalesNew2Page: FC = () => {
     loading: salesLoading,
     error: salesError,
     isTestMode: salesTestMode,
-    refreshSales,
-    searchSales
+    refreshSales
   } = useSalesListData();
 
   // Use the package data hook
   const {
     packages,
-    loading: packagesLoading,
     error: packagesError
   } = usePackageData();
 
