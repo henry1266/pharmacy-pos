@@ -43,11 +43,11 @@ import PaymentManagementPage from './modules/accounting3/pages/PaymentManagement
 // 員工管理頁面元件
   import { EmployeeBasicInfoPage, EmployeeListPage, EmployeeSchedulingPage, OvertimeManagementPage } from './modules/employees';
 // 會計管理頁面元件
-  import Accounting3DashboardPage from './pages/Accounting3DashboardPage';
   import Accounting3TransactionPage from './modules/accounting3/pages/TransactionPage';
   import TransactionEditPage from './modules/accounting3/pages/TransactionEditPage/TransactionEditPage';
   import TransactionCopyPage from './modules/accounting3/pages/TransactionPage/TransactionCopyPage';
   import AccountsManagementPage from './modules/accounting3/pages/AccountsManagementPage';
+  import Accounting3DashboardPage from './pages/Accounting3DashboardPage';
   import AccountDetailPage from './pages/AccountDetailPage';
   import TransactionDetailPage from './pages/TransactionDetailPage';
 
