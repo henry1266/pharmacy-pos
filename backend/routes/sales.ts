@@ -10,8 +10,8 @@ import Customer from '../models/Customer';
 import { ApiResponse, ErrorResponse, SaleCreateRequest } from '@pharmacy-pos/shared/types/api';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@pharmacy-pos/shared/constants';
 
-// 引入通用訂單單號生成服務
-import OrderNumberService from '../utils/OrderNumberService';
+// 注意：OrderNumberService 目前未使用，但可能在未來的功能中需要
+// import OrderNumberService from '../utils/OrderNumberService';
 import logger from '../utils/logger';
 
 const router: express.Router = express.Router();

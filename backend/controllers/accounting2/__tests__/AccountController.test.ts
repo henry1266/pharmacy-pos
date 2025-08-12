@@ -672,11 +672,12 @@ describe('AccountController', () => {
         { id: 'user-123' }
       );
       const res = mockResponse();
-      const mockResults = [
-        { index: 0, success: true, data: { _id: 'acc-1', ...accounts[0] } },
-        { index: 1, success: true, data: { _id: 'acc-2', ...accounts[1] } }
-      ];
-      const mockErrors: any[] = [];
+      // 這些變數在測試中實際上沒有被使用，但保留註解以說明預期結果
+      // const mockResults = [
+      //   { index: 0, success: true, data: { _id: 'acc-1', ...accounts[0] } },
+      //   { index: 1, success: true, data: { _id: 'acc-2', ...accounts[1] } }
+      // ];
+      // const mockErrors: any[] = [];
 
       // 模擬每個帳戶的創建
       (AccountService.createAccount as jest.Mock).mockImplementation(async (accountData) => {
@@ -752,7 +753,7 @@ describe('AccountController', () => {
       const res = mockResponse();
 
       // 模擬第一個帳戶創建成功，第二個失敗
-      (AccountService.createAccount as jest.Mock).mockImplementation(async (accountData, userId) => {
+      (AccountService.createAccount as jest.Mock).mockImplementation(async (accountData) => {
         if (accountData.code === 'ACC-001' && accountData.name === '測試帳戶1') {
           return { _id: 'acc-1', ...accountData };
         } else {
