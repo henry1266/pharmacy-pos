@@ -273,7 +273,7 @@ export const formatPackageDisplay = (
     compact?: boolean;
   } = {}
 ) => {
-  const { showBreakdown = true, showBaseUnit = false, compact = false } = options;
+  const { showBaseUnit = false, compact = false } = options;
   
   const result = convertToPackageDisplay(quantity, packageUnits);
   

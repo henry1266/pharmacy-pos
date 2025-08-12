@@ -27,17 +27,12 @@ import {
   Alert,
   CircularProgress,
   Tooltip,
-  Divider,
   Tabs,
   Tab,
   Switch,
-  Paper,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
+  Paper
 } from '@mui/material';
 import {
-  Palette as PaletteIcon,
   Add as AddIcon,
   Delete as DeleteIcon,
   Refresh as RefreshIcon,
@@ -45,7 +40,6 @@ import {
   ColorLens as ColorLensIcon,
   AutoAwesome as Material3Icon,
   Settings as SettingsIcon,
-  ExpandMore as ExpandMoreIcon,
   Preview as PreviewIcon,
   Save as SaveIcon,
 } from '@mui/icons-material';

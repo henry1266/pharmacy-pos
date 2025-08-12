@@ -2,7 +2,6 @@ import React from 'react';
 import { Box, Chip, Typography } from '@mui/material';
 import { ArrowForward as ArrowForwardIcon } from '@mui/icons-material';
 import { ExtendedTransactionGroupWithEntries } from '../types';
-import { extractAccountId } from '../utils/calculations';
 
 interface TransactionFlowProps {
   group: ExtendedTransactionGroupWithEntries;

@@ -10,7 +10,6 @@ import {
   Typography,
   Chip,
   IconButton,
-  Tooltip,
   Box
 } from '@mui/material';
 import {
@@ -27,7 +26,6 @@ import {
   formatDate,
   formatCurrency,
   getStatusColor,
-  getStatusLabel,
   isBalanced,
   copyTransactionToClipboard
 } from './utils';

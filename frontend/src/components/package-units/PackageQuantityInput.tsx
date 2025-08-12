@@ -69,11 +69,6 @@ const PackageQuantityInput: React.FC<PackageQuantityInputProps> = ({
   // 基礎單位名稱
   const baseUnitDisplayName = baseUnitName || '個';
 
-  // 快捷輸入選項
-  const quickInputOptions = useMemo(() => {
-    return generateQuickInputOptions(packageUnits);
-  }, [packageUnits]);
-
   // 智能建議生成
   const generateSmartSuggestions = useCallback((currentValue: number): number[] => {
     const suggestions = new Set<number>();

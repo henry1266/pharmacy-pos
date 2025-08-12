@@ -22,7 +22,6 @@ import {
   Tooltip
 } from '@mui/material';
 import {
-  Add as AddIcon,
   Delete as DeleteIcon,
   Edit as EditIcon,
   Search as SearchIcon,

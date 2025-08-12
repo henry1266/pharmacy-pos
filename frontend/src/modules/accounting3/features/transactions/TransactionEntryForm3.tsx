@@ -14,7 +14,6 @@ import { EntryTable3 } from './EntryTable3';
 //import { BalanceValidator3 } from './BalanceValidator3';
 import {
   EmbeddedAccountingEntryFormData,
-  TransactionGroupWithEntries,
   TransactionGroup
 } from '@pharmacy-pos/shared';
 import { embeddedEntriesHelpers } from '../../services/transactionGroupWithEntriesService';

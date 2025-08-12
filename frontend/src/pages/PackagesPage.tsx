@@ -55,7 +55,6 @@ const PackagesPage: React.FC = () => {
     error,
     stats,
     categories,
-    tags,
     filters,
     searchTerm,
     setFilters,

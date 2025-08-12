@@ -25,7 +25,7 @@ import MDEditor from '@uiw/react-md-editor';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import '../../styles/force-light-theme.css';
-import { prepareMarkdownForDisplay, prepareMarkdownForDisplaySync } from '../../utils/markdownUtils';
+import { prepareMarkdownForDisplay } from '../../utils/markdownUtils';
 
 // 元件 Props 介面
 interface ProductSummaryDisplayProps {
