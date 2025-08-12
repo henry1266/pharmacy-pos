@@ -4,10 +4,10 @@ import { useAppSelector } from '../../../../hooks/redux';
 import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 
 // 導入自定義 hook
-import { useTransactionEditPage } from '../TransactionPage/hooks/useTransactionEditPage';
+import { useTransactionEditPage } from './hooks/useTransactionEditPage';
 
 // 導入子組件
-import TransactionPageForm from '../TransactionPage/components/TransactionPageForm';
+import TransactionPageForm from './components/TransactionPageForm';
 
 /**
  * 會計系統交易編輯頁面

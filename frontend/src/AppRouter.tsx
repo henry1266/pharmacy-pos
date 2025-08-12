@@ -44,12 +44,12 @@ import PaymentManagementPage from './modules/accounting3/pages/PaymentManagement
   import { EmployeeBasicInfoPage, EmployeeListPage, EmployeeSchedulingPage, OvertimeManagementPage } from './modules/employees';
 // 會計管理頁面元件
   import Accounting3TransactionPage from './modules/accounting3/pages/TransactionPage';
-  import TransactionEditPage from './modules/accounting3/pages/TransactionEditPage/TransactionEditPage';
+  import TransactionEditPage from './modules/accounting3/pages/TransactionPage/TransactionEditPage';
   import TransactionCopyPage from './modules/accounting3/pages/TransactionPage/TransactionCopyPage';
   import AccountsManagementPage from './modules/accounting3/pages/AccountsManagementPage';
   import Accounting3DashboardPage from './modules/accounting3/pages/Accounting3DashboardPage';
   import AccountDetailPage from './modules/accounting3/pages/AccountDetailPage';
-  import TransactionDetailPage from './modules/accounting3/pages/TransactionDetailPage';
+  import TransactionDetailPage from './modules/accounting3/pages/TransactionPage/TransactionDetailPage';
 
 // AppRouter now only contains routes accessible *after* login
 const AppRouter: React.FC = () => {
