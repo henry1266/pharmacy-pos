@@ -20,6 +20,17 @@ export {
   useAccountStatistics
 } from './hooks';
 
+// 服務導出
+export {
+  getAccounts,
+  getAccount,
+  createAccount,
+  updateAccount,
+  deleteAccount,
+  getAccountStatistics,
+  getAccountTransactions
+} from './services';
+
 // 型別導出
 export type {
   Account,

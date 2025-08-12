@@ -9,6 +9,20 @@ export { OrganizationForm } from './components';
 // Hooks 導出
 export { useOrganizationForm } from './hooks';
 
+// 服務導出
+export {
+  getOrganizations,
+  getOrganizationById,
+  createOrganization,
+  updateOrganization,
+  deleteOrganization,
+  getOrganizationStatistics,
+  getOrganizationTree,
+  filterOrganizationList,
+  checkOrganizationCodeAvailability,
+  toggleOrganizationStatus
+} from './services';
+
 // 型別導出
 export type {
   Organization,

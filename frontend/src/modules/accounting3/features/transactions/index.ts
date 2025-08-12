@@ -1,9 +1,29 @@
-export { default as BalanceValidator3 } from './BalanceValidator3';
-export { default as DoubleEntryFormWithEntries3 } from './DoubleEntryFormWithEntries3';
-export { default as EntryTable3 } from './EntryTable3';
-export { default as TransactionDetailView } from './TransactionDetailView';
-export { default as TransactionEntryForm3 } from './TransactionEntryForm3';
-export { default as TransactionGroupFormWithEntries } from './TransactionGroupFormWithEntries';
+/**
+ * Transactions Feature Module
+ *
+ * 此模組提供交易相關功能，包括：
+ * - 交易表單組件
+ * - 交易詳情組件
+ * - 交易相關 hooks
+ * - 交易相關服務
+ * - 交易相關工具函數
+ * - 交易相關型別定義
+ */
 
-// Export components
+// 導出組件
 export * from './components';
+
+// 導出 hooks
+export * from './hooks';
+
+// 導出服務
+export * from './services';
+
+// 導出工具函數
+export * from './utils';
+
+// 導出型別定義
+export * from './types';
+
+// 導出根目錄下的組件（這些組件將在後續重構中移至適當的子目錄）
+export { default as TransactionGroupFormWithEntries } from './TransactionGroupFormWithEntries';
