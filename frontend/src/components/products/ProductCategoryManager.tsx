@@ -290,11 +290,10 @@ const ProductCategoryManager = forwardRef<any, any>((_, ref) => {
         {...provided.draggableProps}
         onClick={() => handleCategoryClick(category._id)}
         secondaryAction={renderCategoryActions(category)}
-        sx={{ 
-          border: '1px solid #eee',
+        sx={{
           borderRadius: 1,
           mb: 1,
-          bgcolor: 'background.paper',
+          bgcolor: 'transparent',
           cursor: 'pointer',
           color: 'text.primary',
           '& .MuiListItemText-primary': {
@@ -349,6 +348,15 @@ const ProductCategoryManager = forwardRef<any, any>((_, ref) => {
             <List
               {...droppableProvided.droppableProps}
               ref={droppableProvided.innerRef}
+              sx={{
+                bgcolor: 'background.paper',
+                borderRadius: 1,
+                '& > div:nth-of-type(odd)': {
+                  bgcolor: 'rgba(150, 150, 150, 0.04)'
+                },
+                border: 'none',
+                boxShadow: 'none'
+              }}
             >
               {categories.map(mapCategoryToDraggable)} {/* Use the new helper function */}
               {droppableProvided.placeholder}
@@ -393,7 +401,7 @@ const ProductCategoryManager = forwardRef<any, any>((_, ref) => {
   
   return (
     <Box>
-      <Paper sx={{ p: 1 }}>
+      <Paper sx={{ p: 2, boxShadow: 'none', border: 'none' }}>
         {renderCategoryList()}
       </Paper>
       

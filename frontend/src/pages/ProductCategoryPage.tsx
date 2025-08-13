@@ -24,14 +24,13 @@ const ProductCategoryPage: React.FC = () => {
   
   return (
     <Box sx={{
-      p: { xs: 1, sm: 1, md: 1.5 },
+      width: '50%',
+      mx: 'auto',
       display: 'flex',
       flexDirection: 'column',
       overflow: 'visible',
-      width: '50%',
       flexGrow: 1,
-      minHeight: '100%',
-      mx: 'auto' // 水平居中
+      minHeight: '100%'
     }}>
       {/* 頁面標題和頂部操作區域 */}
       <PageHeaderSection
