@@ -27,7 +27,8 @@ import ShippingOrdersPage from './pages/ShippingOrdersPage';
 import ShippingOrderFormPage from './pages/ShippingOrderFormPage';
 import ShippingOrderDetailPage from './pages/ShippingOrderDetailPage';
 // 日常記帳管理頁面元件
-import { JournalPage, NewEntryPage, CategoryPage, CategoryDetailPage } from './modules/daily-journal/pages';
+import { JournalPage, NewEntryPage, CategoryPage } from './modules/daily-journal/pages';
+import CategoryDetailPage from './pages/CategoryDetailPage';
 import AllCategoriesDetailComponent from './modules/daily-journal/components/AllCategoriesDetailComponent';
 import ProductCategoryPage from './pages/ProductCategoryPage';
 import MonitoredProductsSettingsPage from './pages/MonitoredProductsSettingsPage';
