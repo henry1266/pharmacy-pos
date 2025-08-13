@@ -56,7 +56,7 @@ interface ProductsDataGridProps {
 /**
  * 產品分類詳情頁面 (Refactored)
  */
-// Extracted Product Grid Columns Definition
+// 定義兩組列配置，一組用於大螢幕，一組用於小螢幕
 const productGridColumns: GridColDef[] = [
   { field: 'code', headerName: '編號', width: 70 },
   { field: 'healthInsuranceCode', headerName: '健保碼', width: 110 },
@@ -141,7 +141,15 @@ const ProductsDataGrid: React.FC<ProductsDataGridProps> = ({
   const showPaginationButtons = products.length > pageSize;
 
   return (
-    <Box sx={{ height: 620, width: '100%', position: 'relative' }}>
+    <Box sx={{
+      width: '100%',
+      position: 'relative',
+      // 調整高度以適應小螢幕
+      '@media (max-width: 1299px)': {
+              height: 580
+            },
+      height: 620
+    }}>
       {/* 左側換頁按鈕 */}
       {showPaginationButtons && (
         <IconButton
@@ -212,6 +220,34 @@ const ProductsDataGrid: React.FC<ProductsDataGridProps> = ({
           '& .MuiDataGrid-row:hover': {
             cursor: 'pointer',
             backgroundColor: 'rgba(150, 150, 150, 0.04)'
+          },
+          // 調整行高，使其在小螢幕上更緊湊
+          '& .MuiDataGrid-row': {
+            '@media (max-width: 1299px)': {
+              maxHeight: '30px',
+              minHeight: '30px'
+            }
+          },
+          // 調整單元格內容，使其在小螢幕上更緊湊
+          '& .MuiDataGrid-cell': {
+            '@media (max-width: 1299px)': {
+              padding: '0 3px',
+              fontSize: '0.8rem'
+            }
+          },
+          // 調整表頭，使其在小螢幕上更緊湊
+          '& .MuiDataGrid-columnHeader': {
+            '@media (max-width: 1299px)': {
+              padding: '0 3px',
+              minHeight: '20px',
+              maxHeight: '20px'
+            }
+          },
+          '& .MuiDataGrid-columnHeaderTitle': {
+            '@media (max-width: 1299px)': {
+              fontSize: '0.8rem',
+              fontWeight: 'bold'
+            }
           },
           '& .MuiDataGrid-footerContainer': {
             minHeight: '36px',
@@ -322,31 +358,118 @@ const ProductsCategoryDetailPage: React.FC = () => {
       
       <Paper sx={{ p: 1, boxShadow: 'none', border: 'none' }}>
 
-       {/* 產品數量和損益總和卡片 */}
-       <Box sx={{ display: 'flex', gap: 1 }}>
-         <Card sx={{ flex: 1, border: '1px solid', borderColor: 'divider' }}>
-           <CardContent sx={{ py: 0.5, px: 1, '&:last-child': { pb: 0.5 }, textAlign: 'center' }}>
-             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-               <Typography variant="body2" fontWeight="medium" color="text.secondary">
+       {/* 產品數量和損益總和卡片 - 在小螢幕上更緊湊 */}
+       <Box sx={{
+         display: 'flex',
+         gap: 1,
+         // 在小螢幕上調整樣式
+         '@media (max-width: 1299px)': {
+           gap: 0.1,
+         }
+       }}>
+         <Card sx={{
+           flex: 1,
+           border: '1px solid',
+           borderColor: 'divider',
+           // 在小螢幕上調整樣式
+           '@media (max-width: 1299px)': {
+             minHeight: 'auto'
+           }
+         }}>
+           <CardContent sx={{
+             py: 0.5,
+             px: 1,
+             '&:last-child': { pb: 0.5 },
+             textAlign: 'center',
+             // 在小螢幕上調整內邊距
+             '@media (max-width: 1299px)': {
+               py: 0.1,
+               px: 0.1
+             }
+           }}>
+             <Box sx={{
+               display: 'flex',
+               alignItems: 'center',
+               justifyContent: 'space-between'
+             }}>
+               <Typography
+                 variant="body2"
+                 fontWeight="medium"
+                 color="text.secondary"
+                 sx={{
+                   // 在小螢幕上調整字體大小
+                   '@media (max-width: 1299px)': {
+                     fontSize: '0.8rem'
+                   }
+                 }}
+               >
                  產品項目數量
                </Typography>
-               <Typography variant="h6" color="primary.main" fontWeight="bold">
+               <Typography
+                 variant="h6"
+                 color="primary.main"
+                 fontWeight="bold"
+                 sx={{
+                   // 在小螢幕上調整字體大小
+                   '@media (max-width: 1299px)': {
+                     fontSize: '0.8rem'
+                   }
+                 }}
+               >
                  {products.length}
                </Typography>
              </Box>
            </CardContent>
          </Card>
          
-         <Card sx={{ flex: 1, border: '1px solid', borderColor: 'divider' }}>
-           <CardContent sx={{ py: 0.5, px: 1, '&:last-child': { pb: 0.5 }, textAlign: 'center' }}>
-             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-               <Typography variant="body2" fontWeight="medium" color="text.secondary">
+         <Card sx={{
+           flex: 1,
+           border: '1px solid',
+           borderColor: 'divider',
+           // 在小螢幕上調整樣式
+           '@media (max-width: 1299px)': {
+             minHeight: 'auto'
+           }
+         }}>
+           <CardContent sx={{
+             py: 0.5,
+             px: 1,
+             '&:last-child': { pb: 0.5 },
+             textAlign: 'center',
+             // 在小螢幕上調整內邊距
+             '@media (max-width: 1299px)': {
+               py: 0.1,
+               px: 0.1
+             }
+           }}>
+             <Box sx={{
+               display: 'flex',
+               alignItems: 'center',
+               justifyContent: 'space-between'
+             }}>
+               <Typography
+                 variant="body2"
+                 fontWeight="medium"
+                 color="text.secondary"
+                 sx={{
+                   // 在小螢幕上調整字體大小
+                   '@media (max-width: 1299px)': {
+                     fontSize: '0.8rem'
+                   }
+                 }}
+               >
                  損益總和
                </Typography>
                <Typography
                  variant="h6"
                  fontWeight="bold"
                  color={categoryTotalProfitLoss >= 0 ? 'success.main' : 'error.main'}
+                 sx={{
+                   // 在小螢幕上調整字體大小
+                   '@media (max-width: 1299px)': {
+                     fontSize: '0.8rem'
+                   }
+                 }}
                >
                  ${categoryTotalProfitLoss.toFixed(1)}
                </Typography>
