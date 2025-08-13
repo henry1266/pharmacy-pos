@@ -28,7 +28,7 @@ const ProductCategoryPage: React.FC = () => {
       display: 'flex',
       flexDirection: 'column',
       overflow: 'visible',
-      width: '45%',
+      width: '50%',
       flexGrow: 1,
       minHeight: '100%',
       mx: 'auto' // 水平居中

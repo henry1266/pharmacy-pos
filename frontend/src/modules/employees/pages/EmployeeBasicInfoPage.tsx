@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Typography, 
-  Paper, 
-  Box, 
-  Container, 
-  Alert, 
+import {
+  Typography,
+  Paper,
+  Box,
+  Alert,
   Button,
-  Breadcrumbs,
-  Link,
   Snackbar,
   CircularProgress
 } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
+import HomeIcon from '@mui/icons-material/Home';
+import PeopleIcon from '@mui/icons-material/People';
+import PersonIcon from '@mui/icons-material/Person';
+import PageHeaderSection from '../../../components/common/PageHeaderSection';
 import {
   EmployeeForm
 } from '../components';
@@ -223,66 +224,87 @@ const EmployeeBasicInfoPage: React.FC = () => {
   // 檢查用戶是否為管理員
   const isAdmin = user && user.role === 'admin';
 
+  // 定義麵包屑導航項目
+  const breadcrumbItems = [
+    { icon: <HomeIcon fontSize="small" />, label: '首頁', path: '/' },
+    { icon: <PeopleIcon fontSize="small" />, label: '員工管理', path: '/employees' },
+    { icon: <PersonIcon fontSize="small" />, label: isEditMode ? '編輯資料' : '新增員工' },
+  ];
+
   // 如果正在載入，顯示載入中訊息
   if (loading) {
     return (
-      <Container maxWidth="lg">
-        <Paper elevation={3} sx={{ p: 3, mt: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '300px' }}>
-          <CircularProgress />
+      <Box sx={{ width: '80%', mx: 'auto' }}>
+        <PageHeaderSection
+          breadcrumbItems={breadcrumbItems}
+        />
+        <Paper sx={{ p: 3, my: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px', boxShadow: 'none', border: 'none' }}>
+          <CircularProgress size={30} />
           <Typography sx={{ ml: 2 }}>載入中...</Typography>
         </Paper>
-      </Container>
+      </Box>
     );
   }
 
   // 如果非管理員，顯示無權限訊息
   if (!isAdmin) {
     return (
-      <Container maxWidth="lg">
-        <Paper elevation={3} sx={{ p: 3, mt: 3 }}>
+      <Box sx={{ width: '80%', mx: 'auto' }}>
+        <PageHeaderSection
+          breadcrumbItems={breadcrumbItems}
+        />
+        <Paper sx={{ p: 3, my: 3, boxShadow: 'none', border: 'none' }}>
           <Alert severity="error" sx={{ mb: 2 }}>
             您沒有權限訪問此頁面。只有管理員可以管理員工基本資料。
           </Alert>
-          <Button variant="contained" color="primary" onClick={() => navigate('/dashboard')}>
+          <Button variant="outlined" color="primary" onClick={() => navigate('/dashboard')}>
             返回儀表板
           </Button>
         </Paper>
-      </Container>
+      </Box>
     );
   }
 
   // 如果有錯誤，顯示錯誤訊息
   if (error) {
     return (
-      <Container maxWidth="lg">
-        <Paper elevation={3} sx={{ p: 3, mt: 3 }}>
+      <Box sx={{ width: '80%', mx: 'auto' }}>
+        <PageHeaderSection
+          breadcrumbItems={breadcrumbItems}
+        />
+        <Paper sx={{ p: 3, my: 3, boxShadow: 'none', border: 'none' }}>
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
           </Alert>
-          <Button variant="contained" color="primary" onClick={() => navigate('/employees')}>
+          <Button variant="outlined" color="primary" onClick={() => navigate('/employees')}>
             返回員工列表
           </Button>
         </Paper>
-      </Container>
+      </Box>
     );
   }
 
+  // 定義返回按鈕
+  const actions = (
+    <Button
+      variant="outlined"
+      size="small"
+      onClick={() => navigate('/employees')}
+      sx={{ minWidth: '80px' }}
+    >
+      返回
+    </Button>
+  );
+
   // 管理員可見的內容
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ mt: 3, mb: 2 }}>
-        <Breadcrumbs aria-label="breadcrumb">
-          <Link color="inherit" href="/dashboard" onClick={(e) => { e.preventDefault(); navigate('/dashboard'); }}>
-            儀表板
-          </Link>
-          <Link color="inherit" href="/employees" onClick={(e) => { e.preventDefault(); navigate('/employees'); }}>
-            員工列表
-          </Link>
-          <Typography color="text.primary">{isEditMode ? '編輯員工資料' : '新增員工'}</Typography>
-        </Breadcrumbs>
-      </Box>
+    <Box sx={{ width: '80%', mx: 'auto' }}>
+      <PageHeaderSection
+        breadcrumbItems={breadcrumbItems}
+        actions={actions}
+      />
       
-      <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
+      <Paper sx={{ p: 3, my: 3, boxShadow: 'none', border: 'none' }}>
         <Typography variant="h4" component="h1" gutterBottom>
           {isEditMode ? '編輯員工資料' : '新增員工'}
         </Typography>
@@ -305,7 +327,7 @@ const EmployeeBasicInfoPage: React.FC = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </Container>
+    </Box>
   );
 };
 

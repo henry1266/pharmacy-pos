@@ -1073,3 +1073,12 @@
 {"count":552,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-13 17:15:29:1529"}
 {"hasPaymentCount":93,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":61,"missingTransactionIdCount":398,"paymentTransactionsCount":28,"timestamp":"2025-08-13 17:15:29:1529","totalOrders":552}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":93,"timestamp":"2025-08-13 17:15:29:1529","totalCount":552,"unpaidCount":459}
+{"count":552,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-13 17:31:40:3140"}
+{"count":552,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-13 17:31:40:3140"}
+{"hasPaymentCount":93,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":61,"missingTransactionIdCount":398,"paymentTransactionsCount":28,"timestamp":"2025-08-13 17:31:40:3140","totalOrders":552}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":93,"timestamp":"2025-08-13 17:31:40:3140","totalCount":552,"unpaidCount":459}
+{"hasPaymentCount":93,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":61,"missingTransactionIdCount":398,"paymentTransactionsCount":28,"timestamp":"2025-08-13 17:31:40:3140","totalOrders":552}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":93,"timestamp":"2025-08-13 17:31:40:3140","totalCount":552,"unpaidCount":459}
+{"count":552,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-13 17:31:40:3140"}
+{"hasPaymentCount":93,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":61,"missingTransactionIdCount":398,"paymentTransactionsCount":28,"timestamp":"2025-08-13 17:31:40:3140","totalOrders":552}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":93,"timestamp":"2025-08-13 17:31:40:3140","totalCount":552,"unpaidCount":459}

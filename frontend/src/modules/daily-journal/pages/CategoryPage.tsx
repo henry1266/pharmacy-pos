@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Container,
   Paper,
   Box,
   Typography,
@@ -14,7 +13,9 @@ import {
   Snackbar,
   Alert,
   CircularProgress,
-  Button
+  Button,
+  Card,
+  CardContent
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddIcon from '@mui/icons-material/Add';
@@ -295,11 +296,11 @@ const CategoryPage: React.FC = () => {
 
   return (
     <Box sx={{
-      p: { xs: 1, sm: 1, md: 1.5 },
+      width: '50%',
+      mx: 'auto',
       display: 'flex',
       flexDirection: 'column',
       overflow: 'visible',
-      width: '100%',
       flexGrow: 1,
       minHeight: '100%'
     }}>
@@ -348,14 +349,13 @@ const CategoryPage: React.FC = () => {
       />
       
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <Box sx={{ p: 2, width: '100%', maxWidth: '100%', bgcolor: 'background.default' }}>
+        <Box sx={{ width: '100%', maxWidth: '100%', my: 1 }}>
           <Paper sx={{
             width: '100%',
             bgcolor: 'background.paper',
             borderRadius: 1,
-            border: 1,
-            borderColor: 'divider',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+            boxShadow: 'none',
+            border: 'none',
             p: 2
           }}>
             {/* 拆解巢狀三元運算子為獨立條件判斷 */}
@@ -387,8 +387,10 @@ const CategoryPage: React.FC = () => {
                           bgcolor: 'background.paper',
                           borderRadius: 1,
                           '& > div:nth-of-type(odd)': {
-                            bgcolor: 'action.hover'
-                          }
+                            bgcolor: 'rgba(150, 150, 150, 0.04)'
+                          },
+                          border: 'none',
+                          boxShadow: 'none'
                         }}
                       >
                         {categories.map((category, index) => (
