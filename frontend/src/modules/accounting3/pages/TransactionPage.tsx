@@ -569,15 +569,15 @@ export const Accounting3TransactionPage: React.FC = () => {
   // 如果是新增模式，直接顯示新增表單
   if (isNewMode) {
     return (
-      <Container maxWidth="xl" sx={{ py: 0, px: 0 }}>
-        {/* 標題區域 */}
-        <Paper sx={{
-          mb: 3,
-          bgcolor: 'background.paper',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-          position: 'relative', // 改為 relative
-          zIndex: 1 // 降低 zIndex 值
-        }}>
+      <Box sx={{ minWidth: '800px', width: '80%', mx: 'auto' }}>
+          {/* 標題區域 */}
+          <Paper sx={{
+            mb: 3,
+            bgcolor: 'background.paper',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            position: 'relative', // 改為 relative
+            zIndex: 1 // 降低 zIndex 值
+          }}>
           <Box sx={{
             p: 1.5,
             borderBottom: 1,
@@ -751,12 +751,12 @@ export const Accounting3TransactionPage: React.FC = () => {
             {snackbar.message}
           </Alert>
         </Snackbar>
-      </Container>
+      </Box>
     );
   }
 
   return (
-    <Container maxWidth="xl" sx={{ py: 0, px: 0 }}>
+    <Box sx={{ minWidth: '800px', width: '80%', mx: 'auto' }}>
         {/* 標題區域 */}
         <Paper sx={{
           mb: 3,
@@ -1077,7 +1077,7 @@ export const Accounting3TransactionPage: React.FC = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </Container>
+    </Box>
   );
 };
 
