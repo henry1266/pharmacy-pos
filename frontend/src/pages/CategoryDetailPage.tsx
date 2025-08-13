@@ -4,9 +4,6 @@ import {
   Box,
   Paper,
   Typography,
-  Grid,
-  Divider,
-  CircularProgress,
   Alert,
   Card,
   CardContent,
@@ -59,7 +56,7 @@ interface ProductsDataGridProps {
 const productGridColumns: GridColDef[] = [
   { field: 'code', headerName: '編號', width: 70 },
   { field: 'healthInsuranceCode', headerName: '健保碼', width: 110 },
-  { field: 'name', headerName: '名稱', width: 220 },
+  { field: 'name', headerName: '名稱', width: 250 },
   {
     field: 'currentStock',
     headerName: '庫存',
@@ -123,7 +120,7 @@ const ProductsDataGrid: React.FC<ProductsDataGridProps> = ({
   }
 
   return (
-    <Box sx={{ height: 560, width: '100%' }}>
+    <Box sx={{ height: 620, width: '100%' }}>
       <DataGrid
         rows={products}
         columns={columns}
@@ -140,6 +137,16 @@ const ProductsDataGrid: React.FC<ProductsDataGridProps> = ({
           '& .MuiDataGrid-row:hover': {
             cursor: 'pointer',
             backgroundColor: 'rgba(150, 150, 150, 0.04)'
+          },
+          '& .MuiDataGrid-footerContainer': {
+            minHeight: '36px',
+            maxHeight: '36px'
+          },
+          '& .MuiTablePagination-root': {
+            fontSize: '0.8rem'
+          },
+          '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+            fontSize: '0.8rem'
           },
           border: 'none',
           boxShadow: 'none'
@@ -229,34 +236,37 @@ const CategoryDetailPage: React.FC = () => {
         actions={actions}
       />
       
-      <Paper sx={{ p: 1, my: 1, boxShadow: 'none', border: 'none' }}>
+      <Paper sx={{ p: 1, boxShadow: 'none', border: 'none' }}>
 
        {/* 產品數量和損益總和卡片 */}
-       <Box sx={{ display: 'flex', gap: 1, mb: 1, mt: 1 }}>
+       <Box sx={{ display: 'flex', gap: 1 }}>
          <Card sx={{ flex: 1, border: '1px solid', borderColor: 'divider' }}>
-           <CardContent sx={{ py: 1, px: 1, '&:last-child': { pb: 1 }, textAlign: 'center' }}>
-             <Typography variant="subtitle1" fontWeight="medium" color="text.secondary">
-               產品項目數量
-             </Typography>
-             <Typography variant="h5" color="primary.main" fontWeight="bold" sx={{ mt: 0.5 }}>
-               {products.length}
-             </Typography>
+           <CardContent sx={{ py: 0.5, px: 1, '&:last-child': { pb: 0.5 }, textAlign: 'center' }}>
+             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+               <Typography variant="body2" fontWeight="medium" color="text.secondary">
+                 產品項目數量
+               </Typography>
+               <Typography variant="h6" color="primary.main" fontWeight="bold">
+                 {products.length}
+               </Typography>
+             </Box>
            </CardContent>
          </Card>
          
          <Card sx={{ flex: 1, border: '1px solid', borderColor: 'divider' }}>
-           <CardContent sx={{ py: 1, px: 1, '&:last-child': { pb: 1 }, textAlign: 'center' }}>
-             <Typography variant="subtitle1" fontWeight="medium" color="text.secondary">
-               損益總和
-             </Typography>
-            <Typography
-               variant="h5"
-               fontWeight="bold"
-               color={categoryTotalProfitLoss >= 0 ? 'success.main' : 'error.main'}
-               sx={{ mt: 0.5 }}
-             >
-               ${categoryTotalProfitLoss.toFixed(1)}
-             </Typography>
+           <CardContent sx={{ py: 0.5, px: 1, '&:last-child': { pb: 0.5 }, textAlign: 'center' }}>
+             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+               <Typography variant="body2" fontWeight="medium" color="text.secondary">
+                 損益總和
+               </Typography>
+               <Typography
+                 variant="h6"
+                 fontWeight="bold"
+                 color={categoryTotalProfitLoss >= 0 ? 'success.main' : 'error.main'}
+               >
+                 ${categoryTotalProfitLoss.toFixed(1)}
+               </Typography>
+             </Box>
            </CardContent>
          </Card>
        </Box>

@@ -38,7 +38,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
         zIndex: 1
       }}>
         <Box sx={{
-          p: 1.5,
+          p: 1,
           borderBottom: 1,
           borderColor: 'divider',
           display: 'flex',
@@ -120,7 +120,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
       zIndex: 1
     }}>
       <Box sx={{
-        p: 1.5,
+        p: 1,
         borderBottom: 1,
         borderColor: 'divider',
         display: 'flex',

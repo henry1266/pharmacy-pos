@@ -363,7 +363,7 @@ const ProductCategoryManager = forwardRef<any, any>((_, ref) => {
   const renderCategoryList = (): JSX.Element => {
     if (loading) {
       return (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 1 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
           <CircularProgress />
         </Box>
       );

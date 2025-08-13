@@ -722,7 +722,7 @@ const AccountingChart: FC = () => {
         <Grid container spacing={2} sx={{ mb: 3 }}>
           {/* 日期範圍選擇 */}
           <Grid item xs={12} md={6}>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 1 }}>
               {dateRangeOptions.map((option) => (
                 <Chip
                   key={option.value}
