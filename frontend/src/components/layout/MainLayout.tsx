@@ -118,9 +118,36 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isTestMode, setIsTestMode] = useState<boolean>(false);
   const [timeLeft, setTimeLeft] = useState<string>('');
-
+  // 控制頂部導航欄的顯示和隱藏
+  const [showAppBar, setShowAppBar] = useState<boolean>(true);
+  
   // 獲取產品數據用於搜尋
   const { allProducts, loading: productsLoading } = useProductData();
+
+  // 檢查螢幕寬度，在小於1300px的螢幕上預設隱藏頂部導航欄
+  useEffect(() => {
+    const isSmallScreen = window.innerWidth < 1300;
+    setShowAppBar(!isSmallScreen); // 大螢幕顯示，小螢幕隱藏
+    
+    // 監聽窗口大小變化
+    const handleResize = () => {
+      const isSmall = window.innerWidth < 1300;
+      setShowAppBar(!isSmall);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+  
+  // 切換頂部導航欄的顯示/隱藏
+  const toggleAppBar = () => {
+    // 只在小螢幕上切換顯示/隱藏
+    if (window.innerWidth < 1300) {
+      setShowAppBar(prev => !prev);
+    }
+  };
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -156,7 +183,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     const loginTimeStr = localStorage.getItem('loginTime');
     const testModeActive = localStorage.getItem('isTestMode') === 'true';
 
-    console.log('🕐 JWT 過期檢查:', { token: !!token, loginTimeStr, testModeActive });
+    //console.log('🕐 JWT 過期檢查:', { token: !!token, loginTimeStr, testModeActive });
 
     // 如果是測試模式，跳過 JWT 過期檢查
     if (testModeActive) {
@@ -517,7 +544,35 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   return (
     <Box sx={{ display: 'flex' }}>
-      <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1, backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)' }}>
+      {/* 左上角可點擊區域，用於在小螢幕上顯示/隱藏頂部導航欄 */}
+      <Box
+        onClick={toggleAppBar}
+        sx={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '160px',
+          height: '70px',
+          zIndex: (theme) => theme.zIndex.drawer + 2,
+          cursor: 'pointer',
+          display: 'none', // 預設隱藏
+          '@media (max-width: 1299px)': {
+            display: 'block' // 小螢幕上顯示
+          }
+        }}
+      />
+      
+      <AppBar position="fixed" sx={{
+        zIndex: (theme) => theme.zIndex.drawer + 1,
+        backgroundColor: 'var(--bg-secondary)',
+        color: 'var(--text-primary)',
+        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+        // 在小於1300px的螢幕上根據狀態控制顯示/隱藏
+        '@media (max-width: 1299px)': {
+          transform: showAppBar ? 'translateY(0)' : 'translateY(-100%)',
+          transition: 'transform 0.3s ease-in-out'
+        }
+      }}>
         <Toolbar>
           <IconButton color="inherit" aria-label="open drawer" edge="start" onClick={toggleDrawer} sx={{ mr: 2 }}>
             <MenuIcon />
@@ -665,6 +720,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         sx={{
           flexGrow: 1,
           p: 3,
+          // 在小螢幕上減少頂部的 padding
+          '@media (max-width: 1299px)': {
+            pt: 1
+          },
           backgroundColor: 'var(--bg-primary)',
           minHeight: '100vh',
           marginLeft: isTablet && drawerOpen ? '200px' : '0',
@@ -674,7 +733,20 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           })
         }}
       >
-        <Toolbar /> {/* For spacing below AppBar */}
+        {/* 在小螢幕上隱藏或減少 Toolbar 的高度 */}
+        <Box sx={{
+          '@media (max-width: 1299px)': {
+            height: showAppBar ? '64px' : '30px', // 如果 AppBar 顯示則保留空間，否則只留一點點空間
+            transition: 'height 0.3s ease-in-out'
+          }
+        }}>
+          <Toolbar sx={{
+            '@media (max-width: 1299px)': {
+              minHeight: showAppBar ? '64px' : '30px',
+              p: 0
+            }
+          }} />
+        </Box>
         {children}
       </Box>
 

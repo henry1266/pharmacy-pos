@@ -344,7 +344,15 @@ const ProductsCategoryDetailPage: React.FC = () => {
   );
 
   return (
-    <Box sx={{ minWidth: '800px', width: '50%', mx: 'auto' }}>
+    <Box sx={{
+      minWidth: '800px',
+      width: '50%',
+      mx: 'auto',
+      // 在小螢幕上減少上邊距
+      '@media (max-width: 1299px)': {
+        mt: -1
+      }
+    }}>
       <PageHeaderSection
         breadcrumbItems={breadcrumbItems}
         actions={actions}
@@ -356,7 +364,16 @@ const ProductsCategoryDetailPage: React.FC = () => {
         }}
       />
       
-      <Paper sx={{ p: 1, boxShadow: 'none', border: 'none' }}>
+      <Paper sx={{
+        p: 1,
+        boxShadow: 'none',
+        border: 'none',
+        // 在小螢幕上減少內邊距
+        '@media (max-width: 1299px)': {
+          pt: 0.5,
+          pb: 0.5
+        }
+      }}>
 
        {/* 產品數量和損益總和卡片 - 在小螢幕上更緊湊 */}
        <Box sx={{
@@ -399,7 +416,7 @@ const ProductsCategoryDetailPage: React.FC = () => {
                  sx={{
                    // 在小螢幕上調整字體大小
                    '@media (max-width: 1299px)': {
-                     fontSize: '0.8rem'
+                     fontSize: '0.9rem'
                    }
                  }}
                >
@@ -412,7 +429,7 @@ const ProductsCategoryDetailPage: React.FC = () => {
                  sx={{
                    // 在小螢幕上調整字體大小
                    '@media (max-width: 1299px)': {
-                     fontSize: '0.8rem'
+                     fontSize: '0.9rem'
                    }
                  }}
                >
@@ -454,7 +471,7 @@ const ProductsCategoryDetailPage: React.FC = () => {
                  sx={{
                    // 在小螢幕上調整字體大小
                    '@media (max-width: 1299px)': {
-                     fontSize: '0.8rem'
+                     fontSize: '0.9rem'
                    }
                  }}
                >
@@ -467,7 +484,7 @@ const ProductsCategoryDetailPage: React.FC = () => {
                  sx={{
                    // 在小螢幕上調整字體大小
                    '@media (max-width: 1299px)': {
-                     fontSize: '0.8rem'
+                     fontSize: '0.9rem'
                    }
                  }}
                >
