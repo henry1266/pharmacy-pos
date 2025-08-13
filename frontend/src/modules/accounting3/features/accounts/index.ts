@@ -29,7 +29,7 @@ export {
   deleteAccount,
   getAccountStatistics,
   getAccountTransactions
-} from './services';
+} from '../../accounts/services';
 
 // 型別導出 - 從新位置導入
 export type {

@@ -11,7 +11,7 @@ import {
   UpdateAccountRequest,
   AccountFilterOptions,
   AccountStatistics
-} from '../../../accounts/types';
+} from '../types';
 
 const API_BASE_URL = '/api/accounting3';
 
