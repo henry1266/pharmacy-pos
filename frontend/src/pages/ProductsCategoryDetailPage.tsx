@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -7,10 +7,13 @@ import {
   Alert,
   Card,
   CardContent,
-  Button
+  Button,
+  IconButton
 } from '@mui/material';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import CategoryIcon from '@mui/icons-material/Category';
+import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import PageHeaderSection from '../components/common/PageHeaderSection';
 import { DataGrid, GridColDef, GridRenderCellParams, GridValueFormatterParams, GridRowParams } from '@mui/x-data-grid';
 import useCategoryDetailData from '../hooks/useCategoryDetailData'; // Import the new hook
@@ -47,6 +50,7 @@ interface ProductsDataGridProps {
   loadingProductData: boolean;
   onProductClick: (params: GridRowParams) => void;
   columns: GridColDef[];
+  pageSize?: number;
 }
 
 /**
@@ -105,12 +109,15 @@ const productGridColumns: GridColDef[] = [
 
 
 // Helper Component for Products Data Grid
-const ProductsDataGrid: React.FC<ProductsDataGridProps> = ({ 
-  products, 
-  loadingProductData, 
-  onProductClick, 
-  columns 
+const ProductsDataGrid: React.FC<ProductsDataGridProps> = ({
+  products,
+  loadingProductData,
+  onProductClick,
+  columns,
+  pageSize = 10
 }) => {
+  const [page, setPage] = useState(0);
+  
   if (products.length === 0 && !loadingProductData) {
     return (
       <Alert severity="info" sx={{ mt: 1 }}>
@@ -119,17 +126,85 @@ const ProductsDataGrid: React.FC<ProductsDataGridProps> = ({
     );
   }
 
+  const handlePrevPage = () => {
+    setPage((prev) => Math.max(0, prev - 1));
+  };
+
+  const handleNextPage = () => {
+    setPage((prev) => {
+      const maxPage = Math.ceil(products.length / pageSize) - 1;
+      return Math.min(maxPage, prev + 1);
+    });
+  };
+
+  const maxPage = Math.ceil(products.length / pageSize) - 1;
+  const showPaginationButtons = products.length > pageSize;
+
   return (
-    <Box sx={{ height: 620, width: '100%' }}>
+    <Box sx={{ height: 620, width: '100%', position: 'relative' }}>
+      {/* 左側換頁按鈕 */}
+      {showPaginationButtons && (
+        <IconButton
+          onClick={handlePrevPage}
+          disabled={page === 0}
+          sx={{
+            position: 'absolute',
+            left: -90,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            backgroundColor: 'background.paper',
+            boxShadow: 1,
+            zIndex: 2,
+            display: 'none',
+            '@media (max-width: 1299px)': {
+              display: 'flex'
+            },
+            '&:hover': {
+              backgroundColor: 'action.hover'
+            }
+          }}
+        >
+          <NavigateBeforeIcon fontSize="large" />
+        </IconButton>
+      )}
+
+      {/* 右側換頁按鈕 */}
+      {showPaginationButtons && (
+        <IconButton
+          onClick={handleNextPage}
+          disabled={page >= maxPage}
+          sx={{
+            position: 'absolute',
+            right: -90,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            backgroundColor: 'background.paper',
+            boxShadow: 1,
+            zIndex: 2,
+            display: 'none',
+            '@media (max-width: 1299px)': {
+              display: 'flex'
+            },
+            '&:hover': {
+              backgroundColor: 'action.hover'
+            }
+          }}
+        >
+          <NavigateNextIcon fontSize="large" />
+        </IconButton>
+      )}
+
       <DataGrid
         rows={products}
         columns={columns}
+        page={page}
+        onPageChange={(newPage) => setPage(newPage)}
         initialState={{
           pagination: {
-            pageSize: 10,
+            pageSize,
           },
         }}
-        rowsPerPageOptions={[10]}
+        rowsPerPageOptions={[pageSize]}
         onRowClick={onProductClick}
         disableSelectionOnClick
         loading={loadingProductData}
@@ -140,7 +215,10 @@ const ProductsDataGrid: React.FC<ProductsDataGridProps> = ({
           },
           '& .MuiDataGrid-footerContainer': {
             minHeight: '36px',
-            maxHeight: '36px'
+            maxHeight: '36px',
+            '@media (max-width: 1299px)': {
+              display: 'none'
+            }
           },
           '& .MuiTablePagination-root': {
             fontSize: '0.8rem'
