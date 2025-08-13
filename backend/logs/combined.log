@@ -980,3 +980,47 @@
 {"executionTime":"5ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":43,"timestamp":"2025-08-13 12:02:46:246"}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m一般產品 FIFO 計算完成\u001b[39m","timestamp":"2025-08-13 12:13:20:1320"}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m一般產品 FIFO 計算完成\u001b[39m","timestamp":"2025-08-13 12:13:20:1320"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m一般產品 FIFO 計算完成\u001b[39m","timestamp":"2025-08-13 12:49:02:492"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m一般產品 FIFO 計算完成\u001b[39m","timestamp":"2025-08-13 12:49:02:492"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m一般產品 FIFO 計算完成\u001b[39m","timestamp":"2025-08-13 12:49:28:4928"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m一般產品 FIFO 計算完成\u001b[39m","timestamp":"2025-08-13 12:49:28:4928"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m一般產品 FIFO 計算完成\u001b[39m","timestamp":"2025-08-13 12:49:47:4947"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m一般產品 FIFO 計算完成\u001b[39m","timestamp":"2025-08-13 12:49:47:4947"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m一般產品 FIFO 計算完成\u001b[39m","timestamp":"2025-08-13 12:49:50:4950"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m一般產品 FIFO 計算完成\u001b[39m","timestamp":"2025-08-13 12:49:50:4950"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m一般產品 FIFO 計算完成\u001b[39m","timestamp":"2025-08-13 12:49:59:4959"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m一般產品 FIFO 計算完成\u001b[39m","timestamp":"2025-08-13 12:49:59:4959"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已刪除 1 筆與出貨單 68830843f81dba1472fc4c7b 相關的ship類型庫存記錄\u001b[39m","timestamp":"2025-08-13 12:56:06:566"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m一般產品 FIFO 計算完成\u001b[39m","timestamp":"2025-08-13 12:56:39:5639"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m一般產品 FIFO 計算完成\u001b[39m","timestamp":"2025-08-13 12:56:39:5639"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m一般產品 FIFO 計算完成\u001b[39m","timestamp":"2025-08-13 12:56:43:5643"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m一般產品 FIFO 計算完成\u001b[39m","timestamp":"2025-08-13 12:56:43:5643"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已刪除 2 筆與出貨單 67ffde192266f7ca935d732f 相關的ship類型庫存記錄\u001b[39m","timestamp":"2025-08-13 12:57:08:578"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 67edfc768b015c0b28783b41 創建新庫存記錄，出貨單號: 20250331004, 數量: -140, 總金額: 882, 類型: ship\u001b[39m","timestamp":"2025-08-13 12:57:41:5741"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 67edfc768b015c0b28783b4d 創建新庫存記錄，出貨單號: 20250331004, 數量: -252, 總金額: 1638, 類型: ship\u001b[39m","timestamp":"2025-08-13 12:57:41:5741"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已成功為出貨單 67ffde192266f7ca935d732f 創建所有ship類型庫存記錄\u001b[39m","timestamp":"2025-08-13 12:57:41:5741"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m一般產品 FIFO 計算完成\u001b[39m","timestamp":"2025-08-13 12:57:51:5751"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m一般產品 FIFO 計算完成\u001b[39m","timestamp":"2025-08-13 12:57:51:5751"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m一般產品 FIFO 計算完成\u001b[39m","timestamp":"2025-08-13 12:57:54:5754"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m一般產品 FIFO 計算完成\u001b[39m","timestamp":"2025-08-13 12:57:54:5754"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m一般產品 FIFO 計算完成\u001b[39m","timestamp":"2025-08-13 12:58:02:582"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m一般產品 FIFO 計算完成\u001b[39m","timestamp":"2025-08-13 12:58:02:582"}
+{"count":552,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-13 13:05:49:549"}
+{"hasPaymentCount":93,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":61,"missingTransactionIdCount":398,"paymentTransactionsCount":28,"timestamp":"2025-08-13 13:05:49:549","totalOrders":552}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":93,"timestamp":"2025-08-13 13:05:49:549","totalCount":552,"unpaidCount":459}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-13 13:08:31:831"}
+{"executionTime":"11ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":43,"timestamp":"2025-08-13 13:08:31:831"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-13 13:08:31:831"}
+{"executionTime":"7ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":43,"timestamp":"2025-08-13 13:08:31:831"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-13 13:08:31:831"}
+{"executionTime":"5ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":43,"timestamp":"2025-08-13 13:08:31:831"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-13 13:08:31:831"}
+{"executionTime":"5ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":43,"timestamp":"2025-08-13 13:08:31:831"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-13 13:08:33:833"}
+{"executionTime":"10ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":43,"timestamp":"2025-08-13 13:08:33:833"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-13 13:08:33:833"}
+{"executionTime":"9ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":43,"timestamp":"2025-08-13 13:08:33:833"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-13 13:08:33:833"}
+{"executionTime":"8ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":43,"timestamp":"2025-08-13 13:08:33:833"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-13 13:08:33:833"}
+{"executionTime":"8ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":43,"timestamp":"2025-08-13 13:08:33:833"}

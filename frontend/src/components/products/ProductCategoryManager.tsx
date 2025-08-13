@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -37,7 +37,7 @@ interface ExtendedCategory extends Category {
 /**
  * 產品分類管理組件
  */
-const ProductCategoryManager: React.FC = () => {
+const ProductCategoryManager = forwardRef<any, any>((_, ref) => {
   const navigate = useNavigate();
   
   // 類別狀態
@@ -50,6 +50,16 @@ const ProductCategoryManager: React.FC = () => {
   const [dialogMode, setDialogMode] = useState<'add' | 'edit'>('add');
   const [currentCategory, setCurrentCategory] = useState<{ name: string; description: string }>({ name: '', description: '' });
   const [currentCategoryId, setCurrentCategoryId] = useState<string | null>(null);
+  
+  // 暴露方法給父組件
+  useImperativeHandle(ref, () => ({
+    handleOpenAddDialog: () => {
+      setDialogMode('add');
+      setCurrentCategory({ name: '', description: '' });
+      setCurrentCategoryId(null);
+      setOpenDialog(true);
+    }
+  }));
   
   // 提示訊息狀態
   const [snackbar, setSnackbar] = useState<{
@@ -382,20 +392,8 @@ const ProductCategoryManager: React.FC = () => {
   };
   
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">產品分類管理</Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={handleOpenAddDialog}
-        >
-          新增分類
-        </Button>
-      </Box>
-      
-      <Paper sx={{ p: 2 }}>
+    <Box>
+      <Paper sx={{ p: 1 }}>
         {renderCategoryList()}
       </Paper>
       
@@ -450,6 +448,6 @@ const ProductCategoryManager: React.FC = () => {
       </Snackbar>
     </Box>
   );
-};
+});
 
 export default ProductCategoryManager;

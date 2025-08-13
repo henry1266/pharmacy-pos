@@ -107,8 +107,9 @@ const ShippingOrderDetailPage: React.FC = () => {
     if (!id) return;
     
     try {
-      const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001/api';
-      const response = await axios.put(`${API_BASE_URL}/shipping-orders/${id}`, {
+      // 從 redux/actions 導入 API_BASE_URL
+      const API_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
+      const response = await axios.put(`${API_URL}/api/shipping-orders/${id}`, {
         status: 'pending'
       });
       
