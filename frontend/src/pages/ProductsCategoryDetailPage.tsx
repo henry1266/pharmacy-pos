@@ -156,7 +156,7 @@ const ProductsDataGrid: React.FC<ProductsDataGridProps> = ({
   );
 };
 
-const CategoryDetailPage: React.FC = () => {
+const ProductsCategoryDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
@@ -230,10 +230,16 @@ const CategoryDetailPage: React.FC = () => {
   );
 
   return (
-    <Box sx={{ width: '55%', mx: 'auto' }}>
+    <Box sx={{ minWidth: '800px', width: '50%', mx: 'auto' }}>
       <PageHeaderSection
         breadcrumbItems={breadcrumbItems}
         actions={actions}
+        sx={{
+          display: 'none',
+          '@media (min-width: 1300px)': {
+            display: 'block'
+          }
+        }}
       />
       
       <Paper sx={{ p: 1, boxShadow: 'none', border: 'none' }}>
@@ -282,4 +288,4 @@ const CategoryDetailPage: React.FC = () => {
   );
 };
 
-export default CategoryDetailPage;
+export default ProductsCategoryDetailPage;

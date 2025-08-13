@@ -27,8 +27,8 @@ import ShippingOrdersPage from './pages/ShippingOrdersPage';
 import ShippingOrderFormPage from './pages/ShippingOrderFormPage';
 import ShippingOrderDetailPage from './pages/ShippingOrderDetailPage';
 // 日常記帳管理頁面元件
-import { JournalPage, NewEntryPage, CategoryPage } from './modules/daily-journal/pages';
-import CategoryDetailPage from './pages/CategoryDetailPage';
+import { JournalPage, NewEntryPage, CategoryPage, CategoryDetailPage } from './modules/daily-journal/pages';
+import ProductsCategoryDetailPage from './pages/ProductsCategoryDetailPage';
 import AllCategoriesDetailComponent from './modules/daily-journal/components/AllCategoriesDetailComponent';
 import ProductCategoryPage from './pages/ProductCategoryPage';
 import MonitoredProductsSettingsPage from './pages/MonitoredProductsSettingsPage';
@@ -68,7 +68,7 @@ const AppRouter: React.FC = () => {
       <Route path="/products/edit/:id" element={<ProductEditPage />} />
       <Route path="/products/:id" element={<ProductDetailPage />} />
       <Route path="/product-categories" element={<ProductCategoryPage />} />
-      <Route path="/product-categories/:id" element={<CategoryDetailPage />} />
+      <Route path="/product-categories/:id" element={<ProductsCategoryDetailPage />} />
       
       {/* Supplier Routes */}
       <Route path="/suppliers" element={<SuppliersPage />} />
