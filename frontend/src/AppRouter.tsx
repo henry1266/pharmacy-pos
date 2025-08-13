@@ -46,9 +46,9 @@ import PaymentManagementPage from './modules/accounting3/pages/PaymentManagement
   import Accounting3TransactionPage from './modules/accounting3/pages/TransactionPage';
   import TransactionEditPage from './modules/accounting3/pages/TransactionPage/TransactionEditPage';
   import TransactionCopyPage from './modules/accounting3/pages/TransactionPage/TransactionCopyPage';
-  import AccountsManagementPage from './modules/accounting3/pages/AccountsManagementPage';
-  import Accounting3DashboardPage from './modules/accounting3/pages/Accounting3DashboardPage';
-  import AccountDetailPage from './modules/accounting3/pages/AccountDetailPage';
+  import { AccountsManagementPage } from './modules/accounting3/accounts/pages';
+  import { Accounting3DashboardPage } from './modules/accounting3/accounts/pages';
+  import AccountDetailPage from './modules/accounting3/accounts/pages/AccountDetailPage';
   import TransactionDetailPage from './modules/accounting3/pages/TransactionPage/TransactionDetailPage';
 
 // AppRouter now only contains routes accessible *after* login

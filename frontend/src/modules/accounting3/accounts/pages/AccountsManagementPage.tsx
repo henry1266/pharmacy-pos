@@ -20,26 +20,26 @@ import {
 } from '@mui/icons-material';
 
 // 導入 accounting3 階層管理組件
-import { AccountHierarchyManager, AccountTransactionList } from '../features/accounts/components';
+import { AccountHierarchyManager, AccountTransactionList } from '../../features/accounts/components';
 // 導入 accounting3 科目表單組件
-import { AccountForm } from '../features/accounts/components';
+import { AccountForm } from '../../features/accounts/components';
 // 導入美化的麵包屑導航組件
-import { BreadcrumbNavigation } from '../components/ui';
+import { BreadcrumbNavigation } from '../../components/ui';
 
 // 導入共享類型
 import { Account3, Account3FormData } from '@pharmacy-pos/shared/types/accounting3';
 import { Organization } from '@pharmacy-pos/shared/types/organization';
 
 // 導入服務
-import { accounting3Service } from '../services/accounting3Service';
-import { useAppSelector, useAppDispatch } from '../../../hooks/redux';
+import { accounting3Service } from '../../services/accounting3Service';
+import { useAppSelector, useAppDispatch } from '../../../../hooks/redux';
 import {
   fetchOrganizations2,
   deleteTransactionGroupWithEntries,
   confirmTransactionGroupWithEntries,
   unlockTransactionGroupWithEntries,
   fetchTransactionGroupsWithEntries
-} from '../../../redux/actions';
+} from '../../../../redux/actions';
 
 /**
  * 科目管理頁面

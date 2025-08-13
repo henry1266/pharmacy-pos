@@ -3,7 +3,7 @@
  * 交易相關的型別定義
  */
 
-import { Account } from '../../accounts/types';
+import { Account } from '../../../accounts/types';
 
 // 基本交易型別
 export interface Transaction {

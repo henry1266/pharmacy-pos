@@ -31,7 +31,7 @@ export {
   getAccountTransactions
 } from './services';
 
-// 型別導出
+// 型別導出 - 從新位置導入
 export type {
   Account,
   AccountType,
@@ -42,7 +42,7 @@ export type {
   AccountsResponse,
   CreateAccountRequest,
   UpdateAccountRequest
-} from './types';
+} from '../../accounts/types';
 
 // Hook 型別導出
 export type {
@@ -50,7 +50,7 @@ export type {
   UseAccountStatisticsReturn
 } from './hooks';
 
-// 工具函數導出
+// 工具函數導出 - 從新位置導入
 export {
   buildAccountTree,
   generateAccountCode,
@@ -62,4 +62,4 @@ export {
   getAccountPath,
   formatAccountBalance,
   canDeleteAccount
-} from './utils';
+} from '../../accounts/utils';

@@ -20,21 +20,21 @@ import {
   AccountTree as AccountTreeIcon,
   Home as HomeIcon,
 } from '@mui/icons-material';
-import { BreadcrumbNavigation } from '../components/ui/BreadcrumbNavigation';
-import { useAppSelector, useAppDispatch } from '../../../hooks/redux';
+import { BreadcrumbNavigation } from '../../components/ui/BreadcrumbNavigation';
+import { useAppSelector, useAppDispatch } from '../../../../hooks/redux';
 
 // 導入相關組件
-import { AccountTransactionList } from '../features/accounts/components';
+import { AccountTransactionList } from '../../features/accounts/components';
 import {
   fetchAccounts2,
   confirmTransactionGroupWithEntries,
   unlockTransactionGroupWithEntries,
   deleteTransactionGroupWithEntries,
   fetchTransactionGroupsWithEntries
-} from '../../../redux/actions';
+} from '../../../../redux/actions';
 
 // 導入類型
-import { Account2, TransactionGroupWithEntries } from '../../../../../shared/types/accounting2';
+import { Account2, TransactionGroupWithEntries } from '../../../../../../shared/types/accounting2';
 
 interface AccountDetailPageProps {}
 

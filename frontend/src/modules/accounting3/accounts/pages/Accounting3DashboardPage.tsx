@@ -36,19 +36,19 @@ import {
   Business as BusinessIcon,
   PieChart as PieChartIcon,
 } from '@mui/icons-material';
-import { useAppSelector, useAppDispatch } from '../../../hooks/redux';
+import { useAppSelector, useAppDispatch } from '../../../../hooks/redux';
 
 // 導入 Redux actions
 import {
   fetchTransactionGroupsWithEntries,
   fetchAccounts2,
   fetchOrganizations2
-} from '../../../redux/actions';
+} from '../../../../redux/actions';
 
 // 導入共享類型
 import {
   TransactionGroupWithEntries,
-} from '../../../../../shared/types/accounting2';
+} from '../../../../../../shared/types/accounting2';
 
 /**
  * 會計系統儀表板頁面

@@ -4,14 +4,14 @@
  */
 
 import axios from 'axios';
-import { 
-  Account, 
-  AccountsResponse, 
-  CreateAccountRequest, 
+import {
+  Account,
+  AccountsResponse,
+  CreateAccountRequest,
   UpdateAccountRequest,
   AccountFilterOptions,
   AccountStatistics
-} from '../types';
+} from '../../../accounts/types';
 
 const API_BASE_URL = '/api/accounting3';
 
