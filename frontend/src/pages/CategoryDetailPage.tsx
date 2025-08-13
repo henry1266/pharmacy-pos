@@ -1,19 +1,19 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-  Container,
-  Paper,
   Box,
+  Paper,
   Typography,
-  IconButton,
   Grid,
   Divider,
   CircularProgress,
   Alert,
   Card,
-  CardContent,
+  CardContent
 } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import InventoryIcon from '@mui/icons-material/Inventory';
+import CategoryIcon from '@mui/icons-material/Category';
+import PageHeaderSection from '../components/common/PageHeaderSection';
 import { DataGrid, GridColDef, GridRenderCellParams, GridValueFormatterParams, GridRowParams } from '@mui/x-data-grid';
 import useCategoryDetailData from '../hooks/useCategoryDetailData'; // Import the new hook
 
@@ -180,7 +180,9 @@ const ProductsDataGrid: React.FC<ProductsDataGridProps> = ({
           '& .MuiDataGrid-row:hover': {
             cursor: 'pointer',
             backgroundColor: 'rgba(0, 0, 0, 0.04)'
-          }
+          },
+          border: 'none',
+          boxShadow: 'none'
         }}
       />
     </Box>
@@ -211,46 +213,60 @@ const CategoryDetailPage: React.FC = () => {
 
   if (loading) {
     return (
-      <Container maxWidth="lg">
-        <Paper sx={{ p: 3, my: 3, display: 'flex', justifyContent: 'center' }}>
+      <Box sx={{  mx: 'auto' }}>
+        <Paper sx={{ p: 3, my: 3, display: 'flex', justifyContent: 'center', boxShadow: 'none', border: 'none' }}>
           <CircularProgress />
         </Paper>
-      </Container>
+      </Box>
     );
   }
 
   if (error) {
     return (
-      <Container maxWidth="lg">
-        <Paper sx={{ p: 3, my: 3 }}>
+      <Box sx={{  mx: 'auto' }}>
+        <Paper sx={{ p: 3, my: 3, boxShadow: 'none', border: 'none' }}>
           <Alert severity="error">{error}</Alert>
         </Paper>
-      </Container>
+      </Box>
     );
   }
 
   if (!category) {
     return (
-      <Container maxWidth="lg">
-        <Paper sx={{ p: 3, my: 3 }}>
+      <Box sx={{ mx: 'auto' }}>
+        <Paper sx={{ p: 3, my: 3, boxShadow: 'none', border: 'none' }}>
           <Alert severity="warning">找不到此分類</Alert>
         </Paper>
-      </Container>
+      </Box>
     );
   }
 
-  return (
-    <Container maxWidth="lg">
-      <Paper sx={{ p: 3, my: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-          <IconButton onClick={handleBack} sx={{ mr: 2 }}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h4">
-            分類詳情
-          </Typography>
-        </Box>
+  // 定義麵包屑導航項目
+  const breadcrumbItems = [
+   {
+            label: '產品管理',
+            path: '/products',
+            icon: <InventoryIcon sx={{ fontSize: '1.1rem' }} />
+          },
+    { icon: <CategoryIcon fontSize="small" />, label: '產品分類', path: '/product-categories' },
+    { label: category.name },
+  ];
 
+  // 定義返回按鈕
+  const actions = (
+    <Box onClick={handleBack} sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+      返回
+    </Box>
+  );
+
+  return (
+    <Box sx={{ width: '60%', mx: 'auto' }}>
+      <PageHeaderSection
+        breadcrumbItems={breadcrumbItems}
+        actions={actions}
+      />
+      
+      <Paper sx={{ p: 3, my: 3, boxShadow: 'none', border: 'none' }}>
         <CategorySummaryCard
           category={category}
           loadingProductData={loadingProductData}
@@ -269,7 +285,7 @@ const CategoryDetailPage: React.FC = () => {
           columns={productGridColumns}
         />
       </Paper>
-    </Container>
+    </Box>
   );
 };
 

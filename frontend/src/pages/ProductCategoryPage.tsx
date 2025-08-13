@@ -37,11 +37,6 @@ const ProductCategoryPage: React.FC = () => {
       <PageHeaderSection
         breadcrumbItems={[
           {
-            label: '首頁',
-            path: '/',
-            icon: <HomeIcon sx={{ fontSize: '1.1rem' }} />
-          },
-          {
             label: '產品管理',
             path: '/products',
             icon: <InventoryIcon sx={{ fontSize: '1.1rem' }} />
