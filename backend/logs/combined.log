@@ -1062,3 +1062,14 @@
 {"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已成功為出貨單 689c45d5a97fbcf079b11f52 創建所有ship類型庫存記錄\u001b[39m","timestamp":"2025-08-13 15:59:17:5917"}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m一般產品 FIFO 計算完成\u001b[39m","timestamp":"2025-08-13 15:59:22:5922"}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m一般產品 FIFO 計算完成\u001b[39m","timestamp":"2025-08-13 15:59:22:5922"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-13 17:15:13:1513"}
+{"executionTime":"9ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":43,"timestamp":"2025-08-13 17:15:13:1513"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-13 17:15:13:1513"}
+{"executionTime":"9ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":43,"timestamp":"2025-08-13 17:15:13:1513"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-13 17:15:13:1513"}
+{"executionTime":"5ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":43,"timestamp":"2025-08-13 17:15:13:1513"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-13 17:15:13:1513"}
+{"executionTime":"6ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":43,"timestamp":"2025-08-13 17:15:13:1513"}
+{"count":552,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-13 17:15:29:1529"}
+{"hasPaymentCount":93,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":61,"missingTransactionIdCount":398,"paymentTransactionsCount":28,"timestamp":"2025-08-13 17:15:29:1529","totalOrders":552}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":93,"timestamp":"2025-08-13 17:15:29:1529","totalCount":552,"unpaidCount":459}
