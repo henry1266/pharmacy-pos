@@ -150,106 +150,6 @@ npm run test:integration -- accounting3
 - **組件分離**: UI 組件與業務組件分離（`components/ui/` vs `features/`）
 - **服務層**: 獨立的 API 服務層，便於測試和維護
 
-### ⚠️ 需要改進的問題
-
-#### 1. 結構不一致性
-```
-features/
-├── accounts/
-│   ├── components/     # ❌ 空目錄
-│   ├── hooks/         # ❌ 空目錄
-│   ├── types/         # ❌ 空目錄
-│   └── utils/         # ❌ 空目錄
-├── transactions/
-│   ├── components/    # ✅ 有內容
-│   ├── hooks/         # ✅ 有內容
-│   └── utils/         # ✅ 有內容
-└── organizations/     # ❌ 結構不完整
-```
-
-#### 2. 檔案組織問題
-- **混合層級**: `features/accounts/` 下直接放置組件檔案，而非使用子目錄
-- **命名不統一**: 部分檔案使用 V3 後綴，部分使用 3 後綴
-- **職責模糊**: 某些大型組件（如 `AccountTransactionList.tsx` 1145行）職責過重
-
-#### 3. 依賴關係複雜
-- **向後相容**: `accounting3Service.ts` 中大量 accounting2 相容代碼
-- **型別混用**: 同時使用 accounting2 和 accounting3 型別
-- **API 路徑混亂**: 混合使用不同版本的 API 端點
-
-### 🎯 優化建議
-
-#### 1. 統一目錄結構
-```typescript
-// 建議的標準化結構
-features/
-├── accounts/
-│   ├── components/
-│   │   ├── AccountForm/
-│   │   ├── AccountDashboard/
-│   │   └── AccountSelector/
-│   ├── hooks/
-│   │   ├── useAccountData.ts
-│   │   ├── useAccountForm.ts
-│   │   └── useAccountStatistics.ts
-│   ├── services/
-│   │   └── accountService.ts
-│   ├── types/
-│   │   └── account.types.ts
-│   └── utils/
-│       └── accountUtils.ts
-```
-
-#### 2. 組件拆分策略
-```typescript
-// 將大型組件拆分為更小的單元
-AccountTransactionList/ (1145行 → 拆分)
-├── TransactionList.tsx          // 主要列表邏輯
-├── TransactionRow.tsx           // 單行組件
-├── TransactionActions.tsx       // 操作按鈕
-├── TransactionStatistics.tsx    // 統計卡片
-└── TransactionFilters.tsx       // 過濾器
-```
-
-#### 3. 服務層重構
-```typescript
-// 清理 accounting3Service.ts 的相容性代碼
-services/
-├── accountService.ts      // 純 accounting3 API
-├── legacyAdapter.ts       // 相容性適配器
-└── apiClient.ts           // 統一 API 客戶端
-```
-
-##  最佳實踐建議
-
-### 1. 架構優化
-- **統一目錄結構**: 所有 feature 採用相同的子目錄結構
-- **組件原子化**: 將大型組件拆分為更小、更專注的組件
-- **清理相容性代碼**: 逐步移除 accounting2 相容性代碼，建立清晰的遷移策略
-- **API 標準化**: 統一使用 accounting3 API 端點，避免混合調用
-
-### 2. 性能優化
-- **虛擬化長列表**: 對 `AccountTransactionList` 等大量資料組件使用 React Window
-- **記憶化優化**: 在 `AccountHierarchyManager` 等複雜組件中使用 `useMemo` 和 `useCallback`
-- **懶載入**: 按需載入 feature 模組，減少初始包大小
-- **批量 API 請求**: 優化 `accounting3Service.ts` 中的多重 API 調用
-
-### 3. 程式碼品質
-- **型別一致性**: 統一使用 accounting3 型別，移除型別別名混用
-- **命名規範**: 統一組件命名規則（移除不一致的版本後綴）
-- **單一職責**: 確保每個組件和服務都有明確的單一職責
-- **錯誤處理**: 建立統一的錯誤處理機制
-
-### 4. 測試策略
-- **單元測試**: 為核心 hooks 和 utils 建立完整測試
-- **組件測試**: 使用 React Testing Library 測試關鍵組件
-- **整合測試**: 測試 feature 間的協作
-- **型別測試**: 確保型別定義的正確性
-
-### 5. 維護性提升
-- **文檔更新**: 補充空目錄的 README 說明
-- **程式碼註解**: 為複雜的階層管理邏輯添加詳細註解
-- **重構計劃**: 制定逐步重構的時間表和里程碑
 
 ## 📋 開發檢查清單
 
@@ -277,28 +177,6 @@ services/
 - [ ] 文檔更新完成
 - [ ] 變更日誌記錄
 
-## 🔮 未來規劃
-
-### 短期目標 (1-3 個月)
-- [ ] 完善錯誤處理機制
-- [ ] 增加單元測試覆蓋率至 80%
-- [ ] 優化大量資料載入性能
-- [ ] 完善所有模組文檔
-- [ ] 建立自動化測試流程
-
-### 中期目標 (3-6 個月)
-- [ ] 實作視覺回歸測試
-- [ ] 建立組件設計系統
-- [ ] 支援多幣別功能
-- [ ] 優化行動端體驗
-- [ ] 增加無障礙功能支援
-
-### 長期目標 (6-12 個月)
-- [ ] 報表系統深度整合
-- [ ] 離線功能支援
-- [ ] 微前端架構遷移
-- [ ] AI 輔助記帳功能
-- [ ] 國際化支援
 
 ## 📋 重構行動計劃
 
@@ -413,6 +291,7 @@ services/
 
 **剩餘待改進**：
 - ⚠️ 測試覆蓋率待提升（第四階段完善目標）
+- ⚠️ 檔案架構扁平化（第五階段架構優化目標）
 
 **重大改進成果**：
 - 🏆 **架構優化**: 完成三階段重構，建立現代化組件架構
@@ -422,6 +301,99 @@ services/
 - 🏆 **擴展性**: 為未來功能開發建立了優秀的架構基礎
 - 🏆 **相容性管理**: 建立專門的遷移適配器，清晰分離相容性邏輯
 - 🏆 **API 標準化**: 統一 API 調用路徑，避免版本混合問題
+
+## 📋 功能導向檔案架構重構計劃
+
+### 🚀 第五階段：檔案架構扁平化 (預計 2025-09)
+
+**目標**：將現有的 `features/` 目錄結構重構為更直觀的功能導向扁平架構，提升開發體驗和代碼可讀性。
+
+**待辦事項**：
+
+- [ ] **架構設計與規劃**
+  - [ ] 制定詳細的遷移計劃和時間表
+  - [ ] 建立新舊架構的映射關係
+  - [ ] 設計導入路徑兼容策略
+
+- [ ] **建立新的檔案結構**
+  ```
+  accounting3/
+      accounts/
+          components/
+          hooks/
+          services/
+          types/
+          utils/
+          pages/
+      organizations/
+          components/
+          hooks/
+          services/
+          types/
+          utils/
+          pages/
+      transactions/
+          components/
+          hooks/
+          services/
+          types/
+          utils/
+          pages/
+  ```
+
+- [ ] **遷移 accounts 功能模組**
+  - [ ] 從 `features/accounts/` 遷移到 `accounts/`
+  - [ ] 更新所有導入路徑
+  - [ ] 遷移頁面組件到 `accounts/pages/`
+  - [ ] 測試功能完整性
+
+- [ ] **遷移 organizations 功能模組**
+  - [ ] 從 `features/organizations/` 遷移到 `organizations/`
+  - [ ] 更新所有導入路徑
+  - [ ] 遷移頁面組件到 `organizations/pages/`
+  - [ ] 測試功能完整性
+
+- [ ] **遷移 transactions 功能模組**
+  - [ ] 從 `features/transactions/` 遷移到 `transactions/`
+  - [ ] 更新所有導入路徑
+  - [ ] 遷移頁面組件到 `transactions/pages/`
+  - [ ] 測試功能完整性
+
+- [ ] **重構共享資源**
+  - [ ] 建立 `ui/` 目錄（取代 `components/ui/`）
+  - [ ] 建立 `core/` 目錄（保持不變）
+  - [ ] 建立 `shared/` 目錄（跨功能模組共享資源）
+
+- [ ] **更新導出策略**
+  - [ ] 更新根目錄 `index.ts`
+  - [ ] 更新各功能模組 `index.ts`
+  - [ ] 建立向後兼容的重新導出
+
+- [ ] **測試與驗證**
+  - [ ] 執行單元測試
+  - [ ] 執行整合測試
+  - [ ] 執行端到端測試
+  - [ ] 驗證所有功能正常運作
+
+- [ ] **文檔更新**
+  - [ ] 更新 README.md
+  - [ ] 更新開發指南
+  - [ ] 建立架構說明文檔
+
+**預期成果**：
+- 更直觀、扁平化的檔案結構
+- 每個功能模組完全自包含，包括其頁面組件
+- 提升開發體驗和代碼可讀性
+- 更好的團隊協作效率
+- 符合現代前端開發的最佳實踐
+
+**優勢**：
+- **高內聚性**：每個功能模組包含其所有相關資源
+- **自包含**：功能模組可以獨立開發、測試和維護
+- **關注點分離**：按業務領域分離關注點
+- **擴展性好**：新增功能模組更加直觀
+- **團隊協作友好**：減少代碼衝突
+- **導航直觀**：更容易找到相關資源
 
 ## 🤝 貢獻指南
 
@@ -433,9 +405,9 @@ services/
 
 ---
 
-**最後更新**: 2025-07-21
-**版本**: 3.0.3
+**最後更新**: 2025-08-12
+**版本**: 3.0.4
 **維護者**: 開發團隊
 **優化狀態**: ✅ 已完成第三階段代碼清理優化 (2025-07-21)
 **重構成果**: 🏆 總計重構2731行代碼，減少45.9%，建立19個專業子組件 + 專門遷移適配器
-**下一步**: 準備執行第四階段測試完善計劃
+**下一步**: 準備執行第四階段測試完善計劃 + 第五階段檔案架構扁平化

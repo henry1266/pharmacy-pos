@@ -1,15 +1,13 @@
 /**
- * Accounting3 組件匯出
+ * Components 導出
+ * 
+ * 此文件將導出所有組件
  */
 
-// 功能組件 - 帳戶
-export * from '../features/accounts';
+// 臨時導出一個空對象，以便 TypeScript 將此文件視為模組
+export const Components = {
+  // 將來會導出實際的組件
+};
 
-// 功能組件 - 交易
-export * from '../features/transactions';
-
-// 功能組件 - 機構
-export * from '../features/organizations';
-
-// UI 組件
+// 導出 UI 組件
 export * from './ui';
