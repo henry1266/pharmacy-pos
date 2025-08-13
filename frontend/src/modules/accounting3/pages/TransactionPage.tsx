@@ -850,11 +850,11 @@ export const Accounting3TransactionPage: React.FC = () => {
                       <SearchIcon />
                     </InputAdornment>
                   ),
-                  sx: { height: 44 } // 增加輸入框高度
+                  sx: { height: 38 } // 增加輸入框高度
                 }}
                 sx={{
                   '& .MuiInputBase-root': {
-                    height: 44 // 增加輸入框高度
+                    height: 38 // 增加輸入框高度
                   }
                 }}
               />
@@ -864,7 +864,7 @@ export const Accounting3TransactionPage: React.FC = () => {
                 startIcon={<FilterListIcon />}
                 onClick={() => setShowFilters(!showFilters)}
                 sx={{
-                  height: 44, // 增加按鈕高度
+                  height: 38, // 增加按鈕高度
                   minWidth: 110 // 確保按鈕有足夠寬度
                 }}
               >
@@ -876,7 +876,7 @@ export const Accounting3TransactionPage: React.FC = () => {
                 startIcon={<AddIcon />}
                 onClick={() => navigate('/accounting3/transaction/new')}
                 sx={{
-                  height: 44, // 增加按鈕高度
+                  height: 38, // 增加按鈕高度
                   minWidth: 110 // 確保按鈕有足夠寬度
                 }}
               >
@@ -894,7 +894,7 @@ export const Accounting3TransactionPage: React.FC = () => {
       )}
 
       {/* 主要內容區域 - 交易管理 */}
-      <Box sx={{ p: 2, width: '100%', maxWidth: '100%', overflow: 'hidden', bgcolor: 'background.default' }}>
+      <Box sx={{  width: '100%', maxWidth: '100%', overflow: 'hidden', bgcolor: 'background.default' }}>
         <AccountingDataGridWithEntries
           showFilters={showFilters}
           searchTerm={searchTerm}

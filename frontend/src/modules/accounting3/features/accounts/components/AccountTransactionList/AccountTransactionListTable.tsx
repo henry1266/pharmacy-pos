@@ -107,7 +107,6 @@ export const AccountTransactionListTable: React.FC<AccountTransactionListTablePr
           tableLayout: 'fixed',
           '& .MuiTableCell-root': {
             px: { xs: 0.5, sm: 1, md: 2 },
-            py: { xs: 1, sm: 1.5, md: 2 },
             fontSize: { xs: '0.75rem', sm: '0.875rem', md: '1rem' },
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -140,7 +139,7 @@ export const AccountTransactionListTable: React.FC<AccountTransactionListTablePr
             <TableRow
               key={transaction._id}
               sx={{
-                height: { xs: 72, sm: 80 },
+                height: { xs: 10, sm: 10 },
                 '&:hover': {
                   backgroundColor: 'action.hover'
                 },
