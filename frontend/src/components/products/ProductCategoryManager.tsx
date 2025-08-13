@@ -363,7 +363,7 @@ const ProductCategoryManager = forwardRef<any, any>((_, ref) => {
   const renderCategoryList = (): JSX.Element => {
     if (loading) {
       return (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 1 }}>
           <CircularProgress />
         </Box>
       );
@@ -375,7 +375,7 @@ const ProductCategoryManager = forwardRef<any, any>((_, ref) => {
     
     if (categories.length === 0) {
       return (
-        <Typography align="center" sx={{ p: 2 }}>
+        <Typography align="center" sx={{ p: 1 }}>
           尚無分類，請新增分類
         </Typography>
       );
@@ -383,7 +383,7 @@ const ProductCategoryManager = forwardRef<any, any>((_, ref) => {
     
     return (
       <Box>
-        <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
+        <Typography variant="body2" sx={{ mb: 1, color: 'text.secondary' }}>
           拖動項目可調整順序。順序將影響產品表單中的顯示順序。
         </Typography>
         {renderDraggableCategoryList()}

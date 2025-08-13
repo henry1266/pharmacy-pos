@@ -9,7 +9,8 @@ import {
   CircularProgress,
   Alert,
   Card,
-  CardContent
+  CardContent,
+  Button
 } from '@mui/material';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import CategoryIcon from '@mui/icons-material/Category';
@@ -105,47 +106,6 @@ const productGridColumns: GridColDef[] = [
   },
 ];
 
-// Helper Component for Category Summary
-const CategorySummaryCard: React.FC<CategorySummaryCardProps> = ({ 
-  category, 
-  loadingProductData, 
-  categoryTotalStock, 
-  categoryTotalProfitLoss 
-}) => (
-  <Card sx={{ mb: 4 }}>
-    <CardContent>
-      <Typography variant="h5" gutterBottom>
-        {category.name}
-      </Typography>
-      <Typography variant="body1" color="text.secondary" paragraph>
-        {category.description ?? '無描述'}
-      </Typography>
-      <Divider sx={{ my: 2 }} />
-      <Grid container spacing={2}>
-        <Grid {...{ item: true, xs: 12, sm: 6 } as any}>
-          <Typography variant="subtitle2">
-            庫存總量: {' '}
-            <Typography component="span" color="primary" fontWeight="bold">
-              {loadingProductData ? <CircularProgress size={14} sx={{ mr: 1 }}/> : categoryTotalStock}
-            </Typography>
-          </Typography>
-        </Grid>
-        <Grid {...{ item: true, xs: 12, sm: 6 } as any}>
-          <Typography variant="subtitle2">
-            損益總和: {' '}
-            <Typography
-              component="span"
-              color={categoryTotalProfitLoss >= 0 ? 'success.main' : 'error.main'}
-              fontWeight="bold"
-            >
-              {loadingProductData ? <CircularProgress size={14} sx={{ mr: 1 }}/> : `$${categoryTotalProfitLoss.toFixed(2)}`}
-            </Typography>
-          </Typography>
-        </Grid>
-      </Grid>
-    </CardContent>
-  </Card>
-);
 
 // Helper Component for Products Data Grid
 const ProductsDataGrid: React.FC<ProductsDataGridProps> = ({ 
@@ -156,14 +116,14 @@ const ProductsDataGrid: React.FC<ProductsDataGridProps> = ({
 }) => {
   if (products.length === 0 && !loadingProductData) {
     return (
-      <Alert severity="info" sx={{ mt: 2 }}>
+      <Alert severity="info" sx={{ mt: 1 }}>
         此分類下暫無產品
       </Alert>
     );
   }
 
   return (
-    <Box sx={{ height: 500, width: '100%' }}>
+    <Box sx={{ height: 560, width: '100%' }}>
       <DataGrid
         rows={products}
         columns={columns}
@@ -179,7 +139,7 @@ const ProductsDataGrid: React.FC<ProductsDataGridProps> = ({
         sx={{
           '& .MuiDataGrid-row:hover': {
             cursor: 'pointer',
-            backgroundColor: 'rgba(0, 0, 0, 0.04)'
+            backgroundColor: 'rgba(150, 150, 150, 0.04)'
           },
           border: 'none',
           boxShadow: 'none'
@@ -199,8 +159,7 @@ const CategoryDetailPage: React.FC = () => {
     loading,
     error,
     loadingProductData,
-    categoryTotalProfitLoss,
-    categoryTotalStock,
+    categoryTotalProfitLoss
   } = useCategoryDetailData(id ?? '');
 
   const handleBack = (): void => {
@@ -214,8 +173,7 @@ const CategoryDetailPage: React.FC = () => {
   if (loading) {
     return (
       <Box sx={{  mx: 'auto' }}>
-        <Paper sx={{ p: 3, my: 3, display: 'flex', justifyContent: 'center', boxShadow: 'none', border: 'none' }}>
-          <CircularProgress />
+        <Paper sx={{ p: 1, my: 1, display: 'flex', justifyContent: 'center', boxShadow: 'none', border: 'none' }}>
         </Paper>
       </Box>
     );
@@ -224,7 +182,7 @@ const CategoryDetailPage: React.FC = () => {
   if (error) {
     return (
       <Box sx={{  mx: 'auto' }}>
-        <Paper sx={{ p: 3, my: 3, boxShadow: 'none', border: 'none' }}>
+        <Paper sx={{ p: 1, my: 1, boxShadow: 'none', border: 'none' }}>
           <Alert severity="error">{error}</Alert>
         </Paper>
       </Box>
@@ -234,7 +192,7 @@ const CategoryDetailPage: React.FC = () => {
   if (!category) {
     return (
       <Box sx={{ mx: 'auto' }}>
-        <Paper sx={{ p: 3, my: 3, boxShadow: 'none', border: 'none' }}>
+        <Paper sx={{ p: 1, my: 1, boxShadow: 'none', border: 'none' }}>
           <Alert severity="warning">找不到此分類</Alert>
         </Paper>
       </Box>
@@ -254,29 +212,54 @@ const CategoryDetailPage: React.FC = () => {
 
   // 定義返回按鈕
   const actions = (
-    <Box onClick={handleBack} sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+    <Button
+      variant="outlined"
+      size="small"
+      onClick={handleBack}
+      sx={{ minWidth: '80px' }}
+    >
       返回
-    </Box>
+    </Button>
   );
 
   return (
-    <Box sx={{ width: '60%', mx: 'auto' }}>
+    <Box sx={{ width: '55%', mx: 'auto' }}>
       <PageHeaderSection
         breadcrumbItems={breadcrumbItems}
         actions={actions}
       />
       
-      <Paper sx={{ p: 3, my: 3, boxShadow: 'none', border: 'none' }}>
-        <CategorySummaryCard
-          category={category}
-          loadingProductData={loadingProductData}
-          categoryTotalStock={categoryTotalStock}
-          categoryTotalProfitLoss={categoryTotalProfitLoss}
-        />
+      <Paper sx={{ p: 1, my: 1, boxShadow: 'none', border: 'none' }}>
 
-        <Typography variant="h6" gutterBottom sx={{mt: 2}}>
-          分類下的產品 ({products.length})
-        </Typography>
+       {/* 產品數量和損益總和卡片 */}
+       <Box sx={{ display: 'flex', gap: 1, mb: 1, mt: 1 }}>
+         <Card sx={{ flex: 1, border: '1px solid', borderColor: 'divider' }}>
+           <CardContent sx={{ py: 1, px: 1, '&:last-child': { pb: 1 }, textAlign: 'center' }}>
+             <Typography variant="subtitle1" fontWeight="medium" color="text.secondary">
+               產品項目數量
+             </Typography>
+             <Typography variant="h5" color="primary.main" fontWeight="bold" sx={{ mt: 0.5 }}>
+               {products.length}
+             </Typography>
+           </CardContent>
+         </Card>
+         
+         <Card sx={{ flex: 1, border: '1px solid', borderColor: 'divider' }}>
+           <CardContent sx={{ py: 1, px: 1, '&:last-child': { pb: 1 }, textAlign: 'center' }}>
+             <Typography variant="subtitle1" fontWeight="medium" color="text.secondary">
+               損益總和
+             </Typography>
+            <Typography
+               variant="h5"
+               fontWeight="bold"
+               color={categoryTotalProfitLoss >= 0 ? 'success.main' : 'error.main'}
+               sx={{ mt: 0.5 }}
+             >
+               ${categoryTotalProfitLoss.toFixed(1)}
+             </Typography>
+           </CardContent>
+         </Card>
+       </Box>
 
         <ProductsDataGrid
           products={products}
