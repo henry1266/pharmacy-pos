@@ -21,7 +21,7 @@ import {
   AccountBalance as AccountIcon
 } from '@mui/icons-material';
 import { EmbeddedAccountingEntryFormData } from '@pharmacy-pos/shared/types/accounting2';
-import { AccountSelector3 } from '../../features/accounts/components/AccountSelector/AccountSelector';
+import { AccountSelector3 } from '../../accounts/components/AccountSelector/AccountSelector';
 import { DoubleEntryFormWithEntries3 } from '../../features/transactions/DoubleEntryFormWithEntries3';
 import { SimpleTransactionFlow } from './SimpleTransactionFlow';
 

@@ -33,7 +33,7 @@ import {
   HierarchySelectionState,
   HierarchyRenderConfig
 } from '../../../../types';
-import AccountTreeView from '../AccountTreeView/AccountTreeView';
+import AccountTreeView from '../../../../accounts/components/AccountTreeView/AccountTreeView';
 
 interface AccountHierarchyManagerProps {
   organizationId?: string | null;

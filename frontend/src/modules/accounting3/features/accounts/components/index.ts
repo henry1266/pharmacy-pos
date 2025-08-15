@@ -9,13 +9,13 @@ export { AccountDashboard } from '../../../accounts/components/AccountDashboard/
 export { AccountForm } from './AccountForm/AccountForm';
 
 // Selector - 統一命名，移除版本後綴
-export { AccountSelector3 as AccountSelector } from './AccountSelector/AccountSelector';
+export { AccountSelector3 as AccountSelector } from '../../../accounts/components/AccountSelector/AccountSelector';
 
 // Transaction List
 export { AccountTransactionList } from './AccountTransactionList/AccountTransactionList';
 
 // Tree View - 統一使用 named export
-export { default as AccountTreeView } from './AccountTreeView/AccountTreeView';
+export { default as AccountTreeView } from '../../../accounts/components/AccountTreeView/AccountTreeView';
 
 // Type Management - 統一使用 named export
 export { default as AccountTypeManagement } from '../../../accounts/components/AccountTypeManagement/AccountTypeManagement';

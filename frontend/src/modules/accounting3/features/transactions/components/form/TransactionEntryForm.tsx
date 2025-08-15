@@ -8,7 +8,7 @@ import {
   Typography
 } from '@mui/material';
 import { useAppSelector } from '@/hooks/redux';
-import { AccountSelector3 } from '../../../accounts/components/AccountSelector/AccountSelector';
+import { AccountSelector3 } from '../../../../accounts/components/AccountSelector/AccountSelector';
 import { FundingSourceSelector3 } from '../../../../components/ui/FundingSourceSelector3';
 import { EntryTable } from './EntryTable';
 import { BalanceValidator } from './BalanceValidator';

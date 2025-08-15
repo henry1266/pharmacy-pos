@@ -35,7 +35,7 @@ import {
   HierarchyExpandState,
   HierarchySelectionState,
   HierarchyRenderConfig,
-} from '../../../../types';
+} from '../../../types';
 
 // 樣式化組件
 const StyledTreeContainer = styled(Box)(({ theme }) => ({
@@ -109,7 +109,7 @@ const ExpandIcon: React.FC<{
 }> = memo(({ node, isExpanded, onClick }) => {
   // 嚴格檢查是否有子科目 - 同時檢查 hasChildren 屬性和 children 陣列
   const hasRealChildren = (node.hasChildren === true) ||
-                          (node.children && Array.isArray(node.children) && node.children.length > 0);
+                         (node.children && Array.isArray(node.children) && node.children.length > 0);
   
   console.log(`🔍 ExpandIcon 檢查 "${node.name}":`, {
     hasChildren: node.hasChildren,
@@ -185,10 +185,10 @@ const TreeNode: React.FC<{
     // 檢查點擊的目標是否為操作按鈕或其子元素
     const target = event.target as HTMLElement;
     const isActionButton = target.closest('.node-actions') ||
-                          target.closest('button') ||
-                          target.closest('a') ||
-                          target.tagName === 'BUTTON' ||
-                          target.tagName === 'A';
+                         target.closest('button') ||
+                         target.closest('a') ||
+                         target.tagName === 'BUTTON' ||
+                         target.tagName === 'A';
     
     // 如果點擊的是操作按鈕，不處理展開收合
     if (isActionButton) {
@@ -198,7 +198,7 @@ const TreeNode: React.FC<{
     
     // 檢查是否有子科目可以展開收合
     const hasRealChildren = (node.hasChildren === true) ||
-                           (node.children && Array.isArray(node.children) && node.children.length > 0);
+                          (node.children && Array.isArray(node.children) && node.children.length > 0);
     
     // 如果有子科目，點擊列時觸發展開收合
     if (hasRealChildren) {
