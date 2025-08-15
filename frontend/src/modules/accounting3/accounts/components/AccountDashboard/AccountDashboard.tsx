@@ -6,7 +6,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { Account2, TransactionGroupWithEntries } from '@pharmacy-pos/shared/types/accounting2';
-import { accounting3Service } from '../../../../services/accounting3Service';
+import { accounting3Service } from '../../../services/accounting3Service';
 import { AccountDashboardStatisticsCards as StatisticsCards } from './AccountDashboardStatisticsCards';
 import { AccountDashboardTransactionOverview as TransactionOverview } from './AccountDashboardTransactionOverview';
 import { AccountDashboardStatusDistribution as StatusDistribution } from './AccountDashboardStatusDistribution';

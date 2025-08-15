@@ -7,12 +7,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { Account3 } from '@pharmacy-pos/shared/types/accounting3';
 import { accounting3Service } from '../../services/accounting3Service';
 
-interface UseAccountDataOptions {
+export interface UseAccountDataOptions {
   organizationId?: string | null;
   autoLoad?: boolean;
 }
 
-interface UseAccountDataReturn {
+export interface UseAccountDataReturn {
   accounts: Account3[];
   loading: boolean;
   error: string | null;

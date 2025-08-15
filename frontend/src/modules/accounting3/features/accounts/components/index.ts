@@ -3,7 +3,7 @@
  */
 
 // Dashboard
-export { AccountDashboard } from './AccountDashboard/AccountDashboard';
+export { AccountDashboard } from '../../../accounts/components/AccountDashboard/AccountDashboard';
 
 // Form
 export { AccountForm } from './AccountForm/AccountForm';
@@ -18,7 +18,7 @@ export { AccountTransactionList } from './AccountTransactionList/AccountTransact
 export { default as AccountTreeView } from './AccountTreeView/AccountTreeView';
 
 // Type Management - 統一使用 named export
-export { default as AccountTypeManagement } from './AccountTypeManagement/AccountTypeManagement';
+export { default as AccountTypeManagement } from '../../../accounts/components/AccountTypeManagement/AccountTypeManagement';
 
 // Hierarchy Manager
 export { AccountHierarchyManager } from './AccountHierarchyManager/AccountHierarchyManager';
