@@ -1404,3 +1404,611 @@
 {"count":552,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-16 00:00:22:022"}
 {"hasPaymentCount":99,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":61,"missingTransactionIdCount":392,"paymentTransactionsCount":31,"timestamp":"2025-08-16 00:00:22:022","totalOrders":552}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":99,"timestamp":"2025-08-16 00:00:22:022","totalCount":552,"unpaidCount":453}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 00:29:25:2925"}
+{"executionTime":"8ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":44,"timestamp":"2025-08-16 00:29:25:2925"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 00:29:25:2925"}
+{"executionTime":"6ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":44,"timestamp":"2025-08-16 00:29:25:2925"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 00:29:25:2925"}
+{"executionTime":"6ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":44,"timestamp":"2025-08-16 00:29:25:2925"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 00:29:25:2925"}
+{"executionTime":"6ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":44,"timestamp":"2025-08-16 00:29:25:2925"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 00:29:51:2951"}
+{"executionTime":"6ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":44,"timestamp":"2025-08-16 00:29:51:2951"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 00:29:51:2951"}
+{"executionTime":"5ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":44,"timestamp":"2025-08-16 00:29:51:2951"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 00:29:51:2951"}
+{"executionTime":"8ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":44,"timestamp":"2025-08-16 00:29:51:2951"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 00:29:51:2951"}
+{"executionTime":"6ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":44,"timestamp":"2025-08-16 00:29:51:2951"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e0d13d49330732e939473a"},"supplierId":"67e0d13d49330732e939473a","timestamp":"2025-08-16 00:31:36:3136"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-08-16 00:31:36:3136"}
+{"0":"68823849758b4baa01f52605","1":"6881ede993a4e6567f1de484","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - selectedAccountIds:\u001b[39m","timestamp":"2025-08-16 00:32:38:3238"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - items:\u001b[39m","timestamp":"2025-08-16 00:32:38:3238"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - processedItems:\u001b[39m","timestamp":"2025-08-16 00:32:38:3238"}
+{"0":"68823849758b4baa01f52605","1":"6881ede993a4e6567f1de484","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單已儲存 - selectedAccountIds:\u001b[39m","timestamp":"2025-08-16 00:32:38:3238"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 67eb565d0f2cf9d2647e3aae 創建新庫存記錄，進貨單號: 20250816001, 數量: 980, 總金額: 1280\u001b[39m","timestamp":"2025-08-16 00:32:38:3238"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 67eb60d00f2cf9d2647e3c75 創建新庫存記錄，進貨單號: 20250816001, 數量: 1000, 總金額: 2687\u001b[39m","timestamp":"2025-08-16 00:32:38:3238"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m檢查進貨單自動會計分錄條件:\u001b[39m","poid":"20250816001","timestamp":"2025-08-16 00:32:38:3238"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單沒有機構ID，將嘗試從會計科目獲取\u001b[39m","timestamp":"2025-08-16 00:32:38:3238"}
+{"accountCount":2,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m滿足自動會計分錄條件:\u001b[39m","organizationId":"未設置","timestamp":"2025-08-16 00:32:38:3238","totalAmount":3967}
+{"asset":true,"expense":false,"level":"\u001b[37mdebug\u001b[39m","liability":true,"message":"\u001b[37m科目類型分析:\u001b[39m","timestamp":"2025-08-16 00:32:38:3238"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m判斷為資產-負債格式: 資產科目 + 負債科目\u001b[39m","timestamp":"2025-08-16 00:32:38:3238"}
+{"entryType":"asset-liability","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m自動推斷分錄類型:\u001b[39m","timestamp":"2025-08-16 00:32:38:3238"}
+{"entryType":"asset-liability","level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已更新進貨單分錄類型:\u001b[39m","poid":"20250816001","timestamp":"2025-08-16 00:32:38:3238"}
+{"accounts":[{"id":"6881ede993a4e6567f1de484","index":1,"name":"藥局庫存","type":"asset"},{"id":"68823849758b4baa01f52605","index":2,"name":"永信","type":"liability"}],"count":2,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m分析會計科目:\u001b[39m","timestamp":"2025-08-16 00:32:38:3238"}
+{"creditAccount":"永信","debitAccount":"藥局庫存","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m資產-負債格式:\u001b[39m","timestamp":"2025-08-16 00:32:38:3238"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m從會計科目推斷機構ID:\u001b[39m","organizationId":"68639ad3d2823bbee3a59e25","timestamp":"2025-08-16 00:32:38:3238"}
+{"date":"2025-08-15","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m從進貨單號解析日期:\u001b[39m","poid":"20250816001","timestamp":"2025-08-16 00:32:38:3238"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建嵌入式交易群組:\u001b[39m","organizationId":"68639ad3d2823bbee3a59e25","timestamp":"2025-08-16 00:32:39:3239"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m成功創建自動會計分錄:\u001b[39m","organizationId":"68639ad3d2823bbee3a59e25","poid":"20250816001","timestamp":"2025-08-16 00:32:39:3239"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m進貨單 20250816001 已關聯交易群組 689f612648adf1dc3faf5291\u001b[39m","timestamp":"2025-08-16 00:32:39:3239"}
+{"count":552,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-16 00:32:40:3240"}
+{"count":552,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-16 00:32:40:3240"}
+{"hasPaymentCount":99,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":61,"missingTransactionIdCount":392,"paymentTransactionsCount":31,"timestamp":"2025-08-16 00:32:40:3240","totalOrders":552}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":99,"timestamp":"2025-08-16 00:32:40:3240","totalCount":552,"unpaidCount":453}
+{"hasPaymentCount":99,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":61,"missingTransactionIdCount":392,"paymentTransactionsCount":31,"timestamp":"2025-08-16 00:32:40:3240","totalOrders":552}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":99,"timestamp":"2025-08-16 00:32:40:3240","totalCount":552,"unpaidCount":453}
+{"count":553,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-16 00:32:41:3241"}
+{"hasPaymentCount":99,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":62,"missingTransactionIdCount":392,"paymentTransactionsCount":31,"timestamp":"2025-08-16 00:32:41:3241","totalOrders":553}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":99,"timestamp":"2025-08-16 00:32:41:3241","totalCount":553,"unpaidCount":454}
+{"count":553,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-16 00:32:41:3241"}
+{"hasPaymentCount":99,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":62,"missingTransactionIdCount":392,"paymentTransactionsCount":31,"timestamp":"2025-08-16 00:32:41:3241","totalOrders":553}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":99,"timestamp":"2025-08-16 00:32:41:3241","totalCount":553,"unpaidCount":454}
+{"count":553,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-16 09:14:42:1442"}
+{"count":553,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-16 09:14:42:1442"}
+{"hasPaymentCount":99,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":62,"missingTransactionIdCount":392,"paymentTransactionsCount":31,"timestamp":"2025-08-16 09:14:42:1442","totalOrders":553}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":99,"timestamp":"2025-08-16 09:14:42:1442","totalCount":553,"unpaidCount":454}
+{"hasPaymentCount":99,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":62,"missingTransactionIdCount":392,"paymentTransactionsCount":31,"timestamp":"2025-08-16 09:14:42:1442","totalOrders":553}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":99,"timestamp":"2025-08-16 09:14:42:1442","totalCount":553,"unpaidCount":454}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m更新進貨單 - selectedAccountIds:\u001b[39m","timestamp":"2025-08-16 09:16:05:165"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m進貨單 67ee866c7d60a8f8e5a0c036 狀態從完成變為 pending，執行解鎖操作\u001b[39m","timestamp":"2025-08-16 09:16:05:165"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已刪除 2 筆與進貨單 67ee866c7d60a8f8e5a0c036 相關的庫存記錄\u001b[39m","timestamp":"2025-08-16 09:16:05:165"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單已更新 - selectedAccountIds:\u001b[39m","timestamp":"2025-08-16 09:16:05:165"}
+{"count":553,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-16 09:16:05:165"}
+{"hasPaymentCount":99,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":62,"missingTransactionIdCount":392,"paymentTransactionsCount":31,"timestamp":"2025-08-16 09:16:05:165","totalOrders":553}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":99,"timestamp":"2025-08-16 09:16:05:165","totalCount":553,"unpaidCount":454}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m更新進貨單 - selectedAccountIds:\u001b[39m","timestamp":"2025-08-16 09:16:07:167"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m進貨單 67f6a1d4b4fbd671af0a77e5 狀態從完成變為 pending，執行解鎖操作\u001b[39m","timestamp":"2025-08-16 09:16:07:167"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已刪除 2 筆與進貨單 67f6a1d4b4fbd671af0a77e5 相關的庫存記錄\u001b[39m","timestamp":"2025-08-16 09:16:07:167"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單已更新 - selectedAccountIds:\u001b[39m","timestamp":"2025-08-16 09:16:07:167"}
+{"count":553,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-16 09:16:07:167"}
+{"hasPaymentCount":99,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":62,"missingTransactionIdCount":392,"paymentTransactionsCount":31,"timestamp":"2025-08-16 09:16:07:167","totalOrders":553}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":99,"timestamp":"2025-08-16 09:16:07:167","totalCount":553,"unpaidCount":454}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m更新進貨單 - selectedAccountIds:\u001b[39m","timestamp":"2025-08-16 09:16:08:168"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m進貨單 68078e1ca48f04609ed48719 狀態從完成變為 pending，執行解鎖操作\u001b[39m","timestamp":"2025-08-16 09:16:08:168"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已刪除 2 筆與進貨單 68078e1ca48f04609ed48719 相關的庫存記錄\u001b[39m","timestamp":"2025-08-16 09:16:08:168"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單已更新 - selectedAccountIds:\u001b[39m","timestamp":"2025-08-16 09:16:08:168"}
+{"count":553,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-16 09:16:08:168"}
+{"hasPaymentCount":99,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":62,"missingTransactionIdCount":392,"paymentTransactionsCount":31,"timestamp":"2025-08-16 09:16:08:168","totalOrders":553}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":99,"timestamp":"2025-08-16 09:16:08:168","totalCount":553,"unpaidCount":454}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m後端序列化後的進貨單資料:\u001b[39m","timestamp":"2025-08-16 09:16:11:1611"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m第一個項目的批號:\u001b[39m","timestamp":"2025-08-16 09:16:11:1611"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67eb60d00f2cf9d2647e3c85"},"supplierId":"67eb60d00f2cf9d2647e3c85","timestamp":"2025-08-16 09:16:11:1611"}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-08-16 09:16:12:1612"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m後端序列化後的進貨單資料:\u001b[39m","timestamp":"2025-08-16 09:16:12:1612"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m第一個項目的批號:\u001b[39m","timestamp":"2025-08-16 09:16:12:1612"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67eb60d00f2cf9d2647e3c85"},"supplierId":"67eb60d00f2cf9d2647e3c85","timestamp":"2025-08-16 09:16:30:1630"}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-08-16 09:16:30:1630"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67eb60d00f2cf9d2647e3c85"},"supplierId":"67eb60d00f2cf9d2647e3c85","timestamp":"2025-08-16 09:16:30:1630"}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-08-16 09:16:30:1630"}
+{"accountIds":["686729f987107c6d64bcc6c1","689f50f4c59a0cee3c6fcbc3"],"accountIdsType":"object","isArray":true,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mPOST 請求資料:\u001b[39m","supplierId":"67eb60d00f2cf9d2647e3c85","timestamp":"2025-08-16 09:17:54:1754"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m允許混合不同機構的會計科目\u001b[39m","timestamp":"2025-08-16 09:17:54:1754"}
+{"id":"686729f987107c6d64bcc6c1","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m處理會計科目 ID:\u001b[39m","originalType":"string","originalValue":"686729f987107c6d64bcc6c1","timestamp":"2025-08-16 09:17:54:1754"}
+{"id":"689f50f4c59a0cee3c6fcbc3","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m處理會計科目 ID:\u001b[39m","originalType":"string","originalValue":"689f50f4c59a0cee3c6fcbc3","timestamp":"2025-08-16 09:17:54:1754"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m後端序列化後的進貨單資料:\u001b[39m","timestamp":"2025-08-16 09:18:04:184"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m第一個項目的批號:\u001b[39m","timestamp":"2025-08-16 09:18:04:184"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67eb60d00f2cf9d2647e3c85"},"supplierId":"67eb60d00f2cf9d2647e3c85","timestamp":"2025-08-16 09:18:05:185"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-08-16 09:18:05:185"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m後端序列化後的進貨單資料:\u001b[39m","timestamp":"2025-08-16 09:18:05:185"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m第一個項目的批號:\u001b[39m","timestamp":"2025-08-16 09:18:05:185"}
+{"0":"686729f987107c6d64bcc6c1","1":"689f50f4c59a0cee3c6fcbc3","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m更新進貨單 - selectedAccountIds:\u001b[39m","timestamp":"2025-08-16 09:18:10:1810"}
+{"0":"686729f987107c6d64bcc6c1","1":"689f50f4c59a0cee3c6fcbc3","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單已更新 - selectedAccountIds:\u001b[39m","timestamp":"2025-08-16 09:18:10:1810"}
+{"count":553,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-16 09:18:12:1812"}
+{"hasPaymentCount":99,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":62,"missingTransactionIdCount":392,"paymentTransactionsCount":31,"timestamp":"2025-08-16 09:18:12:1812","totalOrders":553}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":99,"timestamp":"2025-08-16 09:18:12:1812","totalCount":553,"unpaidCount":454}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m後端序列化後的進貨單資料:\u001b[39m","timestamp":"2025-08-16 09:18:25:1825"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m第一個項目的批號:\u001b[39m","timestamp":"2025-08-16 09:18:25:1825"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67eb60d00f2cf9d2647e3c85"},"supplierId":"67eb60d00f2cf9d2647e3c85","timestamp":"2025-08-16 09:18:25:1825"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-08-16 09:18:25:1825"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m後端序列化後的進貨單資料:\u001b[39m","timestamp":"2025-08-16 09:18:25:1825"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m第一個項目的批號:\u001b[39m","timestamp":"2025-08-16 09:18:25:1825"}
+{"0":"686729f987107c6d64bcc6c1","1":"689f50f4c59a0cee3c6fcbc3","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m更新進貨單 - selectedAccountIds:\u001b[39m","timestamp":"2025-08-16 09:18:29:1829"}
+{"0":"686729f987107c6d64bcc6c1","1":"689f50f4c59a0cee3c6fcbc3","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單已更新 - selectedAccountIds:\u001b[39m","timestamp":"2025-08-16 09:18:29:1829"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 67f3cbd7f362fef303317ac9 創建新庫存記錄，進貨單號: 20250213001, 數量: 560, 總金額: 14062\u001b[39m","timestamp":"2025-08-16 09:18:29:1829"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 67f3cbd7f362fef303317acc 創建新庫存記錄，進貨單號: 20250213001, 數量: 560, 總金額: 14062\u001b[39m","timestamp":"2025-08-16 09:18:29:1829"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m檢查進貨單自動會計分錄條件:\u001b[39m","poid":"20250213001","timestamp":"2025-08-16 09:18:29:1829"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單沒有機構ID，將嘗試從會計科目獲取\u001b[39m","timestamp":"2025-08-16 09:18:29:1829"}
+{"accountCount":2,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m滿足自動會計分錄條件:\u001b[39m","organizationId":"未設置","timestamp":"2025-08-16 09:18:29:1829","totalAmount":28124}
+{"asset":true,"expense":false,"level":"\u001b[37mdebug\u001b[39m","liability":true,"message":"\u001b[37m科目類型分析:\u001b[39m","timestamp":"2025-08-16 09:18:29:1829"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m判斷為資產-負債格式: 資產科目 + 負債科目\u001b[39m","timestamp":"2025-08-16 09:18:29:1829"}
+{"entryType":"asset-liability","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m自動推斷分錄類型:\u001b[39m","timestamp":"2025-08-16 09:18:29:1829"}
+{"entryType":"asset-liability","level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已更新進貨單分錄類型:\u001b[39m","poid":"20250213001","timestamp":"2025-08-16 09:18:29:1829"}
+{"accounts":[{"id":"686729f987107c6d64bcc6c1","index":1,"name":"診所庫存","type":"asset"},{"id":"689f50f4c59a0cee3c6fcbc3","index":2,"name":"大昌","type":"liability"}],"count":2,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m分析會計科目:\u001b[39m","timestamp":"2025-08-16 09:18:29:1829"}
+{"creditAccount":"大昌","debitAccount":"診所庫存","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m資產-負債格式:\u001b[39m","timestamp":"2025-08-16 09:18:29:1829"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m從會計科目推斷機構ID:\u001b[39m","organizationId":"686390c76ac0ff7bb8bb8387","timestamp":"2025-08-16 09:18:29:1829"}
+{"date":"2025-02-12","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m從進貨單號解析日期:\u001b[39m","poid":"20250213001","timestamp":"2025-08-16 09:18:29:1829"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建嵌入式交易群組:\u001b[39m","organizationId":"686390c76ac0ff7bb8bb8387","timestamp":"2025-08-16 09:18:29:1829"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m成功創建自動會計分錄:\u001b[39m","organizationId":"686390c76ac0ff7bb8bb8387","poid":"20250213001","timestamp":"2025-08-16 09:18:29:1829"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m進貨單 20250213001 已關聯交易群組 689fdc6548adf1dc3fafa187\u001b[39m","timestamp":"2025-08-16 09:18:29:1829"}
+{"count":553,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-16 09:18:31:1831"}
+{"count":553,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-16 09:18:31:1831"}
+{"hasPaymentCount":99,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":63,"missingTransactionIdCount":391,"paymentTransactionsCount":31,"timestamp":"2025-08-16 09:18:31:1831","totalOrders":553}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":99,"timestamp":"2025-08-16 09:18:31:1831","totalCount":553,"unpaidCount":454}
+{"hasPaymentCount":99,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":63,"missingTransactionIdCount":391,"paymentTransactionsCount":31,"timestamp":"2025-08-16 09:18:31:1831","totalOrders":553}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":99,"timestamp":"2025-08-16 09:18:31:1831","totalCount":553,"unpaidCount":454}
+{"count":553,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-16 09:18:32:1832"}
+{"hasPaymentCount":99,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":63,"missingTransactionIdCount":391,"paymentTransactionsCount":31,"timestamp":"2025-08-16 09:18:32:1832","totalOrders":553}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":99,"timestamp":"2025-08-16 09:18:32:1832","totalCount":553,"unpaidCount":454}
+{"count":553,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-16 09:18:32:1832"}
+{"hasPaymentCount":99,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":63,"missingTransactionIdCount":391,"paymentTransactionsCount":31,"timestamp":"2025-08-16 09:18:32:1832","totalOrders":553}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":99,"timestamp":"2025-08-16 09:18:32:1832","totalCount":553,"unpaidCount":454}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m後端序列化後的進貨單資料:\u001b[39m","timestamp":"2025-08-16 09:18:38:1838"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m第一個項目的批號:\u001b[39m","timestamp":"2025-08-16 09:18:38:1838"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67eb60d00f2cf9d2647e3c85"},"supplierId":"67eb60d00f2cf9d2647e3c85","timestamp":"2025-08-16 09:18:38:1838"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-08-16 09:18:38:1838"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m後端序列化後的進貨單資料:\u001b[39m","timestamp":"2025-08-16 09:18:38:1838"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m第一個項目的批號:\u001b[39m","timestamp":"2025-08-16 09:18:38:1838"}
+{"0":"686729f987107c6d64bcc6c1","1":"689f50f4c59a0cee3c6fcbc3","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m更新進貨單 - selectedAccountIds:\u001b[39m","timestamp":"2025-08-16 09:18:44:1844"}
+{"0":"686729f987107c6d64bcc6c1","1":"689f50f4c59a0cee3c6fcbc3","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單已更新 - selectedAccountIds:\u001b[39m","timestamp":"2025-08-16 09:18:44:1844"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 67f3cbd7f362fef303317ac9 創建新庫存記錄，進貨單號: 20250328001, 數量: 560, 總金額: 14062\u001b[39m","timestamp":"2025-08-16 09:18:44:1844"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 67f3cbd7f362fef303317acc 創建新庫存記錄，進貨單號: 20250328001, 數量: 560, 總金額: 14062\u001b[39m","timestamp":"2025-08-16 09:18:44:1844"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m檢查進貨單自動會計分錄條件:\u001b[39m","poid":"20250328001","timestamp":"2025-08-16 09:18:44:1844"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單沒有機構ID，將嘗試從會計科目獲取\u001b[39m","timestamp":"2025-08-16 09:18:44:1844"}
+{"accountCount":2,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m滿足自動會計分錄條件:\u001b[39m","organizationId":"未設置","timestamp":"2025-08-16 09:18:44:1844","totalAmount":28124}
+{"asset":true,"expense":false,"level":"\u001b[37mdebug\u001b[39m","liability":true,"message":"\u001b[37m科目類型分析:\u001b[39m","timestamp":"2025-08-16 09:18:44:1844"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m判斷為資產-負債格式: 資產科目 + 負債科目\u001b[39m","timestamp":"2025-08-16 09:18:44:1844"}
+{"entryType":"asset-liability","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m自動推斷分錄類型:\u001b[39m","timestamp":"2025-08-16 09:18:44:1844"}
+{"entryType":"asset-liability","level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已更新進貨單分錄類型:\u001b[39m","poid":"20250328001","timestamp":"2025-08-16 09:18:44:1844"}
+{"accounts":[{"id":"686729f987107c6d64bcc6c1","index":1,"name":"診所庫存","type":"asset"},{"id":"689f50f4c59a0cee3c6fcbc3","index":2,"name":"大昌","type":"liability"}],"count":2,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m分析會計科目:\u001b[39m","timestamp":"2025-08-16 09:18:44:1844"}
+{"creditAccount":"大昌","debitAccount":"診所庫存","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m資產-負債格式:\u001b[39m","timestamp":"2025-08-16 09:18:44:1844"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m從會計科目推斷機構ID:\u001b[39m","organizationId":"686390c76ac0ff7bb8bb8387","timestamp":"2025-08-16 09:18:44:1844"}
+{"date":"2025-03-27","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m從進貨單號解析日期:\u001b[39m","poid":"20250328001","timestamp":"2025-08-16 09:18:44:1844"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建嵌入式交易群組:\u001b[39m","organizationId":"686390c76ac0ff7bb8bb8387","timestamp":"2025-08-16 09:18:44:1844"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m成功創建自動會計分錄:\u001b[39m","organizationId":"686390c76ac0ff7bb8bb8387","poid":"20250328001","timestamp":"2025-08-16 09:18:44:1844"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m進貨單 20250328001 已關聯交易群組 689fdc7448adf1dc3fafb398\u001b[39m","timestamp":"2025-08-16 09:18:44:1844"}
+{"count":553,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-16 09:18:46:1846"}
+{"count":553,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-16 09:18:46:1846"}
+{"hasPaymentCount":99,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":64,"missingTransactionIdCount":390,"paymentTransactionsCount":31,"timestamp":"2025-08-16 09:18:46:1846","totalOrders":553}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":99,"timestamp":"2025-08-16 09:18:46:1846","totalCount":553,"unpaidCount":454}
+{"hasPaymentCount":99,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":64,"missingTransactionIdCount":390,"paymentTransactionsCount":31,"timestamp":"2025-08-16 09:18:46:1846","totalOrders":553}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":99,"timestamp":"2025-08-16 09:18:46:1846","totalCount":553,"unpaidCount":454}
+{"count":553,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-16 09:18:47:1847"}
+{"hasPaymentCount":99,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":64,"missingTransactionIdCount":390,"paymentTransactionsCount":31,"timestamp":"2025-08-16 09:18:47:1847","totalOrders":553}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":99,"timestamp":"2025-08-16 09:18:47:1847","totalCount":553,"unpaidCount":454}
+{"count":553,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-16 09:18:47:1847"}
+{"hasPaymentCount":99,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":64,"missingTransactionIdCount":390,"paymentTransactionsCount":31,"timestamp":"2025-08-16 09:18:47:1847","totalOrders":553}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":99,"timestamp":"2025-08-16 09:18:47:1847","totalCount":553,"unpaidCount":454}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m後端序列化後的進貨單資料:\u001b[39m","timestamp":"2025-08-16 09:18:52:1852"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m第一個項目的批號:\u001b[39m","timestamp":"2025-08-16 09:18:52:1852"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67eb60d00f2cf9d2647e3c85"},"supplierId":"67eb60d00f2cf9d2647e3c85","timestamp":"2025-08-16 09:18:53:1853"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-08-16 09:18:53:1853"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m後端序列化後的進貨單資料:\u001b[39m","timestamp":"2025-08-16 09:18:53:1853"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m第一個項目的批號:\u001b[39m","timestamp":"2025-08-16 09:18:53:1853"}
+{"0":"686729f987107c6d64bcc6c1","1":"689f50f4c59a0cee3c6fcbc3","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m更新進貨單 - selectedAccountIds:\u001b[39m","timestamp":"2025-08-16 09:18:59:1859"}
+{"0":"686729f987107c6d64bcc6c1","1":"689f50f4c59a0cee3c6fcbc3","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單已更新 - selectedAccountIds:\u001b[39m","timestamp":"2025-08-16 09:18:59:1859"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 67f3cbd7f362fef303317ac9 創建新庫存記錄，進貨單號: 20250422004, 數量: 1680, 總金額: 39841\u001b[39m","timestamp":"2025-08-16 09:18:59:1859"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 67f3cbd7f362fef303317acc 創建新庫存記錄，進貨單號: 20250422004, 數量: 1680, 總金額: 39841\u001b[39m","timestamp":"2025-08-16 09:18:59:1859"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m檢查進貨單自動會計分錄條件:\u001b[39m","poid":"20250422004","timestamp":"2025-08-16 09:18:59:1859"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單沒有機構ID，將嘗試從會計科目獲取\u001b[39m","timestamp":"2025-08-16 09:18:59:1859"}
+{"accountCount":2,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m滿足自動會計分錄條件:\u001b[39m","organizationId":"未設置","timestamp":"2025-08-16 09:18:59:1859","totalAmount":79682}
+{"asset":true,"expense":false,"level":"\u001b[37mdebug\u001b[39m","liability":true,"message":"\u001b[37m科目類型分析:\u001b[39m","timestamp":"2025-08-16 09:18:59:1859"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m判斷為資產-負債格式: 資產科目 + 負債科目\u001b[39m","timestamp":"2025-08-16 09:18:59:1859"}
+{"entryType":"asset-liability","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m自動推斷分錄類型:\u001b[39m","timestamp":"2025-08-16 09:18:59:1859"}
+{"entryType":"asset-liability","level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已更新進貨單分錄類型:\u001b[39m","poid":"20250422004","timestamp":"2025-08-16 09:18:59:1859"}
+{"accounts":[{"id":"686729f987107c6d64bcc6c1","index":1,"name":"診所庫存","type":"asset"},{"id":"689f50f4c59a0cee3c6fcbc3","index":2,"name":"大昌","type":"liability"}],"count":2,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m分析會計科目:\u001b[39m","timestamp":"2025-08-16 09:18:59:1859"}
+{"creditAccount":"大昌","debitAccount":"診所庫存","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m資產-負債格式:\u001b[39m","timestamp":"2025-08-16 09:18:59:1859"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m從會計科目推斷機構ID:\u001b[39m","organizationId":"686390c76ac0ff7bb8bb8387","timestamp":"2025-08-16 09:18:59:1859"}
+{"date":"2025-04-21","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m從進貨單號解析日期:\u001b[39m","poid":"20250422004","timestamp":"2025-08-16 09:18:59:1859"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建嵌入式交易群組:\u001b[39m","organizationId":"686390c76ac0ff7bb8bb8387","timestamp":"2025-08-16 09:18:59:1859"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m成功創建自動會計分錄:\u001b[39m","organizationId":"686390c76ac0ff7bb8bb8387","poid":"20250422004","timestamp":"2025-08-16 09:18:59:1859"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m進貨單 20250422004 已關聯交易群組 689fdc8348adf1dc3fafc5ab\u001b[39m","timestamp":"2025-08-16 09:18:59:1859"}
+{"count":553,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-16 09:19:00:190"}
+{"count":553,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-16 09:19:00:190"}
+{"hasPaymentCount":99,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":65,"missingTransactionIdCount":389,"paymentTransactionsCount":31,"timestamp":"2025-08-16 09:19:00:190","totalOrders":553}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":99,"timestamp":"2025-08-16 09:19:00:190","totalCount":553,"unpaidCount":454}
+{"hasPaymentCount":99,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":65,"missingTransactionIdCount":389,"paymentTransactionsCount":31,"timestamp":"2025-08-16 09:19:00:190","totalOrders":553}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":99,"timestamp":"2025-08-16 09:19:00:190","totalCount":553,"unpaidCount":454}
+{"count":553,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-16 09:19:01:191"}
+{"hasPaymentCount":99,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":65,"missingTransactionIdCount":389,"paymentTransactionsCount":31,"timestamp":"2025-08-16 09:19:01:191","totalOrders":553}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":99,"timestamp":"2025-08-16 09:19:01:191","totalCount":553,"unpaidCount":454}
+{"count":553,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-16 09:19:01:191"}
+{"hasPaymentCount":99,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":65,"missingTransactionIdCount":389,"paymentTransactionsCount":31,"timestamp":"2025-08-16 09:19:01:191","totalOrders":553}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":99,"timestamp":"2025-08-16 09:19:01:191","totalCount":553,"unpaidCount":454}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 09:22:10:2210"}
+{"executionTime":"12ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":45,"timestamp":"2025-08-16 09:22:10:2210"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 09:22:10:2210"}
+{"executionTime":"9ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":45,"timestamp":"2025-08-16 09:22:10:2210"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 09:22:10:2210"}
+{"executionTime":"7ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":45,"timestamp":"2025-08-16 09:22:10:2210"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 09:22:10:2210"}
+{"executionTime":"6ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":45,"timestamp":"2025-08-16 09:22:10:2210"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 09:24:28:2428"}
+{"executionTime":"9ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":45,"timestamp":"2025-08-16 09:24:28:2428"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 09:24:28:2428"}
+{"executionTime":"7ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":45,"timestamp":"2025-08-16 09:24:28:2428"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 09:24:28:2428"}
+{"executionTime":"6ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":45,"timestamp":"2025-08-16 09:24:28:2428"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 09:24:28:2428"}
+{"executionTime":"6ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":45,"timestamp":"2025-08-16 09:24:28:2428"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 09:24:55:2455"}
+{"executionTime":"7ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":45,"timestamp":"2025-08-16 09:24:55:2455"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 09:24:55:2455"}
+{"executionTime":"5ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":45,"timestamp":"2025-08-16 09:24:55:2455"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 09:24:55:2455"}
+{"executionTime":"6ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":45,"timestamp":"2025-08-16 09:24:55:2455"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 09:24:55:2455"}
+{"executionTime":"6ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":45,"timestamp":"2025-08-16 09:24:55:2455"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 09:25:15:2515"}
+{"executionTime":"9ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":45,"timestamp":"2025-08-16 09:25:15:2515"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 09:25:15:2515"}
+{"executionTime":"10ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":45,"timestamp":"2025-08-16 09:25:15:2515"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 09:25:15:2515"}
+{"executionTime":"8ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":45,"timestamp":"2025-08-16 09:25:15:2515"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 09:25:15:2515"}
+{"executionTime":"7ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":45,"timestamp":"2025-08-16 09:25:15:2515"}
+{"count":552,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-16 09:25:39:2539"}
+{"count":552,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-16 09:25:39:2539"}
+{"hasPaymentCount":99,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":64,"missingTransactionIdCount":389,"paymentTransactionsCount":31,"timestamp":"2025-08-16 09:25:39:2539","totalOrders":552}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":99,"timestamp":"2025-08-16 09:25:39:2539","totalCount":552,"unpaidCount":453}
+{"hasPaymentCount":99,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":64,"missingTransactionIdCount":389,"paymentTransactionsCount":31,"timestamp":"2025-08-16 09:25:39:2539","totalOrders":552}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":99,"timestamp":"2025-08-16 09:25:39:2539","totalCount":552,"unpaidCount":453}
+{"count":553,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-16 09:25:40:2540"}
+{"hasPaymentCount":99,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":65,"missingTransactionIdCount":389,"paymentTransactionsCount":31,"timestamp":"2025-08-16 09:25:40:2540","totalOrders":553}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":99,"timestamp":"2025-08-16 09:25:40:2540","totalCount":553,"unpaidCount":454}
+{"count":553,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-16 09:25:40:2540"}
+{"hasPaymentCount":99,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":65,"missingTransactionIdCount":389,"paymentTransactionsCount":31,"timestamp":"2025-08-16 09:25:40:2540","totalOrders":553}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":99,"timestamp":"2025-08-16 09:25:40:2540","totalCount":553,"unpaidCount":454}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67fe27f6c2347c64b93a3409"},"supplierId":"67fe27f6c2347c64b93a3409","timestamp":"2025-08-16 09:26:12:2612"}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-08-16 09:26:12:2612"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67fe27f6c2347c64b93a3409"},"supplierId":"67fe27f6c2347c64b93a3409","timestamp":"2025-08-16 09:26:12:2612"}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-08-16 09:26:12:2612"}
+{"accountIds":["689fdde748adf1dc3fb02655"],"accountIdsType":"object","isArray":true,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mPOST 請求資料:\u001b[39m","supplierId":"67fe27f6c2347c64b93a3409","timestamp":"2025-08-16 09:26:44:2644"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m允許混合不同機構的會計科目\u001b[39m","timestamp":"2025-08-16 09:26:44:2644"}
+{"id":"689fdde748adf1dc3fb02655","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m處理會計科目 ID:\u001b[39m","originalType":"string","originalValue":"689fdde748adf1dc3fb02655","timestamp":"2025-08-16 09:26:44:2644"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e025f5042c84ea93cc7fa6"},"supplierId":"67e025f5042c84ea93cc7fa6","timestamp":"2025-08-16 09:26:52:2652"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-08-16 09:26:52:2652"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e025f5042c84ea93cc7fa6"},"supplierId":"67e025f5042c84ea93cc7fa6","timestamp":"2025-08-16 09:26:52:2652"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-08-16 09:26:52:2652"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 09:36:42:3642"}
+{"executionTime":"12ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":45,"timestamp":"2025-08-16 09:36:42:3642"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 09:36:42:3642"}
+{"executionTime":"7ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":45,"timestamp":"2025-08-16 09:36:42:3642"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 09:36:42:3642"}
+{"executionTime":"7ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":45,"timestamp":"2025-08-16 09:36:42:3642"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 09:36:42:3642"}
+{"executionTime":"5ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":45,"timestamp":"2025-08-16 09:36:42:3642"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 09:38:44:3844"}
+{"executionTime":"12ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":45,"timestamp":"2025-08-16 09:38:44:3844"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 09:38:44:3844"}
+{"executionTime":"5ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":45,"timestamp":"2025-08-16 09:38:44:3844"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 09:38:44:3844"}
+{"executionTime":"5ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":45,"timestamp":"2025-08-16 09:38:44:3844"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 09:38:44:3844"}
+{"executionTime":"8ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":45,"timestamp":"2025-08-16 09:38:44:3844"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 09:39:16:3916"}
+{"executionTime":"451ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":45,"timestamp":"2025-08-16 09:39:16:3916"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 09:39:16:3916"}
+{"executionTime":"69ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":45,"timestamp":"2025-08-16 09:39:16:3916"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 09:39:16:3916"}
+{"executionTime":"10ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":45,"timestamp":"2025-08-16 09:39:16:3916"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 09:39:16:3916"}
+{"executionTime":"11ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":45,"timestamp":"2025-08-16 09:39:16:3916"}
+{"accounts":["2001 - 應付","2002 - 嘉鏵","2003 - 裕利","2004 - 生達","2005 - 永信","2006 - 蔓達特","2007 - 清大行","2008 - 唯效食品"],"count":8,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到應付帳款科目:\u001b[39m","timestamp":"2025-08-16 09:41:31:4131"}
+{"count":146,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到包含應付帳款科目的交易:\u001b[39m","timestamp":"2025-08-16 09:41:31:4131"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"68996b57d03f5f9ae1ee3edd"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"68959920f225885c497e17df"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"68906870fd65730e227ee605"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"68907410a2b9045eb2dc820c"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c46e11d950d8bcafe327d"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c49bc1d950d8bcafee757"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c12d83dfe49e94df58d2b"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c474d1d950d8bcafe989f"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c4a835054d7564b5c4abe"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c4a965054d7564b5c6337"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"6888ad8bd405e8d914b69452"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"6888ae57d405e8d914b6b97f"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"689178e6875aeab994711360"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"6888ae78d405e8d914b6cb9d"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c4b215054d7564b5cacdd"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688de3370e14e5f0a08399c4"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c40661d950d8bcafda8db"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c404b1d950d8bcafd9016"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c3bd33dfe49e94dfa7077"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c3c2f3dfe49e94dfabb08"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c5fbf5054d7564b5e7176"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c368d3dfe49e94df9bdb3"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c36bf3dfe49e94dfa0025"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c37133dfe49e94dfa3209"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c4e055054d7564b5d734a"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c4e145054d7564b5d8be9"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c4ddf5054d7564b5d5a8e"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c4d705054d7564b5d41fb"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c35ed3dfe49e94df9639b"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c35423dfe49e94df8caac"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c355b3dfe49e94df8e347"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c34f33dfe49e94df89f82"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c350b3dfe49e94df8b1aa"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"68837220b1ba6e380a9ff88d"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c4d595054d7564b5d2931"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688de18d7578517b2d771632"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"68919bda0a7c530c514b3887"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":3334,"transactionId":"688c4d485054d7564b5d1091"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688deb6eb49e502707097cb1"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":6926,"transactionId":"688f734d1be3f71c83bc58f3"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":3056,"transactionId":"688deb32b49e50270709394d"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"689aa1f865da430422792a26"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":30685,"transactionId":"6890441a474fa4bcd3b9958c"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"689aa78d65da430422798b62"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"68907e78a2b9045eb2dcc670"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688f784c50daca5a7cba827a"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688f783f50daca5a7cba709d"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688f783150daca5a7cba5ecc"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688f782550daca5a7cba4d05"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688f781850daca5a7cba3b27"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2862,"transactionId":"688f780a50daca5a7cba294a"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":3570,"transactionId":"688f77f350daca5a7cb9f59a"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":3279,"transactionId":"688f77a850daca5a7cb9d641"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":3347,"transactionId":"688f779850daca5a7cb9c45a"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":3104,"transactionId":"688f778a50daca5a7cb9b28a"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":1571,"transactionId":"688f777a50daca5a7cb9a0ad"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":5268,"transactionId":"688f3980b97820e894c9a60c"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2716,"transactionId":"688f398fb97820e894c9b8a3"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":4118,"transactionId":"688f76d350daca5a7cb956ec"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":3298,"transactionId":"688f76c050daca5a7cb9450e"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2432,"transactionId":"688f76b250daca5a7cb9333b"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2241,"transactionId":"688f769f50daca5a7cb9216c"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2256,"transactionId":"688f6f71530b46b0f5744140"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":1951,"transactionId":"688f6f82530b46b0f574531c"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2314,"transactionId":"688f3ce2c942f3edf6fc1b71"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2716,"transactionId":"688f3cd1c942f3edf6fc0910"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2250,"transactionId":"688f3cc0c942f3edf6fbf6bd"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":6887,"transactionId":"688f38e1b97820e894c9856d"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":1864,"transactionId":"688f38d4b97820e894c972ff"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":5437,"transactionId":"688f38c6b97820e894c960b7"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":1684,"transactionId":"688f38b9b97820e894c94e64"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":3335,"transactionId":"688f32f89bc725e2d7853b1d"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":1529,"transactionId":"688f33089bc725e2d7854cdb"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":1660,"transactionId":"688f32e69bc725e2d785295e"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2582,"transactionId":"688f32d89bc725e2d785179f"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":5067,"transactionId":"688f32c99bc725e2d78505e1"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":3234,"transactionId":"688f32b99bc725e2d784f422"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":3255,"transactionId":"688f329d9bc725e2d784d099"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":3902,"transactionId":"688f32ac9bc725e2d784e24c"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2813,"transactionId":"688f30dd9bc725e2d78421c9"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":1862,"transactionId":"688f2c5939726bbd8deb85b1"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":3536,"transactionId":"688f2fba9bc725e2d783e8a4"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2770,"transactionId":"688f2a9339726bbd8deb67c3"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":4336,"transactionId":"688f2fae9bc725e2d783d6e5"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":1746,"transactionId":"688e194b0c1f4a3e0f2b66fb"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2765,"transactionId":"688e19320c1f4a3e0f2b5548"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2547,"transactionId":"688e182c0c1f4a3e0f2b18f3"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":1887,"transactionId":"688e181c0c1f4a3e0f2b0734"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2750,"transactionId":"688e18050c1f4a3e0f2ae7f7"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2522,"transactionId":"688e17f50c1f4a3e0f2ad62c"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2134,"transactionId":"688e17e50c1f4a3e0f2ac460"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2463,"transactionId":"688e17cb0c1f4a3e0f2aa0ec"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":3880,"transactionId":"688e17da0c1f4a3e0f2ab2ac"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":3003,"transactionId":"688e17bf0c1f4a3e0f2a8f2c"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"689f612648adf1dc3faf5291"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688f8be950daca5a7cbfd081"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688f8bd650daca5a7cbfbeba"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":1358,"transactionId":"688f8bb550daca5a7cbf8db8"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":4239,"transactionId":"688f8bc150daca5a7cbf9f7f"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":8730,"transactionId":"688f8ba950daca5a7cbf7bfd"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":1727,"transactionId":"688f8b2350daca5a7cbf367b"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":400,"transactionId":"688f8b1650daca5a7cbf24c0"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":4122,"transactionId":"688f8b0650daca5a7cbf1305"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":1358,"transactionId":"688f8ae950daca5a7cbeef83"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":1280,"transactionId":"688f8af750daca5a7cbf013e"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":4481,"transactionId":"688f8a5b50daca5a7cbe8b08"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":1358,"transactionId":"688f8a6950daca5a7cbe9cc3"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":1552,"transactionId":"688f8a4050daca5a7cbe677a"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":3521,"transactionId":"688f8a4e50daca5a7cbe7941"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2794,"transactionId":"688f8a2750daca5a7cbe4402"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":776,"transactionId":"688f8a3450daca5a7cbe55bf"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":3802,"transactionId":"688f897750daca5a7cbdead8"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2910,"transactionId":"688f896b50daca5a7cbdd91d"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":1794,"transactionId":"688f894a50daca5a7cbdb59b"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2328,"transactionId":"688f895750daca5a7cbdc756"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2910,"transactionId":"688f88ad50daca5a7cbd6492"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":1552,"transactionId":"688f88ba50daca5a7cbd764d"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2910,"transactionId":"688f882750daca5a7cbd26bc"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":4045,"transactionId":"688f880a50daca5a7cbd033a"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":1552,"transactionId":"688f881850daca5a7cbd14f5"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":3880,"transactionId":"688f87f750daca5a7cbcf180"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":1406,"transactionId":"688f82e350daca5a7cbca07a"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2425,"transactionId":"688f82fb50daca5a7cbcb234"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":22872,"transactionId":"688f82d450daca5a7cbc8eb3"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":3802,"transactionId":"688f816d50daca5a7cbc4881"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2716,"transactionId":"688f814f50daca5a7cbc24ef"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":10369,"transactionId":"688f815c50daca5a7cbc36c4"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":1358,"transactionId":"688f7fa450daca5a7cbbdbcb"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":630,"transactionId":"688f7f7b50daca5a7cbbb84a"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":4045,"transactionId":"688f7f8e50daca5a7cbbca04"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":1358,"transactionId":"688f7f2750daca5a7cbb8095"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":582,"transactionId":"688f7f6550daca5a7cbba68f"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":5005,"transactionId":"688f7c6d50daca5a7cbb5c31"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2425,"transactionId":"688f7c5d50daca5a7cbb4a68"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2999,"transactionId":"688f7c0450daca5a7cbb034f"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":1891,"transactionId":"688f7c2150daca5a7cbb150a"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":35754,"transactionId":"688f7c3950daca5a7cbb26f4"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":1455,"transactionId":"688f7c4b50daca5a7cbb38ae"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"68919c240a7c530c514b6a63"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"68919bf90a7c530c514b5169"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"68919bb70a7c530c514b1fcf"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":4270,"transactionId":"689182071379b7ab409819ef"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"68901beec1d9c84bf058d1b4"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"68902536c1d9c84bf05add31"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":4200,"transactionId":"68902514c1d9c84bf05ac331"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":4500,"transactionId":"689024eec1d9c84bf05aa931"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢應付帳款結果:\u001b[39m","timestamp":"2025-08-16 09:41:31:4131","total":54,"unpaid":54}
+{"accounts":["2001 - 應付","2002 - 嘉鏵","2003 - 裕利","2004 - 生達","2005 - 永信","2006 - 蔓達特","2007 - 清大行","2008 - 唯效食品"],"count":8,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到應付帳款科目:\u001b[39m","timestamp":"2025-08-16 09:41:31:4131"}
+{"count":146,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到包含應付帳款科目的交易:\u001b[39m","timestamp":"2025-08-16 09:41:31:4131"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"68996b57d03f5f9ae1ee3edd"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"68959920f225885c497e17df"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"68906870fd65730e227ee605"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"68907410a2b9045eb2dc820c"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c46e11d950d8bcafe327d"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c49bc1d950d8bcafee757"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c12d83dfe49e94df58d2b"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c474d1d950d8bcafe989f"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c4a835054d7564b5c4abe"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c4a965054d7564b5c6337"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"6888ad8bd405e8d914b69452"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"6888ae57d405e8d914b6b97f"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"689178e6875aeab994711360"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"6888ae78d405e8d914b6cb9d"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c4b215054d7564b5cacdd"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688de3370e14e5f0a08399c4"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c40661d950d8bcafda8db"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c404b1d950d8bcafd9016"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c3bd33dfe49e94dfa7077"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c3c2f3dfe49e94dfabb08"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c5fbf5054d7564b5e7176"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c368d3dfe49e94df9bdb3"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c36bf3dfe49e94dfa0025"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c37133dfe49e94dfa3209"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c4e055054d7564b5d734a"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c4e145054d7564b5d8be9"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c4ddf5054d7564b5d5a8e"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c4d705054d7564b5d41fb"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c35ed3dfe49e94df9639b"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c35423dfe49e94df8caac"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c355b3dfe49e94df8e347"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c34f33dfe49e94df89f82"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c350b3dfe49e94df8b1aa"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"68837220b1ba6e380a9ff88d"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688c4d595054d7564b5d2931"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688de18d7578517b2d771632"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"68919bda0a7c530c514b3887"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":3334,"transactionId":"688c4d485054d7564b5d1091"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688deb6eb49e502707097cb1"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":6926,"transactionId":"688f734d1be3f71c83bc58f3"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":3056,"transactionId":"688deb32b49e50270709394d"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"689aa1f865da430422792a26"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":30685,"transactionId":"6890441a474fa4bcd3b9958c"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"689aa78d65da430422798b62"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"68907e78a2b9045eb2dcc670"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688f784c50daca5a7cba827a"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688f783f50daca5a7cba709d"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688f783150daca5a7cba5ecc"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688f782550daca5a7cba4d05"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":0,"transactionId":"688f781850daca5a7cba3b27"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2862,"transactionId":"688f780a50daca5a7cba294a"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":3570,"transactionId":"688f77f350daca5a7cb9f59a"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":3279,"transactionId":"688f77a850daca5a7cb9d641"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":3347,"transactionId":"688f779850daca5a7cb9c45a"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":3104,"transactionId":"688f778a50daca5a7cb9b28a"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":1571,"transactionId":"688f777a50daca5a7cb9a0ad"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":5268,"transactionId":"688f3980b97820e894c9a60c"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2716,"transactionId":"688f398fb97820e894c9b8a3"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":4118,"transactionId":"688f76d350daca5a7cb956ec"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":3298,"transactionId":"688f76c050daca5a7cb9450e"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2432,"transactionId":"688f76b250daca5a7cb9333b"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2241,"transactionId":"688f769f50daca5a7cb9216c"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2256,"transactionId":"688f6f71530b46b0f5744140"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":1951,"transactionId":"688f6f82530b46b0f574531c"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2314,"transactionId":"688f3ce2c942f3edf6fc1b71"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2716,"transactionId":"688f3cd1c942f3edf6fc0910"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2250,"transactionId":"688f3cc0c942f3edf6fbf6bd"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":6887,"transactionId":"688f38e1b97820e894c9856d"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":1864,"transactionId":"688f38d4b97820e894c972ff"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":5437,"transactionId":"688f38c6b97820e894c960b7"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":1684,"transactionId":"688f38b9b97820e894c94e64"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":3335,"transactionId":"688f32f89bc725e2d7853b1d"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":1529,"transactionId":"688f33089bc725e2d7854cdb"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":1660,"transactionId":"688f32e69bc725e2d785295e"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2582,"transactionId":"688f32d89bc725e2d785179f"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":5067,"transactionId":"688f32c99bc725e2d78505e1"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":3234,"transactionId":"688f32b99bc725e2d784f422"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":3255,"transactionId":"688f329d9bc725e2d784d099"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":3902,"transactionId":"688f32ac9bc725e2d784e24c"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2813,"transactionId":"688f30dd9bc725e2d78421c9"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":1862,"transactionId":"688f2c5939726bbd8deb85b1"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":3536,"transactionId":"688f2fba9bc725e2d783e8a4"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2770,"transactionId":"688f2a9339726bbd8deb67c3"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":4336,"transactionId":"688f2fae9bc725e2d783d6e5"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":1746,"transactionId":"688e194b0c1f4a3e0f2b66fb"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2765,"transactionId":"688e19320c1f4a3e0f2b5548"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2547,"transactionId":"688e182c0c1f4a3e0f2b18f3"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":1887,"transactionId":"688e181c0c1f4a3e0f2b0734"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:31:4131","totalPaidAmount":2750,"transactionId":"688e18050c1f4a3e0f2ae7f7"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":2522,"transactionId":"688e17f50c1f4a3e0f2ad62c"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":2134,"transactionId":"688e17e50c1f4a3e0f2ac460"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":2463,"transactionId":"688e17cb0c1f4a3e0f2aa0ec"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":3880,"transactionId":"688e17da0c1f4a3e0f2ab2ac"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":3003,"transactionId":"688e17bf0c1f4a3e0f2a8f2c"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":0,"transactionId":"689f612648adf1dc3faf5291"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":0,"transactionId":"688f8be950daca5a7cbfd081"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":0,"transactionId":"688f8bd650daca5a7cbfbeba"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":1358,"transactionId":"688f8bb550daca5a7cbf8db8"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":4239,"transactionId":"688f8bc150daca5a7cbf9f7f"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":8730,"transactionId":"688f8ba950daca5a7cbf7bfd"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":1727,"transactionId":"688f8b2350daca5a7cbf367b"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":400,"transactionId":"688f8b1650daca5a7cbf24c0"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":4122,"transactionId":"688f8b0650daca5a7cbf1305"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":1358,"transactionId":"688f8ae950daca5a7cbeef83"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":1280,"transactionId":"688f8af750daca5a7cbf013e"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":4481,"transactionId":"688f8a5b50daca5a7cbe8b08"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":1358,"transactionId":"688f8a6950daca5a7cbe9cc3"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":1552,"transactionId":"688f8a4050daca5a7cbe677a"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":3521,"transactionId":"688f8a4e50daca5a7cbe7941"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":2794,"transactionId":"688f8a2750daca5a7cbe4402"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":776,"transactionId":"688f8a3450daca5a7cbe55bf"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":3802,"transactionId":"688f897750daca5a7cbdead8"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":2910,"transactionId":"688f896b50daca5a7cbdd91d"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":1794,"transactionId":"688f894a50daca5a7cbdb59b"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":2328,"transactionId":"688f895750daca5a7cbdc756"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":2910,"transactionId":"688f88ad50daca5a7cbd6492"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":1552,"transactionId":"688f88ba50daca5a7cbd764d"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":2910,"transactionId":"688f882750daca5a7cbd26bc"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":4045,"transactionId":"688f880a50daca5a7cbd033a"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":1552,"transactionId":"688f881850daca5a7cbd14f5"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":3880,"transactionId":"688f87f750daca5a7cbcf180"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":1406,"transactionId":"688f82e350daca5a7cbca07a"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":2425,"transactionId":"688f82fb50daca5a7cbcb234"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":22872,"transactionId":"688f82d450daca5a7cbc8eb3"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":3802,"transactionId":"688f816d50daca5a7cbc4881"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":2716,"transactionId":"688f814f50daca5a7cbc24ef"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":10369,"transactionId":"688f815c50daca5a7cbc36c4"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":1358,"transactionId":"688f7fa450daca5a7cbbdbcb"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":630,"transactionId":"688f7f7b50daca5a7cbbb84a"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":4045,"transactionId":"688f7f8e50daca5a7cbbca04"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":1358,"transactionId":"688f7f2750daca5a7cbb8095"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":582,"transactionId":"688f7f6550daca5a7cbba68f"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":5005,"transactionId":"688f7c6d50daca5a7cbb5c31"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":2425,"transactionId":"688f7c5d50daca5a7cbb4a68"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":2999,"transactionId":"688f7c0450daca5a7cbb034f"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":1891,"transactionId":"688f7c2150daca5a7cbb150a"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":35754,"transactionId":"688f7c3950daca5a7cbb26f4"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":1455,"transactionId":"688f7c4b50daca5a7cbb38ae"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":0,"transactionId":"68919c240a7c530c514b6a63"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":0,"transactionId":"68919bf90a7c530c514b5169"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":0,"transactionId":"68919bb70a7c530c514b1fcf"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":4270,"transactionId":"689182071379b7ab409819ef"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":0,"transactionId":"68901beec1d9c84bf058d1b4"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":0,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":0,"transactionId":"68902536c1d9c84bf05add31"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":4200,"transactionId":"68902514c1d9c84bf05ac331"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m計算已付金額:\u001b[39m","paymentCount":1,"timestamp":"2025-08-16 09:41:32:4132","totalPaidAmount":4500,"transactionId":"689024eec1d9c84bf05aa931"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢應付帳款結果:\u001b[39m","timestamp":"2025-08-16 09:41:32:4132","total":54,"unpaid":54}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 09:42:20:4220"}
+{"executionTime":"15ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":46,"timestamp":"2025-08-16 09:42:20:4220"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 09:42:20:4220"}
+{"executionTime":"8ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":46,"timestamp":"2025-08-16 09:42:20:4220"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 09:42:20:4220"}
+{"executionTime":"7ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":46,"timestamp":"2025-08-16 09:42:20:4220"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-16 09:42:20:4220"}
+{"executionTime":"6ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":46,"timestamp":"2025-08-16 09:42:20:4220"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e0d13d49330732e939473a"},"supplierId":"67e0d13d49330732e939473a","timestamp":"2025-08-16 09:47:46:4746"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-08-16 09:47:46:4746"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e0d13d49330732e939473a"},"supplierId":"67e0d13d49330732e939473a","timestamp":"2025-08-16 09:47:46:4746"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-08-16 09:47:46:4746"}
+{"count":553,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-16 09:49:08:498"}
+{"count":553,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-16 09:49:08:498"}
+{"hasPaymentCount":99,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":65,"missingTransactionIdCount":389,"paymentTransactionsCount":31,"timestamp":"2025-08-16 09:49:08:498","totalOrders":553}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":99,"timestamp":"2025-08-16 09:49:08:498","totalCount":553,"unpaidCount":454}
+{"hasPaymentCount":99,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":65,"missingTransactionIdCount":389,"paymentTransactionsCount":31,"timestamp":"2025-08-16 09:49:08:498","totalOrders":553}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":99,"timestamp":"2025-08-16 09:49:08:498","totalCount":553,"unpaidCount":454}
+{"count":553,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-16 09:49:09:499"}
+{"hasPaymentCount":99,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":65,"missingTransactionIdCount":389,"paymentTransactionsCount":31,"timestamp":"2025-08-16 09:49:09:499","totalOrders":553}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":99,"timestamp":"2025-08-16 09:49:09:499","totalCount":553,"unpaidCount":454}

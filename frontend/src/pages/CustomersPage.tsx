@@ -559,28 +559,30 @@ const CustomersPage: FC = () => {
 
   return (
     <>
-      <CommonListPageLayout
-        title="會員管理"
-        actionButtons={
-          <MuiButton
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={handleAddCustomer}
-          >
-            新增會員
-          </MuiButton>
-        }
-        loading={isLoading}
-        error={pageError || ''}
-        columns={columns}
-        rows={customersToDisplay}
-        onRowClick={(params: any) => setLocalSelectedCustomer(params.row)}
-        dataTableProps={{
-          getRowId: (row: Customer) => row.id
-        }}
-        detailPanel={<CustomerDetailPanel selectedCustomer={panelSelectedCustomer} handleEdit={handleEdit} handleDelete={handleDelete} />}
-      />
+      <Box sx={{ width: '95%', mx: 'auto' }}>
+        <CommonListPageLayout
+          title="會員管理"
+          actionButtons={
+            <MuiButton
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              onClick={handleAddCustomer}
+            >
+              新增會員
+            </MuiButton>
+          }
+          loading={isLoading}
+          error={pageError || ''}
+          columns={columns}
+          rows={customersToDisplay}
+          onRowClick={(params: any) => setLocalSelectedCustomer(params.row)}
+          dataTableProps={{
+            getRowId: (row: Customer) => row.id
+          }}
+          detailPanel={<CustomerDetailPanel selectedCustomer={panelSelectedCustomer} handleEdit={handleEdit} handleDelete={handleDelete} />}
+        />
+      </Box>
 
       <CustomerFormDialog
         open={openDialog}

@@ -621,29 +621,31 @@ const SuppliersPage: FC<{}> = () => {
 
   return (
     <>
-      <CommonListPageLayout
-        title={isTestMode ? "供應商管理 (測試模式)" : "供應商管理"}
-        actionButtons={actionButtons}
-        columns={columns}
-        rows={suppliers}
-        loading={loading}
-        {...(error && { error })}
-        onRowClick={handleRowClick}
-        detailPanel={detailPanel}
-        tableGridWidth={9}
-        detailGridWidth={3}
-        dataTableProps={{
-          pageSizeOptions: [15, 25, 50],
-          initialState: {
-            pagination: { paginationModel: { pageSize: 15 } },
-            sorting: {
-              sortModel: [{ field: 'code', sort: 'asc' }],
+      <Box sx={{ width: '95%', mx: 'auto' }}>
+        <CommonListPageLayout
+          title={isTestMode ? "供應商管理 (測試模式)" : "供應商管理"}
+          actionButtons={actionButtons}
+          columns={columns}
+          rows={suppliers}
+          loading={loading}
+          {...(error && { error })}
+          onRowClick={handleRowClick}
+          detailPanel={detailPanel}
+          tableGridWidth={9}
+          detailGridWidth={3}
+          dataTableProps={{
+            pageSizeOptions: [15, 25, 50],
+            initialState: {
+              pagination: { paginationModel: { pageSize: 15 } },
+              sorting: {
+                sortModel: [{ field: 'code', sort: 'asc' }],
+              },
             },
-          },
-          getRowId: (row: SupplierData) => row.id,
-          sx: { height: 'calc(100vh - 200px)' }  // 增加表格高度
-        }}
-      />
+            getRowId: (row: SupplierData) => row.id,
+            sx: { height: 'calc(100vh - 200px)' }  // 增加表格高度
+          }}
+        />
+      </Box>
 
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
         <DialogTitle>{editMode ? '編輯供應商' : '添加供應商'} {isTestMode && "(模擬)"}</DialogTitle>
