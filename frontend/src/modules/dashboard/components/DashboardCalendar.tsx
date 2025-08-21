@@ -39,9 +39,9 @@ interface DashboardCalendarProps {
  * />
  * ```
  */
-
 const DashboardCalendar: FC<DashboardCalendarProps> = ({ selectedDate, onDateSelect }) => {
   const navigate = useNavigate();
+  /** 當前顯示的月份 */
   const [currentDate, setCurrentDate] = useState(new Date());
 
   // 獲取當月的第一天和最後一天
@@ -55,50 +55,151 @@ const DashboardCalendar: FC<DashboardCalendarProps> = ({ selectedDate, onDateSel
   // 獲取當月天數
   const daysInMonth = lastDayOfMonth.getDate();
 
-  // 生成日曆格子
-  const generateCalendarDays = () => {
-    const days = [];
-    
-    // 添加上個月的空白格子
-    for (let i = 0; i < firstDayWeekday; i++) {
-      days.push(null);
+  /**
+   * 星期名稱
+   */
+  const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+
+  /**
+   * 月份名稱
+   */
+  const monthNames = [
+    '一月', '二月', '三月', '四月', '五月', '六月',
+    '七月', '八月', '九月', '十月', '十一月', '十二月'
+  ];
+
+  /**
+   * 生成日曆格子
+   *
+   * @description 生成包含當月所有日期的數組，並在前面添加空白格子以對齊星期
+   * @returns {(number | null)[]} 日曆格子數組，null 表示空白格子
+   */
+  const generateCalendarDays = (): (number | null)[] => {
+    try {
+      const days: (number | null)[] = [];
+      
+      // 檢查 firstDayWeekday 是否有效
+      if (firstDayWeekday < 0 || firstDayWeekday > 6) {
+        console.warn(`無效的星期幾: ${firstDayWeekday}`);
+        return [];
+      }
+      
+      // 檢查 daysInMonth 是否有效
+      if (daysInMonth <= 0 || daysInMonth > 31) {
+        console.warn(`無效的月份天數: ${daysInMonth}`);
+        return [];
+      }
+      
+      // 添加上個月的空白格子
+      for (let i = 0; i < firstDayWeekday; i++) {
+        days.push(null);
+      }
+      
+      // 添加當月的日期
+      for (let day = 1; day <= daysInMonth; day++) {
+        days.push(day);
+      }
+      
+      return days;
+    } catch (error) {
+      console.error('生成日曆格子時發生錯誤:', error);
+      return [];
     }
-    
-    // 添加當月的日期
-    for (let day = 1; day <= daysInMonth; day++) {
-      days.push(day);
-    }
-    
-    return days;
   };
 
   const calendarDays = generateCalendarDays();
-  const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
 
-  const formatDateForUrl = (day: number) => {
-    const year = currentDate.getFullYear();
-    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-    const dayStr = String(day).padStart(2, '0');
-    return `${year}-${month}-${dayStr}`;
+  /**
+   * 將日期格式化為 URL 格式
+   *
+   * @description 將日期格式化為 'YYYY-MM-DD' 格式，用於 URL 路徑
+   * @param {number} day - 日期（1-31）
+   * @returns {string} 格式化後的日期字符串，如果日期無效則返回空字符串
+   */
+  const formatDateForUrl = (day: number): string => {
+    // 檢查日期是否有效
+    if (!day || isNaN(day) || day < 1 || day > daysInMonth) {
+      console.warn(`無效的日期: ${day}`);
+      return '';
+    }
+    
+    try {
+      const year = currentDate.getFullYear();
+      const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+      const dayStr = String(day).padStart(2, '0');
+      return `${year}-${month}-${dayStr}`;
+    } catch (error) {
+      console.error('格式化日期時發生錯誤:', error);
+      return '';
+    }
   };
 
-  const isToday = (day: number) => {
-    const today = new Date();
-    return (
-      day === today.getDate() &&
-      currentDate.getMonth() === today.getMonth() &&
-      currentDate.getFullYear() === today.getFullYear()
-    );
+  /**
+   * 檢查日期是否為今天
+   *
+   * @description 檢查指定的日期是否為今天
+   * @param {number} day - 日期（1-31）
+   * @returns {boolean} 如果是今天則返回 true，否則返回 false
+   */
+  const isToday = (day: number): boolean => {
+    // 檢查日期是否有效
+    if (!day || isNaN(day) || day < 1 || day > daysInMonth) {
+      return false;
+    }
+    
+    try {
+      const today = new Date();
+      return (
+        day === today.getDate() &&
+        currentDate.getMonth() === today.getMonth() &&
+        currentDate.getFullYear() === today.getFullYear()
+      );
+    } catch (error) {
+      console.error('檢查日期是否為今天時發生錯誤:', error);
+      return false;
+    }
   };
 
-  const isSelected = (day: number) => {
+  /**
+   * 檢查日期是否被選中
+   *
+   * @description 檢查指定的日期是否為當前選中的日期
+   * @param {number} day - 日期（1-31）
+   * @returns {boolean} 如果是選中的日期則返回 true，否則返回 false
+   */
+  const isSelected = (day: number): boolean => {
+    // 如果沒有選中的日期，直接返回 false
     if (!selectedDate) return false;
-    const dateStr = formatDateForUrl(day);
-    return dateStr === selectedDate;
+    
+    // 檢查日期是否有效
+    if (!day || isNaN(day) || day < 1 || day > daysInMonth) {
+      return false;
+    }
+    
+    try {
+      const dateStr = formatDateForUrl(day);
+      return dateStr === selectedDate;
+    } catch (error) {
+      console.error('檢查日期是否被選中時發生錯誤:', error);
+      return false;
+    }
   };
 
-  const handleDateClick = (day: number) => {
+  /**
+   * 處理日期點擊事件
+   *
+   * @description 當用戶點擊日期時，調用 onDateSelect 回調或導航到該日期的儀表板詳情頁面
+   * @param {number} day - 被點擊的日期（1-31）
+   */
+  const handleDateClick = (day: number): void => {
     const dateStr = formatDateForUrl(day);
+    
+    // 如果日期無效，不執行任何操作
+    if (!dateStr) {
+      console.warn(`無法處理無效的日期: ${day}`);
+      return;
+    }
+    
     if (onDateSelect) {
       onDateSelect(dateStr);
     } else {
@@ -106,22 +207,32 @@ const DashboardCalendar: FC<DashboardCalendarProps> = ({ selectedDate, onDateSel
     }
   };
 
-  const handlePrevMonth = () => {
+  /**
+   * 處理上個月按鈕點擊事件
+   *
+   * @description 將日曆視圖切換到上個月
+   */
+  const handlePrevMonth = (): void => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
   };
 
-  const handleNextMonth = () => {
+  /**
+   * 處理下個月按鈕點擊事件
+   *
+   * @description 將日曆視圖切換到下個月
+   */
+  const handleNextMonth = (): void => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
   };
 
-  const handleToday = () => {
+  /**
+   * 處理今天按鈕點擊事件
+   *
+   * @description 將日曆視圖切換到當前月份
+   */
+  const handleToday = (): void => {
     setCurrentDate(new Date());
   };
-
-  const monthNames = [
-    '一月', '二月', '三月', '四月', '五月', '六月',
-    '七月', '八月', '九月', '十月', '十一月', '十二月'
-  ];
 
   return (
     <Card elevation={2}>
