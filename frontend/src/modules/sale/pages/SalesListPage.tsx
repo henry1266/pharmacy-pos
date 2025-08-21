@@ -104,7 +104,11 @@ const SalesListPage: FC<SalesListPageProps> = () => {
               loading={loading}
               onViewSale={handleViewSale}
               onEditSale={handleEditSale}
-              onDeleteSale={setConfirmDeleteId}
+              onDeleteSale={(saleId) => {
+                // 這裡我們需要從 useSalesList 鉤子中獲取一個函數來設置 confirmDeleteId
+                // 但由於沒有這樣的函數，我們直接使用 handleDeleteSale
+                handleDeleteSale(saleId);
+              }}
               onPreviewClick={handlePreviewClick}
             />
           </Box>
@@ -131,7 +135,7 @@ const SalesListPage: FC<SalesListPageProps> = () => {
       </Box>
       
       <SalesPreviewPopover
-        id={previewId}
+        {... (previewId ? { id: previewId } : {})}
         open={isPreviewOpen}
         anchorEl={previewAnchorEl}
         sale={selectedSale}

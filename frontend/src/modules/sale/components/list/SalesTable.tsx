@@ -32,7 +32,6 @@ interface SalesTableProps {
   onEditSale: (saleId: string) => void;
   onDeleteSale: (saleId: string) => void;
   onPreviewClick: (event: React.MouseEvent<HTMLButtonElement>, sale: Sale) => void;
-  showSalesProfitColumns?: boolean;
 }
 
 /**
@@ -45,8 +44,7 @@ const SalesTable: FC<SalesTableProps> = ({
   onViewSale,
   onEditSale,
   onDeleteSale,
-  onPreviewClick,
-  showSalesProfitColumns = false
+  onPreviewClick
 }) => {
   // 為DataGrid準備行數據
   const rows = sales.map(sale => ({
