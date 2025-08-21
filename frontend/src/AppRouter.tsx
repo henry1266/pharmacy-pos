@@ -12,7 +12,7 @@ import CustomersPage from './pages/CustomersPage';
 import CustomerDetailPage from './pages/CustomerDetailPage';
 // 銷售管理頁面元件
 import SalesNew2Page from './modules/sale/pages/SalesNew2Page';
-import SalesListPage from './pages/SalesListPage';
+import SalesListPage from './modules/sale/pages/SalesListPage';
 import SalesEditPage from './pages/SalesEditPage';
 import SalesDetailPage from './modules/sale/pages/SalesDetailPage';
 import ReportsPage from './pages/ReportsPage';
