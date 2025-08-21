@@ -8,7 +8,6 @@ import ProductEditPage from './pages/ProductEditPage';
 import PackagesPage from './pages/PackagesPage';
 import SuppliersPage from './pages/SuppliersPage';
 import SupplierDetailPage from './pages/SupplierDetailPage';
-import SuppliersReportPage from './pages/SuppliersReportPage';
 import CustomersPage from './pages/CustomersPage';
 import CustomerDetailPage from './pages/CustomerDetailPage';
 // 銷售管理頁面元件
@@ -73,9 +72,6 @@ const AppRouter: React.FC = () => {
       {/* Supplier Routes */}
       <Route path="/suppliers" element={<SuppliersPage />} />
       <Route path="/suppliers/:id" element={<SupplierDetailPage />} />
-      
-      {/* Reports Routes */}
-      <Route path="/reports/suppliers" element={<SuppliersReportPage />} />
       
       {/* Customer Routes */}
       <Route path="/customers" element={<CustomersPage />} />
