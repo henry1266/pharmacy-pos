@@ -11,6 +11,7 @@ import {
   Divider,
   Fab,
   Tooltip,
+  Paper,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -165,26 +166,66 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = () => {
   }
 
   return (
-    <Container maxWidth="xl" sx={{ py: 1 }}>
+    <Container maxWidth="xl" sx={{ py: 0, px: 0 }}>
 
       {/* 麵包屑導航 */}
-      <BreadcrumbNavigation
-        items={[
-          {
-            label: '會計首頁',
-            path: '/accounting3',
-            icon: <HomeIcon fontSize="small" />
-          },
-          {
-            label: '科目管理',
-            path: '/accounting3/accounts',
-            icon: <AccountTreeIcon fontSize="small" />
-          },
-          {
-            label: currentAccount.name
-          }
-        ]}
-      />
+      <Paper sx={{
+        mb: 3,
+        bgcolor: 'background.paper',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+        position: 'relative',
+        zIndex: 1
+      }}>
+        <Box sx={{
+          p: 1.5,
+          borderBottom: 1,
+          borderColor: 'divider',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          minHeight: 48
+        }}>
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            height: '100%'
+          }}>
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              height: 44
+            }}>
+              <Box sx={{
+                '& > div': {
+                  marginBottom: 0,
+                  display: 'flex',
+                  alignItems: 'center'
+                }
+              }}>
+                <BreadcrumbNavigation
+                  items={[
+                    {
+                      label: '會計首頁',
+                      path: '/accounting3',
+                      icon: <HomeIcon sx={{ fontSize: '1.1rem' }} />
+                    },
+                    {
+                      label: '科目管理',
+                      path: '/accounting3/accounts',
+                      icon: <AccountTreeIcon sx={{ fontSize: '1.1rem' }} />
+                    },
+                    {
+                      label: currentAccount.name
+                    }
+                  ]}
+                  fontSize="0.975rem"
+                  padding={0}
+                />
+              </Box>
+            </Box>
+          </Box>
+        </Box>
+      </Paper>
 
       {/* 交易明細 */}
       <Card>
