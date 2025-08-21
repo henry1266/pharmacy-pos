@@ -20,7 +20,36 @@ import { DashboardSummary } from '../../../services/dashboardService';
  * }
  * ```
  */
-export const adaptToSummaryData = (data: DashboardSummary | any | null): { salesSummary: { total: number, today: number, month: number }, counts: { orders: number } } | null => {
+/**
+ * 摘要數據類型
+ */
+export interface SummaryData {
+  salesSummary: {
+    total: number;
+    today: number;
+    month: number;
+  };
+  counts: {
+    orders: number;
+  };
+}
+
+/**
+ * 測試數據類型
+ */
+interface TestDashboardData {
+  totalSalesToday: number;
+  salesSummary: {
+    total: number;
+    today: number;
+    month: number;
+  };
+  counts?: {
+    orders: number;
+  };
+}
+
+export const adaptToSummaryData = (data: DashboardSummary | TestDashboardData | null): SummaryData | null => {
   if (!data) {
     console.warn('adaptToSummaryData: data is null or undefined');
     return null;
@@ -74,10 +103,74 @@ export const adaptToSummaryData = (data: DashboardSummary | any | null): { sales
  * formatCurrency(1000); // 返回 'NT$1,000'
  * ```
  */
+/**
+ * 格式化貨幣顯示
+ *
+ * @description 將數字格式化為台幣顯示格式
+ *
+ * @param {number} amount - 要格式化的金額
+ * @returns {string} 格式化後的貨幣字符串
+ *
+ * @example
+ * ```ts
+ * formatCurrency(1000); // 返回 'NT$1,000'
+ * formatCurrency(NaN); // 返回 'NT$0'
+ * ```
+ */
 export const formatCurrency = (amount: number): string => {
+  // 檢查輸入是否為有效數字
+  if (isNaN(amount) || !isFinite(amount)) {
+    console.warn(`formatCurrency: Invalid amount: ${amount}`);
+    amount = 0;
+  }
+  
   return new Intl.NumberFormat('zh-TW', {
     style: 'currency',
     currency: 'TWD',
     minimumFractionDigits: 0
   }).format(amount);
+};
+
+/**
+ * 格式化日期
+ *
+ * @description 將日期字符串格式化為本地化的日期顯示格式
+ *
+ * @param {string} dateString - 要格式化的日期字符串
+ * @param {string} [formatStr] - 可選的格式化字符串，默認為本地化日期格式
+ * @returns {string} 格式化後的日期字符串
+ *
+ * @example
+ * ```ts
+ * formatDate('2025-08-21'); // 返回 '2025年8月21日 星期四'
+ * formatDate('2025-08-21', 'yyyy-MM-dd'); // 返回 '2025-08-21'
+ * ```
+ */
+export const formatDate = (dateString: string, formatStr?: string): string => {
+  if (!dateString) {
+    console.warn('formatDate: dateString is empty');
+    return '';
+  }
+  
+  const date = new Date(dateString);
+  
+  // 檢查日期是否有效
+  if (isNaN(date.getTime())) {
+    console.warn(`formatDate: Invalid date string: ${dateString}`);
+    return dateString; // 返回原始字符串
+  }
+  
+  if (formatStr) {
+    // 如果提供了格式化字符串，使用 date-fns 的 format 函數
+    const { format } = require('date-fns');
+    return format(date, formatStr);
+  }
+  
+  // 否則使用本地化的日期格式
+  return date.toLocaleDateString('zh-TW', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    weekday: 'long'
+  });
 };

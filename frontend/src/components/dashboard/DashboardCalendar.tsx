@@ -14,10 +14,31 @@ import {
   Today as TodayIcon
 } from '@mui/icons-material';
 
+/**
+ * 儀表板日曆組件屬性
+ */
 interface DashboardCalendarProps {
+  /** 當前選中的日期，格式為 'YYYY-MM-DD' */
   selectedDate?: string;
+  /** 日期選擇回調函數 */
   onDateSelect?: (date: string) => void;
 }
+
+/**
+ * 儀表板日曆組件
+ *
+ * @description 顯示月份視圖的日曆，允許用戶選擇日期查看當日營業報表。
+ * 支持導航到上個月、下個月和今天，並高亮顯示當前選中的日期和今天的日期。
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <DashboardCalendar
+ *   selectedDate="2025-08-21"
+ *   onDateSelect={(date) => console.log(`選擇了日期: ${date}`)}
+ * />
+ * ```
+ */
 
 const DashboardCalendar: FC<DashboardCalendarProps> = ({ selectedDate, onDateSelect }) => {
   const navigate = useNavigate();

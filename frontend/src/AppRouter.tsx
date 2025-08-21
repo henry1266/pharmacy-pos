@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import DashboardPage from './modules/dashboard/pages/DashboardPage';
-import DashboardDateDetailPage from './pages/DashboardDateDetailPage';
+import DashboardDateDetailPage from './modules/dashboard/pages/DashboardDateDetailPage';
 import ProductsPage from './pages/ProductsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import ProductEditPage from './pages/ProductEditPage';
