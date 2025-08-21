@@ -78,7 +78,7 @@ router.get('/product/:productId', async (req: Request, res: Response): Promise<v
     
     // 一般產品使用 FIFO 計算
     const fifoResult = calculateProductFIFO(inventories);
-    logger.debug('一般產品 FIFO 計算完成');
+    //logger.debug('一般產品 FIFO 計算完成');
     res.json(fifoResult);
   } catch (err: any) {
     logger.error(`FIFO計算錯誤: ${err.message}`);
