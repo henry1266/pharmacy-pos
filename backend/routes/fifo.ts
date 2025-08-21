@@ -138,7 +138,7 @@ router.get('/sale/:saleId', async (req: Request, res: Response): Promise<void> =
         .populate('product')
         .sort({ lastUpdated: 1 });
       
-      logger.debug(`找到庫存記錄數量: ${inventories.length}`);
+      //logger.debug(`找到庫存記錄數量: ${inventories.length}`);
       
       if (inventories.length === 0) {
         itemsWithProfit.push({
@@ -162,7 +162,7 @@ router.get('/sale/:saleId', async (req: Request, res: Response): Promise<void> =
         p.orderId === req.params.saleId
       ) || [];
       
-      logger.debug(`找到相關毛利記錄: ${profitRecords.length}`);
+      //logger.debug(`找到相關毛利記錄: ${profitRecords.length}`);
       
       if (profitRecords.length > 0) {
         // 計算該產品在此銷售中的總毛利

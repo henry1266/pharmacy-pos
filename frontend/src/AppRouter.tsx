@@ -14,7 +14,7 @@ import CustomerDetailPage from './pages/CustomerDetailPage';
 import SalesNew2Page from './modules/sale/pages/SalesNew2Page';
 import SalesListPage from './pages/SalesListPage';
 import SalesEditPage from './pages/SalesEditPage';
-import SalesDetailPage from './pages/SalesDetailPage';
+import SalesDetailPage from './modules/sale/pages/SalesDetailPage';
 import ReportsPage from './pages/ReportsPage';
 // 進貨管理頁面元件
 import PurchaseOrdersPage from './pages/PurchaseOrdersPage';
