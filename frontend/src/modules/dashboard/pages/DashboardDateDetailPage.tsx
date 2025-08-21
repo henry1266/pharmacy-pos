@@ -19,7 +19,7 @@ import useDailyStats from '../hooks/useDailyStats';
 
 // Import Components
 import DailyPurchasePanel from '../../../components/dashboard/panels/DailyPurchasePanel';
-import DailyShippingPanel from '../../../components/dashboard/panels/DailyShippingPanel';
+import DailyShippingPanel from '../components/DailyShippingPanel/index';
 import SummaryCards from '../components/SummaryCards';
 
 // Import Utils

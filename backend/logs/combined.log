@@ -2482,3 +2482,9 @@
 {"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已成功為出貨單 68a684d48162998affb8c4de 創建所有ship類型庫存記錄\u001b[39m","timestamp":"2025-08-21 10:31:26:3126"}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m一般產品 FIFO 計算完成\u001b[39m","timestamp":"2025-08-21 10:31:33:3133"}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m一般產品 FIFO 計算完成\u001b[39m","timestamp":"2025-08-21 10:31:33:3133"}
+{"count":559,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-21 13:17:06:176"}
+{"count":559,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-21 13:17:06:176"}
+{"hasPaymentCount":99,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":69,"missingTransactionIdCount":391,"paymentTransactionsCount":31,"timestamp":"2025-08-21 13:17:06:176","totalOrders":559}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":99,"timestamp":"2025-08-21 13:17:06:176","totalCount":559,"unpaidCount":460}
+{"hasPaymentCount":99,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":69,"missingTransactionIdCount":391,"paymentTransactionsCount":31,"timestamp":"2025-08-21 13:17:07:177","totalOrders":559}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":99,"timestamp":"2025-08-21 13:17:07:177","totalCount":559,"unpaidCount":460}

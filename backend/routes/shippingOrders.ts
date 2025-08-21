@@ -629,8 +629,65 @@ router.get('/supplier/:supplierId', async (req: Request, res: Response) => {
     handleDatabaseError(res, err as Error);
   }
 });
+// @route   GET api/shipping-orders/search/query
+// @desc    搜索出貨單
+// @access  Public
+router.get('/search/query', async (req: Request, res: Response) => {
+  try {
+    const { soid, sosupplier, startDate, endDate, status, paymentStatus } = req.query;
+    
+    // 構建查詢條件
+    const query: any = {};
+    
+    // 根據 soid 過濾
+    if (soid) {
+      query.soid = { $regex: soid, $options: 'i' };
+    }
+    
+    // 根據 sosupplier 過濾
+    if (sosupplier) {
+      query.sosupplier = { $regex: sosupplier, $options: 'i' };
+    }
+    
+    // 根據日期範圍過濾
+    if (startDate || endDate) {
+      query.shippingDate = {};
+      
+      if (startDate) {
+        query.shippingDate.$gte = new Date(startDate as string);
+      }
+      
+      if (endDate) {
+        // 設置結束日期為當天的最後一毫秒
+        const endDateObj = new Date(endDate as string);
+        endDateObj.setHours(23, 59, 59, 999);
+        query.shippingDate.$lte = endDateObj;
+      }
+    }
+    
+    // 根據狀態過濾
+    if (status) {
+      query.status = status;
+    }
+    
+    // 根據付款狀態過濾
+    if (paymentStatus) {
+      query.paymentStatus = paymentStatus;
+    }
+    
+    // 執行查詢
+    const shippingOrders = await ShippingOrder.find(query)
+      .sort({ createdAt: -1 })
+      .populate('supplier', 'name')
+      .populate('items.product', 'name code healthInsuranceCode');
+    
+    processHealthInsuranceCode(shippingOrders);
+    res.json(createSuccessResponse(shippingOrders));
+  } catch (err) {
+    handleDatabaseError(res, err as Error, '搜索出貨單時出錯');
+  }
+});
 
-// 搜索功能已移至前端實現，不再需要後端 API
 
 // @route   GET api/shipping-orders/product/:productId
 // @desc    獲取特定產品的出貨單

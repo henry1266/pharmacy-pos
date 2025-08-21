@@ -31,24 +31,40 @@ class AxiosHttpClient {
 
   async get<T>(url: string, config?: any): Promise<{ data: T }> {
     const mergedConfig = { ...this.getAuthConfig(), ...config };
-    return axios.get<T>(url, mergedConfig);
+    // 確保 URL 以 / 開頭
+    const normalizedUrl = url.startsWith('/') ? url : `/${url}`;
+    // 添加 API 基礎 URL 前綴
+    const fullUrl = `/api${normalizedUrl}`;
+    return axios.get<T>(fullUrl, mergedConfig);
   }
 
   async post<T>(url: string, data?: any, config?: any): Promise<{ data: T }> {
     const isFormData = data instanceof FormData;
     const baseConfig = isFormData ? this.getMultipartConfig() : this.getAuthConfig();
     const mergedConfig = { ...baseConfig, ...config };
-    return axios.post<T>(url, data, mergedConfig);
+    // 確保 URL 以 / 開頭
+    const normalizedUrl = url.startsWith('/') ? url : `/${url}`;
+    // 添加 API 基礎 URL 前綴
+    const fullUrl = `/api${normalizedUrl}`;
+    return axios.post<T>(fullUrl, data, mergedConfig);
   }
 
   async put<T>(url: string, data?: any, config?: any): Promise<{ data: T }> {
     const mergedConfig = { ...this.getAuthConfig(), ...config };
-    return axios.put<T>(url, data, mergedConfig);
+    // 確保 URL 以 / 開頭
+    const normalizedUrl = url.startsWith('/') ? url : `/${url}`;
+    // 添加 API 基礎 URL 前綴
+    const fullUrl = `/api${normalizedUrl}`;
+    return axios.put<T>(fullUrl, data, mergedConfig);
   }
 
   async delete<T>(url: string, config?: any): Promise<{ data: T }> {
     const mergedConfig = { ...this.getAuthConfig(), ...config };
-    return axios.delete<T>(url, mergedConfig);
+    // 確保 URL 以 / 開頭
+    const normalizedUrl = url.startsWith('/') ? url : `/${url}`;
+    // 添加 API 基礎 URL 前綴
+    const fullUrl = `/api${normalizedUrl}`;
+    return axios.delete<T>(fullUrl, mergedConfig);
   }
 }
 
