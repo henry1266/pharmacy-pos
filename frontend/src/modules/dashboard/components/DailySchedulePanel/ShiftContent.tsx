@@ -39,7 +39,9 @@ const ShiftContent: React.FC<ShiftContentProps> = ({ shift, getEmployeeInfo }) =
     // 正常班次員工顯示
     if (shift.employees.length === 0) {
       return (
+        
         <EmptyStateMessage message="此班次無排班" />
+        
       );
     } else {
       return (

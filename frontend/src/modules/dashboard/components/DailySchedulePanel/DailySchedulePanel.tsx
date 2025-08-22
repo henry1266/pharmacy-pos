@@ -26,7 +26,7 @@ const TimeCalculationOvertimeDialog = lazy(() =>
   import('../../../employees/components/overtime/TimeCalculationOvertimeDialog')
 );
 
-interface DailySchedulePanelProps {
+export interface DailySchedulePanelProps {
   selectedDate: string;
 }
 
