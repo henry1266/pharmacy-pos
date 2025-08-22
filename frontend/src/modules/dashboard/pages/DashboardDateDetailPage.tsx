@@ -18,7 +18,7 @@ import {
 import useDailyStats from '../hooks/useDailyStats';
 
 // Import Components
-import DailyPurchasePanel from '../../../components/dashboard/panels/DailyPurchasePanel';
+import DailyPurchasePanel from '../components/DailyPurchasePanel';
 import DailyShippingPanel from '../components/DailyShippingPanel/index';
 import SummaryCards from '../components/SummaryCards';
 

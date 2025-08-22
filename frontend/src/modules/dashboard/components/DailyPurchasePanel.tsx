@@ -18,7 +18,7 @@ import {
   formatDate,
   convertToStandardItems,
   DAILY_PANEL_STYLES
-} from './shared';
+} from '../../../components/dashboard/panels/shared';
 
 interface DailyPurchasePanelProps {
   purchaseOrders: PurchaseOrder[];
