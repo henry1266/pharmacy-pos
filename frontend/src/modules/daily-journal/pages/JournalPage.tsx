@@ -7,9 +7,9 @@ import useAccountingData from '../../../hooks/useAccountingData';
 import { accountingServiceV2 } from '../../../services/accountingServiceV2';
 
 // Import Presentation Components
-import AccountingFilter from '../components/AccountingFilter';
-import AccountingDataGrid from '../components/AccountingDataGrid';
-import AccountingForm from '../components/AccountingForm';
+import AccountingFilter from '../components/JournalFilter';
+import AccountingDataGrid from '../components/JournalDataGrid';
+import AccountingForm from '../components/JournalEntryForm';
 
 // Import Types
 import { AccountingRecord } from '@pharmacy-pos/shared/types/entities';
