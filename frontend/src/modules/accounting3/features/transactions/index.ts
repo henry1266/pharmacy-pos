@@ -24,6 +24,3 @@ export * from './utils';
 
 // 導出型別定義
 export * from './types';
-
-// 導出根目錄下的組件（這些組件將在後續重構中移至適當的子目錄）
-export { default as TransactionGroupFormWithEntries } from './TransactionGroupFormWithEntries';

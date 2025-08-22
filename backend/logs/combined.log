@@ -2762,3 +2762,62 @@
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m生成銷貨單號: 20250821007\u001b[39m","timestamp":"2025-08-21 20:01:07:17"}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m為產品 67ee2fb8c047658bac63b17d 創建銷售庫存記錄，數量: -1, 總金額: 50\u001b[39m","timestamp":"2025-08-21 20:01:07:17"}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m為產品 67ee2fb8c047658bac63b189 創建銷售庫存記錄，數量: -1, 總金額: 50\u001b[39m","timestamp":"2025-08-21 20:01:07:17"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m檢查產品ID: 67eb58070f2cf9d2647e3b44, 名稱: 喉舒樂喉片 10T 杏輝\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到 48 個庫存記錄\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67f24432287ee1d6810669b1, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67f249dc287ee1d681069840, 類型: purchase, 數量: 5\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67f254da287ee1d681073939, 類型: purchase, 數量: 3\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67f347698f21c94bafa636ad, 類型: purchase, 數量: 50\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67f3c8ddf362fef303312ef7, 類型: purchase, 數量: 500\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fceffea20aed37bbb62b6d, 類型: ship, 數量: -13\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fdac398edc85dc5d7556aa, 類型: purchase, 數量: 2\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fdac398edc85dc5d7556ad, 類型: purchase, 數量: 8\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fdfb13c2347c64b939bbea, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe04dec2347c64b939e57f, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe0649c2347c64b939e902, 類型: sale, 數量: -2\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe08fac2347c64b939f82a, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe094ac2347c64b939f98a, 類型: sale, 數量: -2\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe09c4c2347c64b939f9d2, 類型: sale, 數量: -3\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe0c75c2347c64b939fa34, 類型: sale, 數量: -5\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe0c97c2347c64b939fa51, 類型: sale, 數量: -3\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe0d13c2347c64b939fa78, 類型: sale, 數量: -2\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe13bbc2347c64b93a07c1, 類型: sale, 數量: -10\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe13d7c2347c64b93a07cf, 類型: sale, 數量: -2\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe14afc2347c64b93a0cd5, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe14c4c2347c64b93a0e58, 類型: sale, 數量: -2\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe1556c2347c64b93a0ebf, 類型: sale, 數量: -5\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe15d6c2347c64b93a0f01, 類型: sale, 數量: -2\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe15e1c2347c64b93a0f08, 類型: sale, 數量: -2\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe15f0c2347c64b93a0f0f, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe1924c2347c64b93a1342, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe1b7fc2347c64b93a1b2a, 類型: sale, 數量: -3\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe1bcfc2347c64b93a1b38, 類型: sale, 數量: -4\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe1c2ec2347c64b93a1b5e, 類型: sale, 數量: -2\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe1dc4c2347c64b93a20ed, 類型: sale, 數量: -20\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe1e1bc2347c64b93a24fa, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 6825e477c061d29020458d0f, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 6833d5940eb9cf19a9bc2203, 類型: sale, 數量: -4\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68391cbc1489ad43d1bc2af3, 類型: sale, 數量: -2\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 6842e5261489ad43d1fbf88b, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 684a282dc6862fc2a300a08f, 類型: sale, 數量: -4\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 684acc65f17605379eb46825, 類型: sale, 數量: -3\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 685120edb4a8d00d26c7ef75, 類型: sale, 數量: -9\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68530415495fe36b7bc0258f, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 6855473b7b4e47b7125996ed, 類型: sale, 數量: -2\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 685cb385ae952b79a6a0e263, 類型: sale, 數量: -2\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68667fc687107c6d64bcbc82, 類型: sale, 數量: -3\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 688045bcf676fc76725e6c41, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68875be39e9da050c111b86e, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 688817693d10780efd3331fd, 類型: ship, 數量: -10\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 688b5f6f9e9da050c116e2bc, 類型: ship, 數量: -6\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 688deb32b49e502707093949, 類型: purchase, 數量: 1\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68914b8e5b555c80bc64aaa5, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m產品 喉舒樂喉片 10T 杏輝 總庫存量: 428，銷售數量: 1\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m前端提供了銷貨單號: \"20250821212\"，但將被忽略以確保序號連續性\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m由後端生成銷貨單號\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m生成日期前綴: 20250821\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢當日銷貨單號，日期前綴: 20250821, 正則表達式: ^20250821\\d{3}$\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到 7 個匹配的銷貨單號\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m所有匹配的銷貨單號: [\"20250821001\",\"20250821002\",\"20250821003\",\"20250821004\",\"20250821005\",\"20250821006\",\"20250821007\"]\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m生成銷貨單號: 20250821008\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m為產品 67eb58070f2cf9d2647e3b44 創建銷售庫存記錄，數量: -1, 總金額: 30\u001b[39m","timestamp":"2025-08-21 20:30:57:3057"}
