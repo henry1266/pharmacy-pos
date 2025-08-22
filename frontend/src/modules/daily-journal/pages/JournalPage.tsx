@@ -9,7 +9,7 @@ import { accountingServiceV2 } from '../../../services/accountingServiceV2';
 // Import Presentation Components
 import AccountingFilter from '../components/AccountingFilter';
 import AccountingDataGrid from '../components/AccountingDataGrid';
-import AccountingForm from '../../../components/accounting/AccountingForm';
+import AccountingForm from '../components/AccountingForm';
 
 // Import Types
 import { AccountingRecord } from '@pharmacy-pos/shared/types/entities';

@@ -1,5 +1,5 @@
 import React, { FC } from 'react';
-import AccountingForm from '../../../components/accounting/AccountingForm';
+import AccountingForm from '../../daily-journal/components/AccountingForm';
 import type { FormData } from '@pharmacy-pos/shared/types/accounting';
 
 /**
