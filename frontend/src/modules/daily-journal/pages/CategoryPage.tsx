@@ -26,7 +26,7 @@ import PageHeaderSection from '../../../components/common/PageHeaderSection';
 import { DragDropContext, Draggable, DropResult } from 'react-beautiful-dnd';
 import { StrictModeDroppable } from '../../../components/common/StrictModeDroppable';
 import { accountingServiceV2 } from '../../../services/accountingServiceV2';
-import CategoryListItem from '../../../components/accounting/CategoryListItem';
+import CategoryListItem from '../components/CategoryListItem';
 import type { AccountingCategory } from '@pharmacy-pos/shared/types/accounting';
 
 // 對話框模式類型

@@ -22,7 +22,7 @@ interface CategoryListItemProps {
 }
 
 /**
- * 日常記帳類別列表項目元件
+ * 會計類別列表項目元件
  * 將複雜的巢狀結構抽出為獨立元件，降低巢狀層級
  */
 const CategoryListItem: React.FC<CategoryListItemProps> = ({ 

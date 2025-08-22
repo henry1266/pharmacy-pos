@@ -7,8 +7,8 @@ import useAccountingData from '../../../hooks/useAccountingData';
 import { accountingServiceV2 } from '../../../services/accountingServiceV2';
 
 // Import Presentation Components
-import AccountingFilter from '../../../components/accounting/AccountingFilter';
-import AccountingDataGrid from '../../../components/accounting/AccountingDataGrid';
+import AccountingFilter from '../components/AccountingFilter';
+import AccountingDataGrid from '../components/AccountingDataGrid';
 import AccountingForm from '../../../components/accounting/AccountingForm';
 
 // Import Types

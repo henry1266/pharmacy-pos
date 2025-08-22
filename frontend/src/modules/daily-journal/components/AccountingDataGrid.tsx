@@ -5,7 +5,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import LockIcon from '@mui/icons-material/Lock';
 import { format } from 'date-fns';
-import StatusChip from '../common/StatusChip';
+import StatusChip from '../../../components/common/StatusChip';
 import type { AccountingItem, ExtendedAccountingRecord } from '@pharmacy-pos/shared/types/accounting';
 
 // DataGrid 行數據介面
