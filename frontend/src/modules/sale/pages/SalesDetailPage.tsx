@@ -107,18 +107,18 @@ const SalesDetailPage: FC = () => {
     try {
       setFifoLoading(true);
       
-      console.log('🔍 開始獲取 FIFO 數據，銷售ID:', id);
+      //console.log('🔍 開始獲取 FIFO 數據，銷售ID:', id);
       const response = await axios.get(`/api/fifo/sale/${id}`);
       
-      console.log('📡 FIFO API 原始回應:', response.data);
-      console.log('📊 回應狀態:', response.status);
-      console.log('📋 回應標頭:', response.headers);
+      //console.log('📡 FIFO API 原始回應:', response.data);
+      //console.log('📊 回應狀態:', response.status);
+      //console.log('📋 回應標頭:', response.headers);
       
       // 後端回傳格式：{ success: true, items: [...], summary: {...} }
       if (response.data && response.data.success && response.data.summary) {
-        console.log('✅ FIFO API 回應格式正確');
-        console.log('💰 Summary 資料:', response.data.summary);
-        console.log('📦 Items 資料:', response.data.items);
+        //console.log('✅ FIFO API 回應格式正確');
+        //console.log('💰 Summary 資料:', response.data.summary);
+        //console.log('📦 Items 資料:', response.data.items);
         
         // 直接使用後端回傳的格式，將 items 和 summary 組合成 FifoData
         const fifoData: FifoData = {
@@ -126,7 +126,7 @@ const SalesDetailPage: FC = () => {
           items: response.data.items || []
         };
         
-        console.log('🎯 處理後的 FifoData:', fifoData);
+        //console.log('🎯 處理後的 FifoData:', fifoData);
         setFifoData(fifoData);
         setFifoError(null);
       } else {

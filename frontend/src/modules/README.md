@@ -47,95 +47,139 @@
 5. **目錄結構過於複雜** - 目錄嵌套層次過深，多層相同名稱的目錄導致開發人員容易混淆
 6. **目錄命名重複** - 不同層級使用相同的目錄名稱（如 components、hooks、utils 等），增加了理解和導航的難度
 
-## 最佳實踐目錄理想配置
+## Redux Toolkit 與 RTK Query 導入指南
 
-以下是建議的更扁平化的模組目錄標準結構：
+本章節提供了將 Redux Toolkit 和 RTK Query 導入模組的最佳實踐和注意事項，基於銷售模組的實際重構經驗。
+
+### 目錄結構
+
+使用 Redux Toolkit 和 RTK Query 時，建議採用以下目錄結構：
 
 ```
-modules/
-├── [module-name]/                # 模組名稱，如 accounting, sales 等
-│   ├── README.md                 # 模組說明文件
-│   ├── index.ts                  # 模組入口，導出公共 API
-│   ├── ui/                       # UI 相關文件
-│   │   ├── index.ts              # 導出所有 UI 元件
-│   │   ├── [ComponentName].tsx   # 具體 UI 元件
-│   │   └── [ComponentName].css   # 元件樣式
-│   ├── pages/                    # 頁面元件
-│   │   ├── index.ts              # 導出所有頁面
-│   │   ├── [PageName].tsx        # 頁面元件
-│   │   └── [PageName].css        # 頁面樣式
-│   ├── api/                      # API 相關
-│   │   ├── index.ts              # 導出所有 API 函數
-│   │   └── [resourceName].ts     # 資源相關 API 函數
-│   ├── model/                    # 數據模型與類型
-│   │   ├── index.ts              # 導出所有模型與類型
-│   │   ├── types.ts              # 類型定義
-│   │   └── constants.ts          # 常量定義
-│   └── lib/                      # 工具函數與邏輯
-│       ├── index.ts              # 導出所有工具函數
-│       ├── hooks.ts              # 自定義 Hooks
-│       └── utils.ts              # 工具函數
-└── shared/                       # 跨模組共用資源
-    ├── ui/                       # 共用 UI 元件
-    ├── api/                      # 共用 API 函數
-    ├── model/                    # 共用數據模型與類型
-    └── lib/                      # 共用工具函數與邏輯
+modules/[module-name]/
+├── api/
+│   ├── client.ts         # API 客戶端配置 (Axios 實例、攔截器、錯誤處理)
+│   ├── dto.ts            # 數據傳輸對象 (Request/Response 型別)
+│   └── [resource]Api.ts  # RTK Query API 定義
+├── model/
+│   └── [resource]Slice.ts # Redux 狀態切片 (UI 狀態管理)
+├── hooks/
+│   └── use[Resource].ts   # 封裝 RTK Query hooks
 ```
 
-## 模組設計原則
+### 實施步驟
 
-1. **模組獨立性**
-   - 每個模組應盡可能獨立，減少對其他模組的依賴
-   - 模組間的依賴應通過明確的公共 API 進行
+1. **安裝依賴**
+   ```bash
+   npm install @reduxjs/toolkit react-redux
+   ```
 
-2. **一致的目錄結構**
-   - 所有模組應遵循相同的目錄結構
-   - 即使某些目錄暫時為空，也應保持結構一致性
+2. **配置 Store**
+   - 創建 `app/store/index.ts` 文件
+   - 使用 `configureStore` 配置 Redux store
+   - 導入並組合所有 API 和 slice reducers
 
-3. **明確的責任劃分**
-   - ui/ - 僅包含 UI 元件，不包含業務邏輯
-   - pages/ - 頁面級元件，組合多個 UI 元件
-   - api/ - 處理 API 調用和數據獲取
-   - model/ - 定義數據模型、類型和常量
-   - lib/ - 提供工具函數、hooks 和業務邏輯
-   - features/ - 組織大型功能模組（可選）
-   - modules/common/ - 跨模組共用資源
+3. **實現 API 層**
+   - 創建 API 客戶端 (`client.ts`)
+   - 定義 DTO 型別 (`dto.ts`)
+   - 使用 `createApi` 定義 API endpoints
 
-4. **文檔完整性**
-   - 每個模組根目錄應包含 README.md
-   - 文檔應說明模組的用途、架構和使用方式
+4. **實現 UI 狀態管理**
+   - 使用 `createSlice` 定義 UI 狀態
+   - 實現 reducers 和 actions
+   - 定義 selectors
 
-5. **導出規範**
-   - 每個目錄應有 index.ts 文件導出公共 API
-   - 模組根目錄的 index.ts 應只導出需要被外部使用的內容
+5. **封裝 Hooks**
+   - 封裝 RTK Query 的 hooks，提供更簡潔的 API
+   - 實現向後兼容的 hooks，方便逐步遷移
 
-## 重構建議
+### 最佳實踐
 
-1. **標準化目錄結構**
-   - 為所有模組實施統一的目錄結構
-   - 將現有代碼遷移到新結構中
+1. **Server State 與 Client State 分離**
+   - 使用 RTK Query 管理伺服器數據 (獲取、緩存、更新)
+   - 使用 Redux Toolkit 的 createSlice 管理 UI 狀態
+   - 避免在 Redux store 中存儲可以通過 API 獲取的數據
 
-2. **添加缺失的文檔**
-   - 為每個模組添加 README.md
-   - 說明模組的用途、架構和使用方式
+2. **類型安全**
+   - 為所有 API 請求和響應定義明確的型別
+   - 使用 TypeScript 泛型增強代碼的靈活性
+   - 確保 API 和 UI 層之間的型別一致性
 
-3. **整理共用資源**
-   - 識別並提取跨模組共用的元件、函數和類型，將它們移至頂層 common/ 目錄
-   - 按照資源類型（ui、api、model、lib）組織共用資源
-   - 明確區分模組特定資源和跨模組共用資源
+3. **錯誤處理**
+   - 在 API 客戶端中統一處理錯誤
+   - 將 HTTP 錯誤映射為應用錯誤
+   - 使用 RTK Query 的錯誤處理機制
 
-4. **實施功能模組化**
-   - 對於大型模組，使用 features/ 目錄組織相關功能
-   - 每個功能模組使用扁平化結構（ui、api、model 文件）
-   - 避免在功能模組內創建過多子目錄
+4. **性能優化**
+   - 使用 RTK Query 的緩存機制
+   - 實現選擇性數據獲取
+   - 使用 `selectFromResult` 優化渲染性能
 
-5. **統一命名規範**
-   - 元件使用 PascalCase
-   - 文件、目錄和函數使用 camelCase
-   - 常量使用 UPPER_SNAKE_CASE
+### 常見錯誤與解決方案
 
-## 結論
+1. **型別不匹配問題**
+   
+   **問題**: 在使用 RTK Query 時，API 響應型別與組件期望的型別不匹配。
+   
+   **解決方案**:
+   - 使用型別轉換函數 (如 `mapSaleResponseToSaleData`)
+   - 修改組件屬性型別，使其接受多種型別 (如 `SaleItem[] | SaleItemWithDetailsDto[]`)
+   - 使用泛型型別 (如 `<T extends { price: number; quantity: number }>`)
 
-通過實施上述最佳實踐，我們可以提高代碼的可維護性、可讀性和可擴展性。標準化的目錄結構和明確的責任劃分將使新開發人員更容易理解和貢獻代碼，同時減少技術債務的積累。
+   **示例**:
+   ```typescript
+   // 修改前
+   export interface SalesEditItemsTableProps {
+     items: SaleItem[];
+   }
+   
+   // 修改後
+   export interface SalesEditItemsTableProps {
+     items: SaleItem[] | import('../api/dto').SaleItemWithDetailsDto[];
+   }
+   ```
 
-建議逐步實施這些變更，先從一個模組開始，然後擴展到其他模組，以最小化對開發工作的干擾。
+2. **可選屬性處理問題**
+   
+   **問題**: TypeScript 的 `exactOptionalPropertyTypes: true` 設置導致可選屬性型別不兼容。
+   
+   **解決方案**:
+   - 明確聲明 `undefined` 作為可選屬性的可能值
+   - 使用型別聯合 (如 `Product | undefined`)
+   - 使用可選鏈操作符 (`?.`) 和空值合併操作符 (`??`)
+
+3. **API 錯誤處理問題**
+   
+   **問題**: API 錯誤沒有被正確處理或顯示。
+   
+   **解決方案**:
+   - 實現統一的錯誤處理邏輯
+   - 使用 Axios 攔截器捕獲和轉換錯誤
+   - 使用 RTK Query 的 `transformErrorResponse` 選項
+
+4. **Store 配置問題**
+   
+   **問題**: Redux store 配置不正確，導致 middleware 或 reducer 不工作。
+   
+   **解決方案**:
+   - 確保正確配置 `configureStore`
+   - 添加所有必要的 middleware
+   - 正確組合所有 reducers
+
+### 遷移策略
+
+1. **漸進式遷移**
+   - 先實現基礎設施 (store, API 客戶端)
+   - 為一個資源實現 RTK Query API
+   - 創建向後兼容的 hooks
+   - 逐步遷移組件使用新的 hooks
+
+2. **並行運行**
+   - 保留舊的狀態管理方式
+   - 實現新的 RTK Query API
+   - 在新功能中使用新的 API
+   - 逐步替換舊的實現
+
+### 結論
+
+通過遵循上述最佳實踐和避免常見錯誤，可以順利地將 Redux Toolkit 和 RTK Query 導入到項目中，實現 Server state 與 Client/UI state 的分離，提高代碼的可維護性和可擴展性。

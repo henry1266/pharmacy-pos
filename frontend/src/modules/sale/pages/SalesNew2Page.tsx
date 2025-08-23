@@ -13,18 +13,11 @@ import {
   useTheme,
   useMediaQuery,
   CircularProgress,
-  Paper,
-  Fab,
-  Badge,
-  Drawer,
   Grid as MuiGrid
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
-  Refresh as RefreshIcon,
-  Save as SaveIcon,
-  Receipt as ReceiptIcon,
-  Close as CloseIcon
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
@@ -35,11 +28,7 @@ import useSalesListData from '@/hooks/useSalesListData';
 import usePackageData from '@/hooks/usePackageData';
 
 // Import sub-components
-import ShortcutButtonManager from '@/components/sales/ShortcutButtonManager';
 import CustomProductsDialog from '@/components/sales/CustomProductsDialog';
-import SaleInfoCard from '@/components/sales/SaleInfoCard';
-import SalesProductInput from '@/components/sales/SalesProductInput';
-import SalesItemsTable from '@/components/sales/SalesItemsTable';
 import DailySalesPanel from '@/modules/dashboard/components/DailySalesPanel';
 import CheckoutSuccessEffect from '@/components/sales/CheckoutSuccessEffect';
 
@@ -54,7 +43,6 @@ import {
   SnackbarState, 
   SaleCompletionData, 
   UserShortcut, 
-  Product, 
   Customer 
 } from '../types';
 import { validateShortcutItems } from '../utils/shortcutUtils';
