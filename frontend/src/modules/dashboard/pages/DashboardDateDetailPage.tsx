@@ -50,7 +50,7 @@ const DashboardDateDetailPage: FC = () => {
   const [shippingSearchTerm, setShippingSearchTerm] = React.useState('');
 
   // 使用 useDailyStats hook 獲取數據
-  const { dailyStats, loading, error, fetchDailyStats } = useDailyStats(date || '');
+  const { dailyStats, loading, error, refetch } = useDailyStats(date || '');
 
   if (loading) {
     return (
@@ -65,7 +65,7 @@ const DashboardDateDetailPage: FC = () => {
     return (
       <Box sx={{ mt: 3 }}>
         <Alert severity="error">{error}</Alert>
-        <Button variant="contained" onClick={() => date && fetchDailyStats(date)} sx={{ mt: 2 }}>
+        <Button variant="contained" onClick={() => refetch()} sx={{ mt: 2 }}>
           重試
         </Button>
       </Box>

@@ -50,6 +50,7 @@ export interface ExtendedAccountingRecord extends BaseAccountingRecord {
   status?: string;
   items: AccountingItem[];
   totalAmount: number;
+  unaccountedSales?: UnaccountedSale[]; // 添加未結算銷售記錄屬性
 }
 
 /**

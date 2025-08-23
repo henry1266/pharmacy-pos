@@ -25,6 +25,8 @@ import {
 // 導入 RTK Query API 和 Slice
 import { saleApi } from '../../modules/sale/api/saleApi';
 import saleReducer from '../../modules/sale/model/saleSlice';
+import { dashboardApi } from '../../modules/dashboard/api/dashboardApi';
+import dashboardSliceReducer from '../../modules/dashboard/model/dashboardSlice';
 
 /**
  * 配置 Redux store
@@ -54,6 +56,8 @@ export const store = configureStore({
     // 添加 RTK Query API 和 Slice
     [saleApi.reducerPath]: saleApi.reducer,
     sale: saleReducer,
+    [dashboardApi.reducerPath]: dashboardApi.reducer,
+    dashboard2: dashboardSliceReducer, // 使用 dashboard2 避免與現有的 dashboard reducer 衝突
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -63,7 +67,8 @@ export const store = configureStore({
       },
     })
     // 添加 RTK Query middleware
-    .concat(saleApi.middleware),
+    .concat(saleApi.middleware)
+    .concat(dashboardApi.middleware),
   devTools: process.env.NODE_ENV !== 'production',
 });
 
