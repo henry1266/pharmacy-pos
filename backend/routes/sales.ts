@@ -788,10 +788,10 @@ async function createSaleRecord(requestBody: SaleCreationRequest): Promise<SaleD
 async function generateSaleNumber(saleNumber?: string): Promise<string> {
   // 如果前端提供了銷貨單號，記錄但不使用它
   if (saleNumber && saleNumber.trim() !== '') {
-    logger.debug(`前端提供了銷貨單號: "${saleNumber}"，但將被忽略以確保序號連續性`);
+    //logger.debug(`前端提供了銷貨單號: "${saleNumber}"，但將被忽略以確保序號連續性`);
   }
 
-  logger.debug(`由後端生成銷貨單號`);
+  //logger.debug(`由後端生成銷貨單號`);
 
   try {
     // 生成日期前綴（YYYYMMDD）
@@ -801,22 +801,21 @@ async function generateSaleNumber(saleNumber?: string): Promise<string> {
     const day = String(today.getDate()).padStart(2, '0');
     const datePrefix = `${year}${month}${day}`;
     
-    logger.debug(`生成日期前綴: ${datePrefix}`);
+    //logger.debug(`生成日期前綴: ${datePrefix}`);
 
     // 查詢數據庫中以該日期前綴開頭的所有銷貨單號
     const regexPattern = `^${datePrefix}\\d{3}$`; // 匹配格式: YYYYMMDD + 3位數字
     const query = { saleNumber: { $regex: new RegExp(regexPattern) } };
-    
-    logger.debug(`查詢當日銷貨單號，日期前綴: ${datePrefix}, 正則表達式: ${regexPattern}`);
+    //logger.debug(`查詢當日銷貨單號，日期前綴: ${datePrefix}, 正則表達式: ${regexPattern}`);
     
     // 先獲取所有匹配的銷貨單號，以便記錄日誌
     const allSales = await Sale.find(query).lean();
-    logger.debug(`找到 ${allSales.length} 個匹配的銷貨單號`);
+    //logger.debug(`找到 ${allSales.length} 個匹配的銷貨單號`);
     
     // 記錄所有找到的銷貨單號，以便分析
     if (allSales.length > 0) {
       const allSaleNumbers = allSales.map(sale => sale.saleNumber);
-      logger.debug(`所有匹配的銷貨單號: ${JSON.stringify(allSaleNumbers)}`);
+      //logger.debug(`所有匹配的銷貨單號: ${JSON.stringify(allSaleNumbers)}`);
     }
     
     // 按銷貨單號降序排序，找出最大的一個

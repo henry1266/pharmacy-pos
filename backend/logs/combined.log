@@ -5735,3 +5735,244 @@
 {"count":564,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-22 14:57:45:5745"}
 {"hasPaymentCount":118,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":67,"missingTransactionIdCount":379,"paymentTransactionsCount":36,"timestamp":"2025-08-22 14:57:46:5746","totalOrders":564}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":118,"timestamp":"2025-08-22 14:57:46:5746","totalCount":564,"unpaidCount":446}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-23 00:42:27:4227"}
+{"executionTime":"3ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":0,"timestamp":"2025-08-23 00:42:27:4227"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-23 00:42:27:4227"}
+{"executionTime":"39ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":0,"timestamp":"2025-08-23 00:42:27:4227"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-23 00:42:44:4244"}
+{"executionTime":"31ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":0,"timestamp":"2025-08-23 00:42:44:4244"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-23 00:42:48:4248"}
+{"executionTime":"29ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":0,"timestamp":"2025-08-23 00:42:48:4248"}
+{"accounts":[],"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到應付帳款科目:\u001b[39m","timestamp":"2025-08-23 00:43:12:4312"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"\u001b[33m沒有找到應付帳款科目，返回空列表\u001b[39m","timestamp":"2025-08-23 00:43:12:4312"}
+{"accounts":[],"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到應付帳款科目:\u001b[39m","timestamp":"2025-08-23 00:43:12:4312"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"\u001b[33m沒有找到應付帳款科目，返回空列表\u001b[39m","timestamp":"2025-08-23 00:43:12:4312"}
+{"accounts":[],"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到應付帳款科目:\u001b[39m","timestamp":"2025-08-23 00:43:17:4317"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"\u001b[33m沒有找到應付帳款科目，返回空列表\u001b[39m","timestamp":"2025-08-23 00:43:17:4317"}
+{"accounts":[],"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到應付帳款科目:\u001b[39m","timestamp":"2025-08-23 00:43:17:4317"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"\u001b[33m沒有找到應付帳款科目，返回空列表\u001b[39m","timestamp":"2025-08-23 00:43:17:4317"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-23 00:43:35:4335"}
+{"executionTime":"4ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":0,"timestamp":"2025-08-23 00:43:35:4335"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-23 00:43:35:4335"}
+{"executionTime":"4ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":0,"timestamp":"2025-08-23 00:43:35:4335"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-23 00:43:54:4354"}
+{"executionTime":"37ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":0,"timestamp":"2025-08-23 00:43:54:4354"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-23 00:43:58:4358"}
+{"executionTime":"29ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":0,"timestamp":"2025-08-23 00:43:58:4358"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-23 00:44:24:4424"}
+{"executionTime":"8ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":49,"timestamp":"2025-08-23 00:44:24:4424"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-23 00:44:24:4424"}
+{"executionTime":"5ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":49,"timestamp":"2025-08-23 00:44:24:4424"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-23 00:44:24:4424"}
+{"executionTime":"5ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":49,"timestamp":"2025-08-23 00:44:24:4424"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-08-23 00:44:24:4424"}
+{"executionTime":"6ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":49,"timestamp":"2025-08-23 00:44:24:4424"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:01:451"}
+{"availableAmount":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":1,"timestamp":"2025-08-23 00:45:01:451","totalAmount":5826,"transactionId":"68a8131f94e5e83283de5bdb","usedAmount":30793}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:01:451"}
+{"availableAmount":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":1,"timestamp":"2025-08-23 00:45:01:451","totalAmount":5826,"transactionId":"68a8131f94e5e83283de5bdb","usedAmount":30793}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:01:451"}
+{"availableAmount":2954,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:01:451","totalAmount":2954,"transactionId":"68a8122d94e5e83283ddafa5","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:01:451"}
+{"availableAmount":2954,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:01:451","totalAmount":2954,"transactionId":"68a8122d94e5e83283ddafa5","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:01:451"}
+{"availableAmount":3884,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:01:451","totalAmount":3884,"transactionId":"68a8133094e5e83283de6e1e","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:02:452"}
+{"availableAmount":3884,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:02:452","totalAmount":3884,"transactionId":"68a8133094e5e83283de6e1e","usedAmount":0}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:02:452"}
+{"availableAmount":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":1,"timestamp":"2025-08-23 00:45:02:452","totalAmount":5826,"transactionId":"68a8131f94e5e83283de5bdb","usedAmount":30793}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:02:452"}
+{"availableAmount":1777,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:02:452","totalAmount":1777,"transactionId":"68a8133e94e5e83283de8054","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:02:452"}
+{"availableAmount":1777,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:02:452","totalAmount":1777,"transactionId":"68a8133e94e5e83283de8054","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:02:452"}
+{"availableAmount":2954,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:02:452","totalAmount":2954,"transactionId":"68a8122d94e5e83283ddafa5","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:02:452"}
+{"availableAmount":9710,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:02:452","totalAmount":9710,"transactionId":"68a8134b94e5e83283de9297","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:02:452"}
+{"availableAmount":9710,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:02:452","totalAmount":9710,"transactionId":"68a8134b94e5e83283de9297","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:02:452"}
+{"availableAmount":1437,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:02:452","totalAmount":1437,"transactionId":"68a8127094e5e83283dde4b1","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:02:452"}
+{"availableAmount":1437,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:02:452","totalAmount":1437,"transactionId":"68a8127094e5e83283dde4b1","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:02:452"}
+{"availableAmount":3884,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:02:452","totalAmount":3884,"transactionId":"68a8133094e5e83283de6e1e","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:02:452"}
+{"availableAmount":2033,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:02:452","totalAmount":2033,"transactionId":"68a812c294e5e83283de172e","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:02:452"}
+{"availableAmount":1777,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:02:452","totalAmount":1777,"transactionId":"68a8133e94e5e83283de8054","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:02:452"}
+{"availableAmount":2033,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:02:452","totalAmount":2033,"transactionId":"68a812c294e5e83283de172e","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:02:452"}
+{"availableAmount":1937,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:02:452","totalAmount":1937,"transactionId":"68a812eb94e5e83283de305c","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:02:452"}
+{"availableAmount":9710,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:02:452","totalAmount":9710,"transactionId":"68a8134b94e5e83283de9297","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:02:452"}
+{"availableAmount":1937,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:02:452","totalAmount":1937,"transactionId":"68a812eb94e5e83283de305c","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:02:452"}
+{"availableAmount":1235,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:02:452","totalAmount":1235,"transactionId":"68a8130d94e5e83283de4998","usedAmount":0}
+{"count":9,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批次餘額計算完成:\u001b[39m","timestamp":"2025-08-23 00:45:02:452"}
+{"failedCount":0,"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m批次餘額計算完成\u001b[39m","successCount":9,"timestamp":"2025-08-23 00:45:02:452"}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:02:452"}
+{"availableAmount":1437,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:02:452","totalAmount":1437,"transactionId":"68a8127094e5e83283dde4b1","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:02:452"}
+{"availableAmount":1235,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:02:452","totalAmount":1235,"transactionId":"68a8130d94e5e83283de4998","usedAmount":0}
+{"count":9,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批次餘額計算完成:\u001b[39m","timestamp":"2025-08-23 00:45:02:452"}
+{"failedCount":0,"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m批次餘額計算完成\u001b[39m","successCount":9,"timestamp":"2025-08-23 00:45:02:452"}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:02:452"}
+{"availableAmount":2033,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:02:452","totalAmount":2033,"transactionId":"68a812c294e5e83283de172e","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:02:452"}
+{"availableAmount":1937,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:02:452","totalAmount":1937,"transactionId":"68a812eb94e5e83283de305c","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:02:452"}
+{"availableAmount":1235,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:02:452","totalAmount":1235,"transactionId":"68a8130d94e5e83283de4998","usedAmount":0}
+{"count":9,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批次餘額計算完成:\u001b[39m","timestamp":"2025-08-23 00:45:02:452"}
+{"failedCount":0,"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m批次餘額計算完成\u001b[39m","successCount":9,"timestamp":"2025-08-23 00:45:02:452"}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:23:4523"}
+{"availableAmount":30793,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:23:4523","totalAmount":30793,"transactionId":"68a814e194e5e83283dea212","usedAmount":0}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批次餘額計算完成:\u001b[39m","timestamp":"2025-08-23 00:45:23:4523"}
+{"failedCount":0,"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m批次餘額計算完成\u001b[39m","successCount":1,"timestamp":"2025-08-23 00:45:23:4523"}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:23:4523"}
+{"availableAmount":30793,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:23:4523","totalAmount":30793,"transactionId":"68a814e194e5e83283dea212","usedAmount":0}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批次餘額計算完成:\u001b[39m","timestamp":"2025-08-23 00:45:23:4523"}
+{"failedCount":0,"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m批次餘額計算完成\u001b[39m","successCount":1,"timestamp":"2025-08-23 00:45:23:4523"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:25:4525"}
+{"availableAmount":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":1,"timestamp":"2025-08-23 00:45:25:4525","totalAmount":5826,"transactionId":"68a8131f94e5e83283de5bdb","usedAmount":30793}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:25:4525"}
+{"availableAmount":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":1,"timestamp":"2025-08-23 00:45:25:4525","totalAmount":5826,"transactionId":"68a8131f94e5e83283de5bdb","usedAmount":30793}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:25:4525"}
+{"availableAmount":2954,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:25:4525","totalAmount":2954,"transactionId":"68a8122d94e5e83283ddafa5","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:25:4525"}
+{"availableAmount":2954,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:25:4525","totalAmount":2954,"transactionId":"68a8122d94e5e83283ddafa5","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:25:4525"}
+{"availableAmount":3884,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:25:4525","totalAmount":3884,"transactionId":"68a8133094e5e83283de6e1e","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:25:4525"}
+{"availableAmount":3884,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:25:4525","totalAmount":3884,"transactionId":"68a8133094e5e83283de6e1e","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:25:4525"}
+{"availableAmount":1777,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:25:4525","totalAmount":1777,"transactionId":"68a8133e94e5e83283de8054","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:25:4525"}
+{"availableAmount":1777,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:25:4525","totalAmount":1777,"transactionId":"68a8133e94e5e83283de8054","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:25:4525"}
+{"availableAmount":9710,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:25:4525","totalAmount":9710,"transactionId":"68a8134b94e5e83283de9297","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:25:4525"}
+{"availableAmount":9710,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:25:4525","totalAmount":9710,"transactionId":"68a8134b94e5e83283de9297","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:25:4525"}
+{"availableAmount":1437,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:25:4525","totalAmount":1437,"transactionId":"68a8127094e5e83283dde4b1","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:25:4525"}
+{"availableAmount":1437,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:25:4525","totalAmount":1437,"transactionId":"68a8127094e5e83283dde4b1","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:25:4525"}
+{"availableAmount":2033,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:25:4525","totalAmount":2033,"transactionId":"68a812c294e5e83283de172e","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:25:4525"}
+{"availableAmount":2033,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:25:4525","totalAmount":2033,"transactionId":"68a812c294e5e83283de172e","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:25:4525"}
+{"availableAmount":1937,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:25:4525","totalAmount":1937,"transactionId":"68a812eb94e5e83283de305c","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:25:4525"}
+{"availableAmount":1937,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:25:4525","totalAmount":1937,"transactionId":"68a812eb94e5e83283de305c","usedAmount":0}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:25:4525"}
+{"availableAmount":1235,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:25:4525","totalAmount":1235,"transactionId":"68a8130d94e5e83283de4998","usedAmount":0}
+{"count":9,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批次餘額計算完成:\u001b[39m","timestamp":"2025-08-23 00:45:25:4525"}
+{"failedCount":0,"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m批次餘額計算完成\u001b[39m","successCount":9,"timestamp":"2025-08-23 00:45:25:4525"}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到引用交易:\u001b[39m","timestamp":"2025-08-23 00:45:25:4525"}
+{"availableAmount":1235,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m交易餘額計算完成:\u001b[39m","referencedByCount":0,"timestamp":"2025-08-23 00:45:25:4525","totalAmount":1235,"transactionId":"68a8130d94e5e83283de4998","usedAmount":0}
+{"count":9,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批次餘額計算完成:\u001b[39m","timestamp":"2025-08-23 00:45:25:4525"}
+{"failedCount":0,"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m批次餘額計算完成\u001b[39m","successCount":9,"timestamp":"2025-08-23 00:45:25:4525"}
+{"count":564,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-23 00:48:32:4832"}
+{"hasPaymentCount":118,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":67,"missingTransactionIdCount":379,"paymentTransactionsCount":36,"timestamp":"2025-08-23 00:48:32:4832","totalOrders":564}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":118,"timestamp":"2025-08-23 00:48:32:4832","totalCount":564,"unpaidCount":446}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"6822a7ecad65752a9f061796"},"supplierId":"6822a7ecad65752a9f061796","timestamp":"2025-08-23 00:49:59:4959"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-08-23 00:49:59:4959"}
+{"0":"68a8117394e5e83283dda6fc","1":"6881ede993a4e6567f1de484","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - selectedAccountIds:\u001b[39m","timestamp":"2025-08-23 00:50:39:5039"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - items:\u001b[39m","timestamp":"2025-08-23 00:50:39:5039"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - processedItems:\u001b[39m","timestamp":"2025-08-23 00:50:39:5039"}
+{"0":"68a8117394e5e83283dda6fc","1":"6881ede993a4e6567f1de484","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單已儲存 - selectedAccountIds:\u001b[39m","timestamp":"2025-08-23 00:50:39:5039"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 67ecf3800c42503b19a2f0d1 創建新庫存記錄，進貨單號: 20250823001, 數量: 1000, 總金額: 1942\u001b[39m","timestamp":"2025-08-23 00:50:39:5039"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m檢查進貨單自動會計分錄條件:\u001b[39m","poid":"20250823001","timestamp":"2025-08-23 00:50:39:5039"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單沒有機構ID，將嘗試從會計科目獲取\u001b[39m","timestamp":"2025-08-23 00:50:39:5039"}
+{"accountCount":2,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m滿足自動會計分錄條件:\u001b[39m","organizationId":"未設置","timestamp":"2025-08-23 00:50:39:5039","totalAmount":1942}
+{"asset":true,"expense":false,"level":"\u001b[37mdebug\u001b[39m","liability":true,"message":"\u001b[37m科目類型分析:\u001b[39m","timestamp":"2025-08-23 00:50:39:5039"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m判斷為資產-負債格式: 資產科目 + 負債科目\u001b[39m","timestamp":"2025-08-23 00:50:39:5039"}
+{"entryType":"asset-liability","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m自動推斷分錄類型:\u001b[39m","timestamp":"2025-08-23 00:50:39:5039"}
+{"entryType":"asset-liability","level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已更新進貨單分錄類型:\u001b[39m","poid":"20250823001","timestamp":"2025-08-23 00:50:39:5039"}
+{"accounts":[{"id":"6881ede993a4e6567f1de484","index":1,"name":"藥局庫存","type":"asset"},{"id":"68a8117394e5e83283dda6fc","index":2,"name":"久裕","type":"liability"}],"count":2,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m分析會計科目:\u001b[39m","timestamp":"2025-08-23 00:50:39:5039"}
+{"creditAccount":"久裕","debitAccount":"藥局庫存","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m資產-負債格式:\u001b[39m","timestamp":"2025-08-23 00:50:39:5039"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m從會計科目推斷機構ID:\u001b[39m","organizationId":"68639ad3d2823bbee3a59e25","timestamp":"2025-08-23 00:50:39:5039"}
+{"date":"2025-08-22","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m從進貨單號解析日期:\u001b[39m","poid":"20250823001","timestamp":"2025-08-23 00:50:39:5039"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建嵌入式交易群組:\u001b[39m","organizationId":"68639ad3d2823bbee3a59e25","timestamp":"2025-08-23 00:50:39:5039"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m成功創建自動會計分錄:\u001b[39m","organizationId":"68639ad3d2823bbee3a59e25","poid":"20250823001","timestamp":"2025-08-23 00:50:39:5039"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m進貨單 20250823001 已關聯交易群組 68a89fdf2346c814230e0588\u001b[39m","timestamp":"2025-08-23 00:50:39:5039"}
+{"count":564,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-23 00:50:40:5040"}
+{"count":564,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-23 00:50:40:5040"}
+{"hasPaymentCount":118,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":67,"missingTransactionIdCount":379,"paymentTransactionsCount":36,"timestamp":"2025-08-23 00:50:40:5040","totalOrders":564}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":118,"timestamp":"2025-08-23 00:50:40:5040","totalCount":564,"unpaidCount":446}
+{"hasPaymentCount":118,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":67,"missingTransactionIdCount":379,"paymentTransactionsCount":36,"timestamp":"2025-08-23 00:50:41:5041","totalOrders":564}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":118,"timestamp":"2025-08-23 00:50:41:5041","totalCount":564,"unpaidCount":446}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m更新進貨單 - selectedAccountIds:\u001b[39m","timestamp":"2025-08-23 00:50:48:5048"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m進貨單 68a89fdf2346c814230e057f 狀態從完成變為 pending，執行解鎖操作\u001b[39m","timestamp":"2025-08-23 00:50:48:5048"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已刪除 1 筆與進貨單 68a89fdf2346c814230e057f 相關的庫存記錄\u001b[39m","timestamp":"2025-08-23 00:50:48:5048"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m刪除交易群組會計分錄:\u001b[39m","timestamp":"2025-08-23 00:50:48:5048","transactionGroupId":"68a89fdf2346c814230e0588"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m成功刪除交易群組及其相關分錄:\u001b[39m","timestamp":"2025-08-23 00:50:48:5048","transactionGroupId":"68a89fdf2346c814230e0588"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已清除進貨單 20250823001 的關聯交易群組ID\u001b[39m","timestamp":"2025-08-23 00:50:48:5048"}
+{"0":"68a8117394e5e83283dda6fc","1":"6881ede993a4e6567f1de484","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單已更新 - selectedAccountIds:\u001b[39m","timestamp":"2025-08-23 00:50:48:5048"}
+{"count":565,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-23 00:50:48:5048"}
+{"hasPaymentCount":118,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":67,"missingTransactionIdCount":380,"paymentTransactionsCount":36,"timestamp":"2025-08-23 00:50:48:5048","totalOrders":565}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":118,"timestamp":"2025-08-23 00:50:48:5048","totalCount":565,"unpaidCount":447}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m後端序列化後的進貨單資料:\u001b[39m","timestamp":"2025-08-23 00:50:50:5050"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m第一個項目的批號:\u001b[39m","timestamp":"2025-08-23 00:50:50:5050"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"6822a7ecad65752a9f061796"},"supplierId":"6822a7ecad65752a9f061796","timestamp":"2025-08-23 00:50:50:5050"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-08-23 00:50:51:5051"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m後端序列化後的進貨單資料:\u001b[39m","timestamp":"2025-08-23 00:50:51:5051"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m第一個項目的批號:\u001b[39m","timestamp":"2025-08-23 00:50:51:5051"}
+{"0":"68a8117394e5e83283dda6fc","1":"6881ede993a4e6567f1de484","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m更新進貨單 - selectedAccountIds:\u001b[39m","timestamp":"2025-08-23 00:51:07:517"}
+{"0":"68a8117394e5e83283dda6fc","1":"6881ede993a4e6567f1de484","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單已更新 - selectedAccountIds:\u001b[39m","timestamp":"2025-08-23 00:51:07:517"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 67ecf3800c42503b19a2f0d1 創建新庫存記錄，進貨單號: 20250823001, 數量: 1000, 總金額: 1942\u001b[39m","timestamp":"2025-08-23 00:51:07:517"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m檢查進貨單自動會計分錄條件:\u001b[39m","poid":"20250823001","timestamp":"2025-08-23 00:51:07:517"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單沒有機構ID，將嘗試從會計科目獲取\u001b[39m","timestamp":"2025-08-23 00:51:07:517"}
+{"accountCount":2,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m滿足自動會計分錄條件:\u001b[39m","organizationId":"未設置","timestamp":"2025-08-23 00:51:07:517","totalAmount":1942}
+{"accounts":[{"id":"6881ede993a4e6567f1de484","index":1,"name":"藥局庫存","type":"asset"},{"id":"68a8117394e5e83283dda6fc","index":2,"name":"久裕","type":"liability"}],"count":2,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m分析會計科目:\u001b[39m","timestamp":"2025-08-23 00:51:07:517"}
+{"creditAccount":"久裕","debitAccount":"藥局庫存","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m資產-負債格式:\u001b[39m","timestamp":"2025-08-23 00:51:07:517"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m從會計科目推斷機構ID:\u001b[39m","organizationId":"68639ad3d2823bbee3a59e25","timestamp":"2025-08-23 00:51:07:517"}
+{"date":"2025-08-22","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m從進貨單號解析日期:\u001b[39m","poid":"20250823001","timestamp":"2025-08-23 00:51:07:517"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建嵌入式交易群組:\u001b[39m","organizationId":"68639ad3d2823bbee3a59e25","timestamp":"2025-08-23 00:51:07:517"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m成功創建自動會計分錄:\u001b[39m","organizationId":"68639ad3d2823bbee3a59e25","poid":"20250823001","timestamp":"2025-08-23 00:51:07:517"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m進貨單 20250823001 已關聯交易群組 68a89ffb2346c814230e1ebc\u001b[39m","timestamp":"2025-08-23 00:51:07:517"}
+{"count":565,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-23 00:51:09:519"}
+{"count":565,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-23 00:51:09:519"}
+{"hasPaymentCount":118,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":68,"missingTransactionIdCount":379,"paymentTransactionsCount":36,"timestamp":"2025-08-23 00:51:09:519","totalOrders":565}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":118,"timestamp":"2025-08-23 00:51:09:519","totalCount":565,"unpaidCount":447}
+{"hasPaymentCount":118,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":68,"missingTransactionIdCount":379,"paymentTransactionsCount":36,"timestamp":"2025-08-23 00:51:09:519","totalOrders":565}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":118,"timestamp":"2025-08-23 00:51:09:519","totalCount":565,"unpaidCount":447}
+{"count":565,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-23 00:51:10:5110"}
+{"hasPaymentCount":118,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":68,"missingTransactionIdCount":379,"paymentTransactionsCount":36,"timestamp":"2025-08-23 00:51:10:5110","totalOrders":565}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":118,"timestamp":"2025-08-23 00:51:10:5110","totalCount":565,"unpaidCount":447}
+{"count":565,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-23 00:51:10:5110"}
+{"hasPaymentCount":118,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":68,"missingTransactionIdCount":379,"paymentTransactionsCount":36,"timestamp":"2025-08-23 00:51:10:5110","totalOrders":565}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":118,"timestamp":"2025-08-23 00:51:10:5110","totalCount":565,"unpaidCount":447}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m後端序列化後的進貨單資料:\u001b[39m","timestamp":"2025-08-23 00:51:12:5112"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m第一個項目的批號:\u001b[39m","timestamp":"2025-08-23 00:51:12:5112"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m後端序列化後的進貨單資料:\u001b[39m","timestamp":"2025-08-23 00:51:12:5112"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m第一個項目的批號:\u001b[39m","timestamp":"2025-08-23 00:51:12:5112"}
+{"count":565,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-23 00:51:23:5123"}
+{"count":565,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-23 00:51:23:5123"}
+{"hasPaymentCount":118,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":68,"missingTransactionIdCount":379,"paymentTransactionsCount":36,"timestamp":"2025-08-23 00:51:23:5123","totalOrders":565}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":118,"timestamp":"2025-08-23 00:51:23:5123","totalCount":565,"unpaidCount":447}
+{"hasPaymentCount":118,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":68,"missingTransactionIdCount":379,"paymentTransactionsCount":36,"timestamp":"2025-08-23 00:51:23:5123","totalOrders":565}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":118,"timestamp":"2025-08-23 00:51:23:5123","totalCount":565,"unpaidCount":447}
+{"count":565,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-23 00:51:24:5124"}
+{"hasPaymentCount":118,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":68,"missingTransactionIdCount":379,"paymentTransactionsCount":36,"timestamp":"2025-08-23 00:51:24:5124","totalOrders":565}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":118,"timestamp":"2025-08-23 00:51:24:5124","totalCount":565,"unpaidCount":447}
+{"count":565,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量檢查進貨單付款狀態開始\u001b[39m","timestamp":"2025-08-23 00:51:24:5124"}
+{"hasPaymentCount":118,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":68,"missingTransactionIdCount":379,"paymentTransactionsCount":36,"timestamp":"2025-08-23 00:51:24:5124","totalOrders":565}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":118,"timestamp":"2025-08-23 00:51:24:5124","totalCount":565,"unpaidCount":447}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m檢查產品ID: 68783939cbe43742fe31a5d5, 名稱: PARIET 20MG 百抑潰腸溶\u001b[39m","timestamp":"2025-08-23 08:45:45:4545"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到 3 個庫存記錄\u001b[39m","timestamp":"2025-08-23 08:45:45:4545"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 687e60a18c26e9fd5934bee5, 類型: ship, 數量: -56\u001b[39m","timestamp":"2025-08-23 08:45:45:4545"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 6888ad8bd405e8d914b6944d, 類型: purchase, 數量: 56\u001b[39m","timestamp":"2025-08-23 08:45:45:4545"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68a6c3229afb066943387dd0, 類型: purchase, 數量: 56\u001b[39m","timestamp":"2025-08-23 08:45:45:4545"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m產品 PARIET 20MG 百抑潰腸溶 總庫存量: 56，銷售數量: 56\u001b[39m","timestamp":"2025-08-23 08:45:45:4545"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m前端提供了銷貨單號: \"20250823832\"，但將被忽略以確保序號連續性\u001b[39m","timestamp":"2025-08-23 08:45:45:4545"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m由後端生成銷貨單號\u001b[39m","timestamp":"2025-08-23 08:45:45:4545"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m生成日期前綴: 20250823\u001b[39m","timestamp":"2025-08-23 08:45:45:4545"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢當日銷貨單號，日期前綴: 20250823, 正則表達式: ^20250823\\d{3}$\u001b[39m","timestamp":"2025-08-23 08:45:45:4545"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到 0 個匹配的銷貨單號\u001b[39m","timestamp":"2025-08-23 08:45:45:4545"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m未找到當天銷貨單號，使用起始序號1\u001b[39m","timestamp":"2025-08-23 08:45:45:4545"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m生成銷貨單號: 20250823001\u001b[39m","timestamp":"2025-08-23 08:45:45:4545"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m為產品 68783939cbe43742fe31a5d5 創建銷售庫存記錄，數量: -56, 總金額: 400\u001b[39m","timestamp":"2025-08-23 08:45:45:4545"}

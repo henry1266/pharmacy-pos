@@ -56,7 +56,7 @@ export interface SaleEditInfoCardProps {
  * SalesEditItemsTable 組件屬性介面
  */
 export interface SalesEditItemsTableProps {
-  items: SaleItem[];
+  items: SaleItem[] | import('../api/dto').SaleItemWithDetailsDto[];
   inputModes: InputMode[];
   handleQuantityChange: (index: number, quantity: number | string) => void;
   handlePriceChange: (index: number, price: string) => void;
@@ -72,7 +72,7 @@ export interface SalesEditItemsTableProps {
  */
 export interface SaleEditDetailsCardProps {
   customers: Customer[];
-  currentSale: SaleData;
+  currentSale: SaleData | import('../api/dto').SaleDataDto;
   handleInputChange: (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
 }
 

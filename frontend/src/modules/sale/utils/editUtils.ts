@@ -94,12 +94,12 @@ export const findProductByCode = (barcode: string, products: Product[]): Product
 /**
  * 計算總金額
  * 根據銷售項目和折扣計算總金額
- * 
+ *
  * @param items 銷售項目列表
  * @param discount 折扣金額
  * @returns 計算後的總金額
  */
-export const calculateTotalAmount = (items: SaleItem[], discount: number): number => {
+export const calculateTotalAmount = <T extends { price: number; quantity: number }>(items: T[], discount: number): number => {
   const total = items.reduce((sum, item) => sum + (parseFloat(item.price.toString()) * item.quantity), 0);
   return total - (parseFloat(discount.toString()) || 0);
 };
