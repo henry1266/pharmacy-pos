@@ -1,14 +1,301 @@
-import TransactionGroupWithEntries, { ITransactionGroupWithEntries } from '../../models/TransactionGroupWithEntries';
+import TransactionGroupWithEntries, { ITransactionGroupWithEntries, IEmbeddedAccountingEntry } from '../../models/TransactionGroupWithEntries';
 import Account2 from '../../models/Account2';
 import { Accounting3To2Adapter } from '../../../shared/adapters/accounting3to2';
 import { TransactionGroupWithEntries as TransactionGroupType } from '../../../shared/types/accounting2';
 import logger from '../../utils/logger';
+import { Document, ObjectId } from 'mongoose';
+
+/**
+ * 交易狀態類型
+ */
+type TransactionStatus = 'draft' | 'confirmed' | 'cancelled';
+
+/**
+ * 交易分錄介面
+ */
+interface TransactionEntry {
+  sequence: number;
+  accountId: string | ObjectId | { _id: string | ObjectId; name?: string; code?: string; accountType?: string; normalBalance?: string };
+  debitAmount: number;
+  creditAmount: number;
+  description?: string;
+  sourceTransactionId?: string;
+  [key: string]: any;
+}
+
+/**
+ * 付款資訊介面
+ */
+interface PaymentInfo {
+  paymentMethod: string;
+  payableTransactions: Array<{
+    transactionId: string;
+    paidAmount: number;
+    remainingAmount?: number;
+  }>;
+  [key: string]: any;
+}
+
+/**
+ * 應付帳款資訊介面
+ */
+interface PayableInfo {
+  supplierId?: string;
+  supplierName?: string;
+  dueDate?: Date;
+  totalPaidAmount?: number;
+  isPaidOff?: boolean;
+  paymentHistory?: Array<{
+    paymentTransactionId: string;
+    paidAmount: number;
+    paymentDate: Date;
+    paymentMethod?: string;
+  }>;
+  [key: string]: any;
+}
+
+/**
+ * 付款交易資料介面
+ */
+interface PaymentData {
+  description: string;
+  transactionDate: Date;
+  paymentMethod: string;
+  totalAmount: number;
+  entries: Array<{
+    sequence: number;
+    accountId: string;
+    debitAmount: number;
+    creditAmount: number;
+    description: string;
+    sourceTransactionId?: string;
+  }>;
+  linkedTransactionIds: string[];
+  organizationId?: string;
+  paymentInfo: {
+    paymentMethod: string;
+    payableTransactions: Array<{
+      transactionId: string;
+      paidAmount: number;
+      remainingAmount?: number;
+    }>;
+  };
+  paymentAccountId: string;
+  [key: string]: any;
+}
+
+/**
+ * 驗證結果介面
+ */
+interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+}
+
+/**
+ * 自定義錯誤類別：交易錯誤
+ */
+class TransactionError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'TransactionError';
+  }
+}
+
+/**
+ * 自定義錯誤類別：驗證錯誤
+ */
+class ValidationError extends Error {
+  errors: string[];
+  
+  constructor(message: string, errors: string[] = []) {
+    super(message);
+    this.name = 'ValidationError';
+    this.errors = errors;
+  }
+}
+
+/**
+ * 自定義錯誤類別：權限錯誤
+ */
+class PermissionError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'PermissionError';
+  }
+}
+
+/**
+ * 自定義錯誤類別：資源不存在錯誤
+ */
+class NotFoundError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'NotFoundError';
+  }
+}
+
+/**
+ * 查詢參數介面
+ */
+interface QueryParams {
+  createdBy: string;
+  organizationId?: string;
+  status?: TransactionStatus | { $in: TransactionStatus[] };
+  transactionDate?: {
+    $gte?: Date;
+    $lte?: Date;
+  };
+  $or?: Array<{[key: string]: any}>;
+  'entries.sourceTransactionId'?: string | { $in: string[] };
+  'paymentInfo.payableTransactions.transactionId'?: string | { $in: string[] };
+  [key: string]: any;
+}
+
+/**
+ * 分頁選項介面
+ */
+interface PaginationOptions {
+  page: number | undefined;
+  limit: number | undefined;
+  defaultLimit?: number;
+}
+
+/**
+ * 分頁結果介面
+ */
+interface PaginationResult {
+  skip: number;
+  limit: number;
+  page: number;
+  totalPages: number;
+}
+
+/**
+ * 分頁查詢結果介面
+ */
+interface PaginatedResult<T> {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+/**
+ * 交易篩選條件介面
+ */
+interface TransactionFilters {
+  status?: TransactionStatus;
+  startDate?: Date;
+  endDate?: Date;
+  search?: string;
+  page?: number;
+  limit?: number;
+}
 
 /**
  * Accounting2 交易服務層
  * 提供交易管理功能，與 Accounting3 資料結構相容
  */
 export class TransactionService {
+  
+  /**
+   * 通用方法：取得交易並檢查權限
+   * @param transactionId 交易ID
+   * @param userId 使用者ID
+   * @param options 選項
+   * @returns 交易群組或 null（僅當 throwIfNotFound 為 false 時）
+   */
+  private static async getTransactionWithPermissionCheck<T = ITransactionGroupWithEntries>(
+    transactionId: string,
+    userId: string,
+    options: {
+      throwIfNotFound?: boolean;
+      populateFields?: string;
+      statusFilter?: 'draft' | 'confirmed' | 'cancelled' | Array<'draft' | 'confirmed' | 'cancelled'>;
+      lean?: boolean;
+    } = {}
+  ): Promise<T> {
+    const {
+      throwIfNotFound = true,
+      populateFields = 'entries.accountId',
+      statusFilter,
+      lean = true
+    } = options;
+    
+    const query: any = {
+      _id: transactionId,
+      createdBy: userId
+    };
+    
+    if (statusFilter) {
+      if (Array.isArray(statusFilter)) {
+        query.status = { $in: statusFilter };
+      } else {
+        query.status = statusFilter;
+      }
+    }
+    
+    logger.debug('查詢交易:', { transactionId, userId, statusFilter });
+    
+    try {
+      let transaction;
+      
+      if (lean) {
+        transaction = await TransactionGroupWithEntries.findOne(query)
+          .populate(populateFields)
+          .lean();
+      } else {
+        transaction = await TransactionGroupWithEntries.findOne(query)
+          .populate(populateFields);
+      }
+      
+      if (!transaction && throwIfNotFound) {
+        throw new NotFoundError('交易群組不存在或無權限存取');
+      }
+      
+      return transaction as T;
+    } catch (error) {
+      logger.error('查詢交易失敗:', error);
+      
+      // 重新拋出自定義錯誤，保留原始錯誤訊息
+      if (error instanceof NotFoundError ||
+          error instanceof PermissionError ||
+          error instanceof ValidationError ||
+          error instanceof TransactionError) {
+        throw error;
+      }
+      
+      // 將未知錯誤包裝為 TransactionError
+      throw new TransactionError(error instanceof Error ? error.message : '查詢交易時發生未知錯誤');
+    }
+  }
+  
+  /**
+   * 通用方法：應用分頁邏輯到查詢
+   * @param options 分頁選項
+   * @returns 分頁結果
+   */
+  private static applyPaginationToQuery(
+    options: PaginationOptions,
+    totalItems: number
+  ): PaginationResult {
+    const defaultLimit = options.defaultLimit || 25;
+    const page = options.page && options.page > 0 ? options.page : 1;
+    const limit = options.limit && options.limit > 0 ? options.limit : defaultLimit;
+    const skip = (page - 1) * limit;
+    const totalPages = Math.ceil(totalItems / limit);
+    
+    logger.debug(`分頁參數:`, { page, limit, skip, totalItems, totalPages });
+    
+    return {
+      skip,
+      limit,
+      page,
+      totalPages
+    };
+  }
   
   /**
    * 建立新交易群組
@@ -32,7 +319,7 @@ export class TransactionService {
         });
 
         if (existingTransaction) {
-          throw new Error(`交易群組編號 ${transactionData.groupNumber} 已存在`);
+          throw new ValidationError(`交易群組編號 ${transactionData.groupNumber} 已存在`);
         }
       }
 
@@ -57,9 +344,21 @@ export class TransactionService {
       return savedTransaction;
     } catch (error) {
       logger.error('建立交易群組錯誤:', error);
-      throw error;
+      
+      // 重新拋出自定義錯誤，保留原始錯誤訊息
+      if (error instanceof NotFoundError ||
+          error instanceof PermissionError ||
+          error instanceof ValidationError ||
+          error instanceof TransactionError) {
+        throw error;
+      }
+      
+      // 將未知錯誤包裝為 TransactionError
+      throw new TransactionError(error instanceof Error ? error.message : '建立交易群組時發生未知錯誤');
     }
   }
+
+  // 移除重複的 TransactionFilters 介面定義
 
   /**
    * 取得交易群組列表
@@ -71,22 +370,11 @@ export class TransactionService {
   static async getTransactionGroups(
     userId: string,
     organizationId?: string,
-    filters?: {
-      status?: 'draft' | 'confirmed' | 'cancelled';
-      startDate?: Date;
-      endDate?: Date;
-      search?: string;
-      page?: number;
-      limit?: number;
-    }
-  ): Promise<{
-    transactions: ITransactionGroupWithEntries[];
-    total: number;
-    page: number;
-    limit: number;
-  }> {
+    filters?: TransactionFilters
+  ): Promise<PaginatedResult<ITransactionGroupWithEntries>> {
     try {
-      const query: any = {
+      // 建立查詢條件
+      const query: QueryParams = {
         createdBy: userId,
         ...(organizationId ? { organizationId } : {})
       };
@@ -108,29 +396,35 @@ export class TransactionService {
         ];
       }
 
-      // 確保分頁參數有效，並使用前端傳入的值
-      const page = filters?.page && filters.page > 0 ? filters.page : 1;
-      const limit = filters?.limit && filters.limit > 0 ? filters.limit : 25; // 將默認值改為25，與前端一致
-      const skip = (page - 1) * limit;
+      // 先獲取總數
+      const total = await TransactionGroupWithEntries.countDocuments(query);
 
-      logger.debug(`分頁參數: page=${page}, limit=${limit}, skip=${skip}`);
+      // 使用通用方法處理分頁
+      const pagination = this.applyPaginationToQuery(
+        {
+          page: filters?.page,
+          limit: filters?.limit,
+          defaultLimit: 25
+        },
+        total
+      );
 
-      const [transactions, total] = await Promise.all([
-        TransactionGroupWithEntries.find(query)
-          .sort({ transactionDate: -1, createdAt: -1 })
-          .skip(skip)
-          .limit(limit)
-          .populate('entries.accountId', 'name code accountType')
-          .lean(),
-        TransactionGroupWithEntries.countDocuments(query)
-      ]);
+      // 查詢交易列表
+      const transactions = await TransactionGroupWithEntries.find(query)
+        .sort({ transactionDate: -1, createdAt: -1 })
+        .skip(pagination.skip)
+        .limit(pagination.limit)
+        .populate('entries.accountId', 'name code accountType')
+        .lean();
 
-      logger.debug(`查詢交易群組數量: ${transactions.length}/${total}, 分頁: ${page}/${Math.ceil(total/limit)}`);
+      logger.debug(`查詢交易群組數量: ${transactions.length}/${total}, 分頁: ${pagination.page}/${pagination.totalPages}`);
+      
       return {
-        transactions,
+        items: transactions,
         total,
-        page,
-        limit
+        page: pagination.page,
+        limit: pagination.limit,
+        totalPages: pagination.totalPages
       };
     } catch (error) {
       logger.error('取得交易群組列表錯誤:', error);
@@ -151,12 +445,15 @@ export class TransactionService {
     includeCompatibilityInfo: boolean = false
   ): Promise<ITransactionGroupWithEntries & { compatibilityInfo?: any }> {
     try {
-      const transaction = await TransactionGroupWithEntries.findOne({
-        _id: transactionId,
-        createdBy: userId
-      })
-        .populate('entries.accountId', 'name code accountType normalBalance')
-        .lean();
+      // 使用通用方法取得交易
+      const transaction = await this.getTransactionWithPermissionCheck<ITransactionGroupWithEntries>(
+        transactionId,
+        userId,
+        {
+          populateFields: 'entries.accountId',
+          lean: true
+        }
+      );
 
       if (!transaction) {
         throw new Error('交易群組不存在或無權限存取');
@@ -168,7 +465,7 @@ export class TransactionService {
         // 轉換為相容性格式進行驗證
         const transactionData = {
           ...transaction,
-          _id: transaction._id.toString()
+          _id: String(transaction._id)
         } as TransactionGroupType;
 
         const legacyFormat = Accounting3To2Adapter.convertToLegacyTransactionGroup(transactionData);
@@ -218,12 +515,12 @@ export class TransactionService {
       });
 
       if (!existingTransaction) {
-        throw new Error('交易群組不存在或無權限存取');
+        throw new NotFoundError('交易群組不存在或無權限存取');
       }
 
       // 檢查交易狀態是否允許修改
       if (existingTransaction.status === 'confirmed') {
-        throw new Error('已確認的交易無法修改');
+        throw new ValidationError('已確認的交易無法修改');
       }
 
       // 如果更新群組編號，檢查唯一性
@@ -235,7 +532,7 @@ export class TransactionService {
         });
 
         if (duplicateTransaction) {
-          throw new Error(`交易群組編號 ${updateData.groupNumber} 已存在`);
+          throw new ValidationError(`交易群組編號 ${updateData.groupNumber} 已存在`);
         }
       }
 
@@ -255,7 +552,7 @@ export class TransactionService {
       );
 
       if (!updatedTransaction) {
-        throw new Error('更新交易群組失敗');
+        throw new TransactionError('更新交易群組失敗');
       }
 
       logger.info(`交易群組更新成功: ${updatedTransaction.groupNumber}`);
@@ -277,14 +574,12 @@ export class TransactionService {
     userId: string
   ): Promise<ITransactionGroupWithEntries> {
     try {
-      const transaction = await TransactionGroupWithEntries.findOne({
-        _id: transactionId,
-        createdBy: userId
-      });
-
-      if (!transaction) {
-        throw new Error('交易群組不存在或無權限存取');
-      }
+      // 使用通用方法取得交易，不使用 lean() 以便直接操作 document
+      const transaction = await this.getTransactionWithPermissionCheck<ITransactionGroupWithEntries & Document>(
+        transactionId,
+        userId,
+        { lean: false }
+      );
 
       if (transaction.status === 'confirmed') {
         throw new Error('交易群組已經確認');
@@ -300,8 +595,8 @@ export class TransactionService {
       }
 
       // 驗證借貸平衡
-      const totalDebit = transaction.entries.reduce((sum, entry) => sum + (entry.debitAmount || 0), 0);
-      const totalCredit = transaction.entries.reduce((sum, entry) => sum + (entry.creditAmount || 0), 0);
+      const totalDebit = transaction.entries.reduce((sum: number, entry: any) => sum + (entry.debitAmount || 0), 0);
+      const totalCredit = transaction.entries.reduce((sum: number, entry: any) => sum + (entry.creditAmount || 0), 0);
 
       if (Math.abs(totalDebit - totalCredit) > 0.01) {
         throw new Error(`交易借貸不平衡：借方 ${totalDebit}，貸方 ${totalCredit}`);
@@ -343,14 +638,12 @@ export class TransactionService {
     reason?: string
   ): Promise<ITransactionGroupWithEntries> {
     try {
-      const transaction = await TransactionGroupWithEntries.findOne({
-        _id: transactionId,
-        createdBy: userId
-      });
-
-      if (!transaction) {
-        throw new Error('交易群組不存在或無權限存取');
-      }
+      // 使用通用方法取得交易
+      const transaction = await this.getTransactionWithPermissionCheck<ITransactionGroupWithEntries & Document>(
+        transactionId,
+        userId,
+        { lean: false }
+      );
 
       if (transaction.status === 'cancelled') {
         throw new Error('交易群組已經取消');
@@ -401,19 +694,33 @@ export class TransactionService {
     logger.debug('開始驗證分錄資料:', { entriesCount: entries.length });
     
     const accountIds = entries.map((entry, index) => {
-      const accountId = typeof entry.accountId === 'string' ? entry.accountId : entry.accountId?._id;
+      // 安全地提取 accountId，使用 any 類型避免類型錯誤
+      let accountId: any;
+      
+      if (typeof entry.accountId === 'string') {
+        accountId = entry.accountId;
+      } else if (entry.accountId && typeof entry.accountId === 'object') {
+        // 處理 ObjectId 或包含 _id 的物件
+        if ('_id' in entry.accountId) {
+          accountId = entry.accountId._id;
+        } else {
+          accountId = entry.accountId;
+        }
+      }
+      
       logger.debug(`分錄 ${index + 1} 資料:`, {
-        accountId,
+        accountId: accountId ? String(accountId) : undefined,
         debitAmount: entry.debitAmount,
         creditAmount: entry.creditAmount
       });
+      
       return accountId;
     }).filter(Boolean);
 
     logger.debug('提取的科目 ID:', accountIds);
 
     if (accountIds.length === 0) {
-      throw new Error('分錄必須指定會計科目');
+      throw new ValidationError('分錄必須指定會計科目');
     }
 
     // 去重處理，避免重複查詢
@@ -429,12 +736,12 @@ export class TransactionService {
 
     logger.debug('找到的有效科目:', {
       count: accounts.length,
-      details: accounts.map(a => ({ id: (a._id as any).toString(), code: a.code, name: a.name }))
+      details: accounts.map(a => ({ id: String(a._id), code: a.code, name: a.name }))
     });
 
     if (accounts.length !== uniqueAccountIds.length) {
-      const existingAccountIds = accounts.map(a => (a._id as any).toString());
-      const missingAccountIds = uniqueAccountIds.filter(id => !existingAccountIds.includes(id?.toString()));
+      const existingAccountIds = accounts.map(a => String(a._id));
+      const missingAccountIds = uniqueAccountIds.filter(id => !existingAccountIds.includes(String(id)));
       
       logger.error('缺少的科目 ID:', {
         missingAccountIds,
@@ -442,7 +749,7 @@ export class TransactionService {
         queryConditions: { uniqueAccountIds, userId }
       });
       
-      throw new Error(`以下會計科目不存在或無權限存取: ${missingAccountIds.join(', ')}`);
+      throw new ValidationError(`以下會計科目不存在或無權限存取: ${missingAccountIds.join(', ')}`);
     }
 
     // 驗證分錄金額
@@ -451,15 +758,15 @@ export class TransactionService {
       const creditAmount = entry.creditAmount || 0;
 
       if (debitAmount < 0 || creditAmount < 0) {
-        throw new Error('分錄金額不能為負數');
+        throw new ValidationError('分錄金額不能為負數');
       }
 
       if (debitAmount === 0 && creditAmount === 0) {
-        throw new Error('分錄必須有借方或貸方金額');
+        throw new ValidationError('分錄必須有借方或貸方金額');
       }
 
       if (debitAmount > 0 && creditAmount > 0) {
-        throw new Error('分錄不能同時有借方和貸方金額');
+        throw new ValidationError('分錄不能同時有借方和貸方金額');
       }
     }
 
@@ -573,11 +880,13 @@ export class TransactionService {
    * 批次計算多筆交易的餘額
    * @param transactionIds 交易群組ID陣列
    * @param userId 使用者ID
+   * @param concurrencyLimit 並發限制（預設為 5）
    * @returns 交易餘額資訊陣列
    */
   static async calculateMultipleTransactionBalances(
     transactionIds: string[],
-    userId: string
+    userId: string,
+    concurrencyLimit: number = 5
   ): Promise<Array<{
     transactionId: string;
     totalAmount: number;
@@ -588,30 +897,66 @@ export class TransactionService {
     error?: string;
   }>> {
     try {
-      const results = [];
-
-      for (const transactionId of transactionIds) {
-        try {
-          const balance = await this.calculateTransactionBalance(transactionId, userId);
-          results.push({
-            ...balance,
-            success: true
-          });
-        } catch (error) {
-          results.push({
-            transactionId,
-            totalAmount: 0,
-            usedAmount: 0,
-            availableAmount: 0,
-            referencedByCount: 0,
-            success: false,
-            error: error instanceof Error ? error.message : '計算失敗'
-          });
-        }
+      logger.debug(`開始批次計算餘額:`, {
+        count: transactionIds.length,
+        concurrencyLimit
+      });
+      
+      // 分批處理，控制並發數量
+      const results: Array<{
+        transactionId: string;
+        totalAmount: number;
+        usedAmount: number;
+        availableAmount: number;
+        referencedByCount: number;
+        success: boolean;
+        error?: string;
+        referencedByTransactions?: any[];
+      }> = [];
+      
+      // 將交易 ID 分組，每組最多 concurrencyLimit 個
+      const chunks: string[][] = [];
+      for (let i = 0; i < transactionIds.length; i += concurrencyLimit) {
+        chunks.push(transactionIds.slice(i, i + concurrencyLimit));
       }
+      
+      // 逐批處理
+      for (const chunk of chunks) {
+        // 並行處理每一批
+        const chunkPromises = chunk.map(async (transactionId) => {
+          try {
+            const balance = await this.calculateTransactionBalance(transactionId, userId);
+            return {
+              ...balance,
+              success: true
+            };
+          } catch (error) {
+            return {
+              transactionId,
+              totalAmount: 0,
+              usedAmount: 0,
+              availableAmount: 0,
+              referencedByCount: 0,
+              success: false,
+              error: error instanceof Error ? error.message : '計算失敗'
+            };
+          }
+        });
+        
+        // 等待當前批次完成
+        const chunkResults = await Promise.all(chunkPromises);
+        results.push(...chunkResults);
+      }
+      
+      // 移除不需要的 referencedByTransactions 屬性，減少返回資料量
+      const cleanResults = results.map(({ referencedByTransactions, ...rest }) => rest);
 
-      logger.debug(`批次餘額計算完成:`, { count: results.length });
-      return results;
+      logger.debug(`批次餘額計算完成:`, {
+        count: cleanResults.length,
+        successCount: cleanResults.filter(r => r.success).length
+      });
+      
+      return cleanResults;
     } catch (error) {
       logger.error('批次計算交易餘額錯誤:', error);
       throw error;
@@ -760,10 +1105,46 @@ export class TransactionService {
 
       logger.debug(`找到包含應付帳款科目的交易:`, { count: transactions.length });
 
+      if (transactions.length === 0) {
+        return [];
+      }
+
+      // 批量獲取所有交易的付款資訊
+      const transactionIds = transactions.map(t => t._id.toString());
+      
+      // 一次性查詢所有相關的付款交易
+      const paymentTransactions = await TransactionGroupWithEntries.find({
+        createdBy: userId,
+        status: { $in: ['draft', 'confirmed'] },
+        transactionType: 'payment',
+        'paymentInfo.payableTransactions.transactionId': { $in: transactionIds }
+      }).lean();
+      
+      logger.debug(`找到相關付款交易:`, { count: paymentTransactions.length });
+      
+      // 建立交易ID到付款金額的映射
+      const paidAmountMap: { [key: string]: number } = {};
+      
+      // 計算每筆交易的已付金額
+      paymentTransactions.forEach(payment => {
+        (payment.paymentInfo?.payableTransactions || []).forEach((payable: any) => {
+          const transactionId = payable.transactionId?.toString();
+          if (transactionId && transactionIds.includes(transactionId)) {
+            paidAmountMap[transactionId] = (paidAmountMap[transactionId] || 0) + (payable.paidAmount || 0);
+          }
+        });
+      });
+      
+      logger.debug(`已計算付款金額映射:`, {
+        mappedTransactions: Object.keys(paidAmountMap).length
+      });
+
       // 計算每筆交易的付款狀態
       const payableTransactions = [];
 
       for (const transaction of transactions) {
+        const transactionId = transaction._id.toString();
+        
         // 計算應付帳款金額（從貸方分錄中計算）
         const payableEntries = transaction.entries?.filter((entry: any) =>
           payableAccountIds.includes(entry.accountId?._id?.toString() || entry.accountId?.toString()) &&
@@ -776,8 +1157,8 @@ export class TransactionService {
           continue; // 跳過沒有應付金額的交易
         }
 
-        // 計算已付金額
-        const paidAmount = await this.calculatePaidAmount(transaction._id.toString(), userId);
+        // 使用映射獲取已付金額，避免單獨查詢
+        const paidAmount = paidAmountMap[transactionId] || 0;
         const remainingAmount = Math.max(0, payableAmount - paidAmount);
         const isPaidOff = remainingAmount <= 0;
 
@@ -838,8 +1219,28 @@ export class TransactionService {
           }
         }
         
+        // 收集相關的付款歷史
+        const relevantPayments = paymentTransactions
+          .filter(payment =>
+            payment.paymentInfo?.payableTransactions?.some(
+              (p: any) => p.transactionId?.toString() === transactionId
+            )
+          )
+          .map(payment => {
+            const payableTransaction = payment.paymentInfo?.payableTransactions?.find(
+              (p: any) => p.transactionId?.toString() === transactionId
+            );
+            
+            return {
+              paymentTransactionId: payment._id.toString(),
+              paidAmount: payableTransaction?.paidAmount || 0,
+              paymentDate: payment.transactionDate || payment.createdAt,
+              paymentMethod: payment.paymentInfo?.paymentMethod
+            };
+          });
+        
         payableTransactions.push({
-          _id: transaction._id.toString(),
+          _id: transactionId,
           groupNumber: transaction.groupNumber,
           description: transaction.description,
           totalAmount: payableAmount, // 使用計算出的應付金額
@@ -848,12 +1249,14 @@ export class TransactionService {
           ...(transaction.payableInfo?.dueDate && { dueDate: transaction.payableInfo.dueDate }),
           ...(supplierInfo && { supplierInfo }),
           isPaidOff,
-          paymentHistory: (transaction.payableInfo?.paymentHistory || []).map((history: any) => ({
-            paymentTransactionId: history.paymentTransactionId.toString(),
-            paidAmount: history.paidAmount,
-            paymentDate: history.paymentDate,
-            ...(history.paymentMethod && { paymentMethod: history.paymentMethod })
-          })),
+          paymentHistory: relevantPayments.length > 0 ?
+            relevantPayments :
+            (transaction.payableInfo?.paymentHistory || []).map((history: any) => ({
+              paymentTransactionId: history.paymentTransactionId.toString(),
+              paidAmount: history.paidAmount,
+              paymentDate: history.paymentDate,
+              ...(history.paymentMethod && { paymentMethod: history.paymentMethod })
+            })),
           transactionDate: transaction.transactionDate
         });
       }
@@ -927,31 +1330,7 @@ export class TransactionService {
    * @returns 付款交易
    */
   static async createPaymentTransaction(
-    paymentData: {
-      description: string;
-      transactionDate: Date;
-      paymentMethod: string;
-      totalAmount: number;
-      entries: Array<{
-        sequence: number;
-        accountId: string;
-        debitAmount: number;
-        creditAmount: number;
-        description: string;
-        sourceTransactionId?: string;
-      }>;
-      linkedTransactionIds: string[];
-      organizationId?: string;
-      paymentInfo: {
-        paymentMethod: string;
-        payableTransactions: Array<{
-          transactionId: string;
-          paidAmount: number;
-          remainingAmount?: number;
-        }>;
-      };
-      paymentAccountId: string; // 新增：付款帳戶ID
-    },
+    paymentData: PaymentData,
     userId: string
   ): Promise<ITransactionGroupWithEntries> {
     try {
@@ -1034,9 +1413,9 @@ export class TransactionService {
    * @returns 驗證結果
    */
   static async validatePaymentTransaction(
-    paymentData: any,
+    paymentData: PaymentData,
     userId: string
-  ): Promise<{ isValid: boolean; errors: string[] }> {
+  ): Promise<ValidationResult> {
     const errors: string[] = [];
 
     try {
@@ -1113,16 +1492,18 @@ export class TransactionService {
         }
       }
 
-      return {
+      const result: ValidationResult = {
         isValid: errors.length === 0,
         errors
       };
+      return result;
     } catch (error) {
       logger.error('驗證付款交易錯誤:', error);
-      return {
+      const errorResult: ValidationResult = {
         isValid: false,
         errors: ['驗證過程發生錯誤']
       };
+      return errorResult;
     }
   }
 
