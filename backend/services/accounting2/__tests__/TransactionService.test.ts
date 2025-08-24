@@ -151,7 +151,7 @@ describe('TransactionService', () => {
         createdBy: mockUserId,
         organizationId: mockOrganizationId
       });
-      expect(result.transactions).toEqual(mockTransactions);
+      expect(result.items).toEqual(mockTransactions);
       expect(result.total).toBe(1);
       expect(result.page).toBe(1);
       expect(result.limit).toBe(25);

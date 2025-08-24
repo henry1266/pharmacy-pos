@@ -299,7 +299,7 @@ export class TransactionController {
       const result = await TransactionService.getTransactionGroups(userId, options.organizationId, queryOptions);
       
       logger.debug('TransactionController.getTransactionsByUser - 查詢結果', {
-        transactionsCount: result.transactions.length,
+        transactionsCount: result.items.length,
         totalRecords: result.total,
         currentPage: result.page,
         pageSize: result.limit,
@@ -308,7 +308,7 @@ export class TransactionController {
       
       res.json({
         success: true,
-        data: result.transactions,
+        data: result.items,
         pagination: {
           page: result.page,
           limit: result.limit,
@@ -573,7 +573,7 @@ export class TransactionController {
 
       const result = await TransactionService.getTransactionGroups(userId, options.organizationId, queryOptions);
       
-      const transactions = result.transactions;
+      const transactions = result.items;
       
       if (format === 'csv') {
         // 設定 CSV 回應標頭
@@ -1012,14 +1012,14 @@ export class TransactionController {
         }
       );
 
-      const paymentHistory = paymentTransactions.transactions
-        .filter(transaction =>
+      const paymentHistory = paymentTransactions.items
+        .filter((transaction: ITransactionGroupWithEntries) =>
           transaction.transactionType === 'payment' &&
-          transaction.paymentInfo?.payableTransactions?.some(p => p.transactionId?.toString() === id)
+          transaction.paymentInfo?.payableTransactions?.some((p: any) => p.transactionId?.toString() === id)
         )
-        .map(payment => {
+        .map((payment: ITransactionGroupWithEntries) => {
           const payableTransaction = payment.paymentInfo?.payableTransactions?.find(
-            p => p.transactionId?.toString() === id
+            (p: any) => p.transactionId?.toString() === id
           );
           
           return {
@@ -1032,11 +1032,11 @@ export class TransactionController {
             status: payment.status
           };
         })
-        .sort((a, b) => new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime());
+        .sort((a: any, b: any) => new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime());
 
       const totalPaidAmount = paymentHistory
-        .filter(p => p.status === 'confirmed')
-        .reduce((sum, p) => sum + p.paidAmount, 0);
+        .filter((p: any) => p.status === 'confirmed')
+        .reduce((sum: number, p: any) => sum + p.paidAmount, 0);
 
       res.json({
         success: true,
@@ -1045,7 +1045,7 @@ export class TransactionController {
           summary: {
             totalPayments: paymentHistory.length,
             totalPaidAmount,
-            confirmedPayments: paymentHistory.filter(p => p.status === 'confirmed').length
+            confirmedPayments: paymentHistory.filter((p: any) => p.status === 'confirmed').length
           }
         }
       });
