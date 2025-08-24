@@ -166,6 +166,83 @@ modules/[module-name]/
    - 添加所有必要的 middleware
    - 正確組合所有 reducers
 
+5. **Hook 返回值結構變更問題**
+   
+   **問題**: 使用 RTK Query 重構後，hook 返回值的結構與原有 hook 不同，導致組件中解構賦值出錯。
+   
+   **解決方案**:
+   - 修改解構賦值，使用新的屬性名稱 (如 `accountingData` 替代 `accountingRecords`)
+   - 在解構後添加轉換代碼 (如 `const accountingRecords = accountingData?.accountingRecords || []`)
+   - 使用別名解構 (如 `const { loading: accountingLoading }`)
+   
+   **示例**:
+   ```typescript
+   // 修改前
+   const {
+     accountingRecords,
+     accountingTotal,
+     accountingLoading,
+     fetchAccountingRecords
+   } = useAccountingDashboard();
+   
+   // 修改後
+   const {
+     accountingData,
+     loading: accountingLoading,
+     refetch: fetchAccountingRecords
+   } = useAccountingDashboard();
+   
+   // 轉換數據
+   const accountingRecords = accountingData?.accountingRecords || [];
+   const accountingTotal = accountingData?.accountingTotal || 0;
+   ```
+
+6. **參數傳遞問題**
+   
+   **問題**: RTK Query 的 `refetch` 方法不接受參數，但原有代碼中傳入了參數。
+   
+   **解決方案**:
+   - 移除不必要的參數 (如 `fetchSalesRecords()` 而非 `fetchSalesRecords(date)`)
+   - 使用 Redux 存儲參數，讓 RTK Query 從 store 中獲取 (如 `dispatch(setSelectedDate(date))`)
+   - 使用 RTK Query 的 `useQuery` hook 的 `skip` 選項控制查詢時機
+   
+   **示例**:
+   ```typescript
+   // 修改前
+   const handleDateSelect = (date: string) => {
+     setSelectedDate(date);
+     fetchSalesRecords(date);
+   };
+   
+   // 修改後
+   const handleDateSelect = (date: string) => {
+     setSelectedDate(date); // 更新 Redux store 中的日期
+     fetchSalesRecords(); // 不傳參數，RTK Query 會從 store 中獲取日期
+   };
+   ```
+
+7. **未使用參數問題**
+   
+   **問題**: 函數參數聲明但未使用，導致 TypeScript 錯誤。
+   
+   **解決方案**:
+   - 移除未使用的參數
+   - 使用下劃線前綴標記未使用參數 (如 `_data`)
+   - 在 tsconfig.json 中設置 `"noUnusedParameters": false`
+   
+   **示例**:
+   ```typescript
+   // 修改前
+   setFormData={(data) => {
+     showSnackbar('表單數據已更新', 'info');
+   }}
+   
+   // 修改後
+   setFormData={() => {
+     showSnackbar('表單數據已更新', 'info');
+   }}
+   ```
+
 ### 遷移策略
 
 1. **漸進式遷移**

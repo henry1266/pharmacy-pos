@@ -12,7 +12,7 @@ import {
   Button,
   SelectChangeEvent
 } from '@mui/material';
-import axios from 'axios';
+import { employeeService } from '../core/employeeService';
 import ShiftSection, {
   Employee,
   Schedules,
@@ -58,20 +58,19 @@ const QuickSelectPanel: React.FC<QuickSelectPanelProps> = ({ date, schedules, on
   // 獲取員工列表函數
   const fetchEmployeesList = async (): Promise<{ employees: Employee[], error: string | null }> => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('未登入或權限不足');
+      // 使用 employeeService 而不是直接使用 axios
+      console.log('開始獲取員工資料...');
+      const response = await employeeService.getAllEmployees();
+      console.log('employeeService.getAllEmployees 返回的數據:', response);
+      
+      // 確保 response.employees 存在
+      if (!response || !response.employees) {
+        console.error('employeeService 返回的數據格式不正確:', response);
+        return { employees: [], error: '獲取員工資料失敗: 返回的數據格式不正確' };
       }
-
-      const config = {
-        headers: {
-          'x-auth-token': token
-        }
-      };
-
-      const response = await axios.get<EmployeesApiResponse>('/api/employees', config);
+      
       // 過濾掉主管，只保留一般員工
-      const filteredEmployees = response.data.employees.filter((employee: Employee) => {
+      const filteredEmployees = response.employees.filter((employee: Employee) => {
         const department = employee.department?.toLowerCase() || '';
         return !department.includes('主管') &&
                !department.includes('經理') &&
@@ -81,10 +80,13 @@ const QuickSelectPanel: React.FC<QuickSelectPanelProps> = ({ date, schedules, on
                !department.includes('長');
       });
       
+      console.log('過濾後的員工數據:', filteredEmployees);
       return { employees: filteredEmployees, error: null };
     } catch (err: any) {
       console.error('獲取員工資料失敗:', err);
-      return { employees: [], error: err.response?.data?.msg ?? '獲取員工資料失敗' };
+      // 提供更詳細的錯誤信息
+      const errorMessage = err.message || '獲取員工資料失敗';
+      return { employees: [], error: errorMessage };
     }
   };
 
