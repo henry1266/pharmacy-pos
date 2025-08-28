@@ -814,7 +814,7 @@ async function generateSaleNumber(saleNumber?: string): Promise<string> {
     
     // 記錄所有找到的銷貨單號，以便分析
     if (allSales.length > 0) {
-      const allSaleNumbers = allSales.map(sale => sale.saleNumber);
+      // const allSaleNumbers = allSales.map(sale => sale.saleNumber);
       //logger.debug(`所有匹配的銷貨單號: ${JSON.stringify(allSaleNumbers)}`);
     }
     

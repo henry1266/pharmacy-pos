@@ -1,8 +1,10 @@
-import express, { Application, Request, Response } from "express";
+import express, { Application, Request, Response, NextFunction } from "express";
 import path from "path";
 import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/db";
+import swaggerUi from "swagger-ui-express";
+import swaggerSpec from "./swagger";
 
 // 載入環境變數
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
@@ -138,6 +140,58 @@ export function createApp(): Application {
 
   // 監控路由
   app.use("/api/monitoring", monitoringRoutes);
+
+  // Swagger API文檔
+  // 設置Swagger UI路由
+  if (process.env.NODE_ENV === "production") {
+    // 在生產環境中限制Swagger UI的訪問
+    app.use("/api-docs", (req: Request, res: Response, next: NextFunction) => {
+      const apiKey = req.query.apiKey as string || req.headers["x-api-key"] as string;
+      if (!apiKey || apiKey !== process.env.SWAGGER_API_KEY) {
+        res.status(401).json({
+          success: false,
+          message: "未授權訪問API文檔",
+          timestamp: new Date()
+        });
+      } else {
+        next();
+      }
+    });
+    
+    app.get("/api-docs.json", (req: Request, res: Response, next: NextFunction) => {
+      const apiKey = req.query.apiKey as string || req.headers["x-api-key"] as string;
+      if (!apiKey || apiKey !== process.env.SWAGGER_API_KEY) {
+        res.status(401).json({
+          success: false,
+          message: "未授權訪問API文檔",
+          timestamp: new Date()
+        });
+      } else {
+        next();
+      }
+    });
+  }
+  
+  // 設置Swagger UI
+  app.use(
+    "/api-docs",
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerSpec, {
+      explorer: true,
+      customCss: '.swagger-ui .topbar { display: none }',
+      swaggerOptions: {
+        docExpansion: 'none',
+        filter: true,
+        showRequestDuration: true,
+      }
+    })
+  );
+
+  // 提供Swagger JSON端點
+  app.get("/api-docs.json", (_req: Request, res: Response) => {
+    res.setHeader("Content-Type", "application/json");
+    res.send(swaggerSpec);
+  });
 
   // 在生產環境中提供靜態資源
   if (process.env.NODE_ENV === "production") {
