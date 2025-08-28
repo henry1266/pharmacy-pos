@@ -1,38 +1,31 @@
 {
   "compilerOptions": {
-    /* 基本選項 */
     "target": "ES2022",
     "lib": ["ES2022"],
     "module": "ESNext",
     "moduleResolution": "node",
-
-    /* 輸出選項 */
+    
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
     
-    /* 嚴格性檢查 - 統一標準 */
     "strict": true,
     
-    /* 程式碼品質與附加檢查*/
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "exactOptionalPropertyTypes": true,
     "noImplicitOverride": true,
-
-    /* 模組解析 */
+    
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
-
-    /* 開發階段 */
+    
     "noErrorTruncation": true,
     
-    /* 進階選項 */
     "noPropertyAccessFromIndexSignature": false,
     "noUncheckedIndexedAccess": false
   }
