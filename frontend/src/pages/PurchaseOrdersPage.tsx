@@ -203,16 +203,16 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
       if (response.data.success) {
         // 處理批量查詢結果
         const paymentStatuses = response.data.data;
-        console.log('🔍 批量 API 返回的原始數據:', response.data);
-        console.log('🔍 付款狀態數組:', paymentStatuses);
+        //console.log('🔍 批量 API 返回的原始數據:', response.data);
+        //console.log('🔍 付款狀態數組:', paymentStatuses);
         
         paymentStatuses.forEach((status: { purchaseOrderId: string; hasPaidAmount: boolean }) => {
-          console.log(`🔍 設置付款狀態: ${status.purchaseOrderId} -> ${status.hasPaidAmount}`);
+          //console.log(`🔍 設置付款狀態: ${status.purchaseOrderId} -> ${status.hasPaidAmount}`);
           statusMap.set(status.purchaseOrderId, status.hasPaidAmount);
         });
         
-        console.log('✅ 批量付款狀態檢查完成:', paymentStatuses);
-        console.log('🗺️ 最終的付款狀態映射:', Array.from(statusMap.entries()));
+        //console.log('✅ 批量付款狀態檢查完成:', paymentStatuses);
+        //console.log('🗺️ 最終的付款狀態映射:', Array.from(statusMap.entries()));
         setPaymentStatusMap(statusMap);
       } else {
         throw new Error(response.data.message || '批量檢查付款狀態失敗');
@@ -221,7 +221,7 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
       console.error('❌ 批量檢查付款狀態失敗:', error);
       // 如果批量 API 失敗，回退到逐一檢查（但限制數量避免當機）
       if (purchaseOrders.length <= 50) {
-        console.log('🔄 回退到逐一檢查付款狀態');
+        //console.log('🔄 回退到逐一檢查付款狀態');
         const statusMap = new Map<string, boolean>();
         const promises = purchaseOrders.map(async (po) => {
           try {
@@ -260,7 +260,7 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
   // 當進貨單數據載入完成後，檢查付款狀態 - 使用批量 API 優化性能
   useEffect(() => {
     if (purchaseOrders && purchaseOrders.length > 0 && !loading && !isCheckingPaymentStatus) {
-      console.log('📊 進貨單數據載入完成，開始批量檢查付款狀態');
+      //console.log('📊 進貨單數據載入完成，開始批量檢查付款狀態');
       checkAllPaymentStatuses(purchaseOrders as PurchaseOrder[]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -385,7 +385,7 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
   // 解鎖處理函數
   const handleUnlock = useCallback(async (id: string): Promise<void> => {
     try {
-      console.log('🔓 開始解鎖進貨單:', id);
+      //console.log('🔓 開始解鎖進貨單:', id);
       
       // 直接使用 axios 調用 API，將狀態改為 pending
       const response = await axios.put(`${API_BASE_URL}/purchase-orders/${id}`, {
@@ -397,7 +397,7 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
         dispatch(fetchPurchaseOrders());
         
         showSnackbar('進貨單已解鎖並改為待處理狀態', 'success');
-        console.log('✅ 進貨單解鎖成功:', response.data);
+        //console.log('✅ 進貨單解鎖成功:', response.data);
       } else {
         throw new Error(response.data.message || '更新失敗');
       }

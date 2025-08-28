@@ -1283,7 +1283,7 @@ export class TransactionService {
   ): Promise<{ [key: string]: boolean }> {
     try {
       // 只記錄總數，不輸出詳細內容
-      logger.debug('批量檢查進貨單付款狀態開始', { count: purchaseOrderIds.length });
+      //logger.debug('批量檢查進貨單付款狀態開始', { count: purchaseOrderIds.length });
       
       // 建立付款狀態映射
       const paymentStatusMap: { [key: string]: boolean } = {};

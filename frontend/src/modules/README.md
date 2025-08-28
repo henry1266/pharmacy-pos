@@ -1,185 +1,118 @@
-# 模組目錄結構說明與最佳實踐
+# 前端模組標準結構指南
 
-## 當前目錄分配型態
+本文檔描述了我們專案中前端模組的標準資料夾結構，以 `sale` 模組為範例。所有新模組應遵循此結構，以確保程式碼的一致性和可維護性。
 
-目前 `frontend/src/modules` 目錄下包含以下主要模組：
+## 標準模組結構
 
-1. **accounting3** - 會計模組 (結構最為完整)
-   - accounts/ - 帳戶相關功能
-   - components/ - UI 元件
-   - core/ - 核心邏輯與服務
-   - features/ - 功能模組
-   - pages/ - 頁面元件
-   - services/ - API 服務
-   - shared/ - 共用資源
-   - types/ - 型別定義
-
-2. **daily-journal** - 日誌模組
-   - components/ - UI 元件
-   - pages/ - 頁面元件
-
-3. **dashboard** - 儀表板模組
-   - components/ - UI 元件
-   - hooks/ - 自定義 Hooks
-   - pages/ - 頁面元件
-   - utils/ - 工具函數
-
-4. **employees** - 員工管理模組
-   - components/ - UI 元件
-   - core/ - 核心邏輯
-   - pages/ - 頁面元件
-   - types/ - 型別定義
-   - utils/ - 工具函數
-
-5. **sale** - 銷售模組
-   - components/ - UI 元件
-   - hooks/ - 自定義 Hooks
-   - pages/ - 頁面元件
-   - types/ - 型別定義
-   - utils/ - 工具函數
-
-## 當前結構問題
-
-1. **一致性不足** - 各模組間的目錄結構不一致，有些模組結構完整（如 accounting3），有些則較為簡單
-2. **文檔缺乏** - 除了 accounting3 外，其他模組缺乏 README 文件說明
-3. **功能劃分不明確** - 部分模組缺乏明確的功能劃分，可能導致代碼重複或難以維護
-4. **共用資源管理不統一** - 缺乏統一的共用資源管理方式
-5. **目錄結構過於複雜** - 目錄嵌套層次過深，多層相同名稱的目錄導致開發人員容易混淆
-6. **目錄命名重複** - 不同層級使用相同的目錄名稱（如 components、hooks、utils 等），增加了理解和導航的難度
-
-## Redux Toolkit 與 RTK Query 導入指南
-
-本章節提供了將 Redux Toolkit 和 RTK Query 導入模組的最佳實踐和注意事項，基於銷售模組的實際重構經驗。
-
-### 目錄結構
-
-使用 Redux Toolkit 和 RTK Query 時，建議採用以下目錄結構：
+以下是基於 `sale` 模組的標準資料夾結構：
 
 ```
-modules/[module-name]/
-├── api/
-│   ├── client.ts         # API 客戶端配置 (Axios 實例、攔截器、錯誤處理)
-│   ├── dto.ts            # 數據傳輸對象 (Request/Response 型別)
-│   └── [resource]Api.ts  # RTK Query API 定義
-├── model/
-│   └── [resource]Slice.ts # Redux 狀態切片 (UI 狀態管理)
-├── hooks/
-│   └── use[Resource].ts   # 封裝 RTK Query hooks
+modules/[模組名稱]/
+├── api/                    # API 相關文件
+│   ├── client.ts           # API 客戶端配置
+│   ├── dto.ts              # 資料傳輸物件定義
+│   └── [模組名稱]Api.ts     # API 請求函數
+├── components/             # UI 組件
+│   ├── [共用組件].tsx       # 模組內共用組件
+│   ├── detail/             # 詳情頁面相關組件
+│   ├── edit/               # 編輯頁面相關組件
+│   └── list/               # 列表頁面相關組件
+├── hooks/                  # 自定義 React Hooks
+│   └── use[功能名稱].ts     # 特定功能的 Hook
+├── model/                  # 狀態管理
+│   └── [模組名稱]Slice.ts   # Redux Toolkit Slice
+├── pages/                  # 頁面組件
+│   └── [模組名稱][頁面類型]Page.tsx  # 頁面組件
+├── types/                  # TypeScript 類型定義
+│   ├── index.ts            # 匯出所有類型
+│   ├── detail.ts           # 詳情頁面相關類型
+│   ├── edit.ts             # 編輯頁面相關類型
+│   └── list.ts             # 列表頁面相關類型
+└── utils/                  # 工具函數
+    └── [功能]Utils.ts      # 特定功能的工具函數
 ```
 
-### 實施步驟
+## 各資料夾用途說明
 
-1. **安裝依賴**
-   ```bash
-   npm install @reduxjs/toolkit react-redux
-   ```
+### api/
 
-2. **配置 Store**
-   - 創建 `app/store/index.ts` 文件
-   - 使用 `configureStore` 配置 Redux store
-   - 導入並組合所有 API 和 slice reducers
+包含與後端 API 通信相關的所有文件：
 
-3. **實現 API 層**
-   - 創建 API 客戶端 (`client.ts`)
-   - 定義 DTO 型別 (`dto.ts`)
-   - 使用 `createApi` 定義 API endpoints
+- **client.ts**: 配置 API 客戶端，如 Axios 實例等
+- **dto.ts**: 定義資料傳輸物件 (Data Transfer Objects)，用於請求和響應的類型
+- **[模組名稱]Api.ts**: 包含所有 API 請求函數
 
-4. **實現 UI 狀態管理**
-   - 使用 `createSlice` 定義 UI 狀態
-   - 實現 reducers 和 actions
-   - 定義 selectors
+### components/
 
-5. **封裝 Hooks**
-   - 封裝 RTK Query 的 hooks，提供更簡潔的 API
-   - 實現向後兼容的 hooks，方便逐步遷移
+包含模組內所有 UI 組件，按功能或頁面類型組織：
 
-### 最佳實踐
+- **根目錄**: 放置模組內共用組件
+- **detail/**: 詳情頁面相關組件
+- **edit/**: 編輯頁面相關組件
+- **list/**: 列表頁面相關組件
 
-1. **Server State 與 Client State 分離**
-   - 使用 RTK Query 管理伺服器數據 (獲取、緩存、更新)
-   - 使用 Redux Toolkit 的 createSlice 管理 UI 狀態
-   - 避免在 Redux store 中存儲可以通過 API 獲取的數據
+每個子目錄應包含該頁面類型的所有相關組件，如表格、表單、卡片等。
 
-2. **類型安全**
-   - 為所有 API 請求和響應定義明確的型別
-   - 使用 TypeScript 泛型增強代碼的靈活性
-   - 確保 API 和 UI 層之間的型別一致性
+### hooks/
 
-3. **錯誤處理**
-   - 在 API 客戶端中統一處理錯誤
-   - 將 HTTP 錯誤映射為應用錯誤
-   - 使用 RTK Query 的錯誤處理機制
+包含模組特定的自定義 React Hooks：
 
-4. **性能優化**
-   - 使用 RTK Query 的緩存機制
-   - 實現選擇性數據獲取
-   - 使用 `selectFromResult` 優化渲染性能
+- **use[功能名稱].ts**: 例如 `useSaleEdit.ts`、`useSalesList.ts` 等
 
-### 常見錯誤與解決方案
+這些 Hooks 封裝了特定功能的邏輯，使組件保持簡潔。
 
-1. **型別不匹配問題**
-   
-   **問題**: 在使用 RTK Query 時，API 響應型別與組件期望的型別不匹配。
-   
-   **解決方案**:
-   - 使用型別轉換函數 (如 `mapSaleResponseToSaleData`)
-   - 修改組件屬性型別，使其接受多種型別 (如 `SaleItem[] | SaleItemWithDetailsDto[]`)
-   - 使用泛型型別 (如 `<T extends { price: number; quantity: number }>`)
+### model/
 
-   **示例**:
-   ```typescript
-   // 修改前
-   export interface SalesEditItemsTableProps {
-     items: SaleItem[];
-   }
-   
-   // 修改後
-   export interface SalesEditItemsTableProps {
-     items: SaleItem[] | import('../api/dto').SaleItemWithDetailsDto[];
-   }
-   ```
+包含狀態管理相關文件：
 
-2. **可選屬性處理問題**
-   
-   **問題**: TypeScript 的 `exactOptionalPropertyTypes: true` 設置導致可選屬性型別不兼容。
-   
-   **解決方案**:
-   - 明確聲明 `undefined` 作為可選屬性的可能值
-   - 使用型別聯合 (如 `Product | undefined`)
-   - 使用可選鏈操作符 (`?.`) 和空值合併操作符 (`??`)
+- **[模組名稱]Slice.ts**: Redux Toolkit Slice 定義，包含狀態、reducers 和 actions
 
-3. **API 錯誤處理問題**
-   
-   **問題**: API 錯誤沒有被正確處理或顯示。
-   
-   **解決方案**:
-   - 實現統一的錯誤處理邏輯
-   - 使用 Axios 攔截器捕獲和轉換錯誤
-   - 使用 RTK Query 的 `transformErrorResponse` 選項
+### pages/
 
-4. **Store 配置問題**
-   
-   **問題**: Redux store 配置不正確，導致 middleware 或 reducer 不工作。
-   
-   **解決方案**:
-   - 確保正確配置 `configureStore`
-   - 添加所有必要的 middleware
-   - 正確組合所有 reducers
+包含模組的頁面級組件：
 
-### 遷移策略
+- **[模組名稱][頁面類型]Page.tsx**: 例如 `SalesListPage.tsx`、`SalesEditPage.tsx` 等
 
-1. **漸進式遷移**
-   - 先實現基礎設施 (store, API 客戶端)
-   - 為一個資源實現 RTK Query API
-   - 創建向後兼容的 hooks
-   - 逐步遷移組件使用新的 hooks
+頁面組件應該主要負責組合其他組件和處理頁面級邏輯。
 
-2. **並行運行**
-   - 保留舊的狀態管理方式
-   - 實現新的 RTK Query API
-   - 在新功能中使用新的 API
-   - 逐步替換舊的實現
+### types/
 
-### 結論
+包含模組內所有 TypeScript 類型定義：
 
-通過遵循上述最佳實踐和避免常見錯誤，可以順利地將 Redux Toolkit 和 RTK Query 導入到項目中，實現 Server state 與 Client/UI state 的分離，提高代碼的可維護性和可擴展性。
+- **index.ts**: 匯出所有類型，方便引入
+- **detail.ts**, **edit.ts**, **list.ts** 等: 按功能或頁面類型組織類型定義
+
+### utils/
+
+包含模組特定的工具函數：
+
+- **[功能]Utils.ts**: 例如 `editUtils.ts`、`listUtils.ts` 等
+
+## 最佳實踐
+
+1. **關注點分離**: 每個文件應該有明確的職責，避免過大的文件
+2. **命名一致性**: 遵循統一的命名規範（如 camelCase 或 PascalCase）
+3. **類型安全**: 充分利用 TypeScript 類型系統，確保類型安全
+4. **組件拆分**: 將大型組件拆分為更小、更可重用的組件
+5. **狀態管理**: 使用 Redux Toolkit 進行狀態管理，遵循其最佳實踐
+6. **路徑引用**: 使用相對路徑或路徑別名，保持引用的一致性
+
+## 新模組創建指南
+
+創建新模組時，請遵循以下步驟：
+
+1. 在 `src/modules` 下創建新的模組目錄
+2. 按照上述標準結構創建必要的子目錄
+3. 實現必要的文件，參考 `sale` 模組的實現方式
+4. 確保新模組與現有系統正確集成
+
+## 範例：sale 模組
+
+`sale` 模組是我們的標準參考實現，包含完整的銷售管理功能：
+
+- 銷售列表頁面
+- 銷售詳情頁面
+- 銷售編輯頁面
+- 新增銷售頁面
+
+新模組開發時，請參考 `sale` 模組的實現方式，確保結構和風格的一致性。
