@@ -1,11 +1,20 @@
 import express from 'express';
 import { AccountController } from '../../controllers/accounting2';
 import auth from '../../middleware/auth';
+import rateLimit from 'express-rate-limit';
 
 const router: express.Router = express.Router();
 
 // 應用認證中介軟體
 router.use(auth);
+// Rate limiting (每個IP在15分鐘內最多100次請求)
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15分鐘
+  max: 100, // 最大100次請求
+  standardHeaders: true, // 返回RateLimit-標頭
+  legacyHeaders: false,
+});
+router.use(limiter);
 
 /**
  * @description 會計科目管理路由
