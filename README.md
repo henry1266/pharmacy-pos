@@ -504,6 +504,8 @@ export const getItemById = apiClient.getItemById.bind(apiClient);
 - Henry Chen - 項目負責人
 - 藥局POS開發團隊
 
-## 許可證
+## 初次使用
 
-本項目採用 MIT 許可證 - 詳情請查看 LICENSE 文件
+sudo npm install -g pnpm
+pnpm install
+pnpm run build
