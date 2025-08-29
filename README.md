@@ -39,11 +39,12 @@
 ## 系統架構
 
 ### 整體架構設計
-藥局POS系統採用現代化的 **Monorepo** 架構，使用 **pnpm workspace** 管理多個相關套件，確保代碼重用性和型別一致性。系統分為三個主要模組：
+藥局POS系統採用現代化的 **Monorepo** 架構，使用 **pnpm workspace** 管理多個相關套件，確保代碼重用性和型別一致性。系統分為四個主要模組：
 
 - **Frontend**: React + TypeScript 前端應用
-- **Backend**: Node.js + Express 後端服務  
+- **Backend**: Node.js + Express 後端服務
 - **Shared**: 共享型別定義和工具函數庫
+- **OpenAPI**: API文檔規範作為單一真實來源(SSOT)
 
 ### 前端技術棧
 
@@ -74,6 +75,42 @@
 - **CSV-Parser**: CSV 文件處理
 - **PDFKit**: PDF 報表生成
 - **Day.js**: 輕量級日期處理庫
+- **Swagger-UI-Express**: API文檔UI展示
+- **Swagger-JSDoc**: 從JSDoc註解生成OpenAPI規範
+- **@apidevtools/swagger-parser**: OpenAPI規範驗證與解析
+
+### API文檔系統
+
+藥局POS系統實現了基於OpenAPI 3.1的現代化API文檔系統，採用單一真實來源(SSOT)原則，確保API定義的一致性和可靠性。
+
+#### OpenAPI 3.1作為SSOT
+
+系統使用OpenAPI 3.1規範作為API定義的單一真實來源，所有API文檔和客戶端代碼都基於此規範生成，確保前後端一致性。
+
+- **規範位置**: `/openapi/openapi.json`
+- **規範版本**: OpenAPI 3.1.0
+- **自動驗證**: 使用@apidevtools/swagger-parser確保規範符合標準
+
+#### API文檔生成流程
+
+1. **JSDoc註解**: 在路由和控制器中使用標準JSDoc註解定義API
+2. **Swagger配置**: 在`backend/swagger.ts`中配置基本信息和共用模型
+3. **自動生成**: 啟動服務時自動生成並驗證OpenAPI規範
+4. **規範存儲**: 將驗證後的規範保存為`openapi.json`作為SSOT
+5. **UI展示**: 使用Swagger UI在`/api-docs`路徑展示API文檔
+
+#### 主要組件
+
+- **模型定義**: 在`components/schemas`中定義共用數據模型
+- **路徑定義**: 在`paths`中定義API端點和操作
+- **安全方案**: 支援JWT Bearer認證和API Key認證
+- **響應格式**: 標準化的成功和錯誤響應格式
+
+#### 使用方法
+
+1. **瀏覽API文檔**: 訪問`http://localhost:5000/api-docs`
+2. **下載OpenAPI規範**: 從`http://localhost:5000/api-docs/json`獲取完整規範
+3. **導入第三方工具**: 支援導入Postman、Insomnia等API測試工具
 
 ### Shared 模組架構
 共享模組是系統的核心創新，提供統一的型別定義和工具函數：
@@ -214,6 +251,44 @@ pnpm run build
 4. **版本同步**: 使用 workspace 協議管理內部依賴
 5. **建構順序**: shared → backend → frontend
 
+#### API文檔開發指南
+
+藥局POS系統採用OpenAPI 3.1作為API文檔標準，開發者應遵循以下原則：
+
+1. **JSDoc註解**: 所有API端點必須使用標準JSDoc註解，包含以下信息：
+   - 端點描述 (`@description`)
+   - 請求參數 (`@param`)
+   - 響應格式 (`@returns`)
+   - 錯誤處理 (`@throws`)
+
+2. **模型定義**:
+   - 共用模型定義在`backend/swagger.ts`的`components.schemas`中
+   - 複雜模型使用`allOf`組合基礎模型
+   - 所有模型屬性必須有描述和類型
+
+3. **API版本管理**:
+   - 主要版本變更需更新OpenAPI規範版本號
+   - 不兼容變更必須在路徑中體現版本 (如`/api/v2/products`)
+   - 兼容性變更可使用查詢參數指定版本
+
+4. **測試與驗證**:
+   - 新增或修改API後必須驗證OpenAPI規範
+   - 使用Swagger UI手動測試API功能
+   - 確保響應格式符合文檔定義
+
+5. **文檔更新流程**:
+   ```bash
+   # 啟動開發服務器，自動生成最新API文檔
+   pnpm --filter backend dev
+   
+   # 驗證API文檔是否正確
+   # 訪問 http://localhost:5000/api-docs
+   
+   # 提交更新的OpenAPI規範
+   git add openapi/openapi.json
+   git commit -m "更新API文檔: [變更摘要]"
+   ```
+
 
 ### 避免代碼耦合
 
@@ -230,6 +305,33 @@ pnpm run build
 9. **延後抽象**: 只有在多處使用時才抽離為共用組件
 
 ## 使用指南
+
+### API文檔使用
+
+藥局POS系統提供了完整的API文檔，幫助開發者和使用者了解和使用系統API。
+
+#### 訪問API文檔
+
+1. **啟動系統**: 執行`pnpm run dev`啟動開發環境
+2. **瀏覽文檔**: 在瀏覽器中訪問`http://localhost:5000/api-docs`
+3. **探索API**: 使用Swagger UI界面瀏覽所有可用的API端點
+
+#### API測試
+
+Swagger UI提供了內建的API測試功能：
+
+1. **選擇端點**: 點擊要測試的API端點展開詳情
+2. **設置參數**: 填寫請求參數和請求體
+3. **執行請求**: 點擊"Try it out"按鈕發送請求
+4. **查看結果**: 查看響應狀態碼、響應頭和響應體
+
+#### 整合第三方工具
+
+API文檔支援與第三方工具整合：
+
+1. **下載OpenAPI規範**: 從`http://localhost:5000/api-docs/json`獲取完整規範
+2. **導入Postman**: 在Postman中選擇"Import" > "OpenAPI"，導入下載的規範
+3. **導入Insomnia**: 在Insomnia中選擇"Import/Export" > "Import Data" > "From URL"，輸入API文檔URL
 
 ### 產品管理
 
@@ -485,6 +587,15 @@ export const getItemById = apiClient.getItemById.bind(apiClient);
 - **統一管理**: 使用 pnpm workspace 統一管理依賴和建構流程
 - **開發效率**: 一次修改，多處生效，提高開發和維護效率
 
+### OpenAPI 3.1 規範優勢
+
+- **API 一致性**: 使用OpenAPI 3.1作為單一真實來源(SSOT)
+- **自動文檔**: 從代碼註解自動生成最新API文檔
+- **開發者體驗**: 互動式Swagger UI提供API測試和探索功能
+- **工具整合**: 支援與Postman、Insomnia等第三方工具整合
+- **前後端協作**: 明確的API契約減少溝通成本和錯誤
+- **版本控制**: API規範納入版本控制，追蹤API演進歷史
+
 ### 型別系統設計
 
 - **漸進式型別化**: 支援從 JavaScript 逐步遷移到 TypeScript
@@ -498,6 +609,7 @@ export const getItemById = apiClient.getItemById.bind(apiClient);
 - **TypeScript**: 完整的型別安全保障
 - **CRACO**: 靈活的 Create React App 配置
 - **Concurrently**: 同時執行多個開發服務器
+- **Swagger**: 現代化API文檔和測試工具
 
 ## 開發團隊
 
