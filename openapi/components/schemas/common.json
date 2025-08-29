@@ -1,0 +1,45 @@
+{
+  "ApiResponse": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean",
+        "description": "操作是否成功"
+      },
+      "message": {
+        "type": "string",
+        "description": "響應消息"
+      },
+      "data": {
+        "type": "object",
+        "description": "響應數據"
+      },
+      "timestamp": {
+        "type": "string",
+        "format": "date-time",
+        "description": "響應時間戳"
+      }
+    }
+  },
+  "ErrorResponse": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean",
+        "example": false
+      },
+      "message": {
+        "type": "string",
+        "description": "錯誤消息"
+      },
+      "error": {
+        "type": "string",
+        "description": "詳細錯誤信息"
+      },
+      "timestamp": {
+        "type": "string",
+        "format": "date-time"
+      }
+    }
+  }
+}

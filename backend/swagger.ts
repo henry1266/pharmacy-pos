@@ -1,8 +1,41 @@
 import swaggerJSDoc from 'swagger-jsdoc';
 import SwaggerParser from '@apidevtools/swagger-parser';
-import { version } from './package.json';
 import path from 'path';
 import fs from 'fs';
+import { version } from './package.json';
+
+// OpenAPI規範的類型定義
+interface OpenAPISpec {
+  openapi: string;
+  info?: {
+    title?: string;
+    version?: string;
+    description?: string;
+    contact?: {
+      name?: string;
+      email?: string;
+    };
+    license?: {
+      name: string;
+      identifier?: string;
+      url?: string;
+    };
+  };
+  servers?: Array<{
+    url: string;
+    description?: string;
+  }>;
+  paths?: Record<string, any>;
+  components?: {
+    schemas?: Record<string, any>;
+    securitySchemes?: Record<string, any>;
+  };
+  security?: Array<Record<string, any>>;
+  tags?: Array<{
+    name: string;
+    description?: string;
+  }>;
+}
 
 /**
  * Swagger配置選項
@@ -25,8 +58,8 @@ const options: swaggerJSDoc.Options = {
     },
     servers: [
       {
-        url: process.env.NODE_ENV === 'production' 
-          ? 'https://api.pharmacy-pos.com' 
+        url: process.env.NODE_ENV === 'production'
+          ? 'https://api.pharmacy-pos.com'
           : 'http://localhost:5000',
         description: process.env.NODE_ENV === 'production' ? '生產環境' : '開發環境'
       }
@@ -233,7 +266,7 @@ async function validateAndSaveOpenAPISpec() {
     fs.writeFileSync(tempPath, JSON.stringify(swaggerSpec, null, 2));
     
     // 驗證OpenAPI規範
-    const validatedSpec = await SwaggerParser.validate(tempPath);
+    const validatedSpec = await SwaggerParser.validate(tempPath) as OpenAPISpec;
     console.log('OpenAPI 3.1規範驗證成功');
     
     // 保存為正式JSON檔案

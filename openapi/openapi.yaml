@@ -1,0 +1,59 @@
+openapi: 3.1.0
+info:
+  title: 藥局POS系統 API
+  version: 1.0.0
+  description: 藥局POS系統RESTful API文檔
+  contact:
+    name: 藥局POS開發團隊
+    email: dev@pharmacy-pos.com
+  license:
+    name: ISC
+    identifier: ISC
+
+servers:
+  - url: http://localhost:5000
+    description: 開發環境
+  - url: https://api.pharmacy-pos.com
+    description: 生產環境
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+  schemas:
+    # 通用模型
+    ApiResponse:
+      $ref: 'components/schemas/common.json#/ApiResponse'
+    ErrorResponse:
+      $ref: 'components/schemas/common.json#/ErrorResponse'
+    
+    # 產品相關模型
+    BaseProduct:
+      $ref: 'components/schemas/products.json#/BaseProduct'
+    Product:
+      $ref: 'components/schemas/products.json#/Product'
+    Medicine:
+      $ref: 'components/schemas/products.json#/Medicine'
+
+# 全局安全設定
+security:
+  - bearerAuth: []
+
+# API路徑
+paths:
+  # 產品相關API
+  /api/products:
+    $ref: 'paths/products.json#/~1api~1products'
+  /api/products/product:
+    $ref: 'paths/products.json#/~1api~1products~1product'
+
+# 標籤分組
+tags:
+  - name: Products
+    description: 產品相關API

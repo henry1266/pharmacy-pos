@@ -1,0 +1,107 @@
+{
+  "BaseProduct": {
+    "type": "object",
+    "required": ["code", "name", "unit"],
+    "properties": {
+      "_id": {
+        "type": "string",
+        "description": "產品ID"
+      },
+      "code": {
+        "type": "string",
+        "description": "產品代碼"
+      },
+      "shortCode": {
+        "type": "string",
+        "description": "產品簡碼"
+      },
+      "name": {
+        "type": "string",
+        "description": "產品名稱"
+      },
+      "subtitle": {
+        "type": "string",
+        "description": "產品副標題"
+      },
+      "unit": {
+        "type": "string",
+        "description": "基本單位"
+      },
+      "purchasePrice": {
+        "type": "number",
+        "description": "進貨價格"
+      },
+      "sellingPrice": {
+        "type": "number",
+        "description": "售價"
+      },
+      "description": {
+        "type": "string",
+        "description": "產品描述"
+      },
+      "category": {
+        "type": "string",
+        "description": "分類ID"
+      },
+      "supplier": {
+        "type": "string",
+        "description": "供應商ID"
+      },
+      "minStock": {
+        "type": "number",
+        "description": "最低庫存量"
+      },
+      "productType": {
+        "type": "string",
+        "enum": ["PRODUCT", "MEDICINE"],
+        "description": "產品類型"
+      },
+      "isActive": {
+        "type": "boolean",
+        "description": "是否啟用"
+      },
+      "createdAt": {
+        "type": "string",
+        "format": "date-time",
+        "description": "創建時間"
+      },
+      "updatedAt": {
+        "type": "string",
+        "format": "date-time",
+        "description": "更新時間"
+      }
+    }
+  },
+  "Product": {
+    "allOf": [
+      { "$ref": "#/BaseProduct" },
+      {
+        "type": "object",
+        "properties": {
+          "barcode": {
+            "type": "string",
+            "description": "商品條碼"
+          }
+        }
+      }
+    ]
+  },
+  "Medicine": {
+    "allOf": [
+      { "$ref": "#/BaseProduct" },
+      {
+        "type": "object",
+        "properties": {
+          "healthInsuranceCode": {
+            "type": "string",
+            "description": "健保碼"
+          },
+          "healthInsurancePrice": {
+            "type": "number",
+            "description": "健保價格"
+          }
+        }
+      }
+    ]
+  }
+}
