@@ -1,12 +1,15 @@
 import swaggerJSDoc from 'swagger-jsdoc';
+import SwaggerParser from '@apidevtools/swagger-parser';
 import { version } from './package.json';
+import path from 'path';
+import fs from 'fs';
 
 /**
  * Swagger配置選項
  */
 const options: swaggerJSDoc.Options = {
   definition: {
-    openapi: '3.0.0',
+    openapi: '3.1.0',
     info: {
       title: '藥局POS系統 API',
       version: version,
@@ -17,6 +20,7 @@ const options: swaggerJSDoc.Options = {
       },
       license: {
         name: 'ISC',
+        identifier: 'ISC'
       },
     },
     servers: [
@@ -210,7 +214,46 @@ const options: swaggerJSDoc.Options = {
   ]
 };
 
+// 確保openapi目錄存在
+const openapiDir = path.join(__dirname, '../openapi');
+if (!fs.existsSync(openapiDir)) {
+  fs.mkdirSync(openapiDir, { recursive: true });
+}
+
 // 生成Swagger規格
 const swaggerSpec = swaggerJSDoc(options);
+
+/**
+ * 驗證並保存OpenAPI規範作為SSOT
+ */
+async function validateAndSaveOpenAPISpec() {
+  try {
+    // 先保存規範為臨時JSON檔案
+    const tempPath = path.join(openapiDir, 'temp-openapi.json');
+    fs.writeFileSync(tempPath, JSON.stringify(swaggerSpec, null, 2));
+    
+    // 驗證OpenAPI規範
+    const validatedSpec = await SwaggerParser.validate(tempPath);
+    console.log('OpenAPI 3.1規範驗證成功');
+    
+    // 保存為正式JSON檔案
+    const outputPath = path.join(openapiDir, 'openapi.json');
+    fs.writeFileSync(outputPath, JSON.stringify(validatedSpec, null, 2));
+    console.log(`OpenAPI規範已保存至: ${outputPath}`);
+    
+    // 刪除臨時檔案
+    fs.unlinkSync(tempPath);
+    
+    return validatedSpec;
+  } catch (err) {
+    console.error('OpenAPI規範驗證失敗:', err);
+    return swaggerSpec; // 如果驗證失敗，返回原始規範
+  }
+}
+
+// 在非測試環境中驗證並保存OpenAPI規範
+if (process.env.NODE_ENV !== 'test') {
+  validateAndSaveOpenAPISpec().catch(console.error);
+}
 
 export default swaggerSpec;

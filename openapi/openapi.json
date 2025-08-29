@@ -1,0 +1,961 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "藥局POS系統 API",
+    "version": "1.0.0",
+    "description": "藥局POS系統RESTful API文檔",
+    "contact": {
+      "name": "藥局POS開發團隊",
+      "email": "dev@pharmacy-pos.com"
+    },
+    "license": {
+      "name": "ISC",
+      "identifier": "ISC"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000",
+      "description": "開發環境"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      },
+      "apiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key"
+      }
+    },
+    "schemas": {
+      "ApiResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "操作是否成功"
+          },
+          "message": {
+            "type": "string",
+            "description": "響應消息"
+          },
+          "data": {
+            "type": "object",
+            "description": "響應數據"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "響應時間戳"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "description": "錯誤消息"
+          },
+          "error": {
+            "type": "string",
+            "description": "詳細錯誤信息"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "BaseProduct": {
+        "type": "object",
+        "required": [
+          "code",
+          "name",
+          "unit"
+        ],
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "產品ID"
+          },
+          "code": {
+            "type": "string",
+            "description": "產品代碼"
+          },
+          "shortCode": {
+            "type": "string",
+            "description": "產品簡碼"
+          },
+          "name": {
+            "type": "string",
+            "description": "產品名稱"
+          },
+          "subtitle": {
+            "type": "string",
+            "description": "產品副標題"
+          },
+          "unit": {
+            "type": "string",
+            "description": "基本單位"
+          },
+          "purchasePrice": {
+            "type": "number",
+            "description": "進貨價格"
+          },
+          "sellingPrice": {
+            "type": "number",
+            "description": "售價"
+          },
+          "description": {
+            "type": "string",
+            "description": "產品描述"
+          },
+          "category": {
+            "type": "string",
+            "description": "分類ID"
+          },
+          "supplier": {
+            "type": "string",
+            "description": "供應商ID"
+          },
+          "minStock": {
+            "type": "number",
+            "description": "最低庫存量"
+          },
+          "productType": {
+            "type": "string",
+            "enum": [
+              "PRODUCT",
+              "MEDICINE"
+            ],
+            "description": "產品類型"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "是否啟用"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "創建時間"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "更新時間"
+          }
+        }
+      },
+      "Product": {
+        "allOf": [
+          {
+            "type": "object",
+            "required": [
+              "code",
+              "name",
+              "unit"
+            ],
+            "properties": {
+              "_id": {
+                "type": "string",
+                "description": "產品ID"
+              },
+              "code": {
+                "type": "string",
+                "description": "產品代碼"
+              },
+              "shortCode": {
+                "type": "string",
+                "description": "產品簡碼"
+              },
+              "name": {
+                "type": "string",
+                "description": "產品名稱"
+              },
+              "subtitle": {
+                "type": "string",
+                "description": "產品副標題"
+              },
+              "unit": {
+                "type": "string",
+                "description": "基本單位"
+              },
+              "purchasePrice": {
+                "type": "number",
+                "description": "進貨價格"
+              },
+              "sellingPrice": {
+                "type": "number",
+                "description": "售價"
+              },
+              "description": {
+                "type": "string",
+                "description": "產品描述"
+              },
+              "category": {
+                "type": "string",
+                "description": "分類ID"
+              },
+              "supplier": {
+                "type": "string",
+                "description": "供應商ID"
+              },
+              "minStock": {
+                "type": "number",
+                "description": "最低庫存量"
+              },
+              "productType": {
+                "type": "string",
+                "enum": [
+                  "PRODUCT",
+                  "MEDICINE"
+                ],
+                "description": "產品類型"
+              },
+              "isActive": {
+                "type": "boolean",
+                "description": "是否啟用"
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time",
+                "description": "創建時間"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time",
+                "description": "更新時間"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "properties": {
+              "barcode": {
+                "type": "string",
+                "description": "商品條碼"
+              }
+            }
+          }
+        ]
+      },
+      "Medicine": {
+        "allOf": [
+          {
+            "type": "object",
+            "required": [
+              "code",
+              "name",
+              "unit"
+            ],
+            "properties": {
+              "_id": {
+                "type": "string",
+                "description": "產品ID"
+              },
+              "code": {
+                "type": "string",
+                "description": "產品代碼"
+              },
+              "shortCode": {
+                "type": "string",
+                "description": "產品簡碼"
+              },
+              "name": {
+                "type": "string",
+                "description": "產品名稱"
+              },
+              "subtitle": {
+                "type": "string",
+                "description": "產品副標題"
+              },
+              "unit": {
+                "type": "string",
+                "description": "基本單位"
+              },
+              "purchasePrice": {
+                "type": "number",
+                "description": "進貨價格"
+              },
+              "sellingPrice": {
+                "type": "number",
+                "description": "售價"
+              },
+              "description": {
+                "type": "string",
+                "description": "產品描述"
+              },
+              "category": {
+                "type": "string",
+                "description": "分類ID"
+              },
+              "supplier": {
+                "type": "string",
+                "description": "供應商ID"
+              },
+              "minStock": {
+                "type": "number",
+                "description": "最低庫存量"
+              },
+              "productType": {
+                "type": "string",
+                "enum": [
+                  "PRODUCT",
+                  "MEDICINE"
+                ],
+                "description": "產品類型"
+              },
+              "isActive": {
+                "type": "boolean",
+                "description": "是否啟用"
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time",
+                "description": "創建時間"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time",
+                "description": "更新時間"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "properties": {
+              "healthInsuranceCode": {
+                "type": "string",
+                "description": "健保碼"
+              },
+              "healthInsurancePrice": {
+                "type": "number",
+                "description": "健保價格"
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/api/products": {
+      "get": {
+        "summary": "獲取所有產品",
+        "description": "獲取所有產品，支援多種過濾和排序選項",
+        "tags": [
+          "Products"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            },
+            "description": "搜尋關鍵字（名稱、代碼、簡碼、條碼、健保代碼）"
+          },
+          {
+            "in": "query",
+            "name": "productType",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "all",
+                "PRODUCT",
+                "MEDICINE"
+              ]
+            },
+            "description": "產品類型"
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "schema": {
+              "type": "string"
+            },
+            "description": "分類ID"
+          },
+          {
+            "in": "query",
+            "name": "supplier",
+            "schema": {
+              "type": "string"
+            },
+            "description": "供應商ID"
+          },
+          {
+            "in": "query",
+            "name": "minPrice",
+            "schema": {
+              "type": "number"
+            },
+            "description": "最低價格"
+          },
+          {
+            "in": "query",
+            "name": "maxPrice",
+            "schema": {
+              "type": "number"
+            },
+            "description": "最高價格"
+          },
+          {
+            "in": "query",
+            "name": "stockStatus",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "all",
+                "inStock",
+                "lowStock",
+                "outOfStock"
+              ]
+            },
+            "description": "庫存狀態"
+          },
+          {
+            "in": "query",
+            "name": "sortBy",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "code",
+                "name",
+                "price",
+                "stock"
+              ]
+            },
+            "description": "排序欄位"
+          },
+          {
+            "in": "query",
+            "name": "sortOrder",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            },
+            "description": "排序方向"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功獲取產品列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "產品列表獲取成功"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "code",
+                          "name",
+                          "unit"
+                        ],
+                        "properties": {
+                          "_id": {
+                            "type": "string",
+                            "description": "產品ID"
+                          },
+                          "code": {
+                            "type": "string",
+                            "description": "產品代碼"
+                          },
+                          "shortCode": {
+                            "type": "string",
+                            "description": "產品簡碼"
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "產品名稱"
+                          },
+                          "subtitle": {
+                            "type": "string",
+                            "description": "產品副標題"
+                          },
+                          "unit": {
+                            "type": "string",
+                            "description": "基本單位"
+                          },
+                          "purchasePrice": {
+                            "type": "number",
+                            "description": "進貨價格"
+                          },
+                          "sellingPrice": {
+                            "type": "number",
+                            "description": "售價"
+                          },
+                          "description": {
+                            "type": "string",
+                            "description": "產品描述"
+                          },
+                          "category": {
+                            "type": "string",
+                            "description": "分類ID"
+                          },
+                          "supplier": {
+                            "type": "string",
+                            "description": "供應商ID"
+                          },
+                          "minStock": {
+                            "type": "number",
+                            "description": "最低庫存量"
+                          },
+                          "productType": {
+                            "type": "string",
+                            "enum": [
+                              "PRODUCT",
+                              "MEDICINE"
+                            ],
+                            "description": "產品類型"
+                          },
+                          "isActive": {
+                            "type": "boolean",
+                            "description": "是否啟用"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "description": "創建時間"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "description": "更新時間"
+                          }
+                        }
+                      }
+                    },
+                    "filters": {
+                      "type": "object",
+                      "properties": {
+                        "search": {
+                          "type": "string"
+                        },
+                        "productType": {
+                          "type": "string"
+                        },
+                        "category": {
+                          "type": "string"
+                        },
+                        "supplier": {
+                          "type": "string"
+                        },
+                        "priceRange": {
+                          "type": "object",
+                          "properties": {
+                            "min": {
+                              "type": "number"
+                            },
+                            "max": {
+                              "type": "number"
+                            }
+                          }
+                        },
+                        "stockStatus": {
+                          "type": "string"
+                        },
+                        "sort": {
+                          "type": "object",
+                          "properties": {
+                            "by": {
+                              "type": "string"
+                            },
+                            "order": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "count": {
+                      "type": "number",
+                      "example": 10
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "伺服器錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "錯誤消息"
+                    },
+                    "error": {
+                      "type": "string",
+                      "description": "詳細錯誤信息"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/products/product": {
+      "post": {
+        "summary": "創建新商品",
+        "description": "創建一個新的商品記錄",
+        "tags": [
+          "Products"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "unit"
+                ],
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "description": "產品代碼（如果不提供將自動生成）"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "產品名稱"
+                  },
+                  "subtitle": {
+                    "type": "string",
+                    "description": "產品副標題"
+                  },
+                  "category": {
+                    "type": "string",
+                    "description": "分類ID"
+                  },
+                  "unit": {
+                    "type": "string",
+                    "description": "基本單位"
+                  },
+                  "purchasePrice": {
+                    "type": "number",
+                    "description": "進貨價格"
+                  },
+                  "sellingPrice": {
+                    "type": "number",
+                    "description": "售價"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "產品描述"
+                  },
+                  "supplier": {
+                    "type": "string",
+                    "description": "供應商ID"
+                  },
+                  "minStock": {
+                    "type": "number",
+                    "description": "最低庫存量"
+                  },
+                  "barcode": {
+                    "type": "string",
+                    "description": "商品條碼"
+                  },
+                  "healthInsuranceCode": {
+                    "type": "string",
+                    "description": "健保碼"
+                  },
+                  "excludeFromStock": {
+                    "type": "boolean",
+                    "description": "是否排除於庫存計算"
+                  },
+                  "packageUnits": {
+                    "type": "array",
+                    "description": "包裝單位",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "description": "包裝單位名稱"
+                        },
+                        "conversionRate": {
+                          "type": "number",
+                          "description": "轉換率"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "商品創建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "商品創建成功"
+                    },
+                    "data": {
+                      "allOf": [
+                        {
+                          "type": "object",
+                          "required": [
+                            "code",
+                            "name",
+                            "unit"
+                          ],
+                          "properties": {
+                            "_id": {
+                              "type": "string",
+                              "description": "產品ID"
+                            },
+                            "code": {
+                              "type": "string",
+                              "description": "產品代碼"
+                            },
+                            "shortCode": {
+                              "type": "string",
+                              "description": "產品簡碼"
+                            },
+                            "name": {
+                              "type": "string",
+                              "description": "產品名稱"
+                            },
+                            "subtitle": {
+                              "type": "string",
+                              "description": "產品副標題"
+                            },
+                            "unit": {
+                              "type": "string",
+                              "description": "基本單位"
+                            },
+                            "purchasePrice": {
+                              "type": "number",
+                              "description": "進貨價格"
+                            },
+                            "sellingPrice": {
+                              "type": "number",
+                              "description": "售價"
+                            },
+                            "description": {
+                              "type": "string",
+                              "description": "產品描述"
+                            },
+                            "category": {
+                              "type": "string",
+                              "description": "分類ID"
+                            },
+                            "supplier": {
+                              "type": "string",
+                              "description": "供應商ID"
+                            },
+                            "minStock": {
+                              "type": "number",
+                              "description": "最低庫存量"
+                            },
+                            "productType": {
+                              "type": "string",
+                              "enum": [
+                                "PRODUCT",
+                                "MEDICINE"
+                              ],
+                              "description": "產品類型"
+                            },
+                            "isActive": {
+                              "type": "boolean",
+                              "description": "是否啟用"
+                            },
+                            "createdAt": {
+                              "type": "string",
+                              "format": "date-time",
+                              "description": "創建時間"
+                            },
+                            "updatedAt": {
+                              "type": "string",
+                              "format": "date-time",
+                              "description": "更新時間"
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "barcode": {
+                              "type": "string",
+                              "description": "商品條碼"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "請求參數錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "驗證失敗"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "param": {
+                            "type": "string"
+                          },
+                          "msg": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "產品代碼已存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "錯誤消息"
+                    },
+                    "error": {
+                      "type": "string",
+                      "description": "詳細錯誤信息"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "伺服器錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "錯誤消息"
+                    },
+                    "error": {
+                      "type": "string",
+                      "description": "詳細錯誤信息"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": []
+}

@@ -4,6 +4,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/db";
 import swaggerUi from "swagger-ui-express";
+import fs from "fs";
 import swaggerSpec from "./swagger";
 
 // 載入環境變數
@@ -172,11 +173,28 @@ export function createApp(): Application {
     });
   }
   
+  // 設置Swagger UI - 優先使用保存的OpenAPI規範文件作為SSOT
+  const openapiPath = path.resolve(__dirname, '../openapi/openapi.json');
+  let apiSpec = swaggerSpec;
+  
+  // 如果存在保存的OpenAPI規範文件，則使用它
+  if (fs.existsSync(openapiPath)) {
+    try {
+      const openapiContent = fs.readFileSync(openapiPath, 'utf8');
+      apiSpec = JSON.parse(openapiContent);
+      console.log('使用保存的OpenAPI規範文件作為SSOT');
+    } catch (err) {
+      console.error('讀取OpenAPI規範文件失敗，使用動態生成的規範:', err);
+    }
+  } else {
+    console.log('未找到保存的OpenAPI規範文件，使用動態生成的規範');
+  }
+  
   // 設置Swagger UI
   app.use(
     "/api-docs",
     swaggerUi.serve,
-    swaggerUi.setup(swaggerSpec, {
+    swaggerUi.setup(apiSpec, {
       explorer: true,
       customCss: '.swagger-ui .topbar { display: none }',
       swaggerOptions: {
@@ -190,7 +208,7 @@ export function createApp(): Application {
   // 提供Swagger JSON端點
   app.get("/api-docs.json", (_req: Request, res: Response) => {
     res.setHeader("Content-Type", "application/json");
-    res.send(swaggerSpec);
+    res.send(apiSpec);
   });
 
   // 在生產環境中提供靜態資源
