@@ -8,27 +8,36 @@ import {
   Box,
   Typography,
   Tooltip,
-  Fab,
   Snackbar,
   Alert,
   Popper,
   CircularProgress,
   TextField,
   InputAdornment,
-  Button
+  Button,
+  IconButton
 } from '@mui/material';
 import {
   Add as AddIcon,
   CloudUpload as CloudUploadIcon,
-  Search as SearchIcon
+  Search as SearchIcon,
+  Clear as ClearIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Visibility as VisibilityIcon
 } from '@mui/icons-material';
 import { usePurchaseOrdersList } from '../hooks/usePurchaseOrdersList';
-import { PurchaseOrdersPageProps } from '../types/list';
+import { PurchaseOrdersPageProps, PurchaseOrder } from '../types/list';
 import PurchaseOrderPreview from '@/components/purchase-orders/PurchaseOrderPreview';
 import SupplierCheckboxFilter from '@/components/filters/SupplierCheckboxFilter';
 import PurchaseOrdersTable from '@/components/purchase-orders/PurchaseOrdersTable';
 import CsvImportDialog from '@/components/purchase-orders/CsvImportDialog';
 import GenericConfirmDialog from '@/components/common/GenericConfirmDialog';
+import CommonListPageLayout from '@/components/common/CommonListPageLayout';
+import TitleWithCount from '@/components/common/TitleWithCount';
+import PurchaseOrderDetailPanel from '@/components/purchase-orders/PurchaseOrderDetailPanel';
+import StatusChip from '@/components/common/StatusChip';
+import PaymentStatusChip from '@/components/common/PaymentStatusChip';
 
 /**
  * 進貨單列表頁面
@@ -76,6 +85,12 @@ const PurchaseOrdersPage: FC<PurchaseOrdersPageProps> = ({ initialSupplierId = n
     setPaginationModel,
     showSnackbar
   } = usePurchaseOrdersList(initialSupplierId);
+
+  // 選擇進貨單函數 - 用於點擊表格行時
+  const selectSupplier = (id: string) => {
+    // 這裡可以實現選擇進貨單的邏輯，目前直接使用 handleView
+    handleView(id);
+  };
 
   // 供應商篩選器頭部渲染
   const renderSupplierHeader = () => (
@@ -154,112 +169,210 @@ const PurchaseOrdersPage: FC<PurchaseOrdersPageProps> = ({ initialSupplierId = n
     );
   }
 
-  return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Typography variant="h5" component="h1">
-            進貨單管理
-          </Typography>
-          {/* 總金額顯示 */}
-          <Box sx={{
-            display: 'flex',
-            alignItems: 'center',
-            backgroundColor: 'primary.main',
-            color: 'primary.contrastText',
-            px: 2,
-            py: 1,
-            borderRadius: 2,
-            minWidth: 'fit-content'
-          }}>
-            <Typography variant="caption" sx={{ fontSize: '0.8rem', mr: 1 }}>
-              總計
-            </Typography>
-            <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
-              ${totalAmount.toLocaleString()}
-            </Typography>
-          </Box>
-          {/* 筆數統計 */}
-          <Box sx={{
-            display: 'flex',
-            alignItems: 'center',
-            backgroundColor: 'secondary.main',
-            color: 'secondary.contrastText',
-            px: 2,
-            py: 1,
-            borderRadius: 2,
-            minWidth: 'fit-content'
-          }}>
-            <Typography variant="caption" sx={{ fontSize: '0.8rem', mr: 1 }}>
-              筆數
-            </Typography>
-            <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
-              {filteredRows.length}
-            </Typography>
-          </Box>
+  // 定義表格列
+  const columns = [
+    { field: 'poid', headerName: '進貨單號', width: 120 },
+    { field: 'pobill', headerName: '發票號碼', width: 120 },
+    {
+      field: 'posupplier',
+      headerName: '供應商',
+      width: 180,
+      renderHeader: renderSupplierHeader
+    },
+    {
+      field: 'totalAmount',
+      headerName: '總金額',
+      width: 120,
+      valueFormatter: (params: any) => {
+        return params.value ? params.value.toLocaleString() : '';
+      }
+    },
+    {
+      field: 'status',
+      headerName: '狀態',
+      width: 100,
+      renderCell: (params: any) => <StatusChip status={params.value} />
+    },
+    {
+      field: 'paymentStatus',
+      headerName: '付款狀態',
+      width: 120,
+      renderCell: (params: any) => <PaymentStatusChip status={params.value} />
+    },
+    {
+      field: 'actions',
+      headerName: '操作',
+      width: 150,
+      renderCell: (params: any) => (
+        <Box>
+          <Tooltip title="查看詳情">
+            <IconButton
+              color="info"
+              onClick={(e) => { e.stopPropagation(); handleView(params.row._id); }}
+              size="small"
+            >
+              <VisibilityIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="編輯">
+            <IconButton
+              color="primary"
+              onClick={(e) => { e.stopPropagation(); handleEdit(params.row._id); }}
+              size="small"
+            >
+              <EditIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="刪除">
+            <IconButton
+              color="error"
+              onClick={(e) => { e.stopPropagation(); handleDeleteClick(params.row); }}
+              size="small"
+              disabled={params.row.status === 'completed'}
+            >
+              <DeleteIcon />
+            </IconButton>
+          </Tooltip>
         </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          {/* 搜尋區域 */}
-          <TextField
-            size="small"
-            placeholder="搜索進貨單（單號、供應商、日期、ID）"
-            name="searchTerm"
-            value={searchParams.searchTerm || ''}
-            onChange={handleInputChange}
-            sx={{ minWidth: 300 }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              )
-            }}
-          />
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleSearch}
-          >
-            搜尋
-          </Button>
-          <Button
-            variant="outlined"
-            color="secondary"
-            onClick={handleClearSearch}
-          >
-            清除
-          </Button>
-        </Box>
-      </Box>
+      ),
+    },
+  ];
 
-      <Box sx={{
-        width: '100%',
-        position: 'relative',
-        minHeight: '70vh',
-        height: '100%',
-        bgcolor: 'background.paper',
-        borderRadius: 1,
-        border: 1,
-        borderColor: 'divider',
-        boxShadow: 1,
-        overflow: 'hidden'
-      }}>
-        <PurchaseOrdersTable
-          purchaseOrders={purchaseOrders}
-          filteredRows={filteredRows}
-          paginationModel={paginationModel}
-          setPaginationModel={setPaginationModel}
-          loading={loading}
-          handleView={handleView}
-          handleEdit={handleEdit}
-          handleDeleteClick={handleDeleteClick}
-          handlePreviewMouseEnter={handlePreviewMouseEnter}
-          handlePreviewMouseLeave={handlePreviewMouseLeave}
-          renderSupplierHeader={renderSupplierHeader}
-          handleUnlock={handleUnlock}
-          handleViewAccountingEntry={handleViewAccountingEntry}
-        />
+  // 為DataGrid準備行數據
+  const rows = filteredRows.map(po => ({
+    id: po._id, // DataGrid需要唯一的id字段
+    _id: po._id, // 保留原始_id用於操作
+    poid: po.poid,
+    pobill: po.pobill,
+    pobilldate: po.pobilldate,
+    posupplier: po.posupplier,
+    totalAmount: po.totalAmount,
+    status: po.status,
+    paymentStatus: po.paymentStatus,
+    relatedTransactionGroupId: po.relatedTransactionGroupId || '',
+    accountingEntryType: po.accountingEntryType || 'expense-asset',
+    selectedAccountIds: po.selectedAccountIds || [],
+    hasPaidAmount: po.hasPaidAmount || false
+  }));
+
+  // 操作按鈕區域
+  const actionButtons = (
+    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, alignItems: { xs: 'stretch', sm: 'center' } }}>
+      <TextField
+        placeholder="搜索進貨單（單號、供應商、日期、ID）"
+        name="searchTerm"
+        value={searchParams.searchTerm || ''}
+        onChange={handleInputChange}
+        size="small"
+        sx={{ minWidth: { xs: '100%', sm: '300px' } }}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon color="action" />
+            </InputAdornment>
+          ),
+          endAdornment: searchParams.searchTerm && (
+            <InputAdornment position="end">
+              <IconButton
+                size="small"
+                onClick={handleClearSearch}
+                edge="end"
+              >
+                <ClearIcon />
+              </IconButton>
+            </InputAdornment>
+          ),
+        }}
+      />
+      <Box sx={{ display: 'flex', gap: 1, flexShrink: 0 }}>
+        <Button
+          variant="outlined"
+          color="primary"
+          startIcon={<CloudUploadIcon />}
+          onClick={handleOpenCsvImport}
+        >
+          匯入CSV
+        </Button>
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<AddIcon />}
+          onClick={handleAddNew}
+        >
+          添加進貨單
+        </Button>
       </Box>
+    </Box>
+  );
+
+  // 詳情面板
+  const detailPanel = (
+    <PurchaseOrderDetailPanel
+      selectedPurchaseOrder={previewPurchaseOrder as any}
+      onEdit={handleEdit}
+      onDelete={(order) => handleDeleteClick(order as any)}
+      onViewAccountingEntry={handleViewAccountingEntry}
+    />
+  );
+
+  // 如果正在載入且沒有數據，顯示載入中
+  if (loading && !purchaseOrders.length) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+        <CircularProgress />
+        <Typography sx={{ ml: 2 }}>載入進貨單資料中...</Typography>
+      </Box>
+    );
+  }
+
+  return (
+    <Box sx={{ width: '95%', mx: 'auto' }}>
+      <CommonListPageLayout
+        title={
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <TitleWithCount title="進貨單管理" count={filteredRows.length} />
+            {/* 總金額顯示 */}
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              backgroundColor: 'primary.main',
+              color: 'primary.contrastText',
+              px: 2,
+              py: 1,
+              borderRadius: 2,
+              minWidth: 'fit-content'
+            }}>
+              <Typography variant="caption" sx={{ fontSize: '0.8rem', mr: 1 }}>
+                總計
+              </Typography>
+              <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
+                ${totalAmount.toLocaleString()}
+              </Typography>
+            </Box>
+          </Box>
+        }
+        actionButtons={actionButtons}
+        columns={columns}
+        rows={rows}
+        loading={loading}
+        {...(error && { error })}
+        onRowClick={(params) => selectSupplier(params.row._id)}
+        detailPanel={detailPanel}
+        tableGridWidth={9}
+        detailGridWidth={3}
+        dataTableProps={{
+          rowsPerPageOptions: [25, 50, 100],
+          disablePagination: false,
+          pageSize: 25,
+          initialState: {
+            pagination: { pageSize: 25 },
+            sorting: {
+              sortModel: [{ field: 'poid', sort: 'desc' }],
+            },
+          },
+          getRowId: (row: any) => row.id
+        }}
+      />
 
       {previewAnchorEl && (
         <Popper
@@ -277,30 +390,6 @@ const PurchaseOrdersPage: FC<PurchaseOrdersPageProps> = ({ initialSupplierId = n
         )}
         </Popper>
       )}
-
-      <Box
-        sx={{
-          position: 'fixed',
-          right: 5,
-          top: '40%',
-          transform: 'translateY(-50%)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 2,
-          zIndex: 1000
-        }}
-      >
-        <Tooltip title="新增進貨單" placement="left" arrow>
-          <Fab color="primary" size="medium" onClick={handleAddNew} aria-label="新增進貨單">
-            <AddIcon />
-          </Fab>
-        </Tooltip>
-        <Tooltip title="CSV匯入" placement="left" arrow>
-          <Fab color="secondary" size="medium" onClick={handleOpenCsvImport} aria-label="CSV匯入">
-            <CloudUploadIcon />
-          </Fab>
-        </Tooltip>
-      </Box>
 
       <GenericConfirmDialog
         open={deleteDialogOpen}
