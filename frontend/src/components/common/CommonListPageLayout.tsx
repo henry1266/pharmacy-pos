@@ -74,7 +74,7 @@ const CommonListPageLayout: React.FC<CommonListPageLayoutProps> = ({
 
       {/* Error Message */}
       {error && (
-        <Typography color="error" sx={{ mb: 2 }}>
+        <Typography color="error">
           {error}
         </Typography>
       )}
@@ -88,7 +88,9 @@ const CommonListPageLayout: React.FC<CommonListPageLayoutProps> = ({
     p: { xs: 0, md: 0 },   // 小螢幕加內距，大螢幕維持原本 0
     mb: { xs: 0, md: 0 },    // 小螢幕保留更多底部空間給分頁
     height: '75vh',         // 設定高度為視窗高度的75vh
-    overflow: 'auto'        // 內容超出時顯示滾動條
+    overflow: 'auto',       // 內容超出時顯示滾動條
+    display: 'flex',        // 使用 flex 佈局
+    flexDirection: 'column' // 垂直排列子元素
   }}
 >  {/* 添加底部外邊距，確保有足夠空間顯示分頁控制器 */}
             {loading && !rows.length ? (
@@ -96,15 +98,18 @@ const CommonListPageLayout: React.FC<CommonListPageLayoutProps> = ({
                 <CircularProgress />
               </Box>
             ) : (
-              <DataTable
-                rows={rows}
-                columns={columns}
-                loading={loading}
-                pageSize={10}
-                checkboxSelection={false}
-                {...(onRowClick && { onRowClick })}
-                {...dataTableProps} // Spread any additional DataTable props including sorting if needed
-              />
+              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', width: '100%', height: '100%', p: 0, m: 0 }}>
+                <DataTable
+                  rows={rows}
+                  columns={columns}
+                  loading={loading}
+                  pageSize={10}
+                  checkboxSelection={false}
+                  sx={{ width: '100%', height: '100%', p: 0, m: 0 }}
+                  {...(onRowClick && { onRowClick })}
+                  {...dataTableProps} // Spread any additional DataTable props including sorting if needed
+                />
+              </Box>
             )}
           </Paper>
         </Grid>
