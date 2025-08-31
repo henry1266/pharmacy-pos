@@ -367,12 +367,27 @@ export const AccountsManagementPage: React.FC = () => {
               </Box>
             </Box>
             
-            {/* 右側查詢區域 */}
+            {/* 右側查詢區域和新增交易按鈕 */}
             <Box sx={{
               display: 'flex',
               alignItems: 'center',
-              mr: 2
+              gap: 2
             }}>
+              {/* 新增交易按鈕 */}
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<AddIcon />}
+                onClick={() => {
+                  const accountId = selectedAccount?._id;
+                  console.log('為科目新增交易:', accountId);
+                  // 導航到新增交易頁面，並預設選中的科目
+                  window.open(`/accounting3/transaction/new${accountId ? `?defaultAccountId=${accountId}` : ''}`, '_blank');
+                }}
+                sx={{ height: 44, minWidth: 110 }}
+              >
+                新增交易
+              </Button>
               <Box sx={{
                 display: 'flex',
                 alignItems: 'center',
@@ -588,11 +603,6 @@ export const AccountsManagementPage: React.FC = () => {
             onTransactionUnlock={handleTransactionUnlock}
             onTransactionDelete={handleTransactionDelete}
             onTransactionCopy={handleTransactionCopy}
-            onAddTransaction={(accountId) => {
-              console.log('為科目新增交易:', accountId);
-              // 導航到新增交易頁面，並預設選中的科目
-              window.open(`/accounting3/transaction/new?defaultAccountId=${accountId}`, '_blank');
-            }}
           />
         </Box>
       </Box>

@@ -30,7 +30,6 @@ interface AccountTransactionListProps {
   onTransactionUnlock?: (id: string) => void;
   onTransactionDelete?: (id: string) => void;
   onTransactionCopy?: (transaction: ExtendedTransactionGroupWithEntries) => void;
-  onAddTransaction?: (accountId: string) => void;
 }
 
 /**
@@ -45,8 +44,7 @@ export const AccountTransactionList: React.FC<AccountTransactionListProps> = ({
   onTransactionConfirm,
   onTransactionUnlock,
   onTransactionDelete,
-  onTransactionCopy,
-  onAddTransaction
+  onTransactionCopy
 }) => {
   const [transactions, setTransactions] = useState<ExtendedTransactionGroupWithEntries[]>([]);
   const [loading, setLoading] = useState(false);
@@ -269,39 +267,6 @@ export const AccountTransactionList: React.FC<AccountTransactionListProps> = ({
   return (
     <Paper sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* 標題區域 /accounting3/accounts/:id */}
-      <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <ReceiptIcon />
-              {selectedAccount.name} 的交易記錄
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-              <Chip
-                label={selectedAccount.code}
-                size="small"
-                variant="outlined"
-                color="primary"
-              />
-              <Typography variant="body2" color="text.secondary">
-                {selectedAccount.type}
-              </Typography>
-            </Box>
-          </Box>
-          {onAddTransaction && (
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={<AddIcon />}
-              onClick={() => onAddTransaction(selectedAccount._id)}
-            >
-              新增交易
-            </Button>
-          )}
-        </Box>
-
-      </Box>
-
       {/* 內容區域 */}
       <Box sx={{ flex: 1, overflow: 'auto' }}>
         {error && (

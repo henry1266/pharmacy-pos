@@ -12,6 +12,7 @@ import {
   Fab,
   Tooltip,
   Paper,
+  Button,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -224,6 +225,19 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = () => {
               </Box>
             </Box>
           </Box>
+          
+          {/* 將新增交易按鈕移到麵包屑 bar 的最右側 */}
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', height: '100%', marginLeft: 'auto' }}>
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<AddIcon />}
+              onClick={handleAddTransaction}
+              sx={{ height: 44, minWidth: 110 }}
+            >
+              新增交易
+            </Button>
+          </Box>
         </Box>
       </Paper>
 
@@ -238,7 +252,6 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = () => {
             onTransactionUnlock={handleTransactionUnlock}
             onTransactionDelete={handleTransactionDelete}
             onTransactionCopy={handleTransactionCopy}
-            onAddTransaction={handleAddTransaction}
           />
       </Card>
 
