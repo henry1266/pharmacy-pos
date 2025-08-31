@@ -80,14 +80,14 @@ const CommonListPageLayout: React.FC<CommonListPageLayoutProps> = ({
       )}
 
       {/* Main Content Grid */}
-      <Grid container spacing={1}>
+      <Grid container spacing={2}>
         {/* Left/Main: Data Table */}
         <Grid item xs={12} md={detailPanel ? tableGridWidth : 12}> {/* Full width if no detail panel */}
           <Paper elevation={0} variant="outlined"
   sx={{
     p: { xs: 0, md: 0 },   // 小螢幕加內距，大螢幕維持原本 0
     mb: { xs: 0, md: 0 },    // 小螢幕保留更多底部空間給分頁
-    height: '75vh',         // 設定高度為視窗高度的75vh
+    height: '74vh',         // 設定高度為視窗高度的75vh
     overflow: 'auto',       // 內容超出時顯示滾動條
     display: 'flex',        // 使用 flex 佈局
     flexDirection: 'column' // 垂直排列子元素

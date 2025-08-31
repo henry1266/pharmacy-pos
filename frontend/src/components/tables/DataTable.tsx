@@ -166,11 +166,6 @@ const DataTable: React.FC<DataTableProps> = ({
     minWidth: 50, // 設置最小寬度
   }));
 
-  // 動態計算高度
-  const dynamicHeight = typeof height === 'number' ? height :
-                       height === 'auto' ? Math.min(rows.length * 52 + 100, 800) :
-                       600;
-
   // 初始狀態 - 優先使用傳入的 initialState，否則使用預設值
   const defaultInitialState: GridInitialState = disablePagination ? {} : {
     pagination: {
@@ -189,7 +184,7 @@ const DataTable: React.FC<DataTableProps> = ({
           </Typography>
         </Box>
       )}
-      <Box sx={{ width: '100%', height: '75vh' }} ref={gridRef} tabIndex={0}>
+      <Box sx={{ width: '100%', height: '74vh' }} ref={gridRef} tabIndex={0}>
         <DataGrid
           rows={rows}
           columns={columnsWithResizing}
