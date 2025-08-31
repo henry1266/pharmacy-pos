@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Chip, Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 
 interface TitleWithCountProps {
   title: string;
@@ -8,8 +8,9 @@ interface TitleWithCountProps {
 
 /**
  * 標題與數量顯示組件
- * 
+ *
  * 用於在標題旁邊顯示帶有底色的數量
+ * 參考 PurchaseOrdersPage 的設計
  */
 const TitleWithCount: React.FC<TitleWithCountProps> = ({ title, count }) => {
   return (
@@ -17,17 +18,23 @@ const TitleWithCount: React.FC<TitleWithCountProps> = ({ title, count }) => {
       <Typography variant="inherit" component="span">
         {title}
       </Typography>
-      <Chip
-        label={count}
-        size="small"
-        color="primary"
-        sx={{
-          height: '20px',
-          fontSize: '0.75rem',
-          fontWeight: 'bold',
-          borderRadius: '10px',
-        }}
-      />
+      <Box sx={{
+        display: 'flex',
+        alignItems: 'center',
+        backgroundColor: 'secondary.main',
+        color: 'secondary.contrastText',
+        px: 2,
+        py: 0.5,
+        borderRadius: 2,
+        minWidth: 'fit-content'
+      }}>
+        <Typography variant="caption" sx={{ fontSize: '0.8rem', mr: 1 }}>
+          筆數
+        </Typography>
+        <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
+          {count}
+        </Typography>
+      </Box>
     </Box>
   );
 };
