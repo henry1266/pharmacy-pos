@@ -83,9 +83,14 @@ const CommonListPageLayout: React.FC<CommonListPageLayoutProps> = ({
       <Grid container spacing={1}>
         {/* Left/Main: Data Table */}
         <Grid item xs={12} md={detailPanel ? tableGridWidth : 12}> {/* Full width if no detail panel */}
-          <Paper elevation={2} sx={{ p: 0 }}>
+          <Paper
+  sx={{
+    p: { xs: 0, md: 0 },   // 小螢幕加內距，大螢幕維持原本 0
+    mb: { xs: 0, md: 0 },    // 小螢幕保留更多底部空間給分頁
+  }}
+>  {/* 添加底部外邊距，確保有足夠空間顯示分頁控制器 */}
             {loading && !rows.length ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                 <CircularProgress />
               </Box>
             ) : (
