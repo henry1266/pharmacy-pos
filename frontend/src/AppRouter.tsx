@@ -18,10 +18,10 @@ import SalesDetailPage from './modules/sale/pages/SalesDetailPage';
 
 import ReportsPage from './pages/ReportsPage';
 // 進貨管理頁面元件
-import PurchaseOrdersPage from './pages/PurchaseOrdersPage';
-import PurchaseOrderFormPage from './pages/PurchaseOrderFormPage';
+import PurchaseOrdersPage from './modules/purchase-order/pages/PurchaseOrdersPage';
+import PurchaseOrderFormPage from './modules/purchase-order/pages/PurchaseOrderFormPage';
 import PurchaseOrderDetailPage from './pages/PurchaseOrderDetailPage';
-import PurchaseOrdersSupplierFilterPage from './pages/PurchaseOrdersSupplierFilterPage';
+import PurchaseOrdersSupplierFilterPage from './modules/purchase-order/pages/PurchaseOrdersSupplierFilterPage';
 // 出貨管理頁面元件
 import ShippingOrdersPage from './pages/ShippingOrdersPage';
 import ShippingOrderFormPage from './pages/ShippingOrderFormPage';
