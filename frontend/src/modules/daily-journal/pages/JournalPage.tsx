@@ -195,8 +195,8 @@ const JournalPage: React.FC<JournalPageProps> = ({ openAddDialog = false }) => {
 
   return (
     <Box sx={{ p: 3, width: '100%' }}>
-      <Typography variant="h4" gutterBottom>
-        記帳系統
+      <Typography variant="h5" gutterBottom>
+        交班系統
       </Typography>
 
       {/* Filter Component */}
