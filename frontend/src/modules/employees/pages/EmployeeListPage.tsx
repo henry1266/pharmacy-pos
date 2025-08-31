@@ -2,44 +2,35 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
   Typography,
-  Paper,
   Box,
-  Container,
   Alert,
   Button,
-  Card,
-  CardContent,
-  Breadcrumbs,
-  Link,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TablePagination,
   IconButton,
   TextField,
   InputAdornment,
-  Toolbar,
   Tooltip,
   Chip,
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
-  Snackbar
+  Snackbar,
+  Card,
+  CardContent,
+  CardHeader,
+  Avatar,
+  Divider,
+  List,
+  ListItem
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import HomeIcon from '@mui/icons-material/Home';
 import PeopleIcon from '@mui/icons-material/People';
-import PageHeaderSection from '../../../components/common/PageHeaderSection';
+import CommonListPageLayout from '../../../components/common/CommonListPageLayout';
 
 // 定義介面
 interface User {
@@ -81,6 +72,13 @@ interface EmployeeListData {
   limit: number;
 }
 
+// 定義 EmployeeDetailPanel 屬性介面
+interface EmployeeDetailPanelProps {
+  selectedEmployee: Employee | null;
+  handleEdit: (id: string) => void;
+  handleDelete: (employee: Employee) => void;
+}
+
 /**
  * 型別守衛：檢查員工資料是否有效
  */
@@ -92,6 +90,61 @@ const isValidEmployee = (employee: any): employee is Employee => {
          typeof employee.department === 'string' &&
          typeof employee.position === 'string' &&
          typeof employee.phone === 'string';
+};
+
+// 員工詳情面板組件
+const EmployeeDetailPanel: React.FC<EmployeeDetailPanelProps> = ({ selectedEmployee, handleEdit, handleDelete }) => {
+  if (!selectedEmployee) {
+    return (
+      <Card elevation={2} sx={{ borderRadius: '0.5rem', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <CardContent sx={{ textAlign: 'center' }}>
+          <Typography variant="body1" color="text.secondary">
+            選擇一個員工查看詳情
+          </Typography>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // 格式化日期
+  const formatDate = (dateString: string | undefined): string => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toISOString().split('T')[0] || '';
+  };
+
+  return (
+    <Card elevation={2} sx={{ borderRadius: '0.5rem', height: '100%' }}>
+      <CardHeader
+        avatar={<Avatar sx={{ bgcolor: 'primary.main' }}>{selectedEmployee.name?.charAt(0) ?? 'E'}</Avatar>}
+        title={<Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>{selectedEmployee.name}</Typography>}
+        subheader={`職位: ${selectedEmployee.position}`}
+        action={
+          <Box>
+            <Tooltip title="編輯">
+              <IconButton color="primary" onClick={() => handleEdit(selectedEmployee._id)} size="small"><EditIcon /></IconButton>
+            </Tooltip>
+            <Tooltip title="刪除">
+              <IconButton color="error" onClick={() => handleDelete(selectedEmployee)} size="small"><DeleteIcon /></IconButton>
+            </Tooltip>
+          </Box>
+        }
+        sx={{ pb: 1 }}
+      />
+      <Divider />
+      <CardContent sx={{ py: 1 }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>員工資訊</Typography>
+        <List dense sx={{ py: 0 }}>
+          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>性別:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedEmployee.gender === 'male' ? '男' : '女'}</Typography></ListItem>
+          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>部門:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedEmployee.department}</Typography></ListItem>
+          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>電話:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedEmployee.phone}</Typography></ListItem>
+          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>到職日期:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{formatDate(selectedEmployee.hireDate)}</Typography></ListItem>
+          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>Email:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedEmployee.email ?? '無'}</Typography></ListItem>
+          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>地址:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedEmployee.address ?? '無'}</Typography></ListItem>
+        </List>
+      </CardContent>
+    </Card>
+  );
 };
 
 /**
@@ -115,6 +168,7 @@ const EmployeeListPage: React.FC = () => {
     message: '',
     severity: 'success'
   });
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const navigate = useNavigate();
 
   // 從 API 獲取員工資料
@@ -249,6 +303,11 @@ const EmployeeListPage: React.FC = () => {
         // 刪除成功後重新獲取資料
         fetchEmployees();
         
+        // 如果刪除的是當前選中的員工，清除選中狀態
+        if (selectedEmployee && selectedEmployee._id === employeeToDelete._id) {
+          setSelectedEmployee(null);
+        }
+        
         // 顯示成功訊息
         setSnackbar({
           open: true,
@@ -269,8 +328,9 @@ const EmployeeListPage: React.FC = () => {
   };
 
   // 處理點擊員工行
-  const handleRowClick = (id: string): void => {
-    navigate(`/employees/basic-info/${id}`);
+  const handleRowClick = (params: any): void => {
+    const employee = employees.find(emp => emp._id === params.row._id) || null;
+    setSelectedEmployee(employee);
   };
 
   // 處理關閉提示訊息
@@ -285,67 +345,79 @@ const EmployeeListPage: React.FC = () => {
     return date.toISOString().split('T')[0] || '';
   };
 
-  // 定義麵包屑導航項目
-  const breadcrumbItems = [
-    { icon: <HomeIcon fontSize="small" />, label: '首頁', path: '/' },
-    { label: '員工管理', path: '/employees', icon: <PeopleIcon fontSize="small" /> },
+  // 定義表格列
+  const columns = [
+    {
+      field: 'name',
+      headerName: '姓名',
+      width: 100
+    },
+    {
+      field: 'gender',
+      headerName: '性別',
+      width: 60,
+      valueGetter: (params: any) => params.row.gender === 'male' ? '男' : '女'
+    },
+    {
+      field: 'department',
+      headerName: '部門',
+      width: 120,
+      renderCell: (params: any) => (
+        <Chip label={params.row.department} size="small" />
+      )
+    },
+    {
+      field: 'position',
+      headerName: '職位',
+      width: 120
+    },
+    {
+      field: 'phone',
+      headerName: '電話',
+      width: 130
+    },
+    {
+      field: 'hireDate',
+      headerName: '到職日期',
+      width: 140,
+      valueGetter: (params: any) => formatDate(params.row.hireDate)
+    },
+    {
+      field: 'actions',
+      headerName: '操作',
+      width: 130,
+      sortable: false,
+      renderCell: (params: any) => (
+        <Box>
+          <Tooltip title="編輯">
+            <IconButton
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEditEmployee(params.row._id);
+              }}
+              size="small"
+            >
+              <EditIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="刪除">
+            <IconButton
+              onClick={(e) => {
+                e.stopPropagation();
+                handleOpenDeleteDialog(params.row);
+              }}
+              size="small"
+            >
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      )
+    }
   ];
 
-  // 如果正在載入，顯示載入中訊息
-  if (loading) {
-    return (
-      <Box sx={{ width: '80%', mx: 'auto' }}>
-        <PageHeaderSection
-          breadcrumbItems={breadcrumbItems}
-        />
-        <Paper sx={{ p: 3, my: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px', boxShadow: 'none', border: 'none' }}>
-          <CircularProgress size={30} />
-          <Typography sx={{ ml: 2 }}>載入中...</Typography>
-        </Paper>
-      </Box>
-    );
-  }
-
-  // 如果非管理員，顯示無權限訊息
-  if (!isAdmin) {
-    return (
-      <Box sx={{ width: '80%', mx: 'auto' }}>
-        <PageHeaderSection
-          breadcrumbItems={breadcrumbItems}
-        />
-        <Paper sx={{ p: 3, my: 3, boxShadow: 'none', border: 'none' }}>
-          <Alert severity="error" sx={{ mb: 2 }}>
-            您沒有權限訪問此頁面。只有管理員可以查看員工列表。
-          </Alert>
-          <Button variant="outlined" color="primary" onClick={() => navigate('/dashboard')}>
-            返回儀表板
-          </Button>
-        </Paper>
-      </Box>
-    );
-  }
-
-  // 如果有錯誤，顯示錯誤訊息
-  if (error) {
-    return (
-      <Box sx={{ width: '80%', mx: 'auto' }}>
-        <PageHeaderSection
-          breadcrumbItems={breadcrumbItems}
-        />
-        <Paper sx={{ p: 3, my: 3, boxShadow: 'none', border: 'none' }}>
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-          <Button variant="outlined" color="primary" onClick={() => navigate('/dashboard')}>
-            返回儀表板
-          </Button>
-        </Paper>
-      </Box>
-    );
-  }
-
-  // 定義返回按鈕和搜索框
-  const actions = (
+  // 定義操作按鈕
+  const actionButtons = (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
       <TextField
         variant="outlined"
@@ -374,110 +446,51 @@ const EmployeeListPage: React.FC = () => {
     </Box>
   );
 
-  // 管理員可見的內容
+  // 如果非管理員，顯示無權限訊息
+  if (!isAdmin) {
+    return (
+      <Box sx={{ width: '80%', mx: 'auto' }}>
+        <Alert severity="error" sx={{ mb: 2 }}>
+          您沒有權限訪問此頁面。只有管理員可以查看員工列表。
+        </Alert>
+        <Button variant="outlined" color="primary" onClick={() => navigate('/dashboard')}>
+          返回儀表板
+        </Button>
+      </Box>
+    );
+  }
+
+  // 使用 CommonListPageLayout 組件
   return (
-    <Box sx={{ width: '70%', mx: 'auto' }}>
-      <PageHeaderSection
-        breadcrumbItems={breadcrumbItems}
-        actions={actions}
-      />
-      
-      <Paper sx={{ p: 1, my: 1, boxShadow: 'none', border: 'none' }}>
-        
-        <TableContainer sx={{ border: 'none', boxShadow: 'none' }}>
-          <Table sx={{ minWidth: 750 }} aria-labelledby="tableTitle">
-            <TableHead>
-              <TableRow>
-                <TableCell>姓名</TableCell>
-                <TableCell>性別</TableCell>
-                <TableCell>部門</TableCell>
-                <TableCell>職位</TableCell>
-                <TableCell>電話</TableCell>
-                <TableCell>到職日期</TableCell>
-                <TableCell align="right">操作</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {employees && employees.length > 0 ? employees.map((employee) => (
-                <TableRow
-                  hover
-                  key={employee._id}
-                  onClick={() => handleRowClick(employee._id)}
-                  sx={{
-                    cursor: 'pointer',
-                    '&:hover': {
-                      backgroundColor: 'rgba(150, 150, 150, 0.04)'
-                    }
-                  }}
-                >
-                  <TableCell component="th" scope="row">
-                    {employee.name}
-                  </TableCell>
-                  <TableCell>{employee.gender === 'male' ? '男' : '女'}</TableCell>
-                  <TableCell>
-                    <Chip label={employee.department} size="small" />
-                  </TableCell>
-                  <TableCell>{employee.position}</TableCell>
-                  <TableCell>{employee.phone}</TableCell>
-                  <TableCell>{formatDate(employee.hireDate)}</TableCell>
-                  <TableCell align="right">
-                    <Tooltip title="編輯">
-                      <IconButton
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditEmployee(employee._id);
-                        }}
-                        size="small"
-                      >
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="刪除">
-                      <IconButton
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleOpenDeleteDialog(employee);
-                        }}
-                        size="small"
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </TableCell>
-                </TableRow>
-              )) : null}
-              {(!employees || employees.length === 0) && (
-                <TableRow>
-                  <TableCell colSpan={7} align="center">
-                    {searchTerm ? '沒有符合搜尋條件的員工' : '目前沒有員工資料'}
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={totalCount}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          labelRowsPerPage="每頁顯示筆數:"
-          labelDisplayedRows={({ from, to, count }) => `${from}-${to} / 共 ${count} 筆`}
-          sx={{
-            '& .MuiTablePagination-toolbar': {
-              minHeight: '36px',
-              maxHeight: '36px'
-            },
-            '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
-              fontSize: '0.8rem'
-            }
+    <>
+      <Box sx={{ width: '95%', mx: 'auto' }}>
+        <CommonListPageLayout
+          title="員工管理"
+          actionButtons={actionButtons}
+          columns={columns}
+          rows={employees.map(employee => ({...employee, id: employee._id}))}
+          loading={loading}
+          error={error || ""}
+          onRowClick={handleRowClick}
+          dataTableProps={{
+            pageSize: rowsPerPage,
+            onPageChange: (params: any) => handleChangePage(null, params.page),
+            onPageSizeChange: (params: any) => handleChangeRowsPerPage({target: {value: params.pageSize}} as any),
+            rowCount: totalCount,
+            paginationMode: 'server',
+            page: page
           }}
+          detailPanel={
+            <EmployeeDetailPanel
+              selectedEmployee={selectedEmployee}
+              handleEdit={handleEditEmployee}
+              handleDelete={handleOpenDeleteDialog}
+            />
+          }
+          tableGridWidth={9}
+          detailGridWidth={3}
         />
-      </Paper>
+      </Box>
 
       {/* 刪除確認對話框 */}
       <Dialog
@@ -514,7 +527,7 @@ const EmployeeListPage: React.FC = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </Box>
+    </>
   );
 };
 
