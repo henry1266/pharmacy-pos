@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, FC, ChangeEvent } from 'react';
+import TitleWithCount from '../components/common/TitleWithCount';
 import PropTypes from 'prop-types';
 import {
   Box,
@@ -565,7 +566,7 @@ const CustomersPage: FC = () => {
     <>
       <Box sx={{ width: '95%', mx: 'auto' }}>
         <CommonListPageLayout
-          title="會員管理"
+          title={<TitleWithCount title="會員管理" count={customersToDisplay.length} />}
           actionButtons={
             <MuiButton
               variant="contained"

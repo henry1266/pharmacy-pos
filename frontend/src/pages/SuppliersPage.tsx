@@ -1,5 +1,6 @@
 import React, { useState, useEffect, ChangeEvent, FC } from 'react';
 import { useNavigate } from 'react-router-dom';
+import TitleWithCount from '../components/common/TitleWithCount';
 import {
   ListItemText,
   Box,
@@ -623,7 +624,7 @@ const SuppliersPage: FC<{}> = () => {
     <>
       <Box sx={{ width: '95%', mx: 'auto' }}>
         <CommonListPageLayout
-          title={isTestMode ? "供應商管理 (測試模式)" : "供應商管理"}
+          title={<TitleWithCount title={isTestMode ? "供應商管理 (測試模式)" : "供應商管理"} count={suppliers.length} />}
           actionButtons={actionButtons}
           columns={columns}
           rows={suppliers}

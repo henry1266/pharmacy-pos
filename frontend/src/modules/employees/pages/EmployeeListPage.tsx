@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import TitleWithCount from '../../../components/common/TitleWithCount';
 import axios from 'axios';
 import {
   Typography,
@@ -465,7 +466,7 @@ const EmployeeListPage: React.FC = () => {
     <>
       <Box sx={{ width: '95%', mx: 'auto' }}>
         <CommonListPageLayout
-          title="員工管理"
+          title={<TitleWithCount title="員工管理" count={totalCount} />}
           actionButtons={actionButtons}
           columns={columns}
           rows={employees.map(employee => ({...employee, id: employee._id}))}

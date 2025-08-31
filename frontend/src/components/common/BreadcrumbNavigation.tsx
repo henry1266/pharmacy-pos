@@ -10,7 +10,7 @@ import { styled } from '@mui/material/styles';
 
 // 定義麵包屑項目的類型
 export interface BreadcrumbItem {
-  label: string;
+  label: string | React.ReactNode;
   path?: string;
   icon?: React.ReactNode;
   onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;

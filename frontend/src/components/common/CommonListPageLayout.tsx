@@ -28,7 +28,7 @@ interface Column {
  * 通用的列表頁面佈局組件
  */
 interface CommonListPageLayoutProps {
-  title: string;
+  title: string | React.ReactNode;
   actionButtons?: React.ReactNode;
   columns: Column[];
   rows: any[];
