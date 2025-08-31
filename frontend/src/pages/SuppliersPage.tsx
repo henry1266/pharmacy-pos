@@ -643,26 +643,7 @@ const SuppliersPage: FC<{}> = () => {
                 sortModel: [{ field: 'code', sort: 'asc' }],
               },
             },
-            getRowId: (row: SupplierData) => row.id,
-            sx: {
-              height: 'calc(100vh - 220px)',  // 設定合適的高度
-              display: 'flex',
-              flexDirection: 'column',
-              '& .MuiDataGrid-main': {
-                flex: '1 1 auto',
-                overflow: 'auto'
-              },
-              '& .MuiDataGrid-footerContainer': {
-                visibility: 'visible',
-                position: 'sticky',
-                bottom: 0,
-                zIndex: 2,
-                backgroundColor: 'background.paper',
-                borderTop: '1px solid',
-                borderColor: 'divider',
-                boxShadow: '0px -2px 4px rgba(0,0,0,0.05)'
-              }
-            }
+            getRowId: (row: SupplierData) => row.id
           }}
         />
       </Box>
