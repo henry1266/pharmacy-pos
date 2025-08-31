@@ -189,7 +189,7 @@ const DataTable: React.FC<DataTableProps> = ({
           </Typography>
         </Box>
       )}
-      <Box sx={{ width: '100%', height: dynamicHeight }} ref={gridRef} tabIndex={0}>
+      <Box sx={{ width: '100%', height: '75vh' }} ref={gridRef} tabIndex={0}>
         <DataGrid
           rows={rows}
           columns={columnsWithResizing}
