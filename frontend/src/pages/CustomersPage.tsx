@@ -431,12 +431,12 @@ const CustomersPage: FC = () => {
   }, []);
 
   const columns = [
-    { field: 'code', headerName: '會員編號', width: 100 },
-    { field: 'name', headerName: '會員姓名', width: 120 },
-    { field: 'idCardNumber', headerName: '身分證', width: 140 },
-    { field: 'birthdate', headerName: '出生年月日', width: 150, valueGetter: (params: any) => formatDateToYYYYMMDD(params?.value) },
-    { field: 'phone', headerName: '電話', width: 140 },
-    { field: 'level', headerName: '會員等級', width: 120 },
+    { field: 'code', headerName: '會員編號', width: 110 },
+    { field: 'name', headerName: '會員姓名', width: 110 },
+    { field: 'idCardNumber', headerName: '身分證', width: 110 },
+    { field: 'birthdate', headerName: '出生年月日', width: 110, valueGetter: (params: any) => formatDateToYYYYMMDD(params?.value) },
+    { field: 'phone', headerName: '電話', width: 110 },
+    { field: 'level', headerName: '會員等級', width: 110 },
     {
       field: 'actions',
       headerName: '操作',
