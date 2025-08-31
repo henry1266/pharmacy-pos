@@ -6,7 +6,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useAppDispatch } from '@/hooks/redux';
+import { useAppDispatch, useAppSelector } from '@/hooks/redux';
+import { RootState } from '@/redux/reducers';
 import { 
   PurchaseOrder, 
   FilteredRow, 
@@ -33,6 +34,17 @@ export const usePurchaseOrdersList = (initialSupplierId: string | null = null) =
   
   // 從路由參數或 props 獲取供應商 ID
   const supplierIdFromRoute = initialSupplierId ?? params.id;
+
+  // 從 Redux store 獲取進貨單數據
+  const purchaseOrdersFromStore = useAppSelector((state: RootState) =>
+    state.purchaseOrders?.purchaseOrders || []
+  );
+  const purchaseOrdersLoading = useAppSelector((state: RootState) =>
+    state.purchaseOrders?.loading || false
+  );
+  const purchaseOrdersError = useAppSelector((state: RootState) =>
+    state.purchaseOrders?.error || null
+  );
 
   // 狀態
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
@@ -64,36 +76,50 @@ export const usePurchaseOrdersList = (initialSupplierId: string | null = null) =
 
   // 初始化數據
   useEffect(() => {
-    fetchData();
-  }, []);
-
-  // 獲取數據
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    try {
-      // 使用 Redux action 獲取進貨單數據
-      try {
-        const action = await dispatch(fetchPurchaseOrders() as any);
-        if (action?.payload) {
-          setPurchaseOrders(action.payload);
-        }
-      } catch (err: any) {
-        console.error('獲取進貨單數據失敗:', err);
-        setError('獲取進貨單數據失敗');
-      }
-
-      // 獲取供應商數據
-      try {
-        const response = await axios.get(`${API_BASE_URL}/suppliers`);
+    // 從 Redux store 獲取進貨單數據
+    dispatch(fetchPurchaseOrders());
+    
+    // 獲取供應商數據
+    axios.get(`${API_BASE_URL}/suppliers`)
+      .then(response => {
         setSuppliers(response.data);
-      } catch (err) {
+      })
+      .catch(err => {
         console.error('獲取供應商數據失敗:', err);
-      }
-    } catch (err) {
-      console.error('初始化數據失敗:', err);
-    } finally {
-      setLoading(false);
+      });
+  }, [dispatch]);
+  
+  // 當 Redux store 中的進貨單數據更新時，更新本地狀態
+  useEffect(() => {
+    // 無論 purchaseOrdersFromStore 是否為空，都更新本地狀態
+    // 這樣可以確保當 Redux store 中的數據為空時，本地狀態也會更新
+    if (purchaseOrdersFromStore.length > 0) {
+      // 將 Redux store 中的數據轉換為本地類型
+      const convertedPurchaseOrders = purchaseOrdersFromStore.map(po => ({
+        ...po,
+        poid: po.poid || po.orderNumber || '',
+        pobill: po.pobill || '',
+        pobilldate: po.pobilldate || po.orderDate || new Date().toISOString(),
+        posupplier: typeof po.supplier === 'string' ? po.supplier : (po.supplier as any)?.name || po.posupplier || '',
+        totalAmount: po.totalAmount || 0,
+        status: po.status || '',
+        paymentStatus: po.paymentStatus || ''
+      })) as PurchaseOrder[];
+      
+      setPurchaseOrders(convertedPurchaseOrders);
+    } else {
+      // 如果 Redux store 中的數據為空，則設置本地狀態為空數組
+      setPurchaseOrders([]);
     }
+    
+    // 無論如何都更新 loading 和 error 狀態
+    setLoading(purchaseOrdersLoading);
+    setError(purchaseOrdersError);
+  }, [purchaseOrdersFromStore, purchaseOrdersLoading, purchaseOrdersError]);
+
+  // 重新載入數據
+  const reloadData = useCallback(() => {
+    dispatch(fetchPurchaseOrders());
   }, [dispatch]);
 
   // 檢查進貨單付款狀態的函數
@@ -117,15 +143,54 @@ export const usePurchaseOrdersList = (initialSupplierId: string | null = null) =
     }
     
     setIsCheckingPaymentStatus(true);
-    console.log('🔄 開始批量檢查付款狀態，進貨單數量:', purchaseOrders.length);
     
     try {
-      const statusMap = new Map<string, boolean>();
+      // 1. 只檢查當前頁面顯示的進貨單
+      const currentPageOrders = purchaseOrders.slice(
+        paginationModel.page * paginationModel.pageSize,
+        (paginationModel.page + 1) * paginationModel.pageSize
+      );
       
-      // 提取所有進貨單 ID
-      const purchaseOrderIds = purchaseOrders.map(po => po._id);
+      console.log('🔄 開始批量檢查付款狀態，當前頁面進貨單數量:', currentPageOrders.length);
       
-      // 使用批量 API 一次性檢查所有進貨單的付款狀態
+      // 2. 從本地存儲中獲取緩存的付款狀態
+      const cachedStatusesStr = localStorage.getItem('purchaseOrderPaymentStatuses');
+      let cachedStatuses: Record<string, { status: boolean; timestamp: number }> = {};
+      
+      if (cachedStatusesStr) {
+        try {
+          cachedStatuses = JSON.parse(cachedStatusesStr);
+        } catch (e) {
+          console.error('解析緩存的付款狀態失敗:', e);
+        }
+      }
+      
+      // 3. 過濾出需要檢查的進貨單（未緩存或緩存已過期）
+      const cacheExpirationTime = 30 * 60 * 1000; // 30分鐘緩存過期時間
+      const now = Date.now();
+      const ordersToCheck = currentPageOrders.filter(po => {
+        const cached = cachedStatuses[po._id];
+        return !cached || (now - cached.timestamp > cacheExpirationTime);
+      });
+      
+      if (ordersToCheck.length === 0) {
+        console.log('✅ 所有進貨單的付款狀態都在緩存中且未過期，跳過檢查');
+        
+        // 從緩存中恢復付款狀態
+        const statusMap = new Map<string, boolean>();
+        Object.entries(cachedStatuses).forEach(([id, data]) => {
+          statusMap.set(id, data.status);
+        });
+        setPaymentStatusMap(statusMap);
+        return;
+      }
+      
+      console.log('🔍 需要檢查的進貨單數量:', ordersToCheck.length);
+      
+      // 4. 提取需要檢查的進貨單 ID
+      const purchaseOrderIds = ordersToCheck.map(po => po._id);
+      
+      // 5. 使用批量 API 檢查付款狀態
       const response = await axios.post(`${API_BASE_URL}/accounting2/transactions/purchase-orders/batch-payment-status`, {
         purchaseOrderIds
       });
@@ -133,10 +198,26 @@ export const usePurchaseOrdersList = (initialSupplierId: string | null = null) =
       if (response.data.success) {
         // 處理批量查詢結果
         const paymentStatuses = response.data.data;
+        const statusMap = new Map<string, boolean>();
         
+        // 先從緩存中恢復所有付款狀態
+        Object.entries(cachedStatuses).forEach(([id, data]) => {
+          statusMap.set(id, data.status);
+        });
+        
+        // 然後更新新檢查的付款狀態
         paymentStatuses.forEach((status: { purchaseOrderId: string; hasPaidAmount: boolean }) => {
           statusMap.set(status.purchaseOrderId, status.hasPaidAmount);
+          
+          // 更新緩存
+          cachedStatuses[status.purchaseOrderId] = {
+            status: status.hasPaidAmount,
+            timestamp: now
+          };
         });
+        
+        // 保存更新後的緩存
+        localStorage.setItem('purchaseOrderPaymentStatuses', JSON.stringify(cachedStatuses));
         
         setPaymentStatusMap(statusMap);
       } else {
@@ -144,37 +225,46 @@ export const usePurchaseOrdersList = (initialSupplierId: string | null = null) =
       }
     } catch (error) {
       console.error('❌ 批量檢查付款狀態失敗:', error);
-      // 如果批量 API 失敗，回退到逐一檢查（但限制數量避免當機）
-      if (purchaseOrders.length <= 50) {
-        const statusMap = new Map<string, boolean>();
-        const promises = purchaseOrders.map(async (po) => {
-          try {
-            const hasPaidAmount = await checkPaymentStatus(po._id);
-            statusMap.set(po._id, hasPaidAmount);
-            return { id: po._id, hasPaidAmount };
-          } catch (err) {
-            console.error(`檢查進貨單 ${po._id} 付款狀態失敗:`, err);
-            statusMap.set(po._id, false);
-            return { id: po._id, hasPaidAmount: false };
-          }
-        });
-        
-        await Promise.all(promises);
-        setPaymentStatusMap(statusMap);
-      } else {
-        console.warn('⚠️ 進貨單數量過多，跳過付款狀態檢查以避免性能問題');
+      // 如果批量 API 失敗，使用緩存的數據（如果有）
+      const cachedStatusesStr = localStorage.getItem('purchaseOrderPaymentStatuses');
+      if (cachedStatusesStr) {
+        try {
+          const cachedStatuses = JSON.parse(cachedStatusesStr);
+          const statusMap = new Map<string, boolean>();
+          
+          Object.entries(cachedStatuses).forEach(([id, data]: [string, any]) => {
+            statusMap.set(id, data.status);
+          });
+          
+          setPaymentStatusMap(statusMap);
+          console.log('✅ 使用緩存的付款狀態數據');
+        } catch (e) {
+          console.error('解析緩存的付款狀態失敗:', e);
+        }
       }
     } finally {
       setIsCheckingPaymentStatus(false);
     }
-  }, [isCheckingPaymentStatus, checkPaymentStatus]);
+  }, [isCheckingPaymentStatus, paginationModel, API_BASE_URL]);
 
-  // 當進貨單數據載入完成後，檢查付款狀態
+  // 當進貨單數據載入完成後或分頁變更時，檢查付款狀態
   useEffect(() => {
+    // 初始化一個空的清理函數
+    let cleanupFunction = () => {};
+    
     if (purchaseOrders && purchaseOrders.length > 0 && !loading && !isCheckingPaymentStatus) {
-      checkAllPaymentStatuses(purchaseOrders);
+      // 使用 setTimeout 延遲檢查，先讓 UI 渲染完成
+      const timer = setTimeout(() => {
+        checkAllPaymentStatuses(purchaseOrders);
+      }, 500);
+      
+      // 更新清理函數
+      cleanupFunction = () => clearTimeout(timer);
     }
-  }, [purchaseOrders, loading, checkAllPaymentStatuses, isCheckingPaymentStatus]);
+    
+    // 確保所有代碼路徑都返回清理函數
+    return cleanupFunction;
+  }, [purchaseOrders, loading, checkAllPaymentStatuses, isCheckingPaymentStatus, paginationModel]);
 
   // 根據路由參數設置初始供應商篩選
   useEffect(() => {
@@ -188,7 +278,7 @@ export const usePurchaseOrdersList = (initialSupplierId: string | null = null) =
     }
   }, [supplierIdFromRoute, suppliers]);
 
-  // 使用 purchaseOrders 和 selectedSuppliers 進行過濾
+  // 使用 purchaseOrders、selectedSuppliers 和 searchTerm 進行過濾
   useEffect(() => {
     try {
       // 首先將 purchaseOrders 轉換為 FilteredRow 類型
@@ -197,7 +287,7 @@ export const usePurchaseOrdersList = (initialSupplierId: string | null = null) =
         _id: po._id,
         poid: po.poid ?? '',
         pobill: po.pobill ?? '',
-        pobilldate: typeof po.pobilldate === 'string' ? po.pobilldate : 
+        pobilldate: typeof po.pobilldate === 'string' ? po.pobilldate :
                    new Date().toISOString().split('T')[0],
         posupplier: typeof po.supplier === 'string' ? po.supplier : (po.supplier as any)?.name ?? po.posupplier ?? '',
         totalAmount: po.totalAmount ?? 0,
@@ -211,7 +301,7 @@ export const usePurchaseOrdersList = (initialSupplierId: string | null = null) =
         hasPaidAmount: paymentStatusMap.get(po._id) || false
       })) as FilteredRow[];
       
-      // 然後根據選擇的供應商進一步過濾
+      // 根據選擇的供應商進行過濾
       let filteredBySupplier = rows;
       if (selectedSuppliers.length > 0) {
         filteredBySupplier = rows.filter(row => {
@@ -219,34 +309,49 @@ export const usePurchaseOrdersList = (initialSupplierId: string | null = null) =
         });
       }
       
+      // 根據搜尋條件進行過濾
+      let filteredBySearch = filteredBySupplier;
+      if (searchParams.searchTerm?.trim()) {
+        const searchTerm = searchParams.searchTerm.toLowerCase().trim();
+        filteredBySearch = filteredBySupplier.filter(row => {
+          // 搜尋多個欄位
+          return (
+            (row.poid && row.poid.toLowerCase().includes(searchTerm)) ||
+            (row.pobill && row.pobill.toLowerCase().includes(searchTerm)) ||
+            (row.pobilldate && row.pobilldate.toLowerCase().includes(searchTerm)) ||
+            (row.posupplier && row.posupplier.toLowerCase().includes(searchTerm)) ||
+            (row._id && row._id.toLowerCase().includes(searchTerm))
+          );
+        });
+      }
+      
       // 更新本地的 filteredRows
-      setFilteredRows(filteredBySupplier);
+      setFilteredRows(filteredBySearch);
       
     } catch (err) {
       console.error('過濾進貨單時出錯:', err);
     }
-  }, [purchaseOrders, selectedSuppliers, paymentStatusMap]);
+  }, [purchaseOrders, selectedSuppliers, paymentStatusMap, searchParams.searchTerm]);
 
-  // 搜尋處理
-  const handleSearch = useCallback(async () => {
+  // 搜尋處理 - 使用前端過濾
+  const handleSearch = useCallback(() => {
     if (!searchParams.searchTerm?.trim()) {
       // 如果搜尋條件為空，重新載入所有記錄
-      fetchData();
+      reloadData();
       return;
     }
 
-    try {
-      // 創建搜尋參數對象
-      const searchObj = { search: searchParams.searchTerm };
-      const action = await dispatch(searchPurchaseOrders(searchObj as any) as any);
-      if (action?.payload) {
-        setPurchaseOrders(action.payload);
-      }
-    } catch (err: any) {
-      console.error('搜尋進貨單失敗:', err);
-      setError('搜尋進貨單失敗');
+    // 使用前端過濾功能
+    const searchTerm = searchParams.searchTerm.toLowerCase().trim();
+    
+    // 如果需要重新獲取數據，則調用 reloadData
+    if (purchaseOrders.length === 0) {
+      reloadData();
     }
-  }, [dispatch, fetchData, searchParams.searchTerm]);
+    
+    // 過濾邏輯將在 useEffect 中處理，因為 purchaseOrders 更新後會觸發 useEffect
+    console.log('搜尋條件:', searchTerm);
+  }, [reloadData, searchParams.searchTerm, purchaseOrders.length]);
 
   // 清除搜尋
   const handleClearSearch = useCallback(() => {
@@ -258,8 +363,8 @@ export const usePurchaseOrdersList = (initialSupplierId: string | null = null) =
       endDate: null,
       searchTerm: ''
     });
-    fetchData();
-  }, [fetchData]);
+    reloadData();
+  }, [reloadData]);
 
   // 處理輸入框變更
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -309,7 +414,7 @@ export const usePurchaseOrdersList = (initialSupplierId: string | null = null) =
       
       if (response.data.success) {
         // 重新載入資料
-        dispatch(fetchPurchaseOrders());
+        reloadData();
         
         showSnackbar('進貨單已解鎖並改為待處理狀態', 'success');
       } else {
@@ -320,7 +425,7 @@ export const usePurchaseOrdersList = (initialSupplierId: string | null = null) =
       const errorMessage = error.response?.data?.message || error.message || '解鎖進貨單失敗，請稍後再試';
       showSnackbar(errorMessage, 'error');
     }
-  }, [dispatch, showSnackbar]);
+  }, [reloadData, showSnackbar]);
 
   // 預覽處理函數
   const handlePreviewMouseEnter = useCallback(async (event: React.MouseEvent<HTMLElement>, id: string) => {
@@ -364,8 +469,13 @@ export const usePurchaseOrdersList = (initialSupplierId: string | null = null) =
       setDeleteDialogOpen(false);
       setPurchaseOrderToDelete(null);
       showSnackbar('進貨單已成功刪除', 'success');
+      
+      // 刪除後重新載入數據
+      setTimeout(() => {
+        reloadData();
+      }, 500);
     }
-  }, [dispatch, purchaseOrderToDelete, showSnackbar]);
+  }, [dispatch, purchaseOrderToDelete, showSnackbar, reloadData]);
 
   // 取消刪除
   const handleDeleteCancel = useCallback(() => {

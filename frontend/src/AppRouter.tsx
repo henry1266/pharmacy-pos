@@ -20,7 +20,7 @@ import ReportsPage from './pages/ReportsPage';
 // 進貨管理頁面元件
 import PurchaseOrdersPage from './modules/purchase-order/pages/PurchaseOrdersPage';
 import PurchaseOrderFormPage from './modules/purchase-order/pages/PurchaseOrderFormPage';
-import PurchaseOrderDetailPage from './pages/PurchaseOrderDetailPage';
+import PurchaseOrderDetailPage from './modules/purchase-order/pages/PurchaseOrderDetailPage';
 import PurchaseOrdersSupplierFilterPage from './modules/purchase-order/pages/PurchaseOrdersSupplierFilterPage';
 // 出貨管理頁面元件
 import ShippingOrdersPage from './pages/ShippingOrdersPage';

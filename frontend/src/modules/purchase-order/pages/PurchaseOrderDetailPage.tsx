@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import { useAppDispatch } from '../hooks/redux';
+import { useAppDispatch } from '@/hooks/redux';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   Typography,
@@ -29,17 +29,17 @@ import {
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 
-import { fetchPurchaseOrder } from '../redux/actions';
-import ProductItemsTable from '../components/common/ProductItemsTable';
-import DetailLayout from '../components/DetailLayout';
-import { productServiceV2 } from '../services/productServiceV2';
-import CollapsibleAmountInfo from '../components/common/CollapsibleAmountInfo';
-import { RootState } from '../types/store';
+import { fetchPurchaseOrder } from '@/redux/actions';
+import ProductItemsTable from '@/components/common/ProductItemsTable';
+import DetailLayout from '@/components/DetailLayout';
+import { productServiceV2 } from '@/services/productServiceV2';
+import CollapsibleAmountInfo from '@/components/common/CollapsibleAmountInfo';
+import { RootState } from '@/types/store';
 import { Product, PurchaseOrder, PurchaseOrderItem } from '@pharmacy-pos/shared/types/entities';
 import { Organization } from '@pharmacy-pos/shared/types/organization';
-import { usePurchaseOrderActions } from '../components/purchase-orders/PurchaseOrderActions';
-import { purchaseOrderServiceV2 } from '../services/purchaseOrderServiceV2';
-import { useOrganizations } from '../hooks/useOrganizations';
+import { usePurchaseOrderActions } from '@/components/purchase-orders/PurchaseOrderActions';
+import { purchaseOrderServiceV2 } from '@/services/purchaseOrderServiceV2';
+import { useOrganizations } from '@/hooks/useOrganizations';
 
 // 擴展 PurchaseOrder 類型以包含實際使用的欄位
 interface ExtendedPurchaseOrder extends Omit<PurchaseOrder, 'paymentStatus'> {
