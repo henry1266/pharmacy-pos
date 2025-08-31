@@ -83,7 +83,7 @@ const CommonListPageLayout: React.FC<CommonListPageLayoutProps> = ({
       <Grid container spacing={1}>
         {/* Left/Main: Data Table */}
         <Grid item xs={12} md={detailPanel ? tableGridWidth : 12}> {/* Full width if no detail panel */}
-          <Paper
+          <Paper elevation={0} variant="outlined"
   sx={{
     p: { xs: 0, md: 0 },   // 小螢幕加內距，大螢幕維持原本 0
     mb: { xs: 0, md: 0 },    // 小螢幕保留更多底部空間給分頁
@@ -98,14 +98,26 @@ const CommonListPageLayout: React.FC<CommonListPageLayoutProps> = ({
                 <CircularProgress />
               </Box>
             ) : (
-              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', width: '100%', height: '100%', p: 0, m: 0 }}>
+              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', width: '100%', height: '100%', p: 0, m: 0, border: 'none', borderRadius: 0, boxShadow: 'none', backgroundColor: 'transparent' }}>
                 <DataTable
                   rows={rows}
                   columns={columns}
                   loading={loading}
                   pageSize={10}
                   checkboxSelection={false}
-                  sx={{ width: '100%', height: '100%', p: 0, m: 0 }}
+                  sx={{
+                    width: '100%',
+                    height: '100%',
+                    p: 0,
+                    m: 0,
+                    '& .MuiDataGrid-root': {
+                      border: 'none',
+                      backgroundColor: 'transparent'
+                    },
+                    '& .MuiDataGrid-footerContainer': {
+                      borderTop: 'none'
+                    }
+                  }}
                   {...(onRowClick && { onRowClick })}
                   {...dataTableProps} // Spread any additional DataTable props including sorting if needed
                 />
