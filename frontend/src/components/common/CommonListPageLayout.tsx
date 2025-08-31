@@ -87,6 +87,8 @@ const CommonListPageLayout: React.FC<CommonListPageLayoutProps> = ({
   sx={{
     p: { xs: 0, md: 0 },   // 小螢幕加內距，大螢幕維持原本 0
     mb: { xs: 0, md: 0 },    // 小螢幕保留更多底部空間給分頁
+    height: '75vh',         // 設定高度為視窗高度的75vh
+    overflow: 'auto'        // 內容超出時顯示滾動條
   }}
 >  {/* 添加底部外邊距，確保有足夠空間顯示分頁控制器 */}
             {loading && !rows.length ? (
