@@ -37,30 +37,30 @@ interface Category {
  * 共用的欄位定義
  */
 const commonColumns = {
-  code: (headerName: string = '商品編號', width: number = 120): GridColDef => ({ 
-    field: 'code', 
-    headerName, 
-    width 
+  code: (headerName: string = '商品編號', flex: number = 1.2): GridColDef => ({
+    field: 'code',
+    headerName,
+    flex
   }),
   
-  name: (headerName: string = '商品名稱', width: number = 180): GridColDef => ({ 
-    field: 'name', 
-    headerName, 
-    width 
+  name: (headerName: string = '商品名稱', flex: number = 2): GridColDef => ({
+    field: 'name',
+    headerName,
+    flex
   }),
   
-  purchasePrice: (headerName: string = '進貨價', width: number = 80): GridColDef => ({ 
-    field: 'purchasePrice', 
-    headerName, 
-    width, 
-    type: 'number' 
+  purchasePrice: (headerName: string = '進貨價', flex: number = 0.8): GridColDef => ({
+    field: 'purchasePrice',
+    headerName,
+    flex,
+    type: 'number'
   }),
   
   // 庫存欄位渲染函數
-  inventory: (getTotalInventory: (id: string) => string, headerName: string = '庫存', width: number = 80): GridColDef => ({
-    field: 'inventory', 
-    headerName, 
-    width, 
+  inventory: (getTotalInventory: (id: string) => string, headerName: string = '庫存', flex: number = 0.8): GridColDef => ({
+    field: 'inventory',
+    headerName,
+    flex,
     valueGetter: (params: GridValueGetterParams) => getTotalInventory(params.row.id),
     renderCell: (params: GridRenderCellParams) => {
       const inventoryValue = getTotalInventory(params.row.id);
@@ -88,10 +88,10 @@ const commonColumns = {
   }),
   
   // 分類欄位渲染函數
-  category: (categories: Category[], headerName: string = '分類', width: number = 100): GridColDef => ({
+  category: (categories: Category[], headerName: string = '分類', flex: number = 1): GridColDef => ({
     field: 'category',
     headerName,
-    width,
+    flex,
     valueGetter: (params: GridValueGetterParams) => {
       if (!params.value) return '無';
       
@@ -115,10 +115,10 @@ const commonColumns = {
   }),
   
   // 不扣庫存欄位渲染函數
-  excludeFromStock: (headerName: string = '不扣庫存', width: number = 100): GridColDef => ({
+  excludeFromStock: (headerName: string = '不扣庫存', flex: number = 1): GridColDef => ({
     field: 'excludeFromStock',
     headerName,
-    width,
+    flex,
     renderCell: (params: GridRenderCellParams) => {
       const isExcluded = params.row.excludeFromStock;
       return (
@@ -141,11 +141,11 @@ const commonColumns = {
     handleDeleteProduct: (id: string) => void,
     productType: string,
     headerName: string = '操作',
-    width: number = 180
+    flex: number = 1.8
   ): GridColDef => ({
     field: 'actions',
     headerName,
-    width,
+    flex,
     renderCell: (params: GridRenderCellParams) => {
       // 使用函數組件以便使用useNavigate
       const ActionButtons = () => {
@@ -202,11 +202,10 @@ const createProductColumns = (
   return [
     commonColumns.code(),
     commonColumns.name(),
-    { field: 'sellingPrice', headerName: '售價', width: 150, type: 'number' },
+    { field: 'sellingPrice', headerName: '售價', flex: 1.5, type: 'number' },
     commonColumns.inventory(getTotalInventory),
     commonColumns.excludeFromStock(),
     commonColumns.category(categories),
-    { field: 'unit', headerName: '單位', width: 80 },
     commonColumns.purchasePrice(),
     commonColumns.actions(handleEditProduct, handleDeleteProduct, 'product'),
   ];
@@ -222,15 +221,15 @@ const createMedicineColumns = (
   categories: Category[] = []
 ): GridColDef[] => {
   return [
-    commonColumns.code('藥品編號', 80),
-    commonColumns.name('藥品名稱', 180),
-    commonColumns.inventory(getTotalInventory, '庫存', 70),
+    commonColumns.code('藥品編號', 0.8),
+    commonColumns.name('藥品名稱', 1.8),
+    commonColumns.inventory(getTotalInventory, '庫存', 0.7),
     commonColumns.excludeFromStock(),
-    commonColumns.purchasePrice('進貨價', 100),
-    { field: 'healthInsuranceCode', headerName: '健保碼', width: 100 },
-    { field: 'healthInsurancePrice', headerName: '健保價', width: 100, type: 'number' },
+    commonColumns.purchasePrice('進貨價', 1),
+    { field: 'healthInsuranceCode', headerName: '健保碼', flex: 1 },
+    { field: 'healthInsurancePrice', headerName: '健保價', flex: 1, type: 'number' },
     commonColumns.category(categories),
-    commonColumns.actions(handleEditProduct, handleDeleteProduct, 'medicine', '操作', 160),
+    commonColumns.actions(handleEditProduct, handleDeleteProduct, 'medicine', '操作', 1.6),
   ];
 };
 

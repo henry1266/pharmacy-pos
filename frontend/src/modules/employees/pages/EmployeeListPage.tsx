@@ -351,18 +351,18 @@ const EmployeeListPage: React.FC = () => {
     {
       field: 'name',
       headerName: '姓名',
-      width: 100
+      flex: 1.3
     },
     {
       field: 'gender',
       headerName: '性別',
-      width: 60,
+      flex: 1.3,
       valueGetter: (params: any) => params.row.gender === 'male' ? '男' : '女'
     },
     {
       field: 'department',
       headerName: '部門',
-      width: 120,
+      flex: 1.3,
       renderCell: (params: any) => (
         <Chip label={params.row.department} size="small" />
       )
@@ -370,23 +370,23 @@ const EmployeeListPage: React.FC = () => {
     {
       field: 'position',
       headerName: '職位',
-      width: 120
+      flex: 1.3
     },
     {
       field: 'phone',
       headerName: '電話',
-      width: 130
+      flex: 1.4
     },
     {
       field: 'hireDate',
       headerName: '到職日期',
-      width: 140,
+      flex: 1.4,
       valueGetter: (params: any) => formatDate(params.row.hireDate)
     },
     {
       field: 'actions',
       headerName: '操作',
-      width: 130,
+      flex: 2,
       sortable: false,
       renderCell: (params: any) => (
         <Box>
