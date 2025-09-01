@@ -234,15 +234,15 @@ const SuppliersPage: FC<{}> = () => {
   }, [error, isTestMode]);
 
   const columns = [
-    { field: 'code', headerName: '供應商編號', width: 120 },
-    { field: 'shortCode', headerName: '簡碼', width: 100 },
-    { field: 'name', headerName: '供應商名稱', width: 180 },
-    { field: 'contactPerson', headerName: '聯絡人', width: 120 },
-    { field: 'phone', headerName: '電話', width: 120 },
+    { field: 'code', headerName: '供應商編號', flex: 1.5 },
+    { field: 'shortCode', headerName: '簡碼', flex: 1.5 },
+    { field: 'name', headerName: '供應商名稱', flex: 1.5 },
+    { field: 'contactPerson', headerName: '聯絡人', flex: 1.5 },
+    { field: 'phone', headerName: '電話', flex: 1.5 },
     {
       field: 'actions',
       headerName: '操作',
-      width: 150,
+      flex: 2,
       renderCell: (params: { row: SupplierData }) => (
         <Box>
           <Tooltip title="查看詳情">

@@ -211,18 +211,18 @@ const PurchaseOrdersPage: FC<PurchaseOrdersPageProps> = ({ initialSupplierId = n
 
   // 定義表格列
   const columns = [
-    { field: 'poid', headerName: '進貨單號', width: 120 },
-    { field: 'pobill', headerName: '發票號碼', width: 120 },
+    { field: 'poid', headerName: '進貨單號', flex: 1.5 },
+    { field: 'pobill', headerName: '發票號碼', flex: 1.5 },
     {
       field: 'posupplier',
       headerName: '供應商',
-      width: 130,
+      flex: 1.5,
       renderHeader: renderSupplierHeader
     },
     {
       field: 'totalAmount',
       headerName: '總金額',
-      width: 110,
+      flex: 1.3,
       valueFormatter: (params: any) => {
         return params.value ? params.value.toLocaleString() : '';
       }
@@ -230,19 +230,19 @@ const PurchaseOrdersPage: FC<PurchaseOrdersPageProps> = ({ initialSupplierId = n
     {
       field: 'status',
       headerName: '狀態',
-      width: 90,
+      flex: 1.1,
       renderCell: (params: any) => <StatusChip status={params.value} />
     },
     {
       field: 'paymentStatus',
       headerName: '付款狀態',
-      width: 90,
+      flex: 1.1,
       renderCell: (params: any) => <PaymentStatusChip status={params.value} />
     },
     {
       field: 'actions',
       headerName: '操作',
-      width: 170,
+      flex: 2,
       renderCell: (params: any) => {
         // 調試日誌
         console.log('🔍 DataGrid row data:', {
@@ -431,7 +431,7 @@ const PurchaseOrdersPage: FC<PurchaseOrdersPageProps> = ({ initialSupplierId = n
               background: '#ffffff02',
             },
             '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb': {
-              background: '#888888',
+              background: '#a7a7a796',
               borderRadius: '4px',
             },
           }
