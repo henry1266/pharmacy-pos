@@ -182,13 +182,19 @@ export const useDailyScheduleSummary = (selectedDate: string): DailyScheduleSumm
    * 打卡按鈕點擊處理
    */
   const handleOvertimeClockIn = useCallback(() => {
+    // 設置當前時間
+    const now = new Date();
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const currentTime = `${hours}:${minutes}`;
+    
     setOvertimeFormData({
       employeeId: '',
       date: selectedDate,
-      hours: '',
-      description: '',
+      hours: '1', // 預設加班時數為1小時
+      description: `${selectedDate} 加班記錄`, // 預設描述
       status: 'pending' as OvertimeStatus,
-      currentTime: ''
+      currentTime: currentTime
     });
     setOvertimeFormErrors({});
   }, [selectedDate]);
@@ -197,13 +203,19 @@ export const useDailyScheduleSummary = (selectedDate: string): DailyScheduleSumm
    * 關閉加班對話框
    */
   const handleCloseOvertimeDialog = useCallback(() => {
+    // 重置表單為預設值
+    const now = new Date();
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const currentTime = `${hours}:${minutes}`;
+    
     setOvertimeFormData({
       employeeId: '',
       date: selectedDate,
-      hours: '',
-      description: '',
+      hours: '1', // 預設加班時數為1小時
+      description: `${selectedDate} 加班記錄`, // 預設描述
       status: 'pending' as OvertimeStatus,
-      currentTime: ''
+      currentTime: currentTime
     });
     setOvertimeFormErrors({});
   }, [selectedDate]);
@@ -253,11 +265,17 @@ export const useDailyScheduleSummary = (selectedDate: string): DailyScheduleSumm
     
     setSubmitting(true);
     try {
+      // 確保數值轉換正確
+      const hours = parseFloat(overtimeFormData.hours.toString());
+      if (isNaN(hours) || hours <= 0) {
+        throw new Error('加班時數必須大於0');
+      }
+      
       const success = await createOvertimeRecord({
         employeeId: overtimeFormData.employeeId,
         date: overtimeFormData.date,
-        hours: parseFloat(overtimeFormData.hours.toString()),
-        description: overtimeFormData.description,
+        hours: hours,
+        description: overtimeFormData.description || '', // 確保 description 不為 undefined
         status: overtimeFormData.status
       });
       

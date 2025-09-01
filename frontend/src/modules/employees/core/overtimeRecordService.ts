@@ -181,6 +181,19 @@ export const getOvertimeRecordById = async (id: string): Promise<OvertimeRecord>
  */
 export const createOvertimeRecord = async (recordData: OvertimeRecordCreateData): Promise<OvertimeRecord> => {
   try {
+    // 驗證必要欄位
+    if (!recordData.employeeId) {
+      throw new Error('員工ID不能為空');
+    }
+    
+    if (!recordData.date) {
+      throw new Error('日期不能為空');
+    }
+    
+    if (recordData.hours <= 0) {
+      throw new Error('加班時數必須大於0');
+    }
+
     const token = localStorage.getItem('token');
     if (!token) {
       throw new Error('未登入或權限不足');
