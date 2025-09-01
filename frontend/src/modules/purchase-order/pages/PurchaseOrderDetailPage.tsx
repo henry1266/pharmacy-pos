@@ -353,58 +353,74 @@ const PurchaseOrderDetailPage: React.FC = () => {
 
   // 主要內容 - 藥品項目
   const mainContent = (
-    <Stack spacing={3}>
-      {currentPurchaseOrder && (
-        <Card variant="outlined">
-          <CardContent>
-            <Typography variant="h6" gutterBottom><InventoryIcon sx={{ verticalAlign: 'middle', mr: 1 }}/>藥品項目</Typography>
-            <Divider sx={{ mb: 2 }} />
-            {productDetailsError && (
-              <Typography color="error" sx={{ mb: 2 }}>{productDetailsError}</Typography>
-            )}
-            <ProductItemsTable
-              items={currentPurchaseOrder.items || []}
-              productDetails={productDetails}
-              codeField="did"
-              nameField="dname"
-              quantityField="dquantity"
-              totalCostField="dtotalCost"
-              batchNumberField="batchNumber"
-              showBatchNumber={true}
-              packageQuantityField="packageQuantity"
-              boxQuantityField="boxQuantity"
-              showPackageQuantity={true}
-              totalAmount={currentPurchaseOrder.totalAmount ??
-                          (currentPurchaseOrder.items ?? []).reduce((sum, item) => sum + Number(item.dtotalCost ?? 0), 0)}
-              title=""
-              isLoading={productDetailsLoading}
-            />
-          </CardContent>
-        </Card>
+    <Box sx={{
+      height: '100%',
+      width: '100%',
+      '& .MuiCard-root': {
+        boxShadow: 'none',
+        border: 'none',
+        margin: 0,
+        borderRadius: 0
+      },
+      '& .MuiCardContent-root': {
+        padding: 0
+      },
+      '& .MuiTableContainer-root': {
+        borderRadius: 0,
+        border: 'none',
+        boxShadow: 'none'
+      },
+      '& .MuiTable-root': {
+        borderCollapse: 'collapse'
+      }
+    }}>
+      {productDetailsError && (
+        <Typography color="error" sx={{ mb: 2, px: 2, pt: 2 }}>{productDetailsError}</Typography>
       )}
-    </Stack>
+      {currentPurchaseOrder && (
+        <ProductItemsTable
+          items={currentPurchaseOrder.items || []}
+          productDetails={productDetails}
+          codeField="did"
+          nameField="dname"
+          quantityField="dquantity"
+          totalCostField="dtotalCost"
+          batchNumberField="batchNumber"
+          showBatchNumber={true}
+          packageQuantityField="packageQuantity"
+          boxQuantityField="boxQuantity"
+          showPackageQuantity={true}
+          totalAmount={currentPurchaseOrder.totalAmount ??
+                      (currentPurchaseOrder.items ?? []).reduce((sum, item) => sum + Number(item.dtotalCost ?? 0), 0)}
+          isLoading={productDetailsLoading}
+          title=""
+        />
+      )}
+    </Box>
   );
 
   // 側邊欄內容 - 金額信息和基本資訊
   const sidebarContent = (
-    <Stack spacing={3}>
+    <Stack spacing={2}>
       {currentPurchaseOrder && (
-        <CollapsibleAmountInfo
-          title="金額信息"
-          titleIcon={<AccountBalanceWalletIcon />}
-          mainAmountLabel="總金額"
-          mainAmountValue={currentPurchaseOrder.totalAmount ?? 0}
-          mainAmountIcon={<ReceiptLongIcon />}
-          collapsibleDetails={getCollapsibleDetails()}
-          initialOpenState={true}
-          isLoading={orderLoading}
-          error={orderError ? "金額資訊載入失敗" : ''}
-          noDetailsText="無金額明細"
-        />
+        <Paper elevation={0} variant="outlined" sx={{ borderRadius: 0, border: '1px solid rgba(0, 0, 0, 0.12)' }}>
+          <CollapsibleAmountInfo
+            title="金額信息"
+            titleIcon={<AccountBalanceWalletIcon />}
+            mainAmountLabel="總金額"
+            mainAmountValue={currentPurchaseOrder.totalAmount ?? 0}
+            mainAmountIcon={<ReceiptLongIcon />}
+            collapsibleDetails={getCollapsibleDetails()}
+            initialOpenState={true}
+            isLoading={orderLoading}
+            error={orderError ? "金額資訊載入失敗" : ''}
+            noDetailsText="無金額明細"
+          />
+        </Paper>
       )}
       {currentPurchaseOrder && (
-        <Card variant="outlined">
-          <CardContent>
+        <Paper elevation={0} variant="outlined" sx={{ borderRadius: 0, border: '1px solid rgba(0, 0, 0, 0.12)' }}>
+          <Box sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom><InfoIcon sx={{ verticalAlign: 'middle', mr: 1 }}/>基本資訊</Typography>
             <Divider sx={{ mb: 2 }} />
             <Stack spacing={1.5}>
@@ -480,8 +496,8 @@ const PurchaseOrderDetailPage: React.FC = () => {
                 </Box>
               </Stack>
             </Stack>
-          </CardContent>
-        </Card>
+          </Box>
+        </Paper>
       )}
     </Stack>
   );
@@ -547,25 +563,36 @@ const PurchaseOrderDetailPage: React.FC = () => {
       />
 
       {/* 主要內容區域 */}
-      <Box sx={{ mb: 3 }}>
+      <Box sx={{
+        display: 'grid',
+        gridTemplateColumns: { xs: '1fr', md: '3fr 1fr' },
+        gap: 2,
+        mt: 2
+      }}>
+        {/* 左側：藥品項目 */}
+        <Paper
+          elevation={0}
+          variant="outlined"
+          sx={{
+            height: '74vh',
+            overflow: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            borderRadius: 0,
+            border: '1px solid rgba(0, 0, 0, 0.12)'
+          }}
+        >
+          {combinedLoading && !currentPurchaseOrder ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            mainContent
+          )}
+        </Paper>
         
-        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2 }}>
-          {/* 左側：藥品項目 */}
-          <Box sx={{ flex: 3 }}>
-            {combinedLoading && !currentPurchaseOrder ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-                <CircularProgress />
-              </Box>
-            ) : (
-              mainContent
-            )}
-          </Box>
-          
-          {/* 右側：金額信息和基本資訊 */}
-          <Box sx={{ flex: 1 }}>
-            {sidebarContent}
-          </Box>
-        </Box>
+        {/* 右側：金額信息和基本資訊 */}
+        {sidebarContent}
       </Box>
 
       {/* 刪除確認對話框 */}

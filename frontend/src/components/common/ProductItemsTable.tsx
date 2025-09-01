@@ -266,7 +266,7 @@ const ProductItemsTable: React.FC<ProductItemsTableProps> = ({
   if (showPackageQuantity) colspanBase++;
 
   return (
-    <Card sx={{ maxWidth: 1000, margin: '0 auto' }}>
+    <Card sx={{ margin: '0 auto' }}>
       <CardContent>
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
           <Typography variant="h6" gutterBottom sx={{ mb: 0 }}>
