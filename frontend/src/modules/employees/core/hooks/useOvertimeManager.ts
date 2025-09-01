@@ -239,8 +239,11 @@ export const useOvertimeManager = ({ employeeId = null }: OvertimeManagerProps) 
       
       const scheduleRecords = await response.json();
       
+      // 確保 scheduleRecords 是陣列
+      const recordsArray = Array.isArray(scheduleRecords) ? scheduleRecords : [];
+      
       // 過濾出加班記錄
-      const overtimeSchedules = scheduleRecords.filter((record: ScheduleOvertimeRecord) => 
+      const overtimeSchedules = recordsArray.filter((record: ScheduleOvertimeRecord) =>
         record && record.leaveType === 'overtime'
       );
       
