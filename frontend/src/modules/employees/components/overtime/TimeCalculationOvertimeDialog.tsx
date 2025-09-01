@@ -57,7 +57,7 @@ interface TimeCalculationOvertimeDialogProps {
   isAdmin: boolean;
   submitting: boolean;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent) => void;
-  onSubmit: () => void;
+  onSubmit: () => Promise<boolean | void>;
   submitButtonText?: string;
 }
 
@@ -323,7 +323,14 @@ const TimeCalculationOvertimeDialog: React.FC<TimeCalculationOvertimeDialogProps
       <DialogActions>
         <Button onClick={onClose}>取消</Button>
         <Button
-          onClick={onSubmit}
+          onClick={async () => {
+            // 調用提交函數
+            const result = await onSubmit();
+            // 如果提交成功，直接關閉對話框
+            if (result === true) {
+              onClose();
+            }
+          }}
           disabled={submitting || !calculationResult}
           variant="contained"
           color="primary"

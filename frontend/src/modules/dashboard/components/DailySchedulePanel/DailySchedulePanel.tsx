@@ -18,6 +18,7 @@ import ShiftHeader from './ShiftHeader';
 import ShiftContent from './ShiftContent';
 import EmptyStateMessage from './EmptyStateMessage';
 import ErrorBoundary from './ErrorBoundary';
+import ClockInSuccessEffect from './ClockInSuccessEffect';
 import { useDailyScheduleSummary } from '../../hooks/useDailyScheduleSummary';
 import { formatDate } from '../../utils/scheduleUtils';
 
@@ -50,12 +51,17 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
     overtimeFormErrors,
     submitting,
     
+    // 動畫狀態
+    showSuccessAnimation,
+    successEmployeeName,
+    
     // 方法
     handleRefresh,
     handleOvertimeClockIn,
     handleCloseOvertimeDialog,
     handleOvertimeInputChange,
     handleSubmitOvertimeRecord,
+    handleAnimationComplete,
     getEmployeeInfo
   } = useDailyScheduleSummary(selectedDate);
   
@@ -126,6 +132,12 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
   // 正常渲染
   return (
     <ErrorBoundary>
+    {/* 打卡成功動畫效果 - 放在最外層以確保正確顯示 */}
+    <ClockInSuccessEffect
+      show={showSuccessAnimation}
+      onComplete={handleAnimationComplete}
+      employeeName={successEmployeeName}
+    />
     <Card elevation={2}>
       <CardContent>
         {/* 標題區域 */}
@@ -201,6 +213,8 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
             />
           )}
         </Suspense>
+        
+        {/* 打卡成功動畫效果 - 移到 Dialog 外部以確保正確顯示 */}
       </CardContent>
     </Card>
     </ErrorBoundary>

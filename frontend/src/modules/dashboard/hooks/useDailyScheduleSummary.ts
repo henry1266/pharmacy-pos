@@ -53,12 +53,17 @@ export interface DailyScheduleSummaryResult {
   overtimeFormErrors: Record<string, string>;
   submitting: boolean;
   
+  // 動畫狀態
+  showSuccessAnimation: boolean;
+  successEmployeeName: string;
+  
   // 方法
   handleRefresh: () => void;
   handleOvertimeClockIn: () => void;
   handleCloseOvertimeDialog: () => void;
   handleOvertimeInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | { target: { name: string; value: string } }) => void;
-  handleSubmitOvertimeRecord: () => Promise<void>;
+  handleSubmitOvertimeRecord: () => Promise<boolean | void>;
+  handleAnimationComplete: () => void;
   getEmployeeInfo: (employeeId: string) => { name: string; position: string | undefined; phone: string | undefined };
 }
 
@@ -101,6 +106,10 @@ export const useDailyScheduleSummary = (selectedDate: string): DailyScheduleSumm
     currentTime: ''
   });
   const [overtimeFormErrors, setOvertimeFormErrors] = useState<Record<string, string>>({});
+  
+  // 成功動畫狀態
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState<boolean>(false);
+  const [successEmployeeName, setSuccessEmployeeName] = useState<string>('');
   
   // 班次基本配置
   const shiftBaseConfig = useMemo(() => getShiftBaseConfig(shiftTimesMap), [shiftTimesMap]);
@@ -240,7 +249,28 @@ export const useDailyScheduleSummary = (selectedDate: string): DailyScheduleSumm
   }, [overtimeFormErrors]);
   
   /**
+   * 獲取員工信息
+   */
+  const getEmployeeInfo = useCallback((employeeId: string) => {
+    const employee = employees.find(emp => emp._id === employeeId);
+    return {
+      name: employee ? employee.name : `員工ID: ${employeeId}`,
+      position: employee ? employee.position || '未知職位' : '未知職位',
+      phone: employee ? employee.phone || '' : ''
+    };
+  }, [employees]);
+
+  /**
+   * 處理動畫完成
+   */
+  const handleAnimationComplete = useCallback(() => {
+    setShowSuccessAnimation(false);
+    setSuccessEmployeeName('');
+  }, []);
+
+  /**
    * 提交加班記錄
+   * @returns 提交成功返回 true，失敗返回 false
    */
   const handleSubmitOvertimeRecord = useCallback(async () => {
     // 驗證表單
@@ -260,7 +290,7 @@ export const useDailyScheduleSummary = (selectedDate: string): DailyScheduleSumm
     
     if (Object.keys(errors).length > 0) {
       setOvertimeFormErrors(errors);
-      return;
+      return false;
     }
     
     setSubmitting(true);
@@ -271,6 +301,9 @@ export const useDailyScheduleSummary = (selectedDate: string): DailyScheduleSumm
         throw new Error('加班時數必須大於0');
       }
       
+      // 獲取員工名稱，用於成功動畫
+      const employeeInfo = getEmployeeInfo(overtimeFormData.employeeId);
+      
       const success = await createOvertimeRecord({
         employeeId: overtimeFormData.employeeId,
         date: overtimeFormData.date,
@@ -280,28 +313,33 @@ export const useDailyScheduleSummary = (selectedDate: string): DailyScheduleSumm
       });
       
       if (success) {
-        handleCloseOvertimeDialog();
+        // 先設置動畫狀態，確保動畫能夠顯示
+        setSuccessEmployeeName(employeeInfo.name);
+        
+        // 使用 setTimeout 確保動畫在對話框關閉後顯示
+        setTimeout(() => {
+          console.log('顯示打卡成功動畫', employeeInfo.name);
+          setShowSuccessAnimation(true);
+        }, 100);
+        
         // 重新載入數據以顯示新的加班記錄
         fetchOvertimeRecords();
+        
+        // 重置表單數據
+        handleCloseOvertimeDialog();
+        
+        // 返回 true 表示提交成功，讓調用者知道可以關閉對話框
+        return true;
       }
+      
+      return false;
     } catch (error) {
       console.error('提交加班記錄失敗:', error);
+      return false;
     } finally {
       setSubmitting(false);
     }
-  }, [overtimeFormData, createOvertimeRecord, handleCloseOvertimeDialog, fetchOvertimeRecords]);
-  
-  /**
-   * 獲取員工信息
-   */
-  const getEmployeeInfo = useCallback((employeeId: string) => {
-    const employee = employees.find(emp => emp._id === employeeId);
-    return {
-      name: employee ? employee.name : `員工ID: ${employeeId}`,
-      position: employee ? employee.position || '未知職位' : '未知職位',
-      phone: employee ? employee.phone || '' : ''
-    };
-  }, [employees]);
+  }, [overtimeFormData, createOvertimeRecord, handleCloseOvertimeDialog, fetchOvertimeRecords, getEmployeeInfo]);
   
   /**
    * 獲取當日的加班記錄
@@ -355,12 +393,17 @@ export const useDailyScheduleSummary = (selectedDate: string): DailyScheduleSumm
     overtimeFormErrors,
     submitting,
     
+    // 動畫狀態
+    showSuccessAnimation,
+    successEmployeeName,
+    
     // 方法
     handleRefresh,
     handleOvertimeClockIn,
     handleCloseOvertimeDialog,
     handleOvertimeInputChange,
     handleSubmitOvertimeRecord,
+    handleAnimationComplete,
     getEmployeeInfo
   };
 };
