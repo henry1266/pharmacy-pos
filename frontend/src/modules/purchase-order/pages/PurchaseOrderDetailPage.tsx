@@ -517,16 +517,16 @@ const PurchaseOrderDetailPage: React.FC = () => {
     {
       field: 'index',
       headerName: '#',
-      width: 50,
+      flex: 0.3,
       renderCell: (params: any) => {
         return params.api.getRowIndex(params.row.id) + 1;
       }
     },
-    { field: 'did', headerName: '編號', flex: 1 },
+    { field: 'did', headerName: '編號', flex: 0.9 },
     {
       field: 'healthInsuranceCode',
       headerName: '健保代碼',
-      flex: 1,
+      flex: 1.3,
       valueGetter: (params: any) => {
         const productCode = params.row.did;
         const product = productDetails[productCode];
@@ -534,8 +534,8 @@ const PurchaseOrderDetailPage: React.FC = () => {
         return product ? (product as any).healthInsuranceCode || 'N/A' : 'N/A';
       }
     },
-    { field: 'dname', headerName: '名稱', flex: 2 },
-    { field: 'batchNumber', headerName: '批號', flex: 1 },
+    { field: 'dname', headerName: '名稱', flex: 2.7 },
+    { field: 'batchNumber', headerName: '批號', flex: 0.8 },
     {
       field: 'packageInfo',
       headerName: '包裝數量',
@@ -553,7 +553,7 @@ const PurchaseOrderDetailPage: React.FC = () => {
     {
       field: 'dquantity',
       headerName: '數量',
-      flex: 1,
+      flex: 0.9,
       align: 'right',
       headerAlign: 'right'
     },
@@ -572,7 +572,7 @@ const PurchaseOrderDetailPage: React.FC = () => {
     {
       field: 'dtotalCost',
       headerName: '小計',
-      flex: 1,
+      flex: 1.1,
       align: 'right',
       headerAlign: 'right',
       valueFormatter: (params: any) => {
@@ -582,17 +582,28 @@ const PurchaseOrderDetailPage: React.FC = () => {
   ];
 
   // 為DataGrid準備行數據
-  const rows = currentPurchaseOrder?.items?.map((item, index) => ({
-    id: index.toString(),
-    did: item.did || '',
-    dname: item.dname || '',
-    dquantity: item.dquantity || 0,
-    unitPrice: item.unitPrice || 0,
-    dtotalCost: item.dtotalCost || 0,
-    batchNumber: item.batchNumber || '',
-    packageQuantity: item.packageQuantity || '',
-    boxQuantity: item.boxQuantity || ''
-  })) || [];
+  const rows = currentPurchaseOrder?.items?.map((item, index) => {
+    // 確保 packageQuantity 是從資料庫中正確獲取的
+    const packageQuantity = item.packageQuantity || 0;
+    
+    // 計算 boxQuantity 的值為 總數量/packageQuantity
+    let boxQuantity = 0;
+    if (packageQuantity > 0 && item.dquantity) {
+      boxQuantity = Math.floor(Number(item.dquantity) / Number(packageQuantity));
+    }
+    
+    return {
+      id: index.toString(),
+      did: item.did || '',
+      dname: item.dname || '',
+      dquantity: item.dquantity || 0,
+      unitPrice: item.unitPrice || 0,
+      dtotalCost: item.dtotalCost || 0,
+      batchNumber: item.batchNumber || '',
+      packageQuantity: packageQuantity,
+      boxQuantity: boxQuantity
+    };
+  }) || [];
 
   return (
     <Box sx={{ width: '95%', mx: 'auto' }}>
