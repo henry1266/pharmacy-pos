@@ -22,8 +22,6 @@ import {
   Percent as PercentIcon,
   AccountBalanceWallet as AccountBalanceWalletIcon,
   ReceiptLong as ReceiptLongIcon,
-  Business as BusinessIcon,
-  SwapHoriz as SwapHorizIcon,
   AccountBalance as AccountBalanceIcon
 } from '@mui/icons-material';
 import { format } from 'date-fns';
