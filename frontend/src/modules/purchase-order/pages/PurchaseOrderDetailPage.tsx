@@ -40,6 +40,7 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon
 } from '@mui/icons-material';
+import PageHeaderSection from '@/components/common/PageHeaderSection';
 import BreadcrumbNavigation from '@/components/common/BreadcrumbNavigation';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
@@ -513,58 +514,25 @@ const PurchaseOrderDetailPage: React.FC = () => {
   return (
     <Box sx={{ width: '95%', mx: 'auto' }}>
       {/* 頂部導航和操作按鈕 */}
-      <Paper sx={{
-        bgcolor: 'background.paper',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        position: 'relative',
-        zIndex: 1,
-        mb: 3
-      }}>
-        <Box sx={{
-          p: 1,
-          borderBottom: 1,
-          borderColor: 'divider',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          minHeight: 48
-        }}>
-          {/* 左側：麵包屑 */}
-          <Box sx={{
-            display: 'flex',
-            alignItems: 'center',
-            height: '100%'
-          }}>
-            <BreadcrumbNavigation
-              items={[
-                {
-                  label: '首頁',
-                  path: '/',
-                  icon: <HomeIcon sx={{ fontSize: '1.1rem' }} />
-                },
-                {
-                  label: '進貨單管理',
-                  path: '/purchase-orders',
-                  icon: <ShoppingCartIcon sx={{ fontSize: '1.1rem' }} />
-                },
-                {
-                  label: `進貨單詳情 ${currentPurchaseOrder?.poid || ''}`,
-                  icon: <ReceiptIcon sx={{ fontSize: '1.1rem' }} />
-                }
-              ]}
-              fontSize="0.975rem"
-              padding={0}
-            />
-          </Box>
-          
-          {/* 右側：操作按鈕 */}
-          <Box sx={{
-            display: 'flex',
-            gap: 1,
-            alignItems: 'center',
-            height: '100%',
-            marginLeft: 'auto'
-          }}>
+      <PageHeaderSection
+        breadcrumbItems={[
+          {
+            label: '首頁',
+            path: '/',
+            icon: <HomeIcon sx={{ fontSize: '1.1rem' }} />
+          },
+          {
+            label: '進貨單管理',
+            path: '/purchase-orders',
+            icon: <ShoppingCartIcon sx={{ fontSize: '1.1rem' }} />
+          },
+          {
+            label: `進貨單詳情 ${currentPurchaseOrder?.poid || ''}`,
+            icon: <ReceiptIcon sx={{ fontSize: '1.1rem' }} />
+          }
+        ]}
+        actions={
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
             {actionButtons}
             <Button
               variant="contained"
@@ -575,8 +543,8 @@ const PurchaseOrderDetailPage: React.FC = () => {
               返回列表
             </Button>
           </Box>
-        </Box>
-      </Paper>
+        }
+      />
 
       {/* 主要內容區域 */}
       <Box sx={{ mb: 3 }}>
