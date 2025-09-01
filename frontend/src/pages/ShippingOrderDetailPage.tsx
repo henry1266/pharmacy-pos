@@ -2,12 +2,13 @@ import React, { useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useAppDispatch } from '../hooks/redux';
-import { Typography, Stack, Box, Paper } from '@mui/material';
+import { Typography, Stack, Box, Paper, Button } from '@mui/material';
 import axios from 'axios';
 import {
   Home as HomeIcon,
   LocalShipping as LocalShippingIcon,
-  Receipt as ReceiptIcon
+  Receipt as ReceiptIcon,
+  ArrowBack as ArrowBackIcon
 } from '@mui/icons-material';
 import BreadcrumbNavigation from '../components/common/BreadcrumbNavigation';
 
@@ -245,6 +246,14 @@ const ShippingOrderDetailPage: React.FC = () => {
             marginLeft: 'auto'
           }}>
             {additionalActions}
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<ArrowBackIcon />}
+              onClick={() => navigate('/shipping-orders')}
+            >
+              返回列表
+            </Button>
           </Box>
         </Box>
       </Paper>

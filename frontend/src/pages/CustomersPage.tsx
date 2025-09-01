@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, FC, ChangeEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import TitleWithCount from '../components/common/TitleWithCount';
 import PropTypes from 'prop-types';
 import {
@@ -33,6 +34,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import HomeIcon from '@mui/icons-material/Home';
 import PeopleIcon from '@mui/icons-material/People';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import BreadcrumbNavigation from '../components/common/BreadcrumbNavigation';
 
 import CommonListPageLayout from '../components/common/CommonListPageLayout';
@@ -168,17 +170,90 @@ const CustomerFormDialog: FC<CustomerFormDialogProps> = ({
           {formError}
         </Alert>
       )}
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: formError ? 0 : 2 }}>
-        <TextField name="name" label="會員姓名" value={currentCustomerState.name} onChange={onInputChange} fullWidth required margin="dense" size="small" />
-        <TextField name="phone" label="電話" value={currentCustomerState.phone} onChange={onInputChange} fullWidth required margin="dense" size="small" />
-        <TextField name="idCardNumber" label="身分證" value={currentCustomerState.idCardNumber} onChange={onInputChange} fullWidth margin="dense" size="small" />
-        <TextField name="birthdate" label="出生年月日" type="date" value={currentCustomerState.birthdate ? new Date(currentCustomerState.birthdate).toISOString().split('T')[0] : ''} onChange={onInputChange} fullWidth margin="dense" size="small" InputLabelProps={{ shrink: true }} />
-        <TextField name="email" label="電子郵件" value={currentCustomerState.email} onChange={onInputChange} fullWidth margin="dense" size="small" />
-        <TextField name="address" label="地址" value={currentCustomerState.address} onChange={onInputChange} fullWidth margin="dense" size="small" />
-        <TextField name="notes" label="備註" value={currentCustomerState.notes ?? ''} onChange={onInputChange} fullWidth margin="dense" size="small" multiline rows={3} />
+      
+      {/* 基本資料區塊 */}
+      <Typography variant="h6" sx={{ mb: 2, mt: formError ? 2 : 2, fontWeight: 600 }}>
+        基本資料
+      </Typography>
+      
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <TextField
+          name="name"
+          label="會員姓名"
+          value={currentCustomerState.name}
+          onChange={onInputChange}
+          fullWidth
+          required
+          margin="dense"
+          size="small"
+        />
+        <TextField
+          name="phone"
+          label="電話"
+          value={currentCustomerState.phone}
+          onChange={onInputChange}
+          fullWidth
+          required
+          margin="dense"
+          size="small"
+        />
+        <TextField
+          name="idCardNumber"
+          label="身分證"
+          value={currentCustomerState.idCardNumber}
+          onChange={onInputChange}
+          fullWidth
+          margin="dense"
+          size="small"
+        />
+        <TextField
+          name="birthdate"
+          label="出生年月日"
+          type="date"
+          value={currentCustomerState.birthdate ? new Date(currentCustomerState.birthdate).toISOString().split('T')[0] : ''}
+          onChange={onInputChange}
+          fullWidth
+          margin="dense"
+          size="small"
+          InputLabelProps={{ shrink: true }}
+        />
+        <TextField
+          name="email"
+          label="電子郵件"
+          value={currentCustomerState.email}
+          onChange={onInputChange}
+          fullWidth
+          margin="dense"
+          size="small"
+        />
+        <TextField
+          name="address"
+          label="地址"
+          value={currentCustomerState.address}
+          onChange={onInputChange}
+          fullWidth
+          margin="dense"
+          size="small"
+        />
+        <TextField
+          name="notes"
+          label="備註"
+          value={currentCustomerState.notes ?? ''}
+          onChange={onInputChange}
+          fullWidth
+          margin="dense"
+          size="small"
+          multiline
+          rows={3}
+        />
         <FormControl fullWidth margin="dense" size="small">
           <InputLabel>會員等級</InputLabel>
-          <Select name="membershipLevel" value={currentCustomerState.membershipLevel} onChange={onInputChange} label="會員等級">
+          <Select
+            name="membershipLevel"
+            value={currentCustomerState.membershipLevel}
+            onChange={onInputChange}
+            label="會員等級"
+          >
             <MenuItem value="regular">一般會員</MenuItem>
             <MenuItem value="platinum">白金會員</MenuItem>
           </Select>
@@ -187,7 +262,12 @@ const CustomerFormDialog: FC<CustomerFormDialogProps> = ({
     </DialogContent>
     <DialogActions>
       <MuiButton onClick={onClose} color="inherit">取消</MuiButton>
-      <MuiButton onClick={onSave} color="primary" variant="contained" disabled={loading && !isTestMode}>
+      <MuiButton
+        onClick={onSave}
+        color="primary"
+        variant="contained"
+        disabled={loading && !isTestMode}
+      >
         {(loading && !isTestMode) ? '保存中...' : '保存'}
       </MuiButton>
     </DialogActions>
@@ -245,13 +325,13 @@ const CustomerDetailPanel: FC<CustomerDetailPanelProps> = ({ selectedCustomer, h
       <CardContent sx={{ py: 1 }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>會員資訊</Typography>
         <List dense sx={{ py: 0 }}>
-          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>電話:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.phone}</Typography></ListItem>
-          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>身分證:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.idCardNumber ?? '無'}</Typography></ListItem>
-          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>出生年月日:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{formatDateToYYYYMMDD(selectedCustomer.birthdate) ?? '無'}</Typography></ListItem>
-          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>Email:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.email ?? '無'}</Typography></ListItem>
-          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>等級:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.level}</Typography></ListItem>
-          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>地址:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.address ?? '無'}</Typography></ListItem>
-          <ListItem sx={{ py: 0.5, flexDirection: 'column', alignItems: 'flex-start' }}><Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>備註:</Typography><Typography variant="body2" sx={{ fontWeight: 500, whiteSpace: 'pre-wrap' }}>{selectedCustomer.notes ?? '無'}</Typography></ListItem>
+          <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}><Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>電話:</Typography><Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedCustomer.phone}</Typography></ListItem>
+          <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}><Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>身分證:</Typography><Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedCustomer.idCardNumber ?? '無'}</Typography></ListItem>
+          <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}><Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>出生年月日:</Typography><Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{formatDateToYYYYMMDD(selectedCustomer.birthdate) ?? '無'}</Typography></ListItem>
+          <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}><Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>Email:</Typography><Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedCustomer.email ?? '無'}</Typography></ListItem>
+          <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}><Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>等級:</Typography><Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedCustomer.level}</Typography></ListItem>
+          <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}><Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>地址:</Typography><Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedCustomer.address ?? '無'}</Typography></ListItem>
+          <ListItem sx={{ py: 0.5, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}><Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>備註:</Typography><Typography variant="body2" sx={{ fontWeight: 500, whiteSpace: 'pre-wrap' }}>{selectedCustomer.notes ?? '無'}</Typography></ListItem>
         </List>
       </CardContent>
     </Card>
@@ -385,6 +465,7 @@ const handleDeleteCustomerActual = async (
 // Refactored CustomersPage Component
 // ---
 const CustomersPage: FC = () => {
+  const navigate = useNavigate();
   const [isTestMode, setIsTestMode] = useState<boolean>(false);
 
   useEffect(() => {
@@ -568,86 +649,30 @@ const CustomersPage: FC = () => {
 
   return (
     <>
-      {/* 麵包屑導航 */}
-      <Paper sx={{
-        mb: 3,
-        bgcolor: 'background.paper',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        position: 'relative',
-        zIndex: 1,
-        width: '95%',
-        mx: 'auto'
-      }}>
-        <Box sx={{
-          p: 1,
-          borderBottom: 1,
-          borderColor: 'divider',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          minHeight: 48
-        }}>
-          {/* 左側：麵包屑 */}
-          <Box sx={{
-            display: 'flex',
-            alignItems: 'center',
-            height: '100%'
-          }}>
-            <Box sx={{
-              display: 'flex',
-              alignItems: 'center',
-              height: 44
-            }}>
-              <Box sx={{
-                '& > div': {
-                  marginBottom: 0,
-                  display: 'flex',
-                  alignItems: 'center'
-                }
-              }}>
-                <BreadcrumbNavigation
-                  items={[
-                    {
-                      label: '首頁',
-                      path: '/',
-                      icon: <HomeIcon sx={{ fontSize: '1.1rem' }} />
-                    },
-                    {
-                      label: '會員管理',
-                      icon: <PeopleIcon sx={{ fontSize: '1.1rem' }} />
-                    }
-                  ]}
-                  fontSize="0.975rem"
-                  padding={0}
-                />
-              </Box>
-            </Box>
-          </Box>
-          
-          {/* 右側：操作按鈕 */}
-          <Box sx={{
-            display: 'flex',
-            gap: 1,
-            alignItems: 'center',
-            height: '100%',
-            marginLeft: 'auto'
-          }}>
-            <MuiButton
-              variant="contained"
-              color="primary"
-              startIcon={<AddIcon />}
-              onClick={handleAddCustomer}
-              size="small"
-            >
-              新增會員
-            </MuiButton>
-          </Box>
-        </Box>
-      </Paper>
-
       <Box sx={{ width: '95%', mx: 'auto' }}>
         <CommonListPageLayout
-          title={<TitleWithCount title="會員管理" count={customersToDisplay.length} />}
+          title={<TitleWithCount title={isTestMode ? "會員管理 (測試模式)" : "會員管理"} count={customersToDisplay.length} />}
+          actionButtons={
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <MuiButton
+                variant="contained"
+                color="primary"
+                startIcon={<AddIcon />}
+                onClick={handleAddCustomer}
+                size="small"
+              >
+                新增會員
+              </MuiButton>
+              <MuiButton
+                variant="outlined"
+                size="small"
+                startIcon={<ArrowBackIcon />}
+                onClick={() => navigate('/')}
+              >
+                返回首頁
+              </MuiButton>
+            </Box>
+          }
           loading={isLoading}
           error={pageError || ''}
           columns={columns}
@@ -672,8 +697,13 @@ const CustomersPage: FC = () => {
         loading={isLoading}
       />
 
-      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleCloseSnackbar}>
-        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={isTestMode ? 5000 : 3000} // 測試模式下顯示時間更長
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity || 'info'} sx={{ width: '100%' }}>
           {snackbar.message}
         </Alert>
       </Snackbar>

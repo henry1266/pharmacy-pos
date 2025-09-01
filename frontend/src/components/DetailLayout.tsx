@@ -116,9 +116,7 @@ const DetailLayout: FC<DetailLayoutProps> = ({
   if (additionalActions) {
     defaultActions.push(...additionalActions);
   }
-  defaultActions.push(
-    <Button key="back" variant="contained" size="small" startIcon={<ArrowBackIcon />} onClick={() => navigate(listPageUrl ?? '/')}>返回列表</Button>
-  );
+  // 不再自動添加「返回列表」按鈕，由各頁面在麵包屑導航右側添加
 
   // --- Component Structure --- 
   return (

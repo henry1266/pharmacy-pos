@@ -10,7 +10,8 @@ import {
   Divider,
   Stack,
   Box,
-  Paper
+  Paper,
+  Button
 } from '@mui/material';
 import {
   Receipt as ReceiptIcon,
@@ -25,7 +26,8 @@ import {
   ReceiptLong as ReceiptLongIcon,
   AccountBalance as AccountBalanceIcon,
   ShoppingCart as ShoppingCartIcon,
-  Home as HomeIcon
+  Home as HomeIcon,
+  ArrowBack as ArrowBackIcon
 } from '@mui/icons-material';
 import BreadcrumbNavigation from '@/components/common/BreadcrumbNavigation';
 import { format } from 'date-fns';
@@ -487,6 +489,14 @@ const PurchaseOrderDetailPage: React.FC = () => {
             marginLeft: 'auto'
           }}>
             {additionalActions}
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<ArrowBackIcon />}
+              onClick={() => navigate('/purchase-orders')}
+            >
+              返回列表
+            </Button>
           </Box>
         </Box>
       </Paper>
