@@ -65,8 +65,6 @@ interface DetailLayoutProps {
  * - errorContent: ReactNode - Content to display if there's an error loading main data
  */
 const DetailLayout: FC<DetailLayoutProps> = ({
-  pageTitle,
-  recordIdentifier,
   listPageUrl,
   editPageUrl,
   printPageUrl,
@@ -133,9 +131,6 @@ const DetailLayout: FC<DetailLayoutProps> = ({
         spacing={1}
         sx={{ mb: 3 }}
       >
-        <Typography variant={isSmallScreen ? 'h5' : 'h4'} component="h1" gutterBottom={false} noWrap sx={{ flexShrink: 0 }}>
-          {pageTitle} #{recordIdentifier ?? 'N/A'}
-        </Typography>
         <Stack direction="row" spacing={1} flexWrap="wrap" justifyContent={{ xs: 'flex-start', sm: 'flex-end' }}>
           {defaultActions}
         </Stack>

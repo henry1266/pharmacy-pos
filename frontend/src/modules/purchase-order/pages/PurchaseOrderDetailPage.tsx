@@ -9,7 +9,8 @@ import {
   CardContent,
   Divider,
   Stack,
-  Box
+  Box,
+  Paper
 } from '@mui/material';
 import {
   Receipt as ReceiptIcon,
@@ -22,8 +23,11 @@ import {
   Percent as PercentIcon,
   AccountBalanceWallet as AccountBalanceWalletIcon,
   ReceiptLong as ReceiptLongIcon,
-  AccountBalance as AccountBalanceIcon
+  AccountBalance as AccountBalanceIcon,
+  ShoppingCart as ShoppingCartIcon,
+  Home as HomeIcon
 } from '@mui/icons-material';
+import BreadcrumbNavigation from '@/components/common/BreadcrumbNavigation';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 
@@ -414,20 +418,93 @@ const PurchaseOrderDetailPage: React.FC = () => {
   });
 
   return (
-    <DetailLayout
-      pageTitle="進貨單詳情"
-      recordIdentifier={currentPurchaseOrder?.poid || ''}
-      listPageUrl="/purchase-orders"
-      mainContent={mainContent}
-      sidebarContent={sidebarContent}
-      isLoading={combinedLoading}
-      errorContent={orderError ? (
-          <Box sx={{ p: 3, textAlign: 'center' }}>
-            <Typography color="error" variant="h6">載入進貨單時發生錯誤: {orderError}</Typography>
+    <>
+      {/* 麵包屑導航 */}
+      <Paper sx={{
+        mb: 3,
+        bgcolor: 'background.paper',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+        position: 'relative',
+        zIndex: 1
+      }}>
+        <Box sx={{
+          p: 1,
+          borderBottom: 1,
+          borderColor: 'divider',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          minHeight: 48
+        }}>
+          {/* 左側：麵包屑 */}
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            height: '100%'
+          }}>
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              height: 44
+            }}>
+              <Box sx={{
+                '& > div': {
+                  marginBottom: 0,
+                  display: 'flex',
+                  alignItems: 'center'
+                }
+              }}>
+                <BreadcrumbNavigation
+                  items={[
+                    {
+                      label: '首頁',
+                      path: '/',
+                      icon: <HomeIcon sx={{ fontSize: '1.1rem' }} />
+                    },
+                    {
+                      label: '進貨單管理',
+                      path: '/purchase-orders',
+                      icon: <ShoppingCartIcon sx={{ fontSize: '1.1rem' }} />
+                    },
+                    {
+                      label: `進貨單詳情 ${currentPurchaseOrder?.poid || ''}`,
+                      icon: <ReceiptIcon sx={{ fontSize: '1.1rem' }} />
+                    }
+                  ]}
+                  fontSize="0.975rem"
+                  padding={0}
+                />
+              </Box>
+            </Box>
           </Box>
-        ) : null}
-      additionalActions={additionalActions}
-    />
+          
+          {/* 右側：操作按鈕 */}
+          <Box sx={{
+            display: 'flex',
+            gap: 1,
+            alignItems: 'center',
+            height: '100%',
+            marginLeft: 'auto'
+          }}>
+            {additionalActions}
+          </Box>
+        </Box>
+      </Paper>
+
+      <DetailLayout
+        recordIdentifier={currentPurchaseOrder?.poid || ''}
+        listPageUrl="/purchase-orders"
+        mainContent={mainContent}
+        sidebarContent={sidebarContent}
+        isLoading={combinedLoading}
+        errorContent={orderError ? (
+            <Box sx={{ p: 3, textAlign: 'center' }}>
+              <Typography color="error" variant="h6">載入進貨單時發生錯誤: {orderError}</Typography>
+            </Box>
+          ) : null}
+        additionalActions={null} /* 不再在 DetailLayout 中顯示按鈕 */
+      />
+    </>
   );
 };
 

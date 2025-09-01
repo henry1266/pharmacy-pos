@@ -2,8 +2,14 @@ import React, { useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useAppDispatch } from '../hooks/redux';
-import { Typography, Stack } from '@mui/material';
+import { Typography, Stack, Box, Paper } from '@mui/material';
 import axios from 'axios';
+import {
+  Home as HomeIcon,
+  LocalShipping as LocalShippingIcon,
+  Receipt as ReceiptIcon
+} from '@mui/icons-material';
+import BreadcrumbNavigation from '../components/common/BreadcrumbNavigation';
 
 import { fetchShippingOrder } from '../redux/actions';
 import DetailLayout from '../components/DetailLayout';
@@ -170,20 +176,93 @@ const ShippingOrderDetailPage: React.FC = () => {
   });
 
   return (
-    <DetailLayout
-      pageTitle="出貨單詳情"
-      recordIdentifier={currentShippingOrder?.soid ?? id ?? ''}
-      listPageUrl="/shipping-orders"
-      mainContent={mainContent}
-      sidebarContent={sidebarContent}
-      isLoading={orderLoading ?? false}
-      errorContent={orderError ? (
-        <Typography color="error" variant="h6">
-          載入出貨單時發生錯誤: {orderError}
-        </Typography>
-      ) : null}
-      additionalActions={additionalActions}
-    />
+    <>
+      {/* 麵包屑導航 */}
+      <Paper sx={{
+        mb: 3,
+        bgcolor: 'background.paper',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+        position: 'relative',
+        zIndex: 1
+      }}>
+        <Box sx={{
+          p: 1,
+          borderBottom: 1,
+          borderColor: 'divider',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          minHeight: 48
+        }}>
+          {/* 左側：麵包屑 */}
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            height: '100%'
+          }}>
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              height: 44
+            }}>
+              <Box sx={{
+                '& > div': {
+                  marginBottom: 0,
+                  display: 'flex',
+                  alignItems: 'center'
+                }
+              }}>
+                <BreadcrumbNavigation
+                  items={[
+                    {
+                      label: '首頁',
+                      path: '/',
+                      icon: <HomeIcon sx={{ fontSize: '1.1rem' }} />
+                    },
+                    {
+                      label: '出貨單管理',
+                      path: '/shipping-orders',
+                      icon: <LocalShippingIcon sx={{ fontSize: '1.1rem' }} />
+                    },
+                    {
+                      label: `出貨單詳情 ${currentShippingOrder?.soid || ''}`,
+                      icon: <ReceiptIcon sx={{ fontSize: '1.1rem' }} />
+                    }
+                  ]}
+                  fontSize="0.975rem"
+                  padding={0}
+                />
+              </Box>
+            </Box>
+          </Box>
+          
+          {/* 右側：操作按鈕 */}
+          <Box sx={{
+            display: 'flex',
+            gap: 1,
+            alignItems: 'center',
+            height: '100%',
+            marginLeft: 'auto'
+          }}>
+            {additionalActions}
+          </Box>
+        </Box>
+      </Paper>
+
+      <DetailLayout
+        recordIdentifier={currentShippingOrder?.soid ?? id ?? ''}
+        listPageUrl="/shipping-orders"
+        mainContent={mainContent}
+        sidebarContent={sidebarContent}
+        isLoading={orderLoading ?? false}
+        errorContent={orderError ? (
+          <Typography color="error" variant="h6">
+            載入出貨單時發生錯誤: {orderError}
+          </Typography>
+        ) : null}
+        additionalActions={null} /* 不再在 DetailLayout 中顯示按鈕 */
+      />
+    </>
   );
 };
 

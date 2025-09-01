@@ -25,11 +25,15 @@ import {
   Tooltip,
   Snackbar,
   Alert,
-  SelectChangeEvent
+  SelectChangeEvent,
+  Paper
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import HomeIcon from '@mui/icons-material/Home';
+import PeopleIcon from '@mui/icons-material/People';
+import BreadcrumbNavigation from '../components/common/BreadcrumbNavigation';
 
 import CommonListPageLayout from '../components/common/CommonListPageLayout';
 import useCustomerData from '../hooks/useCustomerData';
@@ -564,19 +568,86 @@ const CustomersPage: FC = () => {
 
   return (
     <>
-      <Box sx={{ width: '95%', mx: 'auto' }}>
-        <CommonListPageLayout
-          title={<TitleWithCount title="會員管理" count={customersToDisplay.length} />}
-          actionButtons={
+      {/* 麵包屑導航 */}
+      <Paper sx={{
+        mb: 3,
+        bgcolor: 'background.paper',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+        position: 'relative',
+        zIndex: 1,
+        width: '95%',
+        mx: 'auto'
+      }}>
+        <Box sx={{
+          p: 1,
+          borderBottom: 1,
+          borderColor: 'divider',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          minHeight: 48
+        }}>
+          {/* 左側：麵包屑 */}
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            height: '100%'
+          }}>
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              height: 44
+            }}>
+              <Box sx={{
+                '& > div': {
+                  marginBottom: 0,
+                  display: 'flex',
+                  alignItems: 'center'
+                }
+              }}>
+                <BreadcrumbNavigation
+                  items={[
+                    {
+                      label: '首頁',
+                      path: '/',
+                      icon: <HomeIcon sx={{ fontSize: '1.1rem' }} />
+                    },
+                    {
+                      label: '會員管理',
+                      icon: <PeopleIcon sx={{ fontSize: '1.1rem' }} />
+                    }
+                  ]}
+                  fontSize="0.975rem"
+                  padding={0}
+                />
+              </Box>
+            </Box>
+          </Box>
+          
+          {/* 右側：操作按鈕 */}
+          <Box sx={{
+            display: 'flex',
+            gap: 1,
+            alignItems: 'center',
+            height: '100%',
+            marginLeft: 'auto'
+          }}>
             <MuiButton
               variant="contained"
               color="primary"
               startIcon={<AddIcon />}
               onClick={handleAddCustomer}
+              size="small"
             >
               新增會員
             </MuiButton>
-          }
+          </Box>
+        </Box>
+      </Paper>
+
+      <Box sx={{ width: '95%', mx: 'auto' }}>
+        <CommonListPageLayout
+          title={<TitleWithCount title="會員管理" count={customersToDisplay.length} />}
           loading={isLoading}
           error={pageError || ''}
           columns={columns}
