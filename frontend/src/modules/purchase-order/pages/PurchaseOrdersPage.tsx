@@ -301,7 +301,7 @@ const PurchaseOrdersPage: FC<PurchaseOrdersPageProps> = ({ initialSupplierId = n
   const actionButtons = (
     <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, alignItems: { xs: 'stretch', sm: 'center' } }}>
       <TextField
-        placeholder="搜索進貨單（單號、供應商、日期、ID）"
+        placeholder="搜索進貨單（單號、供應商、日期）"
         name="searchTerm"
         value={searchParams.searchTerm || ''}
         onChange={handleInputChange}

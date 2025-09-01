@@ -1,3 +1,8 @@
+/**
+ * @file 進貨單詳情頁面
+ * @description 顯示進貨單詳細資訊，包括藥品項目、金額信息和基本資訊
+ */
+
 import React, { useEffect, useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useAppDispatch } from '@/hooks/redux';
@@ -11,7 +16,11 @@ import {
   Stack,
   Box,
   Paper,
-  Button
+  Button,
+  Snackbar,
+  Alert,
+  CircularProgress,
+  IconButton
 } from '@mui/material';
 import {
   Receipt as ReceiptIcon,
@@ -27,7 +36,9 @@ import {
   AccountBalance as AccountBalanceIcon,
   ShoppingCart as ShoppingCartIcon,
   Home as HomeIcon,
-  ArrowBack as ArrowBackIcon
+  ArrowBack as ArrowBackIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon
 } from '@mui/icons-material';
 import BreadcrumbNavigation from '@/components/common/BreadcrumbNavigation';
 import { format } from 'date-fns';
@@ -35,7 +46,6 @@ import { zhTW } from 'date-fns/locale';
 
 import { fetchPurchaseOrder } from '@/redux/actions';
 import ProductItemsTable from '@/components/common/ProductItemsTable';
-import DetailLayout from '@/components/DetailLayout';
 import { productServiceV2 } from '@/services/productServiceV2';
 import CollapsibleAmountInfo from '@/components/common/CollapsibleAmountInfo';
 import { RootState } from '@/types/store';
@@ -44,6 +54,10 @@ import { Organization } from '@pharmacy-pos/shared/types/organization';
 import { usePurchaseOrderActions } from '@/components/purchase-orders/PurchaseOrderActions';
 import { purchaseOrderServiceV2 } from '@/services/purchaseOrderServiceV2';
 import { useOrganizations } from '@/hooks/useOrganizations';
+import StatusChip from '@/components/common/StatusChip';
+import PaymentStatusChip from '@/components/common/PaymentStatusChip';
+import TitleWithCount from '@/components/common/TitleWithCount';
+import GenericConfirmDialog from '@/components/common/GenericConfirmDialog';
 
 // 擴展 PurchaseOrder 類型以包含實際使用的欄位
 interface ExtendedPurchaseOrder extends Omit<PurchaseOrder, 'paymentStatus'> {
@@ -75,35 +89,6 @@ interface ProductDetailsState {
   [code: string]: Product;
 }
 
-// 定義 StatusChip 組件的 props 類型
-interface StatusChipProps {
-  status?: string;
-}
-
-// StatusChip 組件
-const StatusChip: React.FC<StatusChipProps> = ({ status }) => {
-  let color: 'default' | 'success' | 'warning' | 'error' = 'default';
-  let label = status ?? '未知';
-  if (status === 'completed') { color = 'success'; label = '已完成'; }
-  if (status === 'pending') { color = 'warning'; label = '待處理'; }
-  if (status === 'cancelled') { color = 'error'; label = '已取消'; }
-  return <Chip size="small" label={label} color={color} />;
-};
-
-// 定義 PaymentStatusChip 組件的 props 類型
-interface PaymentStatusChipProps {
-  status?: string;
-}
-
-// PaymentStatusChip 組件
-const PaymentStatusChip: React.FC<PaymentStatusChipProps> = ({ status }) => {
-  let color: 'default' | 'success' | 'warning' | 'error' = 'default';
-  let label = status ?? '未付';
-  if (status === 'paid' || status === '已付') { color = 'success'; label = '已付'; }
-  if (status === 'unpaid' || status === '未付') { color = 'warning'; label = '未付'; }
-  return <Chip size="small" label={label} color={color} />;
-};
-
 // 定義 CollapsibleDetail 類型
 interface CollapsibleDetail {
   label: string;
@@ -113,7 +98,10 @@ interface CollapsibleDetail {
   condition: boolean;
 }
 
-// 主組件
+/**
+ * 進貨單詳情頁面
+ * 顯示進貨單詳細資訊，包括藥品項目、金額信息和基本資訊
+ */
 const PurchaseOrderDetailPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -137,6 +125,20 @@ const PurchaseOrderDetailPage: React.FC = () => {
   // 分錄資訊狀態
   const [transactionGroupId, setTransactionGroupId] = useState<string | null>(null);
   const [transactionLoading, setTransactionLoading] = useState<boolean>(false);
+  
+  // Snackbar 狀態
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'info' | 'warning' | 'error';
+  }>({
+    open: false,
+    message: '',
+    severity: 'info'
+  });
+  
+  // 刪除對話框狀態
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   
   // 獲取進貨單數據
   useEffect(() => {
@@ -185,6 +187,43 @@ const PurchaseOrderDetailPage: React.FC = () => {
     }
   };
 
+  // 處理刪除按鈕點擊事件
+  const handleDeleteClick = () => {
+    setDeleteDialogOpen(true);
+  };
+
+  // 處理刪除確認
+  const handleDeleteConfirm = async () => {
+    if (!id || !currentPurchaseOrder) return;
+    
+    try {
+      // 這裡需要實現刪除功能
+      const response = await fetch(`/api/purchase-orders/${id}`, {
+        method: 'DELETE',
+      });
+      
+      if (response.ok) {
+        showSnackbar('進貨單已成功刪除', 'success');
+        setTimeout(() => {
+          navigate('/purchase-orders');
+        }, 1500);
+      } else {
+        const errorData = await response.json();
+        showSnackbar(`刪除失敗: ${errorData.message || '未知錯誤'}`, 'error');
+      }
+    } catch (error: any) {
+      console.error('刪除進貨單時發生錯誤:', error);
+      showSnackbar(`刪除失敗: ${error.message || '未知錯誤'}`, 'error');
+    } finally {
+      setDeleteDialogOpen(false);
+    }
+  };
+
+  // 處理刪除取消
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+  };
+
   // 處理解鎖按鈕點擊事件
   const handleUnlock = useCallback(async (): Promise<void> => {
     if (!id) return;
@@ -193,13 +232,30 @@ const PurchaseOrderDetailPage: React.FC = () => {
       await purchaseOrderServiceV2.unlockPurchaseOrder(id);
       // 重新載入進貨單資料
       dispatch(fetchPurchaseOrder(id));
-      console.log('進貨單已解鎖並改為待處理狀態');
+      showSnackbar('進貨單已解鎖並改為待處理狀態', 'success');
     } catch (error: any) {
       console.error('解鎖進貨單時發生錯誤:', error);
       const errorMessage = error.response?.data?.message || error.message || '未知錯誤';
-      alert(`解鎖失敗: ${errorMessage}`);
+      showSnackbar(`解鎖失敗: ${errorMessage}`, 'error');
     }
   }, [id, dispatch]);
+
+  // 顯示 Snackbar
+  const showSnackbar = (message: string, severity: 'success' | 'info' | 'warning' | 'error') => {
+    setSnackbar({
+      open: true,
+      message,
+      severity
+    });
+  };
+
+  // 關閉 Snackbar
+  const handleCloseSnackbar = () => {
+    setSnackbar(prev => ({
+      ...prev,
+      open: false
+    }));
+  };
 
   // 獲取產品詳情
   useEffect(() => {
@@ -269,8 +325,32 @@ const PurchaseOrderDetailPage: React.FC = () => {
   
     return details;
   };
-  
-  // 主要內容
+
+  // 使用 PurchaseOrderActions hook 生成操作按鈕
+  const additionalActions = usePurchaseOrderActions({
+    purchaseOrder: currentPurchaseOrder,
+    orderId: id || '',
+    orderLoading: orderLoading,
+    productDetailsLoading: productDetailsLoading,
+    fifoLoading: false, // 進貨單沒有 FIFO 功能
+    onEdit: handleEditClick,
+    onUnlock: handleUnlock
+  });
+
+  // 合併載入狀態
+  const combinedLoading = orderLoading || productDetailsLoading || transactionLoading;
+
+  // 載入中顯示
+  if (combinedLoading && !currentPurchaseOrder) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+        <CircularProgress />
+        <Typography sx={{ ml: 2 }}>載入進貨單資料中...</Typography>
+      </Box>
+    );
+  }
+
+  // 主要內容 - 藥品項目
   const mainContent = (
     <Stack spacing={3}>
       {currentPurchaseOrder && (
@@ -304,7 +384,7 @@ const PurchaseOrderDetailPage: React.FC = () => {
     </Stack>
   );
 
-  // 側邊欄內容
+  // 側邊欄內容 - 金額信息和基本資訊
   const sidebarContent = (
     <Stack spacing={3}>
       {currentPurchaseOrder && (
@@ -405,102 +485,144 @@ const PurchaseOrderDetailPage: React.FC = () => {
     </Stack>
   );
 
-  // 合併載入狀態
-  const combinedLoading = orderLoading || productDetailsLoading || transactionLoading;
-
-  // 使用 PurchaseOrderActions hook 生成操作按鈕
-  const additionalActions = usePurchaseOrderActions({
-    purchaseOrder: currentPurchaseOrder,
-    orderId: id || '',
-    orderLoading: orderLoading,
-    productDetailsLoading: productDetailsLoading,
-    fifoLoading: false, // 進貨單沒有 FIFO 功能
-    onEdit: handleEditClick,
-    onUnlock: handleUnlock
-  });
+  // 操作按鈕區域
+  const actionButtons = (
+    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+      <Button
+        variant="outlined"
+        color="primary"
+        startIcon={<EditIcon />}
+        onClick={handleEditClick}
+        disabled={orderLoading || currentPurchaseOrder?.status === 'completed'}
+      >
+        編輯
+      </Button>
+      <Button
+        variant="outlined"
+        color="error"
+        startIcon={<DeleteIcon />}
+        onClick={handleDeleteClick}
+        disabled={orderLoading || currentPurchaseOrder?.status === 'completed'}
+      >
+        刪除
+      </Button>
+      {additionalActions}
+    </Box>
+  );
 
   return (
-    <>
-      <Box sx={{ width: '95%', mx: 'auto', mb: 3 }}>
-        <Paper sx={{
-          bgcolor: 'background.paper',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-          position: 'relative',
-          zIndex: 1
+    <Box sx={{ width: '95%', mx: 'auto' }}>
+      {/* 頂部導航和操作按鈕 */}
+      <Paper sx={{
+        bgcolor: 'background.paper',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+        position: 'relative',
+        zIndex: 1,
+        mb: 3
+      }}>
+        <Box sx={{
+          p: 1,
+          borderBottom: 1,
+          borderColor: 'divider',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          minHeight: 48
         }}>
+          {/* 左側：麵包屑 */}
           <Box sx={{
-            p: 1,
-            borderBottom: 1,
-            borderColor: 'divider',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            minHeight: 48
+            height: '100%'
           }}>
-            {/* 左側：麵包屑 */}
-            <Box sx={{
-              display: 'flex',
-              alignItems: 'center',
-              height: '100%'
-            }}>
-              <BreadcrumbNavigation
-                items={[
-                  {
-                    label: '首頁',
-                    path: '/',
-                    icon: <HomeIcon sx={{ fontSize: '1.1rem' }} />
-                  },
-                  {
-                    label: '進貨單管理',
-                    path: '/purchase-orders',
-                    icon: <ShoppingCartIcon sx={{ fontSize: '1.1rem' }} />
-                  },
-                  {
-                    label: `進貨單詳情 ${currentPurchaseOrder?.poid || ''}`,
-                    icon: <ReceiptIcon sx={{ fontSize: '1.1rem' }} />
-                  }
-                ]}
-                fontSize="0.975rem"
-                padding={0}
-              />
-            </Box>
-            
-            {/* 右側：操作按鈕 */}
-            <Box sx={{
-              display: 'flex',
-              gap: 1,
-              alignItems: 'center',
-              height: '100%',
-              marginLeft: 'auto'
-            }}>
-              {additionalActions}
-              <Button
-                variant="contained"
-                size="small"
-                startIcon={<ArrowBackIcon />}
-                onClick={() => navigate('/purchase-orders')}
-              >
-                返回列表
-              </Button>
-            </Box>
+            <BreadcrumbNavigation
+              items={[
+                {
+                  label: '首頁',
+                  path: '/',
+                  icon: <HomeIcon sx={{ fontSize: '1.1rem' }} />
+                },
+                {
+                  label: '進貨單管理',
+                  path: '/purchase-orders',
+                  icon: <ShoppingCartIcon sx={{ fontSize: '1.1rem' }} />
+                },
+                {
+                  label: `進貨單詳情 ${currentPurchaseOrder?.poid || ''}`,
+                  icon: <ReceiptIcon sx={{ fontSize: '1.1rem' }} />
+                }
+              ]}
+              fontSize="0.975rem"
+              padding={0}
+            />
           </Box>
-        </Paper>
+          
+          {/* 右側：操作按鈕 */}
+          <Box sx={{
+            display: 'flex',
+            gap: 1,
+            alignItems: 'center',
+            height: '100%',
+            marginLeft: 'auto'
+          }}>
+            {actionButtons}
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<ArrowBackIcon />}
+              onClick={() => navigate('/purchase-orders')}
+            >
+              返回列表
+            </Button>
+          </Box>
+        </Box>
+      </Paper>
+
+      {/* 主要內容區域 */}
+      <Box sx={{ mb: 3 }}>
+        
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2 }}>
+          {/* 左側：藥品項目 */}
+          <Box sx={{ flex: 3 }}>
+            {combinedLoading && !currentPurchaseOrder ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+                <CircularProgress />
+              </Box>
+            ) : (
+              mainContent
+            )}
+          </Box>
+          
+          {/* 右側：金額信息和基本資訊 */}
+          <Box sx={{ flex: 1 }}>
+            {sidebarContent}
+          </Box>
+        </Box>
       </Box>
 
-      <DetailLayout
-        recordIdentifier={currentPurchaseOrder?.poid || ''}
-        listPageUrl="/purchase-orders"
-        mainContent={mainContent}
-        sidebarContent={sidebarContent}
-        isLoading={combinedLoading}
-        errorContent={orderError ? (
-            <Box sx={{ p: 3, textAlign: 'center' }}>
-              <Typography color="error" variant="h6">載入進貨單時發生錯誤: {orderError}</Typography>
-            </Box>
-          ) : null}
-        additionalActions={null} /* 不再在 DetailLayout 中顯示按鈕 */
+      {/* 刪除確認對話框 */}
+      <GenericConfirmDialog
+        open={deleteDialogOpen}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="確認刪除進貨單"
+        message={`您確定要刪除進貨單 ${currentPurchaseOrder?.poid ?? ''} 嗎？此操作無法撤銷。`}
+        confirmText="確認刪除"
+        cancelText="取消"
       />
-    </>
+
+      {/* Snackbar 通知 */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 };
 
