@@ -7681,3 +7681,9 @@
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m第一個項目的批號:\u001b[39m","timestamp":"2025-09-01 12:17:32:1732"}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m後端序列化後的進貨單資料:\u001b[39m","timestamp":"2025-09-01 12:17:32:1732"}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m第一個項目的批號:\u001b[39m","timestamp":"2025-09-01 12:17:32:1732"}
+{"hasPaymentCount":5,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":38,"missingTransactionIdCount":7,"paymentTransactionsCount":4,"timestamp":"2025-09-01 12:35:52:3552","totalOrders":50}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":5,"timestamp":"2025-09-01 12:35:52:3552","totalCount":50,"unpaidCount":45}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m後端序列化後的進貨單資料:\u001b[39m","timestamp":"2025-09-01 12:35:54:3554"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m第一個項目的批號:\u001b[39m","timestamp":"2025-09-01 12:35:54:3554"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m後端序列化後的進貨單資料:\u001b[39m","timestamp":"2025-09-01 12:35:54:3554"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m第一個項目的批號:\u001b[39m","timestamp":"2025-09-01 12:35:54:3554"}

@@ -274,20 +274,6 @@ const PurchaseOrderDetailPage: React.FC = () => {
   const mainContent = (
     <Stack spacing={3}>
       {currentPurchaseOrder && (
-        <CollapsibleAmountInfo
-          title="金額信息"
-          titleIcon={<AccountBalanceWalletIcon />}
-          mainAmountLabel="總金額"
-          mainAmountValue={currentPurchaseOrder.totalAmount ?? 0}
-          mainAmountIcon={<ReceiptLongIcon />}
-          collapsibleDetails={getCollapsibleDetails()}
-          initialOpenState={true}
-          isLoading={orderLoading}
-          error={orderError ? "金額資訊載入失敗" : ''}
-          noDetailsText="無金額明細"
-        />
-      )}
-      {currentPurchaseOrder && (
         <Card variant="outlined">
           <CardContent>
             <Typography variant="h6" gutterBottom><InventoryIcon sx={{ verticalAlign: 'middle', mr: 1 }}/>藥品項目</Typography>
@@ -321,6 +307,20 @@ const PurchaseOrderDetailPage: React.FC = () => {
   // 側邊欄內容
   const sidebarContent = (
     <Stack spacing={3}>
+      {currentPurchaseOrder && (
+        <CollapsibleAmountInfo
+          title="金額信息"
+          titleIcon={<AccountBalanceWalletIcon />}
+          mainAmountLabel="總金額"
+          mainAmountValue={currentPurchaseOrder.totalAmount ?? 0}
+          mainAmountIcon={<ReceiptLongIcon />}
+          collapsibleDetails={getCollapsibleDetails()}
+          initialOpenState={true}
+          isLoading={orderLoading}
+          error={orderError ? "金額資訊載入失敗" : ''}
+          noDetailsText="無金額明細"
+        />
+      )}
       {currentPurchaseOrder && (
         <Card variant="outlined">
           <CardContent>
@@ -421,85 +421,71 @@ const PurchaseOrderDetailPage: React.FC = () => {
 
   return (
     <>
-      {/* 麵包屑導航 */}
-      <Paper sx={{
-        mb: 3,
-        bgcolor: 'background.paper',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        position: 'relative',
-        zIndex: 1
-      }}>
-        <Box sx={{
-          p: 1,
-          borderBottom: 1,
-          borderColor: 'divider',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          minHeight: 48
+      <Box sx={{ width: '95%', mx: 'auto', mb: 3 }}>
+        <Paper sx={{
+          bgcolor: 'background.paper',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+          position: 'relative',
+          zIndex: 1
         }}>
-          {/* 左側：麵包屑 */}
           <Box sx={{
+            p: 1,
+            borderBottom: 1,
+            borderColor: 'divider',
             display: 'flex',
             alignItems: 'center',
-            height: '100%'
+            justifyContent: 'space-between',
+            minHeight: 48
           }}>
+            {/* 左側：麵包屑 */}
             <Box sx={{
               display: 'flex',
               alignItems: 'center',
-              height: 44
+              height: '100%'
             }}>
-              <Box sx={{
-                '& > div': {
-                  marginBottom: 0,
-                  display: 'flex',
-                  alignItems: 'center'
-                }
-              }}>
-                <BreadcrumbNavigation
-                  items={[
-                    {
-                      label: '首頁',
-                      path: '/',
-                      icon: <HomeIcon sx={{ fontSize: '1.1rem' }} />
-                    },
-                    {
-                      label: '進貨單管理',
-                      path: '/purchase-orders',
-                      icon: <ShoppingCartIcon sx={{ fontSize: '1.1rem' }} />
-                    },
-                    {
-                      label: `進貨單詳情 ${currentPurchaseOrder?.poid || ''}`,
-                      icon: <ReceiptIcon sx={{ fontSize: '1.1rem' }} />
-                    }
-                  ]}
-                  fontSize="0.975rem"
-                  padding={0}
-                />
-              </Box>
+              <BreadcrumbNavigation
+                items={[
+                  {
+                    label: '首頁',
+                    path: '/',
+                    icon: <HomeIcon sx={{ fontSize: '1.1rem' }} />
+                  },
+                  {
+                    label: '進貨單管理',
+                    path: '/purchase-orders',
+                    icon: <ShoppingCartIcon sx={{ fontSize: '1.1rem' }} />
+                  },
+                  {
+                    label: `進貨單詳情 ${currentPurchaseOrder?.poid || ''}`,
+                    icon: <ReceiptIcon sx={{ fontSize: '1.1rem' }} />
+                  }
+                ]}
+                fontSize="0.975rem"
+                padding={0}
+              />
+            </Box>
+            
+            {/* 右側：操作按鈕 */}
+            <Box sx={{
+              display: 'flex',
+              gap: 1,
+              alignItems: 'center',
+              height: '100%',
+              marginLeft: 'auto'
+            }}>
+              {additionalActions}
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<ArrowBackIcon />}
+                onClick={() => navigate('/purchase-orders')}
+              >
+                返回列表
+              </Button>
             </Box>
           </Box>
-          
-          {/* 右側：操作按鈕 */}
-          <Box sx={{
-            display: 'flex',
-            gap: 1,
-            alignItems: 'center',
-            height: '100%',
-            marginLeft: 'auto'
-          }}>
-            {additionalActions}
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={<ArrowBackIcon />}
-              onClick={() => navigate('/purchase-orders')}
-            >
-              返回列表
-            </Button>
-          </Box>
-        </Box>
-      </Paper>
+        </Paper>
+      </Box>
 
       <DetailLayout
         recordIdentifier={currentPurchaseOrder?.poid || ''}
