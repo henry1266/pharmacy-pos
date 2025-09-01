@@ -129,23 +129,12 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
     <Card elevation={2}>
       <CardContent>
         {/* 標題區域 */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <ScheduleIcon sx={{ color: 'primary.main', mr: 1 }} />
             <Typography variant="h6" color="primary.main">
               當日班表
             </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button
-              size="small"
-              startIcon={<RefreshIcon />}
-              onClick={handleRefresh}
-              disabled={loading}
-              sx={{ minWidth: 'auto' }}
-            >
-              重新整理
-            </Button>
           </Box>
         </Box>
 

@@ -235,47 +235,102 @@ const DashboardCalendar: FC<DashboardCalendarProps> = ({ selectedDate, onDateSel
   };
 
   return (
-    <Card elevation={2}>
-      <CardContent>
+    <Card
+      elevation={2}
+      sx={{
+        width: '100%',
+        aspectRatio: '1 / 1.2',
+        display: 'flex',
+        flexDirection: 'column'
+      }}
+    >
+      <CardContent sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        justifyContent: 'space-between'
+      }}>
         {/* 日曆標題 */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h6" fontWeight="600">
+        <Box sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: '2%',
+          fontSize: 'clamp(0.7rem, 1.5vw, 1rem)'
+        }}>
+          <Typography
+            variant="h6"
+            fontWeight="600"
+            sx={{ fontSize: 'inherit' }}
+          >
             營業日曆
           </Typography>
           <Button
             size="small"
-            startIcon={<TodayIcon />}
+            startIcon={<TodayIcon sx={{ fontSize: 'inherit' }} />}
             onClick={handleToday}
             variant="outlined"
+            sx={{
+              fontSize: 'inherit',
+              padding: '2px 8px',
+              minWidth: 'auto'
+            }}
           >
             今天
           </Button>
         </Box>
 
         {/* 月份導航 */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <IconButton onClick={handlePrevMonth} size="small">
-            <ChevronLeftIcon />
+        <Box sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: '3%',
+          fontSize: 'clamp(0.7rem, 1.5vw, 1rem)'
+        }}>
+          <IconButton
+            onClick={handlePrevMonth}
+            size="small"
+            sx={{ padding: '2%' }}
+          >
+            <ChevronLeftIcon sx={{ fontSize: 'inherit' }} />
           </IconButton>
           
-          <Typography variant="h6" fontWeight="600">
+          <Typography
+            variant="h6"
+            fontWeight="600"
+            sx={{ fontSize: 'inherit' }}
+          >
             {currentDate.getFullYear()}年 {monthNames[currentDate.getMonth()]}
           </Typography>
           
-          <IconButton onClick={handleNextMonth} size="small">
-            <ChevronRightIcon />
+          <IconButton
+            onClick={handleNextMonth}
+            size="small"
+            sx={{ padding: '2%' }}
+          >
+            <ChevronRightIcon sx={{ fontSize: 'inherit' }} />
           </IconButton>
         </Box>
 
         {/* 星期標題 */}
-        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 1, mb: 1 }}>
+        <Box sx={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(7, 1fr)',
+          gap: '1%',
+          mb: '1%',
+          fontSize: 'clamp(0.6rem, 1.2vw, 0.9rem)'
+        }}>
           {weekdays.map((weekday) => (
             <Box key={weekday} sx={{ textAlign: 'center' }}>
               <Typography
                 variant="body2"
                 fontWeight="600"
                 color="text.secondary"
-                sx={{ py: 1 }}
+                sx={{
+                  py: '4%',
+                  fontSize: 'inherit'
+                }}
               >
                 {weekday}
               </Typography>
@@ -284,7 +339,12 @@ const DashboardCalendar: FC<DashboardCalendarProps> = ({ selectedDate, onDateSel
         </Box>
 
         {/* 日曆格子 */}
-        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 1 }}>
+        <Box sx={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(7, 1fr)',
+          gap: '1%',
+          flex: 1
+        }}>
           {calendarDays.map((day, index) => (
             <Box key={index} sx={{ textAlign: 'center' }}>
               {day ? (
@@ -292,11 +352,11 @@ const DashboardCalendar: FC<DashboardCalendarProps> = ({ selectedDate, onDateSel
                   onClick={() => handleDateClick(day)}
                   sx={{
                     width: '100%',
-                    height: 40,
+                    aspectRatio: '1 / 1',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    borderRadius: 1,
+                    borderRadius: '4%',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
                     bgcolor: isSelected(day)
@@ -310,6 +370,7 @@ const DashboardCalendar: FC<DashboardCalendarProps> = ({ selectedDate, onDateSel
                         ? 'primary.main'
                         : 'text.primary',
                     fontWeight: isToday(day) || isSelected(day) ? 'bold' : 'normal',
+                    fontSize: 'clamp(0.6rem, 1.2vw, 0.9rem)',
                     '&:hover': {
                       bgcolor: isSelected(day)
                         ? 'primary.dark'
@@ -318,50 +379,39 @@ const DashboardCalendar: FC<DashboardCalendarProps> = ({ selectedDate, onDateSel
                     }
                   }}
                 >
-                  <Typography variant="body2">
+                  <Typography sx={{ fontSize: 'inherit' }}>
                     {day}
                   </Typography>
                 </Box>
               ) : (
-                <Box sx={{ height: 40 }} />
+                <Box sx={{
+                  width: '100%',
+                  aspectRatio: '1 / 1'
+                }} />
               )}
             </Box>
           ))}
         </Box>
 
         {/* 說明文字 */}
-        <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+        <Box sx={{
+          mt: '2%',
+          pt: '2%',
+          borderTop: '1px solid',
+          borderColor: 'divider',
+          fontSize: 'clamp(0.5rem, 1vw, 0.8rem)'
+        }}>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{
+              display: 'block',
+              mb: '1%',
+              fontSize: 'inherit'
+            }}
+          >
             點擊日期查看當日營業報表
           </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Box 
-                sx={{ 
-                  width: 12, 
-                  height: 12, 
-                  borderRadius: 1, 
-                  bgcolor: 'primary.light' 
-                }} 
-              />
-              <Typography variant="caption" color="text.secondary">
-                今天
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Box 
-                sx={{ 
-                  width: 12, 
-                  height: 12, 
-                  borderRadius: 1, 
-                  bgcolor: 'primary.main' 
-                }} 
-              />
-              <Typography variant="caption" color="text.secondary">
-                已選擇
-              </Typography>
-            </Box>
-          </Box>
         </Box>
       </CardContent>
     </Card>
