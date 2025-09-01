@@ -12,7 +12,8 @@ import {
   IconButton,
   Tooltip,
   Button,
-  Chip
+  Chip,
+  Grid
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -24,30 +25,12 @@ import StatusChip from '../common/StatusChip';
 import PaymentStatusChip from '../common/PaymentStatusChip';
 import { format } from 'date-fns';
 
-// 定義進貨單的介面
-interface PurchaseOrder {
-  _id: string;
-  poid: string;
-  pobill: string;
-  pobilldate: string;
-  posupplier: string;
-  totalAmount: number;
-  status: string;
-  paymentStatus: string;
-  items?: Array<{
-    productId: string;
-    productName: string;
-    quantity: number;
-    unitPrice: number;
-    subtotal: number;
-  }>;
+// 引入進貨單項目類型
+import { PurchaseOrder as PurchaseOrderType, PurchaseOrderItem } from '@/modules/purchase-order/types/list';
+
+// 定義進貨單的介面，擴展自 PurchaseOrderType
+interface PurchaseOrder extends PurchaseOrderType {
   notes?: string;
-  // 會計分錄相關欄位
-  relatedTransactionGroupId?: string;
-  accountingEntryType?: 'expense-asset' | 'asset-liability';
-  selectedAccountIds?: string[];
-  // 付款狀態相關欄位
-  hasPaidAmount?: boolean;
 }
 
 interface PurchaseOrderDetailPanelProps {
@@ -92,42 +75,67 @@ const PurchaseOrderDetailPanel: FC<PurchaseOrderDetailPanelProps> = ({
               <IconButton color="primary" onClick={() => onEdit(selectedPurchaseOrder._id)} size="small"><EditIcon /></IconButton>
             </Tooltip>
             <Tooltip title="刪除">
-              <IconButton 
-                color="error" 
-                onClick={() => onDelete(selectedPurchaseOrder)} 
+              <IconButton
+                color="error"
+                onClick={() => onDelete(selectedPurchaseOrder)}
                 size="small"
                 disabled={selectedPurchaseOrder.status === 'completed'}
               >
                 <DeleteIcon />
               </IconButton>
             </Tooltip>
+            {selectedPurchaseOrder.relatedTransactionGroupId && onViewAccountingEntry && (
+              <Tooltip title="查看會計分錄">
+                <IconButton
+                  color="secondary"
+                  onClick={() => onViewAccountingEntry(selectedPurchaseOrder.relatedTransactionGroupId!)}
+                  size="small"
+                >
+                  <ReceiptIcon />
+                </IconButton>
+              </Tooltip>
+            )}
           </Box>
         }
         sx={{ pb: 1 }}
       />
       <Divider />
       <CardContent sx={{ py: 1 }}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>進貨單資訊</Typography>
         <List dense sx={{ py: 0 }}>
-          <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-            <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>供應商:</Typography>
-            <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedPurchaseOrder.posupplier}</Typography>
+          {/* 供應商和日期左右排列 */}
+          <ListItem sx={{ py: 0.5 }}>
+            <Grid container spacing={2}>
+              <Grid item xs={6}>
+                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>供應商:</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedPurchaseOrder.posupplier}</Typography>
+                </Box>
+              </Grid>
+              <Grid item xs={6}>
+                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>日期:</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>{formattedDate}</Typography>
+                </Box>
+              </Grid>
+            </Grid>
           </ListItem>
-          <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-            <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>日期:</Typography>
-            <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{formattedDate}</Typography>
-          </ListItem>
-          <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-            <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>總金額:</Typography>
-            <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>${selectedPurchaseOrder.totalAmount.toLocaleString()}</Typography>
-          </ListItem>
-          <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-            <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>狀態:</Typography>
-            <Box sx={{ width: '60%' }}><StatusChip status={selectedPurchaseOrder.status} /></Box>
-          </ListItem>
-          <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-            <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>付款狀態:</Typography>
-            <Box sx={{ width: '60%' }}><PaymentStatusChip status={selectedPurchaseOrder.paymentStatus} /></Box>
+
+          {/* 狀態和付款狀態左右排列 */}
+          <ListItem sx={{ py: 0.5 }}>
+            <Grid container spacing={2}>
+              <Grid item xs={6}>
+                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>狀態:</Typography>
+                  <StatusChip status={selectedPurchaseOrder.status} />
+                </Box>
+              </Grid>
+              <Grid item xs={6}>
+                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>付款狀態:</Typography>
+                  <PaymentStatusChip status={selectedPurchaseOrder.paymentStatus} />
+                </Box>
+              </Grid>
+            </Grid>
           </ListItem>
           {selectedPurchaseOrder.notes && (
             <ListItem sx={{ py: 0.5, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
@@ -140,16 +148,29 @@ const PurchaseOrderDetailPanel: FC<PurchaseOrderDetailPanelProps> = ({
         {selectedPurchaseOrder.items && selectedPurchaseOrder.items.length > 0 && (
           <>
             <Divider sx={{ my: 1.5 }} />
+                      <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
+            <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>總金額:</Typography>
+            <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>
+              ${selectedPurchaseOrder.totalAmount ? selectedPurchaseOrder.totalAmount.toLocaleString() : '0'}
+            </Typography>
+          </ListItem>
+            
             <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>商品項目</Typography>
             <List dense sx={{ py: 0 }}>
               {selectedPurchaseOrder.items.slice(0, 3).map((item, index) => (
                 <ListItem key={index} sx={{ py: 0.5, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                    <Typography variant="body2" sx={{ fontWeight: 500 }}>{item.productName}</Typography>
-                    <Typography variant="body2">${item.subtotal.toLocaleString()}</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>{item.dname || '未命名商品'}</Typography>
+                    <Typography variant="body2">
+                      ${typeof item.dtotalCost === 'number'
+                        ? item.dtotalCost.toLocaleString()
+                        : parseFloat(item.dtotalCost || '0').toLocaleString()}
+                    </Typography>
                   </Box>
                   <Typography variant="caption" color="text.secondary">
-                    {item.quantity} x ${item.unitPrice.toLocaleString()}
+                    {typeof item.dquantity === 'number'
+                      ? item.dquantity
+                      : parseFloat(item.dquantity || '0')} 件
                   </Typography>
                 </ListItem>
               ))}
@@ -187,7 +208,7 @@ const PurchaseOrderDetailPanel: FC<PurchaseOrderDetailPanelProps> = ({
         )}
 
         <Divider sx={{ my: 1.5 }} />
-        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mt: 1 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
           <Button
             onClick={() => onEdit(selectedPurchaseOrder._id)}
             variant="contained"
@@ -198,18 +219,6 @@ const PurchaseOrderDetailPanel: FC<PurchaseOrderDetailPanelProps> = ({
           >
             編輯進貨單
           </Button>
-          {selectedPurchaseOrder.relatedTransactionGroupId && onViewAccountingEntry && (
-            <Button
-              onClick={() => onViewAccountingEntry(selectedPurchaseOrder.relatedTransactionGroupId!)}
-              variant="outlined"
-              color="secondary"
-              size="small"
-              startIcon={<ReceiptIcon />}
-              sx={{ textTransform: 'none' }}
-            >
-              查看會計分錄
-            </Button>
-          )}
         </Box>
       </CardContent>
     </Card>

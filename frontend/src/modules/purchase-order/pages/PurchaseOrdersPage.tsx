@@ -10,22 +10,21 @@ import {
   Tooltip,
   Snackbar,
   Alert,
-  Popper,
   CircularProgress,
   TextField,
   InputAdornment,
   Button,
-  IconButton
+  IconButton,
+  Card,
+  CardContent
 } from '@mui/material';
 import {
   Add as AddIcon,
   CloudUpload as CloudUploadIcon,
   Search as SearchIcon,
-  Clear as ClearIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Visibility as VisibilityIcon
+  Clear as ClearIcon
 } from '@mui/icons-material';
+import { ActionButtons } from '@/components/purchase-orders/shared/components';
 import { usePurchaseOrdersList } from '../hooks/usePurchaseOrdersList';
 import { PurchaseOrdersPageProps, PurchaseOrder } from '../types/list';
 import PurchaseOrderPreview from '@/components/purchase-orders/PurchaseOrderPreview';
@@ -86,10 +85,51 @@ const PurchaseOrdersPage: FC<PurchaseOrdersPageProps> = ({ initialSupplierId = n
     showSnackbar
   } = usePurchaseOrdersList(initialSupplierId);
 
+  // 創建一個本地狀態來控制詳情面板的顯示
+  const [showDetailPanel, setShowDetailPanel] = React.useState<boolean>(false);
+
   // 選擇進貨單函數 - 用於點擊表格行時
-  const selectSupplier = (id: string) => {
-    // 這裡可以實現選擇進貨單的邏輯，目前直接使用 handleView
-    handleView(id);
+  const selectSupplier = async (id: string) => {
+    // 不再使用 handleView 導航到詳情頁面
+    try {
+      // 直接從 purchaseOrders 中查找選中的進貨單
+      let selectedOrder = purchaseOrders.find(po => po._id === id);
+      
+      // 如果找到了進貨單，但沒有 items 數據，則需要獲取詳細數據
+      if (selectedOrder && !selectedOrder.items) {
+        try {
+          // 使用 purchaseOrderServiceV2 獲取詳細數據
+          const response = await fetch(`/api/purchase-orders/${id}`);
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+              selectedOrder = data.data;
+            }
+          }
+        } catch (error) {
+          console.error('獲取進貨單詳細數據失敗:', error);
+        }
+      }
+      
+      // 更新 previewPurchaseOrder 狀態
+      if (selectedOrder) {
+        // 使用 hook 中的 previewPurchaseOrder 狀態
+        // 這裡我們不使用 setPreviewPurchaseOrder，因為它不存在
+        // 而是使用 handlePreviewMouseEnter 函數的邏輯，但不設置 previewAnchorEl
+        const fakeEvent = {
+          currentTarget: document.createElement('div')
+        } as unknown as React.MouseEvent<HTMLElement>;
+        
+        // 調用 handlePreviewMouseEnter 函數來更新 previewPurchaseOrder 狀態
+        handlePreviewMouseEnter(fakeEvent, id);
+      }
+      
+      // 顯示詳情面板
+      setShowDetailPanel(true);
+    } catch (err) {
+      console.error('獲取進貨單詳情失敗:', err);
+      showSnackbar('獲取進貨單詳情失敗', 'error');
+    }
   };
 
   // 供應商篩選器頭部渲染
@@ -176,13 +216,13 @@ const PurchaseOrdersPage: FC<PurchaseOrdersPageProps> = ({ initialSupplierId = n
     {
       field: 'posupplier',
       headerName: '供應商',
-      width: 180,
+      width: 130,
       renderHeader: renderSupplierHeader
     },
     {
       field: 'totalAmount',
       headerName: '總金額',
-      width: 120,
+      width: 110,
       valueFormatter: (params: any) => {
         return params.value ? params.value.toLocaleString() : '';
       }
@@ -190,51 +230,53 @@ const PurchaseOrdersPage: FC<PurchaseOrdersPageProps> = ({ initialSupplierId = n
     {
       field: 'status',
       headerName: '狀態',
-      width: 100,
+      width: 90,
       renderCell: (params: any) => <StatusChip status={params.value} />
     },
     {
       field: 'paymentStatus',
       headerName: '付款狀態',
-      width: 120,
+      width: 90,
       renderCell: (params: any) => <PaymentStatusChip status={params.value} />
     },
     {
       field: 'actions',
       headerName: '操作',
-      width: 150,
-      renderCell: (params: any) => (
-        <Box>
-          <Tooltip title="查看詳情">
-            <IconButton
-              color="info"
-              onClick={(e) => { e.stopPropagation(); handleView(params.row._id); }}
-              size="small"
-            >
-              <VisibilityIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="編輯">
-            <IconButton
-              color="primary"
-              onClick={(e) => { e.stopPropagation(); handleEdit(params.row._id); }}
-              size="small"
-            >
-              <EditIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="刪除">
-            <IconButton
-              color="error"
-              onClick={(e) => { e.stopPropagation(); handleDeleteClick(params.row); }}
-              size="small"
-              disabled={params.row.status === 'completed'}
-            >
-              <DeleteIcon />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      ),
+      width: 170,
+      renderCell: (params: any) => {
+        // 調試日誌
+        console.log('🔍 DataGrid row data:', {
+          poid: params.row.poid,
+          _id: params.row._id,
+          relatedTransactionGroupId: params.row.relatedTransactionGroupId,
+          accountingEntryType: params.row.accountingEntryType,
+          selectedAccountIds: params.row.selectedAccountIds,
+          hasPaidAmount: params.row.hasPaidAmount,
+          status: params.row.status
+        });
+        
+        return (
+          <ActionButtons
+            onView={() => handleView(params.row._id)}
+            onEdit={() => handleEdit(params.row._id)}
+            onDelete={() => handleDeleteClick(params.row)}
+            onPreviewMouseEnter={(e) => {
+              if (e && e.currentTarget) {
+                handlePreviewMouseEnter(e as React.MouseEvent<HTMLElement>, params.row._id);
+              }
+            }}
+            onPreviewMouseLeave={handlePreviewMouseLeave}
+            isDeleteDisabled={params.row.status === 'completed'}
+            status={params.row.status}
+            onUnlock={() => handleUnlock(params.row._id)}
+            relatedTransactionGroupId={params.row.relatedTransactionGroupId}
+            accountingEntryType={params.row.accountingEntryType}
+            onViewAccountingEntry={() => handleViewAccountingEntry(params.row.relatedTransactionGroupId)}
+            hasPaidAmount={params.row.hasPaidAmount}
+            purchaseOrderId={params.row._id}
+          />
+        );
+      },
     },
   ];
 
@@ -306,13 +348,21 @@ const PurchaseOrdersPage: FC<PurchaseOrdersPageProps> = ({ initialSupplierId = n
   );
 
   // 詳情面板
-  const detailPanel = (
+  const detailPanel = showDetailPanel ? (
     <PurchaseOrderDetailPanel
       selectedPurchaseOrder={previewPurchaseOrder as any}
       onEdit={handleEdit}
       onDelete={(order) => handleDeleteClick(order as any)}
       onViewAccountingEntry={handleViewAccountingEntry}
     />
+  ) : (
+    <Card elevation={2} sx={{ borderRadius: '0.5rem', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <CardContent sx={{ textAlign: 'center' }}>
+        <Typography variant="body1" color="text.secondary">
+          選擇一個進貨單查看詳情
+        </Typography>
+      </CardContent>
+    </Card>
   );
 
   // 如果正在載入且沒有數據，顯示載入中
@@ -338,7 +388,7 @@ const PurchaseOrdersPage: FC<PurchaseOrdersPageProps> = ({ initialSupplierId = n
               backgroundColor: 'primary.main',
               color: 'primary.contrastText',
               px: 2,
-              py: 1,
+              py: 0.5,
               borderRadius: 2,
               minWidth: 'fit-content'
             }}>
@@ -374,22 +424,7 @@ const PurchaseOrdersPage: FC<PurchaseOrdersPageProps> = ({ initialSupplierId = n
         }}
       />
 
-      {previewAnchorEl && (
-        <Popper
-          open={previewOpen}
-          anchorEl={previewAnchorEl}
-          placement="right-start"
-          sx={{ zIndex: 1300 }}
-        >
-        {previewPurchaseOrder && (
-          <PurchaseOrderPreview
-            purchaseOrder={previewPurchaseOrder}
-            loading={previewLoading}
-            error={previewError || ''}
-          />
-        )}
-        </Popper>
-      )}
+      {/* 移除獨立的進貨單詳情視窗（Popper），只保留右側詳情面板 */}
 
       <GenericConfirmDialog
         open={deleteDialogOpen}
