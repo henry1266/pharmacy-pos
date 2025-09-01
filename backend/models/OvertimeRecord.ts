@@ -43,7 +43,6 @@ const OvertimeRecordSchema = new Schema<IOvertimeRecordDocument>({
   hours: {
     type: Number,
     required: true,
-    min: 0.5,
     max: 24
   },
   // 加班原因/說明
