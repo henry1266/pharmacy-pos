@@ -60,6 +60,7 @@ const QuickSelectPanel: React.FC<QuickSelectPanelProps> = ({ date, schedules, on
     try {
       const token = localStorage.getItem('token');
       if (!token) {
+        console.error('一鍵排班錯誤: 未登入或權限不足，token不存在');
         throw new Error('未登入或權限不足');
       }
 
@@ -69,22 +70,123 @@ const QuickSelectPanel: React.FC<QuickSelectPanelProps> = ({ date, schedules, on
         }
       };
 
-      const response = await axios.get<EmployeesApiResponse>('/api/employees', config);
+      console.log('開始獲取員工資料...');
+      const response = await axios.get<any>('/api/employees', config);
+      
+      // 檢查響應格式
+      if (!response || !response.data) {
+        console.error('API響應格式錯誤: 響應或響應數據為空');
+        throw new Error('API響應格式錯誤: 響應或響應數據為空');
+      }
+      
+      console.log('API響應數據:', response.data);
+      
+      // 檢查employees字段是否存在
+      if (!response.data.employees) {
+        console.error('API響應格式錯誤: 缺少employees字段');
+        
+        // 嘗試從響應中找到可能的員工數據
+        let employeesData: Employee[] = [];
+        
+        // 如果響應數據本身是數組，可能直接返回了員工列表
+        if (Array.isArray(response.data)) {
+          console.log('API直接返回了數組，嘗試使用它作為員工列表');
+          employeesData = response.data;
+        }
+        // 如果響應中有data字段
+        else if (response.data.data) {
+          // 如果data是數組，可能是員工列表
+          if (Array.isArray(response.data.data)) {
+            console.log('在response.data.data中找到數組，嘗試使用它作為員工列表');
+            employeesData = response.data.data;
+          }
+          // 如果data是對象，檢查是否有employees字段
+          else if (response.data.data.employees && Array.isArray(response.data.data.employees)) {
+            console.log('在response.data.data.employees中找到數組，嘗試使用它作為員工列表');
+            employeesData = response.data.data.employees;
+          }
+          // 如果data對象中有totalCount和page等字段，可能是分頁數據，嘗試獲取employees字段
+          else if (response.data.data.employees) {
+            console.log('在response.data.data中找到employees字段，嘗試使用它作為員工列表');
+            employeesData = response.data.data.employees;
+          }
+        }
+        
+        // 如果以上都不是，返回空數組
+        if (employeesData.length === 0) {
+          console.error('無法從API響應中找到員工數據');
+          return { employees: [], error: 'API響應格式錯誤: 無法找到員工數據' };
+        }
+        
+        console.log(`從API響應中提取到 ${employeesData.length} 名員工`);
+        
+        // 過濾掉主管，只保留一般員工
+        const filteredEmployees = employeesData.filter((employee: Employee) => {
+          if (!employee || !employee.department) {
+            return true;
+          }
+          
+          const department = employee.department.toLowerCase();
+          const isManager = department.includes('主管') ||
+                           department.includes('經理') ||
+                           department.includes('supervisor') ||
+                           department.includes('manager') ||
+                           department.includes('director') ||
+                           department.includes('長');
+          
+          return !isManager;
+        });
+        
+        console.log(`過濾後剩餘 ${filteredEmployees.length} 名一般員工`);
+        
+        // 如果過濾後沒有員工，但原始資料有員工，則使用原始資料
+        if (filteredEmployees.length === 0 && employeesData.length > 0) {
+          console.warn('警告: 過濾後沒有一般員工，將使用所有員工資料');
+          return { employees: employeesData, error: null };
+        }
+        
+        return { employees: filteredEmployees, error: null };
+      }
+      
+      console.log(`成功獲取員工資料，共 ${response.data.employees.length} 名員工`);
+      
       // 過濾掉主管，只保留一般員工
       const filteredEmployees = response.data.employees.filter((employee: Employee) => {
-        const department = employee.department?.toLowerCase() || '';
-        return !department.includes('主管') &&
-               !department.includes('經理') &&
-               !department.includes('supervisor') &&
-               !department.includes('manager') &&
-               !department.includes('director') &&
-               !department.includes('長');
+        // 如果沒有部門資訊，預設為非主管
+        if (!employee || !employee.department) {
+          return true;
+        }
+        
+        const department = employee.department.toLowerCase();
+        const isManager = department.includes('主管') ||
+                         department.includes('經理') ||
+                         department.includes('supervisor') ||
+                         department.includes('manager') ||
+                         department.includes('director') ||
+                         department.includes('長');
+        
+        return !isManager;
       });
+      
+      console.log(`過濾後剩餘 ${filteredEmployees.length} 名一般員工`);
+      
+      // 如果過濾後沒有員工，但原始資料有員工，則使用原始資料
+      if (filteredEmployees.length === 0 && response.data.employees.length > 0) {
+        console.warn('警告: 過濾後沒有一般員工，將使用所有員工資料');
+        return { employees: response.data.employees, error: null };
+      }
       
       return { employees: filteredEmployees, error: null };
     } catch (err: any) {
+      const errorMsg = err.response?.data?.msg ?? '獲取員工資料失敗';
       console.error('獲取員工資料失敗:', err);
-      return { employees: [], error: err.response?.data?.msg ?? '獲取員工資料失敗' };
+      console.error('錯誤詳情:', {
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+        data: err.response?.data,
+        message: err.message
+      });
+      return { employees: [], error: errorMsg };
     }
   };
 
@@ -103,15 +205,24 @@ const QuickSelectPanel: React.FC<QuickSelectPanelProps> = ({ date, schedules, on
     addScheduleFunc: (scheduleData: ScheduleData) => Promise<boolean>,
     leaveType: string | null = null
   ): Promise<boolean> => {
-    if (!employees || employees.length === 0) return false;
+    console.log(`一鍵排班開始檢查員工資料，共有 ${employees?.length || 0} 名員工`);
+    
+    if (!employees || employees.length === 0) {
+      console.error('一鍵排班失敗: 沒有可用的員工資料');
+      setError('一鍵排班失敗: 沒有可用的員工資料，請確認員工資料已正確載入');
+      return false;
+    }
     
     try {
       console.log('開始一鍵排班，日期:', date, '請假類型:', leaveType);
+      console.log('可用員工列表:', employees.map(e => e.name).join(', '));
       
       // 解析日期並獲取月份資訊
       const { year, month } = parseDateString(date);
+      console.log(`解析日期: ${date} -> 年=${year}, 月=${month + 1}`);
       
       // 為員工添加排班
+      console.log('開始為員工添加排班...');
       const addedSchedules = await scheduleEmployeesForShifts(
         employees,
         schedules,
@@ -121,11 +232,28 @@ const QuickSelectPanel: React.FC<QuickSelectPanelProps> = ({ date, schedules, on
       );
       
       // 重新獲取排班資料
+      console.log('排班完成，重新獲取排班資料...');
       await refreshScheduleData(year, month);
       
-      return addedSchedules.length > 0;
-    } catch (err) {
+      if (addedSchedules.length > 0) {
+        console.log(`一鍵排班成功，共添加 ${addedSchedules.length} 個排班記錄`);
+        setError(null); // 清除錯誤信息
+        return true;
+      } else {
+        console.warn('一鍵排班完成，但沒有添加任何排班記錄');
+        setError('一鍵排班完成，但沒有添加任何排班記錄，可能所有員工已經被排班');
+        return false;
+      }
+    } catch (err: any) {
+      const errorMsg = err.message || '未知錯誤';
       console.error('一鍵排班失敗:', err);
+      console.error('錯誤詳情:', {
+        message: err.message,
+        stack: err.stack,
+        date: date,
+        employeesCount: employees?.length || 0
+      });
+      setError(`一鍵排班失敗: ${errorMsg}`);
       return false;
     }
   };
@@ -151,38 +279,67 @@ const QuickSelectPanel: React.FC<QuickSelectPanelProps> = ({ date, schedules, on
     const morningShift = 'morning';
     const afternoonShift = 'afternoon';
     const addedSchedules: Array<{ employee: string, shift: string }> = [];
+    const errors: Array<{ employee: string, shift: string, error: any }> = [];
+    
+    console.log(`開始為 ${employees.length} 名員工排班，日期: ${date}`);
     
     for (const employee of employees) {
-      // 添加早班
-      if (!isEmployeeScheduled(employee._id, morningShift, schedules)) {
-        const success = await addShiftForEmployee(
-          employee,
-          date,
-          morningShift,
-          addScheduleFunc,
-          leaveType
-        );
-        if (success) {
-          addedSchedules.push({ employee: employee.name, shift: morningShift });
+      try {
+        // 添加早班
+        if (!isEmployeeScheduled(employee._id, morningShift, schedules)) {
+          console.log(`嘗試為員工 ${employee.name} 添加早班...`);
+          const success = await addShiftForEmployee(
+            employee,
+            date,
+            morningShift,
+            addScheduleFunc,
+            leaveType
+          );
+          if (success) {
+            console.log(`成功為員工 ${employee.name} 添加早班`);
+            addedSchedules.push({ employee: employee.name, shift: morningShift });
+          } else {
+            console.warn(`無法為員工 ${employee.name} 添加早班`);
+          }
+        } else {
+          console.log(`員工 ${employee.name} 已經被排入早班，跳過`);
         }
-      }
-      
-      // 添加午班
-      if (!isEmployeeScheduled(employee._id, afternoonShift, schedules)) {
-        const success = await addShiftForEmployee(
-          employee,
-          date,
-          afternoonShift,
-          addScheduleFunc,
-          leaveType
-        );
-        if (success) {
-          addedSchedules.push({ employee: employee.name, shift: afternoonShift });
+        
+        // 添加午班
+        if (!isEmployeeScheduled(employee._id, afternoonShift, schedules)) {
+          console.log(`嘗試為員工 ${employee.name} 添加午班...`);
+          const success = await addShiftForEmployee(
+            employee,
+            date,
+            afternoonShift,
+            addScheduleFunc,
+            leaveType
+          );
+          if (success) {
+            console.log(`成功為員工 ${employee.name} 添加午班`);
+            addedSchedules.push({ employee: employee.name, shift: afternoonShift });
+          } else {
+            console.warn(`無法為員工 ${employee.name} 添加午班`);
+          }
+        } else {
+          console.log(`員工 ${employee.name} 已經被排入午班，跳過`);
         }
+      } catch (err: any) {
+        console.error(`為員工 ${employee.name} 排班時發生錯誤:`, err);
+        errors.push({
+          employee: employee.name,
+          shift: 'unknown',
+          error: err.message || '未知錯誤'
+        });
+        // 繼續處理下一個員工，不中斷整個流程
       }
     }
     
-    console.log(`一鍵排班完成，共添加 ${addedSchedules.length} 個排班記錄`);
+    if (errors.length > 0) {
+      console.error(`排班過程中發生 ${errors.length} 個錯誤:`, errors);
+    }
+    
+    console.log(`一鍵排班完成，共添加 ${addedSchedules.length} 個排班記錄，發生 ${errors.length} 個錯誤`);
     return addedSchedules;
   };
 
@@ -194,21 +351,45 @@ const QuickSelectPanel: React.FC<QuickSelectPanelProps> = ({ date, schedules, on
     addScheduleFunc: (scheduleData: ScheduleData) => Promise<boolean>,
     leaveType: string | null
   ): Promise<boolean> => {
-    const scheduleData: ScheduleData = {
-      date,
-      shift,
-      employeeId: employee._id
-    };
-    
-    // 只有在 leaveType 不為 null 時才添加 leaveType 屬性
-    if (leaveType) {
-      scheduleData.leaveType = leaveType;
-      console.log(`為員工 ${employee.name} 添加${shift === 'morning' ? '早班' : '午班'}，請假類型: ${leaveType}`);
-    } else {
-      console.log(`為員工 ${employee.name} 添加${shift === 'morning' ? '早班' : '午班'}，正常排班`);
+    try {
+      const scheduleData: ScheduleData = {
+        date,
+        shift,
+        employeeId: employee._id
+      };
+      
+      const shiftName = shift === 'morning' ? '早班' : shift === 'afternoon' ? '午班' : '晚班';
+      
+      // 只有在 leaveType 不為 null 時才添加 leaveType 屬性
+      if (leaveType) {
+        scheduleData.leaveType = leaveType;
+        console.log(`準備為員工 ${employee.name} 添加${shiftName}，請假類型: ${leaveType}`);
+      } else {
+        console.log(`準備為員工 ${employee.name} 添加${shiftName}，正常排班`);
+      }
+      
+      console.log(`發送排班請求，數據:`, JSON.stringify(scheduleData));
+      const result = await addScheduleFunc(scheduleData);
+      
+      if (result) {
+        console.log(`成功為員工 ${employee.name} 添加${shiftName}`);
+      } else {
+        console.warn(`無法為員工 ${employee.name} 添加${shiftName}，API 返回失敗`);
+      }
+      
+      return result;
+    } catch (err: any) {
+      console.error(`為員工 ${employee.name} 添加${shift === 'morning' ? '早班' : '午班'}時發生錯誤:`, err);
+      console.error('錯誤詳情:', {
+        employeeId: employee._id,
+        employeeName: employee.name,
+        date: date,
+        shift: shift,
+        leaveType: leaveType,
+        message: err.message || '未知錯誤'
+      });
+      return false;
     }
-    
-    return await addScheduleFunc(scheduleData);
   };
 
   // 重新獲取排班資料
