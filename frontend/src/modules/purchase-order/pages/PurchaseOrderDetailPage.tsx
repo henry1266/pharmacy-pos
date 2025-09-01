@@ -42,6 +42,7 @@ import {
 } from '@mui/icons-material';
 import PageHeaderSection from '@/components/common/PageHeaderSection';
 import BreadcrumbNavigation from '@/components/common/BreadcrumbNavigation';
+import CommonListPageLayout from '@/components/common/CommonListPageLayout';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 
@@ -353,27 +354,7 @@ const PurchaseOrderDetailPage: React.FC = () => {
 
   // 主要內容 - 藥品項目
   const mainContent = (
-    <Box sx={{
-      height: '100%',
-      width: '100%',
-      '& .MuiCard-root': {
-        boxShadow: 'none',
-        border: 'none',
-        margin: 0,
-        borderRadius: 0
-      },
-      '& .MuiCardContent-root': {
-        padding: 0
-      },
-      '& .MuiTableContainer-root': {
-        borderRadius: 0,
-        border: 'none',
-        boxShadow: 'none'
-      },
-      '& .MuiTable-root': {
-        borderCollapse: 'collapse'
-      }
-    }}>
+    <>
       {productDetailsError && (
         <Typography color="error" sx={{ mb: 2, px: 2, pt: 2 }}>{productDetailsError}</Typography>
       )}
@@ -396,14 +377,17 @@ const PurchaseOrderDetailPage: React.FC = () => {
           title=""
         />
       )}
-    </Box>
+    </>
   );
 
   // 側邊欄內容 - 金額信息和基本資訊
   const sidebarContent = (
     <Stack spacing={2}>
       {currentPurchaseOrder && (
-        <Paper elevation={0} variant="outlined" sx={{ borderRadius: 0, border: '1px solid rgba(0, 0, 0, 0.12)' }}>
+        <Box sx={{
+          border: '1px solid rgba(0, 0, 0, 0.12)',
+          height: 'fit-content'
+        }}>
           <CollapsibleAmountInfo
             title="金額信息"
             titleIcon={<AccountBalanceWalletIcon />}
@@ -416,13 +400,15 @@ const PurchaseOrderDetailPage: React.FC = () => {
             error={orderError ? "金額資訊載入失敗" : ''}
             noDetailsText="無金額明細"
           />
-        </Paper>
+        </Box>
       )}
       {currentPurchaseOrder && (
-        <Paper elevation={0} variant="outlined" sx={{ borderRadius: 0, border: '1px solid rgba(0, 0, 0, 0.12)' }}>
-          <Box sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom><InfoIcon sx={{ verticalAlign: 'middle', mr: 1 }}/>基本資訊</Typography>
-            <Divider sx={{ mb: 2 }} />
+        <Box sx={{
+          border: '1px solid rgba(0, 0, 0, 0.12)',
+          p: 2
+        }}>
+          <Typography variant="h6" gutterBottom><InfoIcon sx={{ verticalAlign: 'middle', mr: 1 }}/>基本資訊</Typography>
+          <Divider sx={{ mb: 2 }} />
             <Stack spacing={1.5}>
               <Stack direction="row" spacing={1} alignItems="center">
                 <ReceiptIcon fontSize="small" color="action"/>
@@ -497,9 +483,8 @@ const PurchaseOrderDetailPage: React.FC = () => {
               </Stack>
             </Stack>
           </Box>
-        </Paper>
-      )}
-    </Stack>
+        )}
+      </Stack>
   );
 
   // 操作按鈕區域
@@ -527,27 +512,118 @@ const PurchaseOrderDetailPage: React.FC = () => {
     </Box>
   );
 
+  // 定義表格列
+  const columns = [
+    {
+      field: 'index',
+      headerName: '#',
+      width: 50,
+      renderCell: (params: any) => {
+        return params.api.getRowIndex(params.row.id) + 1;
+      }
+    },
+    { field: 'did', headerName: '編號', flex: 1 },
+    {
+      field: 'healthInsuranceCode',
+      headerName: '健保代碼',
+      flex: 1,
+      valueGetter: (params: any) => {
+        const productCode = params.row.did;
+        const product = productDetails[productCode];
+        // 使用類型斷言和索引訪問來安全地訪問可能存在的屬性
+        return product ? (product as any).healthInsuranceCode || 'N/A' : 'N/A';
+      }
+    },
+    { field: 'dname', headerName: '名稱', flex: 2 },
+    { field: 'batchNumber', headerName: '批號', flex: 1 },
+    {
+      field: 'packageInfo',
+      headerName: '包裝數量',
+      flex: 1,
+      align: 'right',
+      headerAlign: 'right',
+      valueGetter: (params: any) => {
+        const packageQuantity = params.row.packageQuantity;
+        const boxQuantity = params.row.boxQuantity;
+        return packageQuantity && boxQuantity
+          ? `${packageQuantity} × ${boxQuantity}`
+          : '-';
+      }
+    },
+    {
+      field: 'dquantity',
+      headerName: '數量',
+      flex: 1,
+      align: 'right',
+      headerAlign: 'right'
+    },
+    {
+      field: 'unitPrice',
+      headerName: '單價',
+      flex: 1,
+      align: 'right',
+      headerAlign: 'right',
+      valueFormatter: (params: any) => {
+        return params.value !== undefined && params.value !== null
+          ? Number(params.value).toLocaleString()
+          : '';
+      }
+    },
+    {
+      field: 'dtotalCost',
+      headerName: '小計',
+      flex: 1,
+      align: 'right',
+      headerAlign: 'right',
+      valueFormatter: (params: any) => {
+        return params.value ? Number(params.value).toLocaleString() : '';
+      }
+    }
+  ];
+
+  // 為DataGrid準備行數據
+  const rows = currentPurchaseOrder?.items?.map((item, index) => ({
+    id: index.toString(),
+    did: item.did || '',
+    dname: item.dname || '',
+    dquantity: item.dquantity || 0,
+    unitPrice: item.unitPrice || 0,
+    dtotalCost: item.dtotalCost || 0,
+    batchNumber: item.batchNumber || '',
+    packageQuantity: item.packageQuantity || '',
+    boxQuantity: item.boxQuantity || ''
+  })) || [];
+
   return (
     <Box sx={{ width: '95%', mx: 'auto' }}>
-      {/* 頂部導航和操作按鈕 */}
-      <PageHeaderSection
-        breadcrumbItems={[
-          {
-            label: '首頁',
-            path: '/',
-            icon: <HomeIcon sx={{ fontSize: '1.1rem' }} />
-          },
-          {
-            label: '進貨單管理',
-            path: '/purchase-orders',
-            icon: <ShoppingCartIcon sx={{ fontSize: '1.1rem' }} />
-          },
-          {
-            label: `進貨單詳情 ${currentPurchaseOrder?.poid || ''}`,
-            icon: <ReceiptIcon sx={{ fontSize: '1.1rem' }} />
-          }
-        ]}
-        actions={
+      <CommonListPageLayout
+        title={
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <TitleWithCount
+              title={`進貨單詳情: ${currentPurchaseOrder?.poid || ''}`}
+              count={currentPurchaseOrder?.items?.length || 0}
+            />
+            {/* 總金額顯示 */}
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              backgroundColor: 'primary.main',
+              color: 'primary.contrastText',
+              px: 2,
+              py: 0.5,
+              borderRadius: 2,
+              minWidth: 'fit-content'
+            }}>
+              <Typography variant="caption" sx={{ fontSize: '0.8rem', mr: 1 }}>
+                總計
+              </Typography>
+              <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
+                ${currentPurchaseOrder?.totalAmount?.toLocaleString() || '0'}
+              </Typography>
+            </Box>
+          </Box>
+        }
+        actionButtons={
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
             {actionButtons}
             <Button
@@ -560,40 +636,40 @@ const PurchaseOrderDetailPage: React.FC = () => {
             </Button>
           </Box>
         }
+        columns={columns}
+        rows={rows}
+        loading={combinedLoading}
+        {...(orderError && { error: orderError })}
+        detailPanel={sidebarContent}
+        tableGridWidth={9}
+        detailGridWidth={3}
+        dataTableProps={{
+          rowsPerPageOptions: [25, 50, 100],
+          disablePagination: false,
+          pageSize: 25,
+          initialState: {
+            pagination: { pageSize: 25 },
+            sorting: {
+              sortModel: [{ field: 'did', sort: 'asc' }],
+            },
+          },
+          getRowId: (row: any) => row.id,
+          sx: {
+            // 自定義滾動條樣式
+            '& .MuiDataGrid-virtualScroller::-webkit-scrollbar': {
+              width: '4px',
+              height: '4px',
+            },
+            '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-track': {
+              background: '#ffffff02',
+            },
+            '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb': {
+              background: '#a7a7a796',
+              borderRadius: '4px',
+            },
+          }
+        }}
       />
-
-      {/* 主要內容區域 */}
-      <Box sx={{
-        display: 'grid',
-        gridTemplateColumns: { xs: '1fr', md: '3fr 1fr' },
-        gap: 2,
-        mt: 2
-      }}>
-        {/* 左側：藥品項目 */}
-        <Paper
-          elevation={0}
-          variant="outlined"
-          sx={{
-            height: '74vh',
-            overflow: 'auto',
-            display: 'flex',
-            flexDirection: 'column',
-            borderRadius: 0,
-            border: '1px solid rgba(0, 0, 0, 0.12)'
-          }}
-        >
-          {combinedLoading && !currentPurchaseOrder ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-              <CircularProgress />
-            </Box>
-          ) : (
-            mainContent
-          )}
-        </Paper>
-        
-        {/* 右側：金額信息和基本資訊 */}
-        {sidebarContent}
-      </Box>
 
       {/* 刪除確認對話框 */}
       <GenericConfirmDialog
