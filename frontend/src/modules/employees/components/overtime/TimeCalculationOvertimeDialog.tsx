@@ -579,7 +579,7 @@ const TimeCalculationOvertimeDialog: React.FC<TimeCalculationOvertimeDialogProps
               <Button
                 variant="contained"
                 color="primary"
-                disabled={!formData.date || !selectedTime || !hasUserInteractedWithDate || !hasUserInteractedWithTime}
+                disabled={!formData.date || !selectedTime}
                 onClick={() => {
                   setIsDateTimeComplete(true);
                   setCurrentStep(Step.ManualModeEmployeeSelection);
@@ -636,6 +636,12 @@ const TimeCalculationOvertimeDialog: React.FC<TimeCalculationOvertimeDialogProps
                 }}
                 onClick={() => {
                   setIsManualMode(true);
+                  // 自動設置當前時間為預設值
+                  const now = new Date();
+                  const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+                  setSelectedTime(timeString);
+                  setHasUserInteractedWithTime(true);
+                  handleTimeCalculation(timeString);
                 }}
               >
                 <CardContent sx={{ textAlign: 'center', py: 4 }}>
