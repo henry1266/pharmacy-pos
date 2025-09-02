@@ -363,6 +363,48 @@ FIFO功能的主要特點包括：
 
 在產品詳情頁面，用戶可以查看該產品的FIFO庫存分佈，了解每批庫存的進貨日期、數量和成本。這些信息對於庫存管理和定價決策非常有價值。
 
+### FIFO 模擬計算 API
+
+系統提供了強大的 FIFO 模擬計算 API，允許用戶根據健保碼和數量模擬計算出貨成本。這對於預估出貨成本、制定定價策略和進行財務規劃非常有用。
+
+#### 健保碼 FIFO 模擬計算 API
+
+**端點**: `/api/fifo/simulate-by-health-insurance/{healthInsuranceCode}/{quantity}`
+
+**方法**: GET
+
+**描述**: 根據健保碼和數量，使用 FIFO 邏輯計算出這個數量的成本並返回詳細結果。此 API 會考慮已經發生的銷售或出貨記錄，確保計算結果準確反映當前庫存狀況。
+
+**參數**:
+- `healthInsuranceCode` : 產品健保碼
+- `quantity` : 出貨數量
+
+**返回結果**:
+```json
+{
+  "success": true,
+  "productId": "產品ID",
+  "productName": "產品名稱",
+  "productCode": "產品代碼",
+  "healthInsuranceCode": "健保碼",
+  "quantity": 數量,
+  "inventoryStats": {
+    "purchaseQuantity": 進貨總數量,
+    "shippingQuantity": 出貨總數量,
+    "saleQuantity": 銷售總數量,
+    "currentStock": 當前庫存數量
+  },
+   "additionalCost": 額外數量的成本
+}
+```
+
+**使用範例**:
+```
+GET /api/fifo/simulate-by-health-insurance/AC48007100/28
+```
+
+此 API 會計算健保碼為 AC48007100 的產品出貨 28 個單位的 FIFO 成本。計算過程會考慮已經發生的出貨和銷售記錄，確保結果準確反映當前庫存狀況。
+
 ## 用戶角色與權限
 
 系統定義了以下用戶角色，具有不同的權限級別：

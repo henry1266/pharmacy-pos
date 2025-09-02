@@ -60,7 +60,7 @@ const options: swaggerJSDoc.Options = {
       {
         url: process.env.NODE_ENV === 'production'
           ? 'https://api.pharmacy-pos.com'
-          : 'http://localhost:5000',
+          : `http://192.168.68.90:${process.env.SERVER_PORT || process.env.PORT || 5000}`,
         description: process.env.NODE_ENV === 'production' ? '生產環境' : '開發環境'
       }
     ],

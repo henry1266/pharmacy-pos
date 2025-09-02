@@ -732,7 +732,7 @@ router.get('/simulate-by-health-insurance/:healthInsuranceCode/:quantity', async
     }
 
     // 計算庫存統計
-    const stats = calculateInventoryStats(inventories);
+    const inventoryStats = calculateInventoryStats(inventories);
     
     // 創建兩個獨立的模擬計算
     

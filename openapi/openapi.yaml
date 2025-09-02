@@ -11,7 +11,7 @@ info:
     identifier: ISC
 
 servers:
-  - url: http://localhost:5000
+  - url: http://192.168.68.90:5000
     description: 開發環境
   - url: https://api.pharmacy-pos.com
     description: 生產環境
