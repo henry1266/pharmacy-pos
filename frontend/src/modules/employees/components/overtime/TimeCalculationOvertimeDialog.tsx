@@ -304,7 +304,8 @@ const TimeCalculationOvertimeDialog: React.FC<TimeCalculationOvertimeDialogProps
                       evening: '晚班'
                     };
                     const shiftDisplayName = shiftNames[calculationResult.nearestShift as keyof typeof shiftNames] || calculationResult.nearestShift;
-                    const currentTime = new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
+                    const now = new Date();
+                    const currentTime = `${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
                     const descriptionText = `加班時間: ${selectedTime} (${shiftDisplayName}下班後加班 ${calculationResult.hours} 小時)\n填寫時間: ${currentTime}`;
                     
                     const descriptionSyntheticEvent = {
@@ -495,7 +496,8 @@ const TimeCalculationOvertimeDialog: React.FC<TimeCalculationOvertimeDialogProps
                       evening: '晚班'
                     };
                     const shiftDisplayName = shiftNames[calculationResult.nearestShift as keyof typeof shiftNames] || calculationResult.nearestShift;
-                    const currentTime = new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
+                    const now = new Date();
+                    const currentTime = `${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getDate().toString().padStart(2, '0')}/${now.getHours().toString().padStart(2, '0')}/${now.getMinutes().toString().padStart(2, '0')}`;
                     const descriptionText = `加班時間: ${selectedTime}\n填寫時間: ${currentTime} (${shiftDisplayName}下班後加班 ${calculationResult.hours} 小時)`;
                     
                     const descriptionSyntheticEvent = {
@@ -666,106 +668,7 @@ const TimeCalculationOvertimeDialog: React.FC<TimeCalculationOvertimeDialogProps
             </Box>
           </Box>
         )}
-        <Grid container spacing={2} sx={{ mt: 1 }}>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth error={!!formErrors.employeeId}>
-              <InputLabel id="employee-select-label">員工</InputLabel>
-              <Select
-                labelId="employee-select-label"
-                name="employeeId"
-                value={formData.employeeId}
-                onChange={onInputChange}
-                label="員工"
-                disabled={!!employeeId}
-              >
-                {employees && employees.length > 0 ? employees.map((employee) => (
-                  <MenuItem key={employee._id} value={employee._id}>
-                    {employee.name}
-                  </MenuItem>
-                )) : (
-                  <MenuItem value="" disabled>
-                    沒有可選擇的員工
-                  </MenuItem>
-                )}
-              </Select>
-              {formErrors.employeeId && (
-                <Typography color="error" variant="caption">
-                  {formErrors.employeeId}
-                </Typography>
-              )}
-            </FormControl>
-          </Grid>
-          
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="加班日期"
-              name="date"
-              type="date"
-              value={formData.date}
-              onChange={onInputChange}
-              fullWidth
-              disabled={!isManualMode}
-              InputLabelProps={{
-                shrink: true,
-              }}
-              error={!!formErrors.date}
-              helperText={formErrors.date}
-            />
-          </Grid>
-          
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="選擇時間"
-              value={selectedTime}
-              onChange={handleTimeChange}
-              onFocus={handleTimeFocus}
-              type="time"
-              fullWidth
-              disabled={!isManualMode}
-              InputLabelProps={{
-                shrink: true,
-              }}
-              inputProps={{
-                step: 60, // 1分鐘間隔
-              }}
-            />
-          </Grid>
-          
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="計算得出的加班時數"
-              name="hours"
-              value={formData.hours}
-              onChange={onInputChange}
-              fullWidth
-              type="number"
-              disabled={!isManualMode}
-              inputProps={{ min: 0, max: 24, step: 0.01 }}
-              error={!!formErrors.hours}
-              InputProps={{
-                endAdornment: <InputAdornment position="end">小時</InputAdornment>,
-              }}
-            />
-          </Grid>
-          
-          {/* 加班原因/說明 - 自動模式時顯示但不可編輯，手動模式且必填欄位都已填寫完整時可編輯 */}
-          <Grid item xs={12}>
-            <TextField
-              label="加班原因/說明"
-              name="description"
-              value={formData.description}
-              onChange={onInputChange}
-              fullWidth
-              multiline
-              rows={3}
-              disabled={!isManualMode || !areRequiredFieldsFilled}
-              placeholder={isManualMode ?
-                (areRequiredFieldsFilled ? "請描述加班原因或工作內容..." : "請先填寫上方所有必填欄位")
-                : "系統自動計算的加班說明"}
-              helperText={isManualMode && !areRequiredFieldsFilled ? "請先填寫員工、加班日期、選擇時間和加班時數" : ""}
-            />
-          </Grid>
-        </Grid>
+        {/* 舊的 UI 元素已移除 */}
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>關閉</Button>
