@@ -354,6 +354,187 @@
     }
   ],
   "paths": {
+    "/api/fifo/simulate-by-health-insurance/{healthInsuranceCode}/{quantity}": {
+      "get": {
+        "summary": "根據健保碼模擬FIFO成本計算",
+        "description": "根據健保碼和數量，使用FIFO邏輯計算出這個數量的成本並返回",
+        "tags": [
+          "FIFO"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "healthInsuranceCode",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "產品健保碼"
+          },
+          {
+            "in": "path",
+            "name": "quantity",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "數量"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功計算FIFO成本",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "summary": {
+                      "type": "object",
+                      "properties": {
+                        "totalCost": {
+                          "type": "number",
+                          "description": "總成本"
+                        },
+                        "totalRevenue": {
+                          "type": "number",
+                          "description": "總收入"
+                        },
+                        "totalProfit": {
+                          "type": "number",
+                          "description": "總毛利"
+                        },
+                        "averageProfitMargin": {
+                          "type": "string",
+                          "description": "平均毛利率"
+                        }
+                      }
+                    },
+                    "inventoryStats": {
+                      "type": "object",
+                      "description": "庫存統計信息",
+                      "properties": {
+                        "purchaseQuantity": {
+                          "type": "number",
+                          "description": "進貨總數量"
+                        },
+                        "shippingQuantity": {
+                          "type": "number",
+                          "description": "出貨總數量"
+                        },
+                        "saleQuantity": {
+                          "type": "number",
+                          "description": "銷售總數量"
+                        },
+                        "currentStock": {
+                          "type": "number",
+                          "description": "當前庫存數量"
+                        },
+                        "availableQuantity": {
+                          "type": "number",
+                          "description": "可用庫存數量（考慮已發生的出貨和銷售後）"
+                        }
+                      }
+                    },
+                    "fifoMatches": {
+                      "type": "array",
+                      "description": "FIFO匹配結果",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "profitMargins": {
+                      "type": "array",
+                      "description": "毛利率計算結果",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "costInfo": {
+                      "type": "object",
+                      "description": "成本計算信息",
+                      "properties": {
+                        "currentTotalCost": {
+                          "type": "number",
+                          "description": "當前已出貨數量的總成本"
+                        },
+                        "simulatedTotalCost": {
+                          "type": "number",
+                          "description": "當前已出貨數量+模擬數量的總成本"
+                        },
+                        "additionalCost": {
+                          "type": "number",
+                          "description": "額外數量的成本（simulatedTotalCost - currentTotalCost）"
+                        }
+                      }
+                    },
+                    "hasNegativeInventory": {
+                      "type": "boolean",
+                      "description": "是否有負庫存"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "請求參數錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "example": "請提供健保碼和數量"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "找不到產品或庫存記錄",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "example": "找不到該健保碼對應的產品"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "伺服器錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "example": "Server Error"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/products": {
       "get": {
         "summary": "獲取所有產品",

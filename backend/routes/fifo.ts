@@ -5,12 +5,20 @@ import Sale from '../models/Sale';
 import ShippingOrder from '../models/ShippingOrder';
 import { calculateProductFIFO, matchFIFOBatches, prepareInventoryForFIFO } from '../utils/fifoCalculator';
 import logger from '../utils/logger';
+const BaseProduct = require('../models/BaseProduct');
 
 const router: express.Router = express.Router();
 
 // 定義介面
 interface FIFOSimulationRequest {
   productId: string;
+  quantity: number;
+}
+
+// 使用 @ts-ignore 註釋來忽略未使用的介面
+// @ts-ignore
+interface FIFOHealthInsuranceSimulationRequest {
+  healthInsuranceCode: string;
   quantity: number;
 }
 
@@ -376,6 +384,44 @@ async function getProductInventories(productId: string): Promise<any[]> {
 }
 
 /**
+ * 計算產品庫存統計
+ * @param inventories - 庫存記錄
+ * @returns 庫存統計
+ */
+function calculateInventoryStats(inventories: any[]): {
+  purchaseQuantity: number;
+  shippingQuantity: number;
+  saleQuantity: number;
+  currentStock: number;
+} {
+  let purchaseQuantity = 0;
+  let shippingQuantity = 0;
+  let saleQuantity = 0;
+
+  inventories.forEach(inv => {
+    const quantity = Math.abs(inv.quantity);
+    
+    if (inv.type === 'purchase') {
+      purchaseQuantity += quantity;
+    } else if (inv.type === 'ship') {
+      shippingQuantity += quantity;
+    } else if (inv.type === 'sale') {
+      saleQuantity += quantity;
+    }
+  });
+
+  // 計算現有庫存
+  const currentStock = purchaseQuantity - shippingQuantity - saleQuantity;
+
+  return {
+    purchaseQuantity,
+    shippingQuantity,
+    saleQuantity,
+    currentStock
+  };
+}
+
+/**
  * 處理庫存記錄並計算可用庫存
  * @param allInventories - 所有庫存記錄
  * @returns 處理後的庫存資訊
@@ -512,6 +558,227 @@ router.post('/simulate', async (req: Request<{}, {}, FIFOSimulationRequest>, res
     });
   } catch (err: any) {
     logger.error(`FIFO模擬計算錯誤: ${err.message}`);
+    res.status(500).json({ msg: 'Server Error', error: err.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/fifo/simulate-by-health-insurance/{healthInsuranceCode}/{quantity}:
+ *   get:
+ *     summary: 根據健保碼模擬FIFO成本計算
+ *     description: 根據健保碼和數量，使用FIFO邏輯計算出這個數量的成本並返回
+ *     tags: [FIFO]
+ *     parameters:
+ *       - in: path
+ *         name: healthInsuranceCode
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: 產品健保碼
+ *       - in: path
+ *         name: quantity
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 數量
+ *     responses:
+ *       200:
+ *         description: 成功計算FIFO成本
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 summary:
+ *                   type: object
+ *                   properties:
+ *                     totalCost:
+ *                       type: number
+ *                       description: 總成本
+ *                     totalRevenue:
+ *                       type: number
+ *                       description: 總收入
+ *                     totalProfit:
+ *                       type: number
+ *                       description: 總毛利
+ *                     averageProfitMargin:
+ *                       type: string
+ *                       description: 平均毛利率
+ *                 inventoryStats:
+ *                   type: object
+ *                   description: 庫存統計信息
+ *                   properties:
+ *                     purchaseQuantity:
+ *                       type: number
+ *                       description: 進貨總數量
+ *                     shippingQuantity:
+ *                       type: number
+ *                       description: 出貨總數量
+ *                     saleQuantity:
+ *                       type: number
+ *                       description: 銷售總數量
+ *                     currentStock:
+ *                       type: number
+ *                       description: 當前庫存數量
+ *                     availableQuantity:
+ *                       type: number
+ *                       description: 可用庫存數量（考慮已發生的出貨和銷售後）
+ *                 fifoMatches:
+ *                   type: array
+ *                   description: FIFO匹配結果
+ *                   items:
+ *                     type: object
+ *                 profitMargins:
+ *                   type: array
+ *                   description: 毛利率計算結果
+ *                   items:
+ *                     type: object
+ *                 costInfo:
+ *                   type: object
+ *                   description: 成本計算信息
+ *                   properties:
+ *                     currentTotalCost:
+ *                       type: number
+ *                       description: 當前已出貨數量的總成本
+ *                     simulatedTotalCost:
+ *                       type: number
+ *                       description: 當前已出貨數量+模擬數量的總成本
+ *                     additionalCost:
+ *                       type: number
+ *                       description: 額外數量的成本（simulatedTotalCost - currentTotalCost）
+ *                 hasNegativeInventory:
+ *                   type: boolean
+ *                   description: 是否有負庫存
+ *       400:
+ *         description: 請求參數錯誤
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   example: 請提供健保碼和數量
+ *       404:
+ *         description: 找不到產品或庫存記錄
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   example: 找不到該健保碼對應的產品
+ *       500:
+ *         description: 伺服器錯誤
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   example: Server Error
+ *                 error:
+ *                   type: string
+ */
+router.get('/simulate-by-health-insurance/:healthInsuranceCode/:quantity', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { healthInsuranceCode, quantity } = req.params;
+    if (!healthInsuranceCode || !quantity) {
+      res.status(400).json({ msg: '請提供健保碼和數量' });
+      return;
+    }
+
+    // 根據健保碼查詢產品
+    const product = await BaseProduct.findOne({ healthInsuranceCode: healthInsuranceCode.trim() });
+    if (!product) {
+      res.status(404).json({ msg: '找不到該健保碼對應的產品' });
+      return;
+    }
+
+    const productId = product._id.toString();
+
+    // 檢查產品是否為「不扣庫存」
+    if (product.excludeFromStock) {
+      // 對於「不扣庫存」產品，返回空的 FIFO 結果
+      res.json({
+        success: true,
+        summary: {
+          totalCost: 0,
+          totalRevenue: 0,
+          totalProfit: 0,
+          averageProfitMargin: '0.00%'
+        },
+        profitMargins: [],
+        fifoMatches: [],
+        message: '此產品設定為「不扣庫存」，毛利以數量×(售價-進價)計算，不使用 FIFO 成本計算'
+      });
+      return;
+    }
+
+    // 獲取產品庫存記錄
+    const inventories = await Inventory.find({ product: new Types.ObjectId(productId) })
+      .populate('product')
+      .sort({ lastUpdated: 1 });
+    
+    if (inventories.length === 0) {
+      res.status(404).json({ msg: '找不到該產品的庫存記錄' });
+      return;
+    }
+
+    // 計算庫存統計
+    const stats = calculateInventoryStats(inventories);
+    
+    // 創建兩個獨立的模擬計算
+    
+    // 1. 只考慮當前已出貨的庫存記錄
+    const currentInventories = [...inventories];
+    
+    // 2. 考慮當前已出貨 + 模擬出貨的庫存記錄
+    const simulatedInventories = [...inventories];
+    
+    // 創建模擬出貨記錄
+    const simulatedStockOut = new Inventory({
+      _id: new Types.ObjectId(),
+      product: new Types.ObjectId(productId),
+      quantity: -parseInt(quantity),
+      type: 'ship',
+      lastUpdated: new Date(),
+      shippingOrderNumber: 'SIMULATED-SHIPPING',
+      shippingOrderId: new Types.ObjectId()
+    });
+    
+    // 只將模擬出貨記錄添加到模擬庫存中
+    simulatedInventories.push(simulatedStockOut);
+    
+    // 計算當前FIFO成本
+    const currentFifoResult = calculateProductFIFO(currentInventories);
+    
+    // 計算模擬FIFO成本
+    const simulatedFifoResult = calculateProductFIFO(simulatedInventories);
+    
+    // 計算差異
+    const currentTotalCost = currentFifoResult.summary?.totalCost || 0;
+    const simulatedTotalCost = simulatedFifoResult.summary?.totalCost || 0;
+    const additionalCost = simulatedTotalCost - currentTotalCost;
+
+    // 返回結果，格式與 /api/fifo/product/:productId 一致，但添加了庫存統計和成本信息
+    res.json({
+      success: true,
+      productId,
+      productName: product.name,
+      productCode: product.code,
+      healthInsuranceCode,
+      quantity: parseInt(quantity),
+      additionalCost
+    });
+  } catch (err: any) {
+    logger.error(`FIFO健保碼模擬計算錯誤: ${err.message}`);
     res.status(500).json({ msg: 'Server Error', error: err.message });
   }
 });
