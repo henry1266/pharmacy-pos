@@ -6,8 +6,8 @@ import ProductsPage from './pages/ProductsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import ProductEditPage from './pages/ProductEditPage';
 import PackagesPage from './pages/PackagesPage';
-import SuppliersPage from './pages/SuppliersPage';
-import SupplierDetailPage from './pages/SupplierDetailPage';
+import SuppliersPage from './modules/Supplier/pages/SuppliersPage';
+import SupplierDetailPage from './modules/Supplier/pages/SupplierDetailPage';
 import CustomersPage from './pages/CustomersPage';
 import CustomerDetailPage from './pages/CustomerDetailPage';
 // 銷售管理頁面元件
