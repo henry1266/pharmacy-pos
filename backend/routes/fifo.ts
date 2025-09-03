@@ -58,7 +58,35 @@ router.get('/product/:productId', async (req: Request, res: Response): Promise<v
       .populate('product')
       .sort({ lastUpdated: 1 });
     
+    // 如果沒有庫存記錄，先查詢產品信息
     if (inventories.length === 0) {
+      // 查詢產品信息
+      const product = await BaseProduct.findById(req.params.productId);
+      
+      if (!product) {
+        res.status(404).json({ msg: '找不到該產品' });
+        return;
+      }
+      
+      // 檢查產品是否為「不扣庫存」
+      if (product.excludeFromStock) {
+        // 對於「不扣庫存」產品，返回空的 FIFO 結果
+        res.json({
+          success: true,
+          summary: {
+            totalCost: 0,
+            totalRevenue: 0,
+            totalProfit: 0,
+            averageProfitMargin: '0.00%'
+          },
+          profitMargins: [],
+          fifoMatches: [],
+          message: '此產品設定為「不扣庫存」，毛利以數量×(售價-進價)計算，不使用 FIFO 成本計算'
+        });
+        return;
+      }
+      
+      // 如果不是不扣庫存產品，則返回沒有庫存記錄的提示
       res.status(404).json({ msg: '找不到該產品的庫存記錄' });
       return;
     }
@@ -67,7 +95,6 @@ router.get('/product/:productId', async (req: Request, res: Response): Promise<v
     const product = (inventories[0] as any).product;
     
     if (product.excludeFromStock) {
-      
       // 對於「不扣庫存」產品，返回空的 FIFO 結果
       res.json({
         success: true,
@@ -256,6 +283,35 @@ router.get('/shipping-order/:shippingOrderId', async (req: Request, res: Respons
             profitMargin: '0.00%'
           }
         });
+        continue;
+      }
+
+      // 檢查是否為「不扣庫存」產品
+      const isExcludeFromStock = item.product?.excludeFromStock === true;
+      
+      if (isExcludeFromStock) {
+        // 對於「不扣庫存」產品，直接計算毛利，不使用 FIFO
+        const purchasePrice = item.product.purchasePrice || 0;
+        const sellingPrice = item.price || item.product.sellingPrice || 0;
+        const quantity = item.quantity || 0;
+        
+        const itemTotalCost = purchasePrice * quantity;
+        const itemRevenue = sellingPrice * quantity;
+        const itemTotalProfit = itemRevenue - itemTotalCost;
+        
+        const itemProfit = {
+          ...item.toObject(),
+          fifoProfit: {
+            totalCost: itemTotalCost,
+            grossProfit: itemTotalProfit,
+            profitMargin: itemRevenue > 0 ? ((itemTotalProfit / itemRevenue) * 100).toFixed(2) + '%' : '0.00%'
+          }
+        };
+        
+        itemsWithProfit.push(itemProfit);
+        totalProfit += itemTotalProfit;
+        totalCost += itemTotalCost;
+        
         continue;
       }
 

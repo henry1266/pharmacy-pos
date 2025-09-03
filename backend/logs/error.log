@@ -158,3 +158,5 @@
 {"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mFIFO健保碼模擬計算錯誤: calculateProfitMargins is not defined\u001b[39m","timestamp":"2025-09-02 14:48:22:4822"}
 {"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mFIFO健保碼模擬計算錯誤: calculateProfitMargins is not defined\u001b[39m","timestamp":"2025-09-02 14:53:16:5316"}
 {"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mFIFO健保碼模擬計算錯誤: calculateProfitMargins is not defined\u001b[39m","timestamp":"2025-09-02 15:27:52:2752"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31m更新庫存時出錯: medicine validation failed: category: Cast to ObjectId failed for value \"\" (type string) at path \"category\" because of \"BSONError\"\u001b[39m","timestamp":"2025-09-03 07:56:05:565"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31m更新庫存時出錯: product validation failed: category: Cast to ObjectId failed for value \"口罩\" (type string) at path \"category\" because of \"BSONError\"\u001b[39m","timestamp":"2025-09-03 08:12:53:1253"}
