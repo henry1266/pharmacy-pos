@@ -12,9 +12,10 @@ import {
 } from '@mui/material';
 // 單獨引入 Grid 組件
 import Grid from '@mui/material/Grid';
-import { Add as AddIcon, BarChart as BarChartIcon } from '@mui/icons-material';
+import { Add as AddIcon, BarChart as BarChartIcon, Summarize as SummaryIcon } from '@mui/icons-material';
 import PriceTooltip from '../form-widgets/PriceTooltip';
 import ChartModal from '../products/ChartModal';
+import ProductSummaryDisplay from '../products/ProductSummaryDisplay';
 import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
 import PropTypes from 'prop-types';
 import { Product } from '@pharmacy-pos/shared/types/entities';
@@ -486,12 +487,12 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
         {/* 藥品選擇表單 */}
         <Grid item xs={12}>
           <Paper elevation={0} sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: 2 }}>
-            <Grid container spacing={2} alignItems="center">
-              {/* 第一行：藥品選擇、批號輸入和圖表按鈕 */}
-              <Grid item xs={12}>
+            <Grid container spacing={2}>
+              {/* 左側：藥品選擇和數量輸入 */}
+              <Grid item xs={12} md={7}>
                 <Grid container spacing={2} alignItems="center">
                   {/* 藥品選擇下拉框 */}
-                  <Grid item xs={12} md={6}>
+                  <Grid item xs={12}>
                     <Box sx={{
                       display: 'flex',
                       alignItems: 'center',
@@ -504,8 +505,8 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
                           getOptionLabel={(option) => {
                             const code = option.code ?? 'N/A';
                             const name = option.name;
-                            const healthCode = (option as any).healthInsuranceCode ? ` [健保:${(option as any).healthInsuranceCode}]` : '';
-                            const barcode = (option as any).barcode ? ` [條碼:${(option as any).barcode}]` : '';
+                            const healthCode = (option as any).healthInsuranceCode ? ` [${(option as any).healthInsuranceCode}]` : '';
+                            const barcode = (option as any).barcode ? ` [${(option as any).barcode}]` : '';
                             return `${code} - ${name}${healthCode}${barcode}`;
                           }}
                           value={products?.find(p => p._id === currentItem.product) ?? null}
@@ -561,77 +562,60 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
                       </IconButton>
                     </Box>
                   </Grid>
-                  
-                  {/* 批號輸入 */}
-                  <Grid item xs={12} md={3}>
-                    <TextField
-                      fullWidth
-                      label="批號 (選填)"
-                      name="batchNumber"
-                      value={currentItem.batchNumber || ''}
-                      onChange={handleItemInputChange}
-                      size="small"
-                      placeholder="請輸入批號"
-                    />
-                  </Grid>
-                </Grid>
-              </Grid>
 
-              {/* 第二行：數量、總成本和新增按鈕 */}
-              <Grid item xs={12}>
-                <Grid container spacing={2} alignItems="flex-start">
-                  {/* 總數量和大包裝提示 */}
-                  <Grid item xs={12} md={2.5}>
-                    <Box sx={{ width: '100%' }}>
-                      <TextField
-                        fullWidth
-                        label={inputMode === 'base' ? "總數量" : "大包裝數量"}
-                        name="dquantity"
-                        type="number"
-                        value={displayInputQuantity}
-                        onChange={handleMainQuantityChange}
-                        onFocus={handleFocus}
-                        onKeyDown={handleQuantityKeyDown}
-                        inputProps={{ min: "0", step: "1" }}
-                        disabled={mainQuantityDisabled}
-                        size="small"
-                        sx={{
-                          '& .MuiInputLabel-root': {
-                            color: inputMode === 'package' ? 'primary.main' : 'inherit',
-                            fontWeight: inputMode === 'package' ? 'bold' : 'normal',
-                          },
-                          '& .MuiOutlinedInput-root': {
-                            '& fieldset': {
-                              borderColor: inputMode === 'package' ? 'primary.main' : 'inherit',
-                              borderWidth: inputMode === 'package' ? 2 : 1,
-                            },
-                          },
-                        }}
-                      />
+                  {/* 數量和批號輸入 */}
+                  <Grid item xs={12}>
+                    <Grid container spacing={2} alignItems="flex-start">
+                      {/* 總數量和大包裝提示 */}
+                      <Grid item xs={3}>
+                        <Box sx={{ width: '100%' }}>
+                          <TextField
+                            fullWidth
+                            label={inputMode === 'base' ? "總數量" : "大包裝數量"}
+                            name="dquantity"
+                            type="number"
+                            value={displayInputQuantity}
+                            onChange={handleMainQuantityChange}
+                            onFocus={handleFocus}
+                            onKeyDown={handleQuantityKeyDown}
+                            inputProps={{ min: "0", step: "1" }}
+                            disabled={mainQuantityDisabled}
+                            size="small"
+                            sx={{
+                              '& .MuiInputLabel-root': {
+                                color: inputMode === 'package' ? 'primary.main' : 'inherit',
+                                fontWeight: inputMode === 'package' ? 'bold' : 'normal',
+                              },
+                              '& .MuiOutlinedInput-root': {
+                                '& fieldset': {
+                                  borderColor: inputMode === 'package' ? 'primary.main' : 'inherit',
+                                  borderWidth: inputMode === 'package' ? 2 : 1,
+                                },
+                              },
+                            }}
+                          />
+                          
+                          {/* 基礎單位總數顯示 */}
+                          <Box sx={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            mt: 0.5,
+                            px: 0.5
+                          }}>
+                            <Typography variant="caption" color="text.secondary">
+                              基礎單位總數: <strong>{actualTotalQuantity}</strong>
+                            </Typography>
+                            
+                          </Box>
+                        </Box>
                       
-                      {/* 基礎單位總數顯示 */}
-                      <Box sx={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        mt: 0.5,
-                        px: 0.5
-                      }}>
-                        <Typography variant="caption" color="text.secondary">
-                          基礎單位總數: <strong>{actualTotalQuantity}</strong>
-                        </Typography>
-                        
-                        {/* 切換提示 */}
-                        {selectedProduct?.packageUnits && selectedProduct.packageUnits.length > 0 && (
-                          <Typography variant="caption" color="primary.main" sx={{ fontWeight: 'bold' }}>
-                            按Enter切換
-                          </Typography>
-                        )}
-                      </Box>
-                    </Box>
-                  </Grid>
+                                            
+                      
+                      </Grid>
 
-                  {/* 大包裝提示 - 只在有包裝單位時顯示 */}
-              {selectedProduct?.packageUnits && selectedProduct.packageUnits.length > 0 && (
+                     {/* 大包裝提示 */}
+                      <Grid item xs={1}>
+{selectedProduct?.packageUnits && selectedProduct.packageUnits.length > 0 && (
                 <Grid item xs={12} md={1}>
                   <Box sx={{
                     p: 1,
@@ -656,41 +640,97 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
                   </Box>
                 </Grid>
               )}
-                  
-                  {/* 總成本 */}
-                  <Grid item xs={12} md={6}>
-                    <Grid container spacing={2} alignItems="center">
-                      <Grid item xs={8}>
-                        <PriceTooltip
-                          currentItem={{...currentItem, dquantity: dQuantityValue}}
-                          handleItemInputChange={handleItemInputChange}
-                          getProductPurchasePrice={getProductPurchasePrice}
-                          calculateTotalCost={calculateTotalCost}
-                          isInventorySufficient={isInventorySufficient}
-                          handleAddItem={handleAddItemWithReset}
+                      
+                      </Grid>
+                      {/* 總成本 */}
+                      <Grid item xs={4}>
+                            <PriceTooltip
+                              currentItem={{...currentItem, dquantity: dQuantityValue}}
+                              handleItemInputChange={handleItemInputChange}
+                              getProductPurchasePrice={getProductPurchasePrice}
+                              calculateTotalCost={calculateTotalCost}
+                              isInventorySufficient={isInventorySufficient}
+                              handleAddItem={handleAddItemWithReset}
+                            />
+                      </Grid>
+                       {/* 批號輸入 */}
+                      <Grid item xs={2.5}>
+                        <TextField
+                          fullWidth
+                          label="批號 (選填)"
+                          name="batchNumber"
+                          value={currentItem.batchNumber || ''}
+                          onChange={handleItemInputChange}
+                          size="small"
+                          placeholder="請輸入批號"
                         />
                       </Grid>
-                      
                       {/* 新增按鈕 */}
-                      <Grid item xs={3}>
-                        <Button
-                          variant="contained"
-                          onClick={handleAddItemWithReset}
-                          fullWidth
-                          size="small"
-                          sx={{
-                            height: '36px',
-                            minHeight: '36px',
-                            minWidth: '36px',
-                            borderRadius: 1
-                          }}
-                        >
-                          <AddIcon fontSize="small" />
-                        </Button>
-                      </Grid>
+                          <Grid item xs={1}>
+                            <Button
+                              variant="contained"
+                              onClick={handleAddItemWithReset}
+                              fullWidth
+                              size="small"
+                              sx={{
+                                height: '36px',
+                                minHeight: '36px',
+                                minWidth: '36px',
+                                borderRadius: 1
+                              }}
+                            >
+                              <AddIcon fontSize="small" />
+                            </Button>
+                          </Grid>
                     </Grid>
                   </Grid>
                 </Grid>
+              </Grid>
+
+              {/* 中央分隔線 */}
+              <Grid item xs={12} md={0.2} sx={{
+                display: { xs: 'none', md: 'flex' },
+                justifyContent: 'center'
+              }}>
+                <Box sx={{
+                  height: '100%',
+                  width: '1px',
+                  bgcolor: 'divider',
+                  mx: 1
+                }} />
+              </Grid>
+
+              {/* 右側：產品筆記顯示 */}
+              <Grid item xs={12} md={4.8}>
+                <Box sx={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}>
+                  
+                  <Box sx={{
+                    flex: 1,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: 1,
+                    p: 1,
+                    minHeight: '120px',
+                    overflow: 'auto'
+                  }}>
+                    {selectedProduct ? (
+                      <ProductSummaryDisplay
+                        productId={selectedProduct._id}
+                        variant="detailed"
+                        expandable={true}
+                        clickable={true}
+                      />
+                    ) : (
+                      <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', textAlign: 'center', mt: 3 }}>
+                        請先選擇產品以顯示筆記
+                      </Typography>
+                    )}
+                  </Box>
+                </Box>
               </Grid>
             </Grid>
           </Paper>

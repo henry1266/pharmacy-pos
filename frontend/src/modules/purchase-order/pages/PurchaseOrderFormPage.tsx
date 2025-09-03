@@ -713,7 +713,7 @@ const PurchaseOrderFormPage: React.FC = () => {
       <form onSubmit={handleSubmit} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         <Grid container spacing={2} sx={{ flex: 1, minHeight: 0 }}>
           {/* 左側：基本資訊 */}
-          <Grid item xs={12} md={3} sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Grid item xs={12} md={2.5} sx={{ display: 'flex', flexDirection: 'column' }}>
             <BasicInfoForm
               formData={formData}
               handleInputChange={handleFormInputChange}
@@ -730,7 +730,7 @@ const PurchaseOrderFormPage: React.FC = () => {
           </Grid>
 
           {/* 右側：藥品項目 */}
-          <Grid item xs={12} md={9} sx={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+          <Grid item xs={12} md={9.5} sx={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
             <Card sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
               <CardContent sx={{ pb: 1, flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
                 <Typography variant="h6" sx={{ mb: 1 }}>藥品項目</Typography>
