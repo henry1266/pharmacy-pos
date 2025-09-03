@@ -332,6 +332,21 @@ export const AmountRenderer: FC<{ value: number }> = ({ value }) => (
   <span>{value ? formatAmount(value) : ''}</span>
 );
 
+// 日期時間格式化渲染器
+export const DateTimeRenderer: FC<{ value: string | Date }> = ({ value }) => {
+  if (!value) return <span>-</span>;
+  
+  const date = value instanceof Date ? value : new Date(value);
+  
+  // 檢查日期是否有效
+  if (isNaN(date.getTime())) return <span>-</span>;
+  
+  // 格式化日期時間：YYYY-MM-DD HH:MM
+  const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+  
+  return <span>{formattedDate}</span>;
+};
+
 // PropTypes 驗證
 EditableRow.propTypes = {
   item: PropTypes.object.isRequired,
@@ -416,4 +431,11 @@ PaymentStatusChipRenderer.propTypes = {
 
 AmountRenderer.propTypes = {
   value: PropTypes.number.isRequired
+} as any;
+
+DateTimeRenderer.propTypes = {
+  value: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.instanceOf(Date)
+  ])
 } as any;

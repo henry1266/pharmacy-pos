@@ -40,6 +40,7 @@ interface FilteredRow {
   totalProfit?: number;
   status: string;
   paymentStatus: string;
+  updatedAt?: string | Date;
 }
 
 /**
@@ -229,7 +230,8 @@ const useShippingOrdersData = (): ShippingOrdersDataResult => {
               totalCost: totalCost,
               totalProfit: totalProfit,
               status: so.status ?? '',
-              paymentStatus: so.paymentStatus ?? ''
+              paymentStatus: so.paymentStatus ?? '',
+              updatedAt: so.updatedAt ?? new Date()
             };
           });
           
@@ -257,7 +259,8 @@ const useShippingOrdersData = (): ShippingOrdersDataResult => {
               totalCost: 0,
               totalProfit: 0,
               status: so.status ?? '',
-              paymentStatus: so.paymentStatus ?? ''
+              paymentStatus: so.paymentStatus ?? '',
+              updatedAt: so.updatedAt ?? new Date()
             };
           });
           

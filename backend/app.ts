@@ -77,7 +77,7 @@ export function createApp(): Application {
   app.use(cors({
     origin: '*', // 允許所有來源，或者指定允許的域名，如 ['http://example.com', 'https://example.com']
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // 允許的 HTTP 方法
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'x-api-key'], // 允許的請求頭
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'x-api-key', 'x-auth-token'], // 允許的請求頭
     exposedHeaders: ['Content-Range', 'X-Total-Count'], // 允許瀏覽器訪問的響應頭
     credentials: true, // 允許發送身份憑證（cookies, authorization headers）
     maxAge: 86400 // 預檢請求的結果可以被快取多久（秒）

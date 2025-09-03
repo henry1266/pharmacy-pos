@@ -8,6 +8,7 @@ import {
   StatusChipRenderer,
   PaymentStatusChipRenderer,
   AmountRenderer,
+  DateTimeRenderer,
   getLocalizedPaginationText,
   TABLE_LOCALE_TEXT,
   SHIPPING_ORDER_COLUMNS
@@ -49,6 +50,10 @@ const ShippingOrdersTable: FC<ShippingOrdersTableProps> = ({
     {
       ...SHIPPING_ORDER_COLUMNS.paymentStatus,
       renderCell: (params: GridRenderCellParams) => <PaymentStatusChipRenderer status={params.value} />
+    },
+    {
+      ...SHIPPING_ORDER_COLUMNS.updatedAt,
+      renderCell: (params: GridRenderCellParams) => <DateTimeRenderer value={params.value} />
     },
     {
       ...SHIPPING_ORDER_COLUMNS.actions,

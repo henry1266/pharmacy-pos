@@ -107,5 +107,6 @@ export const SHIPPING_ORDER_COLUMNS = createColumnConfig([
   { key: 'totalAmount', field: 'totalAmount', headerName: '總金額', flex: 1 },
   { key: 'status', field: 'status', headerName: '狀態', flex: 1 },
   { key: 'paymentStatus', field: 'paymentStatus', headerName: '付款狀態', flex: 1 },
+  { key: 'updatedAt', field: 'updatedAt', headerName: '更新時間', flex: 1 },
   { key: 'actions', field: 'actions', headerName: '操作', flex: 1, sortable: false, filterable: false }
 ]);
