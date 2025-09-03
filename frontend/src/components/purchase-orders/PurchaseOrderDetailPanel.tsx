@@ -23,6 +23,7 @@ import {
 } from '@mui/icons-material';
 import StatusChip from '../common/StatusChip';
 import PaymentStatusChip from '../common/PaymentStatusChip';
+import ProductCodeLink from '../common/ProductCodeLink';
 import { format } from 'date-fns';
 
 // 引入進貨單項目類型
@@ -167,11 +168,28 @@ const PurchaseOrderDetailPanel: FC<PurchaseOrderDetailPanelProps> = ({
                         : parseFloat(item.dtotalCost || '0').toLocaleString()}
                     </Typography>
                   </Box>
-                  <Typography variant="caption" color="text.secondary">
-                    {typeof item.dquantity === 'number'
-                      ? item.dquantity
-                      : parseFloat(item.dquantity || '0')} 件
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ mr: 1 }}>
+                      編號: <Typography
+                              component="span"
+                              variant="caption"
+                              color="primary"
+                              sx={{
+                                textDecoration: 'underline',
+                                cursor: 'pointer',
+                                '&:hover': { color: 'primary.dark' }
+                              }}
+                              onClick={() => window.open(`/products?code=${item.did}`, '_blank')}
+                            >
+                              {item.did}
+                            </Typography>
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {typeof item.dquantity === 'number'
+                        ? item.dquantity
+                        : parseFloat(item.dquantity || '0')} 件
+                    </Typography>
+                  </Box>
                 </ListItem>
               ))}
               {selectedPurchaseOrder.items.length > 3 && (

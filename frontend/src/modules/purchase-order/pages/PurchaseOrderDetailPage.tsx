@@ -20,7 +20,8 @@ import {
   Snackbar,
   Alert,
   CircularProgress,
-  IconButton
+  IconButton,
+  Link as MuiLink
 } from '@mui/material';
 import {
   Receipt as ReceiptIcon,
@@ -522,7 +523,31 @@ const PurchaseOrderDetailPage: React.FC = () => {
         return params.api.getRowIndex(params.row.id) + 1;
       }
     },
-    { field: 'did', headerName: '編號', flex: 0.9 },
+    {
+      field: 'did',
+      headerName: '編號',
+      flex: 0.9,
+      renderCell: (params: any) => {
+        const productCode = params.value;
+        const product = productDetails[productCode];
+        
+        // 使用 MUI Link 組件
+        return (
+          <Typography
+            component={Link}
+            to={`/products${product?._id ? `/${product._id}` : `?code=${productCode}`}`}
+            variant="body2"
+            sx={{
+              textDecoration: 'underline',
+              color: 'primary.main',
+              '&:hover': { color: 'primary.dark' }
+            }}
+          >
+            {productCode}
+          </Typography>
+        );
+      }
+    },
     {
       field: 'healthInsuranceCode',
       headerName: '健保代碼',

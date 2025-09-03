@@ -76,7 +76,7 @@ const PurchaseOrderPreview: FC<PurchaseOrderPreviewProps> = ({ purchaseOrder, lo
     <Card sx={{ width: 550, maxHeight: 600, overflow: 'auto' }}>
       <CardContent sx={{ p: 2 }}>
         <Typography variant="h6" gutterBottom>
-          進貨單詳情
+          進貨單詳情12345
         </Typography>
 
         <TableContainer component={Paper} variant="outlined" sx={{ mb: 1 }}>

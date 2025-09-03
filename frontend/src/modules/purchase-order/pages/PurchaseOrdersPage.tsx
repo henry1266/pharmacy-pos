@@ -7,7 +7,6 @@ import React, { FC } from 'react';
 import {
   Box,
   Typography,
-  Tooltip,
   Snackbar,
   Alert,
   CircularProgress,
