@@ -122,70 +122,70 @@ const QuantityInput: FC<QuantityInputProps> = ({
 
   return (
     <Box sx={{ width: '100%' }}>
-      <TextField
-        fullWidth
-        label={inputMode === 'base' ? "總數量" : "大包裝數量"}
-        name="dquantity"
-        type="number"
-        value={displayInputQuantity}
-        onChange={handleMainQuantityChange}
-        {...(onFocus ? { onFocus } : {})}
-        onKeyDown={handleQuantityKeyDown}
-        inputProps={{ min: "0", step: "1" }}
-        disabled={disabled}
-        size="small"
-        sx={{
-          '& .MuiInputLabel-root': {
-            color: inputMode === 'package' ? 'primary.main' : 'inherit',
-            fontWeight: inputMode === 'package' ? 'bold' : 'normal',
-          },
-          '& .MuiOutlinedInput-root': {
-            '& fieldset': {
-              borderColor: inputMode === 'package' ? 'primary.main' : 'inherit',
-              borderWidth: inputMode === 'package' ? 2 : 1,
-            },
-          },
-        }}
-      />
-      
-      {/* 基礎單位總數顯示 */}
-      <Box sx={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        mt: 0.5,
-        px: 0.5
-      }}>
-        <Typography variant="caption" color="text.secondary">
-          基礎單位總數: <strong>{actualTotalQuantity}</strong>
-        </Typography>
-      </Box>
-
-      {/* 大包裝提示 */}
-      {selectedProduct?.packageUnits && (selectedProduct.packageUnits as ProductPackageUnit[]).length > 0 && (
-        <Grid item xs={12}>
+      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+        <Box sx={{ flex: 1 }}>
+          <TextField
+            fullWidth
+            label={inputMode === 'base' ? "總數量" : "大包裝數量"}
+            name="dquantity"
+            type="number"
+            value={displayInputQuantity}
+            onChange={handleMainQuantityChange}
+            {...(onFocus ? { onFocus } : {})}
+            onKeyDown={handleQuantityKeyDown}
+            inputProps={{ min: "0", step: "1" }}
+            disabled={disabled}
+            size="small"
+            sx={{
+              '& .MuiInputLabel-root': {
+                color: inputMode === 'package' ? 'primary.main' : 'inherit',
+                fontWeight: inputMode === 'package' ? 'bold' : 'normal',
+              },
+              '& .MuiOutlinedInput-root': {
+                '& fieldset': {
+                  borderColor: inputMode === 'package' ? 'primary.main' : 'inherit',
+                  borderWidth: inputMode === 'package' ? 2 : 1,
+                },
+              },
+            }}
+          />
+          
+          {/* 基礎單位總數顯示 */}
           <Box sx={{
-            p: 1,
-            mt: 1,
             display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: 1
+            justifyContent: 'space-between',
+            mt: 0.5,
+            px: 0.5
           }}>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-              {(selectedProduct.packageUnits as ProductPackageUnit[]).map((unit, index) => (
-                <Chip
-                  key={index}
-                  label={`${unit.unitName}: ${unit.unitValue} ${selectedProduct.unit}`}
-                  size="small"
-                  variant="outlined"
-                  color={inputMode === 'package' && index === 0 ? "primary" : "default"}
-                />
-              ))}
-            </Box>
+            <Typography variant="caption" color="text.secondary">
+              單位總數: <strong>{actualTotalQuantity}</strong>
+            </Typography>
           </Box>
-        </Grid>
-      )}
+        </Box>
+
+        {/* 大包裝提示 - 顯示在右側 */}
+        {selectedProduct?.packageUnits && (selectedProduct.packageUnits as ProductPackageUnit[]).length > 0 && (
+          <Box sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            justifyContent: 'center',
+            flexWrap: 'wrap',
+            gap: 0.5,
+            mt: 0.5
+          }}>
+            {(selectedProduct.packageUnits as ProductPackageUnit[]).map((unit, index) => (
+              <Chip
+                key={index}
+                label={`${unit.unitName}: ${unit.unitValue} ${selectedProduct.unit}`}
+                size="small"
+                variant="outlined"
+                color={inputMode === 'package' && index === 0 ? "primary" : "default"}
+              />
+            ))}
+          </Box>
+        )}
+      </Box>
     </Box>
   );
 };

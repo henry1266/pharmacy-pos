@@ -87,7 +87,7 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
                   <Grid item xs={12}>
                     <Grid container spacing={2} alignItems="flex-start">
                       {/* 總數量和大包裝提示 */}
-                      <Grid item xs={3}>
+                      <Grid item xs={4}>
                         <QuantityInput
                           value={dQuantityValue}
                           onChange={handleItemInputChange}
