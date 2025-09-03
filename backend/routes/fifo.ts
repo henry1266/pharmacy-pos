@@ -332,8 +332,10 @@ router.get('/shipping-order/:shippingOrderId', async (req: Request, res: Respons
       }
       
       const fifoResult = calculateProductFIFO(inventories);
+      
+      // 查找與此出貨單相關的毛利記錄，包括 ship 和 ship-no-stock 類型
       const profitRecord = fifoResult.profitMargins?.find((p: any) =>
-        (p.orderType === 'shipping' || p.orderType === 'ship') &&
+        (p.orderType === 'shipping' || p.orderType === 'ship' || p.type === 'ship-no-stock') &&
         p.orderId === req.params.shippingOrderId
       );
       

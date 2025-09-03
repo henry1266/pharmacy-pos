@@ -767,7 +767,8 @@ async function createShippingInventoryRecords(shippingOrder: ShippingOrderDocume
 
         const productDoc = product as any;
         if (productDoc.excludeFromStock === true) {
-          logger.debug(`產品 ${item.dname} (${item.did}) 設定為不扣庫存，跳過庫存記錄創建`);
+          logger.debug(`產品 ${item.dname} (${item.did}) 設定為不扣庫存，創建特殊庫存記錄`);
+          await createNoStockShippingRecord(item, shippingOrder, productDoc);
           continue;
         }
       } catch (err) {
@@ -807,12 +808,48 @@ async function createShippingInventoryRecords(shippingOrder: ShippingOrderDocume
   }
 }
 
-// 刪除與出貨單相關的ship類型庫存記錄
+// 為「不扣庫存」產品創建特殊的出貨記錄
+async function createNoStockShippingRecord(item: ShippingOrderItem, shippingOrder: ShippingOrderDocument, product: any): Promise<void> {
+  try {
+    // 計算單價（售價）
+    const unitPrice = item.dtotalCost ? item.dtotalCost / item.dquantity : 0;
+    
+    // 獲取產品的進價（成本價）
+    const costPrice = product.purchasePrice || 0;
+    
+    // 計算毛利：數量 × (售價 - 進價)
+    const grossProfit = item.dquantity * (unitPrice - costPrice);
+    
+    // 創建特殊的庫存記錄，用於毛利計算
+    const inventoryRecord = new Inventory({
+      product: item.product,
+      quantity: item.dquantity, // 保持實際出貨數量，不扣庫存的邏輯在 FIFO 計算時處理
+      totalAmount: Number(item.dtotalCost), // 出貨總額
+      shippingOrderNumber: shippingOrder.orderNumber,
+      type: 'ship-no-stock', // 特殊類型標記
+      shippingOrderId: shippingOrder._id,
+      lastUpdated: new Date(),
+      // 添加毛利計算相關欄位
+      costPrice: costPrice,
+      unitPrice: unitPrice,
+      grossProfit: grossProfit
+    });
+    
+    await inventoryRecord.save();
+    logger.debug(`為不扣庫存產品 ${product.name ?? '未知'} 創建毛利記錄，數量: ${item.dquantity}, 售價: ${unitPrice}, 進價: ${costPrice}, 毛利: ${grossProfit}`);
+  } catch (err) {
+    logger.error(`創建不扣庫存產品的毛利記錄時出錯: ${(err as Error).message}`);
+  }
+}
+
 // 刪除與出貨單相關的ship類型庫存記錄
 async function deleteShippingInventoryRecords(shippingOrderId?: Types.ObjectId): Promise<any> {
   try {
-    const result = await Inventory.deleteMany({ shippingOrderId: shippingOrderId, type: 'ship' });
-    logger.info(`已刪除 ${result.deletedCount} 筆與出貨單 ${shippingOrderId} 相關的ship類型庫存記錄`);
+    const result = await Inventory.deleteMany({
+      shippingOrderId: shippingOrderId,
+      type: { $in: ['ship', 'ship-no-stock'] }
+    });
+    logger.info(`已刪除 ${result.deletedCount} 筆與出貨單 ${shippingOrderId} 相關的庫存記錄（包括 ship 和 ship-no-stock 類型）`);
     return result;
   } catch (err) {
     logger.error(`刪除ship類型庫存記錄時出錯: ${(err as Error).message}`);

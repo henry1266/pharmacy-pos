@@ -79,7 +79,7 @@ export interface InventoryRecord {
   product: Types.ObjectId;
   quantity: number;
   totalAmount?: number;
-  type: 'purchase' | 'sale' | 'ship' | 'return' | 'adjustment' | 'sale-no-stock';
+  type: 'purchase' | 'sale' | 'ship' | 'return' | 'adjustment' | 'sale-no-stock' | 'ship-no-stock';
   lastUpdated?: Date;
   purchaseOrderNumber?: string;
   purchaseOrderId?: Types.ObjectId;
@@ -409,10 +409,10 @@ export const prepareInventoryForFIFO = (inventories: InventoryRecord[]): Prepare
       };
       
       stockOut.push(saleRecord);
-    } else if (inv.type === 'sale-no-stock') {
-      // 「不扣庫存」產品的銷售記錄，不加入 stockOut，因為不需要 FIFO 匹配
+    } else if (inv.type === 'sale-no-stock' || inv.type === 'ship-no-stock') {
+      // 「不扣庫存」產品的銷售或出貨記錄，不加入 stockOut，因為不需要 FIFO 匹配
       // 毛利已經在庫存記錄中預先計算好了
-      console.log(`跳過不扣庫存產品的 FIFO 處理: ${drug_id}, 預計算毛利: ${inv.grossProfit || 0}`);
+      console.log(`跳過不扣庫存產品的 FIFO 處理: ${drug_id}, 類型: ${inv.type}, 預計算毛利: ${inv.grossProfit || 0}`);
     } else if (inv.type === 'ship') {
       const shipRecord: StockOutRecord = {
         timestamp,
@@ -494,24 +494,41 @@ export const calculateProductFIFO = (inventories: InventoryRecord[]): FIFOCalcul
     
     // 處理「不扣庫存」產品的毛利
     const noStockProfits = inventories
-      .filter(inv => inv.type === 'sale-no-stock')
-      .map(inv => ({
-        drug_id: inv.product.toString(),
-        saleTime: inv.lastUpdated || new Date(),
-        totalQuantity: Math.abs(inv.quantity || 0),
-        totalCost: (inv.costPrice || 0) * Math.abs(inv.quantity || 0),
-        totalRevenue: inv.totalAmount || 0,
-        grossProfit: inv.grossProfit || 0,
-        profitMargin: inv.totalAmount && inv.totalAmount > 0
-          ? ((inv.grossProfit || 0) / inv.totalAmount * 100).toFixed(2) + '%'
-          : '0.00%',
-        costBreakdown: [] as CostPart[],
-        orderNumber: inv.saleNumber || '未知訂單',
-        orderId: inv.saleId ? inv.saleId.toString() : null,
-        orderType: 'sale' as const,
-        hasNegativeInventory: false,
-        isNoStockSale: true // 標記為不扣庫存銷售
-      }));
+      .filter(inv => inv.type === 'sale-no-stock' || inv.type === 'ship-no-stock')
+      .map(inv => {
+        // 根據類型決定訂單號和ID
+        let orderNumber = '未知訂單';
+        let orderId = null;
+        let orderType: 'sale' | 'shipping' = 'sale';
+        
+        if (inv.type === 'sale-no-stock') {
+          orderNumber = inv.saleNumber || '未知訂單';
+          orderId = inv.saleId ? inv.saleId.toString() : null;
+          orderType = 'sale';
+        } else if (inv.type === 'ship-no-stock') {
+          orderNumber = inv.shippingOrderNumber || '未知訂單';
+          orderId = inv.shippingOrderId ? inv.shippingOrderId.toString() : null;
+          orderType = 'shipping';
+        }
+        
+        return {
+          drug_id: inv.product.toString(),
+          saleTime: inv.lastUpdated || new Date(),
+          totalQuantity: Math.abs(inv.quantity || 0),
+          totalCost: (inv.costPrice || 0) * Math.abs(inv.quantity || 0),
+          totalRevenue: inv.totalAmount || 0,
+          grossProfit: inv.grossProfit || 0,
+          profitMargin: inv.totalAmount && inv.totalAmount > 0
+            ? ((inv.grossProfit || 0) / inv.totalAmount * 100).toFixed(2) + '%'
+            : '0.00%',
+          costBreakdown: [] as CostPart[],
+          orderNumber,
+          orderId,
+          orderType,
+          hasNegativeInventory: false,
+          isNoStockSale: true // 標記為不扣庫存銷售/出貨
+        };
+      });
 
     // 如果沒有出貨記錄，但有不扣庫存的銷售，返回不扣庫存的毛利
     if (stockOut.length === 0) {
