@@ -59,7 +59,7 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
     products
   });
 
-  const dQuantityValue = currentItem.dquantity ?? '';
+  const dQuantityValue = String(currentItem.dquantity ?? '');
   const mainQuantityDisabled = false; // 簡化邏輯，因為不再有舊的大包裝輸入欄位
 
   return (
@@ -89,7 +89,7 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
                       {/* 總數量和大包裝提示 */}
                       <Grid item xs={3}>
                         <QuantityInput
-                          value={displayInputQuantity}
+                          value={dQuantityValue}
                           onChange={handleItemInputChange}
                           selectedProduct={selectedProduct}
                           disabled={mainQuantityDisabled}

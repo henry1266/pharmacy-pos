@@ -1,4 +1,4 @@
-import React, { FC, useState, ChangeEvent } from 'react';
+import React, { FC, useState, useEffect, ChangeEvent } from 'react';
 import {
   TextField,
   Box,
@@ -34,6 +34,16 @@ const QuantityInput: FC<QuantityInputProps> = ({
   // 添加狀態來存儲實際的總數量（基礎單位的數量）和顯示的數量
   const [actualTotalQuantity, setActualTotalQuantity] = useState<number>(0);
   const [displayInputQuantity, setDisplayInputQuantity] = useState<string>(value);
+
+  // 當 value 變化時更新 displayInputQuantity
+  useEffect(() => {
+    setDisplayInputQuantity(value);
+    // 如果 value 為空，也重置實際總數量和輸入模式
+    if (value === '') {
+      setActualTotalQuantity(0);
+      setInputMode('base');
+    }
+  }, [value]);
 
   /**
    * 處理主要數量輸入變更

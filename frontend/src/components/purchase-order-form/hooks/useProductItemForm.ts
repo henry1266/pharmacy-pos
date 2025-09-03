@@ -39,6 +39,16 @@ export const useProductItemForm = ({
     setSelectedProduct(products?.find(p => p._id === currentItem.product) ?? null);
   }, [currentItem.product, products]);
 
+  // 當 currentItem.dquantity 變化時更新 displayInputQuantity
+  useEffect(() => {
+    // 如果 currentItem.dquantity 為空，則清空 displayInputQuantity
+    if (currentItem.dquantity === '' || currentItem.dquantity === undefined || currentItem.dquantity === null) {
+      setDisplayInputQuantity('');
+      setActualTotalQuantity(0);
+      setInputMode('base');
+    }
+  }, [currentItem.dquantity]);
+
   /**
    * 處理輸入框獲取焦點
    */
