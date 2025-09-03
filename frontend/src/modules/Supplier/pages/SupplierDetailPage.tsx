@@ -18,7 +18,7 @@ import {
 } from '@mui/icons-material';
 import PageHeaderSection from '../../../components/common/PageHeaderSection';
 
-import SupplierInfoCard from '../../../components/suppliers/SupplierInfoCard';
+import SupplierInfoCard from '../components/SupplierInfoCard';
 import TwoColumnLayout from '../../../components/common/TwoColumnLayout';
 
 // 定義 API 回應格式
