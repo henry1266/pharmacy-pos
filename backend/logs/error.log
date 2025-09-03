@@ -162,3 +162,4 @@
 {"level":"\u001b[31merror\u001b[39m","message":"\u001b[31m更新庫存時出錯: product validation failed: category: Cast to ObjectId failed for value \"口罩\" (type string) at path \"category\" because of \"BSONError\"\u001b[39m","timestamp":"2025-09-03 08:12:53:1253"}
 {"level":"\u001b[31merror\u001b[39m","message":"\u001b[31m創建不扣庫存產品的毛利記錄時出錯: inventory validation failed: type: `ship-no-stock` is not a valid enum value for path `type`.\u001b[39m","timestamp":"2025-09-03 09:19:52:1952"}
 {"level":"\u001b[31merror\u001b[39m","message":"\u001b[31m創建不扣庫存產品的毛利記錄時出錯: inventory validation failed: type: `ship-no-stock` is not a valid enum value for path `type`.\u001b[39m","timestamp":"2025-09-03 09:20:26:2026"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31m更新庫存時出錯: medicine validation failed: category: Cast to ObjectId failed for value \"\" (type string) at path \"category\" because of \"BSONError\"\u001b[39m","timestamp":"2025-09-04 00:51:14:5114"}

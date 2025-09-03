@@ -441,43 +441,6 @@ async function getProductInventories(productId: string): Promise<any[]> {
     .sort({ lastUpdated: 1 });
 }
 
-/**
- * 計算產品庫存統計
- * @param inventories - 庫存記錄
- * @returns 庫存統計
- */
-function calculateInventoryStats(inventories: any[]): {
-  purchaseQuantity: number;
-  shippingQuantity: number;
-  saleQuantity: number;
-  currentStock: number;
-} {
-  let purchaseQuantity = 0;
-  let shippingQuantity = 0;
-  let saleQuantity = 0;
-
-  inventories.forEach(inv => {
-    const quantity = Math.abs(inv.quantity);
-    
-    if (inv.type === 'purchase') {
-      purchaseQuantity += quantity;
-    } else if (inv.type === 'ship') {
-      shippingQuantity += quantity;
-    } else if (inv.type === 'sale') {
-      saleQuantity += quantity;
-    }
-  });
-
-  // 計算現有庫存
-  const currentStock = purchaseQuantity - shippingQuantity - saleQuantity;
-
-  return {
-    purchaseQuantity,
-    shippingQuantity,
-    saleQuantity,
-    currentStock
-  };
-}
 
 /**
  * 處理庫存記錄並計算可用庫存
@@ -789,9 +752,6 @@ router.get('/simulate-by-health-insurance/:healthInsuranceCode/:quantity', async
       return;
     }
 
-    // 計算庫存統計
-    const inventoryStats = calculateInventoryStats(inventories);
-    
     // 創建兩個獨立的模擬計算
     
     // 1. 只考慮當前已出貨的庫存記錄
