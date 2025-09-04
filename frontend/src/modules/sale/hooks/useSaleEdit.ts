@@ -87,7 +87,8 @@ export const useSaleEdit = (saleId: string, products: Product[]) => {
   // 初始化銷售數據
   useEffect(() => {
     if (initialSaleData) {
-      setCurrentSale(initialSaleData);
+      // 創建一個深拷貝，確保 currentSale 是可變的
+      setCurrentSale(JSON.parse(JSON.stringify(initialSaleData)));
       // 初始化輸入模式，預設為單價模式
       setInputModes(new Array(initialSaleData.items.length).fill('price'));
       
