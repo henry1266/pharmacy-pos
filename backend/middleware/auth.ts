@@ -72,11 +72,11 @@ const auth = (req: AuthenticatedRequest, res: Response, next: NextFunction): voi
 
   try {
     // 驗證 JWT token
-    console.log("Verifying JWT token...");
+    //console.log("Verifying JWT token...");
     const decoded = jwt.verify(token, config.get("jwtSecret")) as any;
     
     // Log decoded token information (excluding sensitive parts)
-    console.log("JWT token verified successfully. User ID:", decoded.user?.id);
+    //console.log("JWT token verified successfully. User ID:", decoded.user?.id);
     
     if (!decoded.user?.id) {
       console.error("Token payload missing user ID");

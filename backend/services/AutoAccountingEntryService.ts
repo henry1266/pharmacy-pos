@@ -137,15 +137,15 @@ export class AutoAccountingEntryService {
   ): { debitAccount: IAccount2 | null; creditAccount: IAccount2 | null } {
     
     // 詳細記錄所有科目資訊
-    logger.debug(`分析會計科目:`, {
-      count: accounts.length,
-      accounts: accounts.map((account, index) => ({
-        index: index + 1,
-        name: account.name,
-        type: account.accountType,
-        id: (account._id as mongoose.Types.ObjectId).toString()
-      }))
-    });
+    //logger.debug(`分析會計科目:`, {
+      //count: accounts.length,
+      //accounts: accounts.map((account, index) => ({
+        //index: index + 1,
+        //name: account.name,
+        //type: account.accountType,
+        //id: (account._id as mongoose.Types.ObjectId).toString()
+      //}))
+    //});
     
     if (entryType === 'expense-asset') {
       // 支出-資產格式：支出科目(借方) + 資產科目(貸方)
@@ -184,10 +184,10 @@ export class AutoAccountingEntryService {
       const assetAccount = accounts.find(account => account.accountType === 'asset');
       const liabilityAccount = accounts.find(account => account.accountType === 'liability');
       
-      logger.debug(`資產-負債格式:`, {
-        debitAccount: assetAccount?.name,
-        creditAccount: liabilityAccount?.name
-      });
+      //logger.debug(`資產-負債格式:`, {
+        //debitAccount: assetAccount?.name,
+        //creditAccount: liabilityAccount?.name
+      //});
       return {
         debitAccount: assetAccount || null,
         creditAccount: liabilityAccount || null
@@ -364,25 +364,25 @@ export class AutoAccountingEntryService {
     // 嚴格根據科目組合判斷，不使用預設值
     // 如果有 asset + liability，使用 asset-liability 格式
     if (hasAsset && hasLiability && !hasExpense) {
-      logger.debug(`判斷為資產-負債格式: 資產科目 + 負債科目`);
+      //logger.debug(`判斷為資產-負債格式: 資產科目 + 負債科目`);
       return 'asset-liability';
     }
     
     // 如果有 expense + asset，使用 expense-asset 格式
     if (hasExpense && hasAsset) {
-      logger.debug(`判斷為支出-資產格式: 支出科目 + 資產科目`);
+      //logger.debug(`判斷為支出-資產格式: 支出科目 + 資產科目`);
       return 'expense-asset';
     }
     
     // 如果只有 asset + liability（即使有其他科目類型），優先使用 asset-liability
     if (hasAsset && hasLiability) {
-      logger.debug(`判斷為資產-負債格式: 包含資產科目 + 負債科目`);
+      //logger.debug(`判斷為資產-負債格式: 包含資產科目 + 負債科目`);
       return 'asset-liability';
     }
     
     // 如果只有 expense 相關科目，使用 expense-asset 格式
     if (hasExpense) {
-      logger.debug(`判斷為支出-資產格式: 包含支出科目`);
+      //logger.debug(`判斷為支出-資產格式: 包含支出科目`);
       return 'expense-asset';
     }
     

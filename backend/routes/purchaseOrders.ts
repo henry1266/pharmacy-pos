@@ -113,8 +113,8 @@ router.get('/:id', async (req: Request, res: Response) => {
     
     // 確保批號欄位被正確序列化
     const serializedPurchaseOrder = purchaseOrder.toObject();
-    logger.debug('後端序列化後的進貨單資料:', JSON.stringify(serializedPurchaseOrder, null, 2));
-    logger.debug('第一個項目的批號:', serializedPurchaseOrder.items?.[0]?.batchNumber);
+    //logger.debug('後端序列化後的進貨單資料:', JSON.stringify(serializedPurchaseOrder, null, 2));
+    //logger.debug('第一個項目的批號:', serializedPurchaseOrder.items?.[0]?.batchNumber);
     
     const response: ApiResponse<any> = {
       success: true,

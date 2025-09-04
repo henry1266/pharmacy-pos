@@ -102,7 +102,7 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
                       {/* 總成本 */}
                       <Grid item xs={4}>
                         <PriceTooltip
-                          currentItem={{...currentItem, dquantity: dQuantityValue}}
+                          currentItem={{...currentItem, dquantity: actualTotalQuantity.toString()}}
                           handleItemInputChange={handleItemInputChange}
                           getProductPurchasePrice={getProductPurchasePrice}
                           calculateTotalCost={calculateTotalCost}
