@@ -23,7 +23,7 @@ import {
   ArrowDownward as ArrowDownwardIcon,
   Check as CheckIcon,
   Close as CloseIcon,
-  Visibility as VisibilityIcon,
+  OpenInNew as OpenInNewIcon,
   CloudUpload as CloudUploadIcon,
   Lock as LockIcon,
   AccountBalance as AccountBalanceIcon,
@@ -266,8 +266,6 @@ export const ActionButtons: FC<ActionButtonsProps> = ({
   onView,
   onEdit,
   onDelete,
-  onPreviewMouseEnter,
-  onPreviewMouseLeave,
   isDeleteDisabled = false,
   status,
   onUnlock,
@@ -301,11 +299,9 @@ export const ActionButtons: FC<ActionButtonsProps> = ({
       <IconButton
         size="small"
         onClick={onView}
-        onMouseEnter={onPreviewMouseEnter}
-        onMouseLeave={onPreviewMouseLeave}
         sx={{ '&:hover': { backgroundColor: COMMON_STYLES.hoverBackground } }}
       >
-        <VisibilityIcon fontSize="small" />
+        <OpenInNewIcon fontSize="small" />
       </IconButton>
       
       {/* 付款狀態指示器 - 顯示 $ 符號表示已付款 */}

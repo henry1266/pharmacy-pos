@@ -246,6 +246,10 @@ const PurchaseOrdersTable: FC<PurchaseOrdersTableProps> = ({
             autoHeight
             getRowId={(row) => row.id}
             getRowClassName={(params) => `row-${params.indexRelativeToCurrentPage}`}
+            onRowDoubleClick={(params) => {
+              // 使用與查看按鈕相同的行為（VisibilityIcon）
+              handleView(params.row._id);
+            }}
             sx={{
               // 基本樣式
               '& .MuiDataGrid-main': {

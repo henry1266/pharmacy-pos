@@ -119,8 +119,8 @@ export interface ActionButtonsProps extends AccountingEntryProps {
   onView: () => void;
   onEdit: () => void;
   onDelete: () => void;
-  onPreviewMouseEnter: (e: MouseEvent) => void;
-  onPreviewMouseLeave: () => void;
+  onPreviewMouseEnter?: (e: MouseEvent) => void;
+  onPreviewMouseLeave?: () => void;
   isDeleteDisabled?: boolean;
   status?: string;
   onUnlock?: () => void;

@@ -19,7 +19,9 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Receipt as ReceiptIcon,
-  AccountBalance as AccountBalanceIcon
+  AccountBalance as AccountBalanceIcon,
+  Link as LinkIcon,
+  Lock as LockIcon
 } from '@mui/icons-material';
 import StatusChip from '../common/StatusChip';
 import PaymentStatusChip from '../common/PaymentStatusChip';
@@ -67,29 +69,31 @@ const PurchaseOrderDetailPanel: FC<PurchaseOrderDetailPanelProps> = ({
   return (
     <Card elevation={2} sx={{ borderRadius: '0.5rem', height: '100%' }}>
       <CardHeader
-        avatar={<Avatar sx={{ bgcolor: 'primary.main' }}>{selectedPurchaseOrder.poid.charAt(0) || 'P'}</Avatar>}
-        title={<Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>進貨單 {selectedPurchaseOrder.poid}</Typography>}
+
         action={
           <Box>
-            <Tooltip title="編輯">
-              <IconButton color="primary" onClick={() => onEdit(selectedPurchaseOrder._id)} size="small"><EditIcon /></IconButton>
-            </Tooltip>
-            <Tooltip title="刪除">
-              <IconButton
-                color="error"
-                onClick={() => onDelete(selectedPurchaseOrder)}
-                size="small"
-                disabled={selectedPurchaseOrder.status === 'completed'}
-              >
-                <DeleteIcon />
-              </IconButton>
-            </Tooltip>
+            {selectedPurchaseOrder.status !== 'completed' && (
+              <Tooltip title="編輯">
+                <IconButton color="primary" onClick={() => onEdit(selectedPurchaseOrder._id)} size="medium"><EditIcon /></IconButton>
+              </Tooltip>
+            )}
+            {selectedPurchaseOrder.status !== 'completed' && (
+              <Tooltip title="刪除">
+                <IconButton
+                  color="error"
+                  onClick={() => onDelete(selectedPurchaseOrder)}
+                  size="medium"
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Tooltip>
+            )}
             {selectedPurchaseOrder.relatedTransactionGroupId && onViewAccountingEntry && (
               <Tooltip title="查看會計分錄">
                 <IconButton
                   color="secondary"
                   onClick={() => onViewAccountingEntry(selectedPurchaseOrder.relatedTransactionGroupId!)}
-                  size="small"
+                  size="medium"
                 >
                   <ReceiptIcon />
                 </IconButton>
@@ -101,6 +105,7 @@ const PurchaseOrderDetailPanel: FC<PurchaseOrderDetailPanelProps> = ({
       />
       <Divider />
       <CardContent sx={{ py: 1 }}>
+        {<Typography component="div" sx={{ fontWeight: 600 }}>進貨單 {selectedPurchaseOrder.poid}</Typography>}
         <List dense sx={{ py: 0 }}>
           {/* 供應商和日期左右排列 */}
           <ListItem sx={{ py: 0.5 }}>
@@ -225,18 +230,20 @@ const PurchaseOrderDetailPanel: FC<PurchaseOrderDetailPanelProps> = ({
         )}
 
         <Divider sx={{ my: 1.5 }} />
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
-          <Button
-            onClick={() => onEdit(selectedPurchaseOrder._id)}
-            variant="contained"
-            color="primary"
-            size="small"
-            startIcon={<EditIcon />}
-            sx={{ textTransform: 'none' }}
-          >
-            編輯進貨單
-          </Button>
-        </Box>
+        {selectedPurchaseOrder.status !== 'completed' && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
+            <Button
+              onClick={() => onEdit(selectedPurchaseOrder._id)}
+              variant="contained"
+              color="primary"
+              size="small"
+              startIcon={<EditIcon />}
+              sx={{ textTransform: 'none' }}
+            >
+              編輯進貨單
+            </Button>
+          </Box>
+        )}
       </CardContent>
     </Card>
   );
