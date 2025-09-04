@@ -5,7 +5,7 @@
 
 import React, { FC } from 'react';
 import { Popover } from '@mui/material';
-import SalesPreview from '@/components/sales/SalesPreview';
+import SalesPreview from '../SalesPreview';
 import { Sale } from '../../types/list';
 
 interface SalesPreviewPopoverProps {

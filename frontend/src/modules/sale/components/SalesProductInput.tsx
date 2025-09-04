@@ -13,7 +13,7 @@ import {
   Add as AddIcon,
   StickyNote2 as NoteIcon
 } from '@mui/icons-material';
-import ProductNotePopover from '../products/ProductNotePopover';
+import ProductNotePopover from '../../../components/products/ProductNotePopover';
 import { Package } from '@pharmacy-pos/shared/types/package';
 import { Product, Medicine } from '@pharmacy-pos/shared/types/entities';
 
@@ -70,11 +70,11 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
   const isProcessingRef = useRef<boolean>(false);
   const lastSelectedItemRef = useRef<string | null>(null);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   // 筆記彈窗狀態
   const [notePopoverAnchor, setNotePopoverAnchor] = useState<HTMLElement | null>(null);
   const [selectedProductForNote, setSelectedProductForNote] = useState<ProductOrMedicine | null>(null);
-  
+
   // 記錄用戶當前選擇的項目索引
   const [selectedItemIndex, setSelectedItemIndex] = useState<number>(-1);
 
@@ -88,7 +88,7 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
   const debouncedSearch = useCallback((searchValue: string) => {
     if (searchValue.trim() !== '') {
       const searchTerm = searchValue.trim().toLowerCase();
-      
+
       // 搜尋產品
       const productResults = products.filter(product =>
         product.name?.toLowerCase().includes(searchTerm) ||
@@ -207,7 +207,7 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
                    ('healthInsuranceCode' in item && String(item.healthInsuranceCode) === barcode.trim());
           }
         });
-        
+
         if (exactMatch) {
           if (isPackage(exactMatch)) {
             if (onSelectPackage) {
@@ -223,7 +223,7 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
           const selectedItem = selectedItemIndex >= 0 && selectedItemIndex < filteredItems.length
             ? filteredItems[selectedItemIndex]
             : filteredItems[0]; // 如果沒有選擇，則使用第一個項目
-          
+
           if (selectedItem) {
             if (isPackage(selectedItem)) {
               if (onSelectPackage) {
@@ -249,12 +249,12 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
                String(p.shortCode) === barcode.trim() ||
                ('healthInsuranceCode' in p && String(p.healthInsuranceCode) === barcode.trim())
         );
-        
+
         const packageItem = packages.find(
-          pkg => String(pkg.code) === barcode.trim() || 
+          pkg => String(pkg.code) === barcode.trim() ||
                  String(pkg.shortCode) === barcode.trim()
         );
-        
+
         if (product) {
           onSelectProduct(product);
         } else if (packageItem) {
@@ -421,27 +421,27 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
             if (!newValue || typeof newValue === 'string') {
               return;
             }
-            
+
             // 防止重複觸發的嚴格檢查
             if (isProcessingRef.current) {
               console.log('onChange blocked - already processing');
               return;
             }
-            
+
             const itemId = newValue._id;
-            
+
             // 檢查是否是重複選擇同一個項目
             if (lastSelectedItemRef.current === itemId) {
               console.log('onChange blocked - same item already selected:', itemId);
               return;
             }
-            
+
             // 立即設置處理標誌和記錄選擇的項目
             isProcessingRef.current = true;
             lastSelectedItemRef.current = itemId || null;
-            
+
             console.log('Processing selection:', newValue.name, 'ID:', itemId);
-            
+
             try {
               // 立即處理選擇，不使用 setTimeout
               if (isPackage(newValue)) {
@@ -453,11 +453,11 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
               } else {
                 onSelectProduct(newValue);
               }
-              
+
               // 選擇商品後立即清空所有狀態
               setBarcode('');
               setFilteredItems([]);
-              
+
               // 重新聚焦到輸入框
               if (barcodeInputRef.current) {
                 barcodeInputRef.current.focus();
@@ -492,7 +492,7 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
-                    
+
                     // 執行提交邏輯，會選擇用戶當前選擇的項目
                     handleBarcodeSubmit();
                   } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {

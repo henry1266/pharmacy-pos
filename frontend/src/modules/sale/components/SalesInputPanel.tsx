@@ -6,9 +6,9 @@
 import React, { FC, RefObject } from 'react';
 import { Box, Paper, Grid as MuiGrid, Button } from '@mui/material';
 import { Save as SaveIcon } from '@mui/icons-material';
-import SalesProductInput from '@/components/sales/SalesProductInput';
-import SalesItemsTable from '@/components/sales/SalesItemsTable';
-import SaleInfoCard from '@/components/sales/SaleInfoCard';
+import SalesProductInput from './SalesProductInput';
+import SalesItemsTable from './SalesItemsTable';
+import SaleInfoCard from './SaleInfoCard';
 import { Product, Customer } from '@pharmacy-pos/shared/types/entities';
 
 // 直接使用 MuiGrid

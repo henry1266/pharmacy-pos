@@ -1,5 +1,5 @@
 import React from 'react';
-import ItemPreview from '../common/preview/ItemPreview';
+import ItemPreview from '../../../components/common/preview/ItemPreview';
 import { Customer } from '@pharmacy-pos/shared/types/entities';
 
 // 定義銷售項目的型別
@@ -58,7 +58,7 @@ const SalesPreview: React.FC<SalesPreviewProps> = ({ sale, loading, error }) => 
 
   // 計算總計的函數
   const getTotal = (data: ExtendedSale): number => {
-    return data.totalAmount || 
+    return data.totalAmount ||
       (data.items?.reduce((sum, item) => sum + (item.amount || (item.price * item.quantity) || 0), 0) || 0);
   };
 
@@ -88,24 +88,24 @@ const SalesPreview: React.FC<SalesPreviewProps> = ({ sale, loading, error }) => 
   // 自定義備註內容
   const getNotes = (data: ExtendedSale): string => {
     if (!data) return '';
-    
+
     let notes = data.notes || '';
-    
+
     // 添加客戶信息
     if (data.customer && typeof data.customer === 'object' && 'name' in data.customer) {
       notes = `客戶: ${data.customer.name}\n${notes ? notes + '\n' : ''}`;
     }
-    
+
     // 添加付款信息
     if (data.paymentMethod || data.paymentStatus) {
       const paymentInfo = [
         data.paymentMethod ? `付款方式: ${getPaymentMethodText(data.paymentMethod)}` : '',
         data.paymentStatus ? `付款狀態: ${getPaymentStatusText(data.paymentStatus)}` : ''
       ].filter(Boolean).join(' | ');
-      
+
       notes = `${notes ? notes + '\n' : ''}${paymentInfo}`;
     }
-    
+
     return notes;
   };
 

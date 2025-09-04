@@ -35,8 +35,8 @@ import {
 } from '@mui/material';
 import MDEditor from '@uiw/react-md-editor';
 import axios from 'axios';
-import { prepareMarkdownForDisplay, prepareMarkdownForDisplaySync } from '../../utils/markdownUtils';
-import '../../styles/force-light-theme.css';
+import { prepareMarkdownForDisplay, prepareMarkdownForDisplaySync } from '../../../utils/markdownUtils';
+import '../../../styles/force-light-theme.css';
 
 // 定義銷售項目的型別
 interface SalesItem {
@@ -77,7 +77,7 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const tableContainerRef = useRef<HTMLDivElement>(null);
-  
+
   // 筆記對話框狀態
   const [selectedProductForNote, setSelectedProductForNote] = useState<string | null>(null);
   const [noteData, setNoteData] = useState<{ summary: string; description: string } | null>(null);
@@ -90,7 +90,7 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
     event.stopPropagation();
     setSelectedProductForNote(productId);
     setNoteLoading(true);
-    
+
     try {
       const response = await axios.get(`/api/products/${productId}/description`);
       if (response.data.success) {
@@ -268,9 +268,9 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
                 {!isMobile && <TableCell align="right" sx={{ px: 1 }}>{item.code}</TableCell>}
                 <TableCell align="right" sx={{ px: 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}> {/* Centered content */}
-                    <IconButton 
-                      size="small" 
-                      onClick={() => onQuantityChange(index, Number(item.quantity) - 1)} 
+                    <IconButton
+                      size="small"
+                      onClick={() => onQuantityChange(index, Number(item.quantity) - 1)}
                       disabled={Number(item.quantity) <= 1}
                     >
                       <RemoveIcon fontSize="inherit" />
@@ -324,8 +324,8 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
                       sx={{ width: '80px', mx: 0.5, "& input": { textAlign: "center" } }} // Increased width
                       inputProps={{ min: 1, style: { textAlign: 'center' } }}
                     />
-                    <IconButton 
-                      size="small" 
+                    <IconButton
+                      size="small"
                       onClick={() => onQuantityChange(index, Number(item.quantity) + 1)}
                     >
                       <AddIcon fontSize="inherit" />
@@ -355,10 +355,10 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
                         inputProps={{ min: 0, step: "1" }}
                       />
                     )}
-                    <IconButton 
-                      size="small" 
-                      onClick={() => onToggleInputMode(index)} 
-                      sx={{ ml: 0.5 }} 
+                    <IconButton
+                      size="small"
+                      onClick={() => onToggleInputMode(index)}
+                      sx={{ ml: 0.5 }}
                       title={inputModes[index] === 'price' ? "切換為輸入小計" : "切換為輸入單價"}
                     >
                       <SyncAltIcon fontSize="inherit" />
@@ -376,7 +376,7 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
         </TableBody>
       </Table>
     </TableContainer>
-    
+
     {/* 固定在底部的總計欄位 */}
     <Paper sx={{
       mt: {
@@ -483,7 +483,7 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
           <CloseIcon />
         </IconButton>
       </DialogTitle>
-      
+
       <DialogContent sx={{ pt: 1 }}>
         {noteLoading ? (
           <Box sx={{
@@ -615,7 +615,7 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
           </>
         ) : null}
       </DialogContent>
-      
+
       <DialogActions>
         <Button
           onClick={handleEditNote}
