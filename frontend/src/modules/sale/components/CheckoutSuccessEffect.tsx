@@ -31,7 +31,7 @@ const CheckoutSuccessEffect: React.FC<CheckoutSuccessEffectProps> = ({
   useEffect(() => {
     if (show) {
       setStage('appearing');
-      
+
       // 階段性動畫時序
       const timer1: NodeJS.Timeout = setTimeout(() => setStage('celebrating'), 400);
       const timer2: NodeJS.Timeout = setTimeout(() => setStage('fading'), 800);
@@ -46,7 +46,7 @@ const CheckoutSuccessEffect: React.FC<CheckoutSuccessEffectProps> = ({
         clearTimeout(timer3);
       };
     }
-    
+
     // 如果 show 為 false，返回空的清理函數
     return () => {};
   }, [show, onComplete]);
@@ -65,8 +65,8 @@ const CheckoutSuccessEffect: React.FC<CheckoutSuccessEffectProps> = ({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: stage === 'fading' 
-          ? 'rgba(0, 0, 0, 0)' 
+        background: stage === 'fading'
+          ? 'rgba(0, 0, 0, 0)'
           : 'rgba(0, 0, 0, 0.8)',
         transition: 'background 0.5s ease-out',
         pointerEvents: stage === 'fading' ? 'none' : 'all'
@@ -307,7 +307,7 @@ const CheckoutSuccessEffect: React.FC<CheckoutSuccessEffectProps> = ({
               fontStyle: 'italic'
             }}
           >
-            
+
           </Typography>
         </Box>
       </Fade>

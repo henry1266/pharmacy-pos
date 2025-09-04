@@ -28,9 +28,9 @@ import useSalesListData from '@/hooks/useSalesListData';
 import usePackageData from '@/hooks/usePackageData';
 
 // Import sub-components
-import CustomProductsDialog from '@/components/sales/CustomProductsDialog';
+import CustomProductsDialog from '../components/CustomProductsDialog';
 import DailySalesPanel from '@/modules/dashboard/components/DailySalesPanel';
-import CheckoutSuccessEffect from '@/components/sales/CheckoutSuccessEffect';
+import CheckoutSuccessEffect from '../components/CheckoutSuccessEffect';
 
 // Import module components
 import ShortcutButtonSection from '../components/ShortcutButtonSection';

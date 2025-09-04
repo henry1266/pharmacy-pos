@@ -17,7 +17,7 @@ import {
   Search as SearchIcon,
   Close as CloseIcon
 } from '@mui/icons-material';
-import useInventoryData from '../../hooks/useInventoryData';
+import useInventoryData from '../../../hooks/useInventoryData';
 import { Product } from '@pharmacy-pos/shared/types/entities';
 import { Package } from '@pharmacy-pos/shared/types/package';
 
@@ -70,7 +70,7 @@ const CustomProductsDialog: React.FC<CustomProductsDialogProps> = ({
       productsInShortcut = productIdsToShow
         .map(id => allProducts.find(p => p?._id === id))
         .filter((product): product is Product => product !== undefined);
-      
+
       // Filter by search term if applicable
       if (searchTerm.trim() !== '') {
         const lowerCaseSearchTerm = searchTerm.toLowerCase();
@@ -104,7 +104,7 @@ const CustomProductsDialog: React.FC<CustomProductsDialogProps> = ({
       packagesInShortcut = packageIdsToShow
         .map(id => allPackages.find(pkg => getItemId(pkg) === id))
         .filter((packageItem): packageItem is Package => packageItem !== undefined);
-      
+
       // Filter by search term if applicable
       if (searchTerm.trim() !== '') {
         const lowerCaseSearchTerm = searchTerm.toLowerCase();
@@ -234,7 +234,7 @@ const CustomProductsDialog: React.FC<CustomProductsDialogProps> = ({
                   </Paper>
                 </Grid>
               ))}
-              
+
               {/* 顯示產品 */}
               {displayProducts.map((product) => (
                 <Grid item xs={12} sm={6} md={4} lg={3} key={`product-${product?._id}`} {...({} as any)}>
