@@ -31,7 +31,7 @@ import {
   KeyboardArrowUp as ArrowUpIcon,
   KeyboardArrowDown as ArrowDownIcon
 } from '@mui/icons-material';
-import useUserSettings, { type UserShortcut } from '../../hooks/useUserSettings';
+import useUserSettings, { type UserShortcut } from '../../../hooks/useUserSettings';
 import { Package } from '@pharmacy-pos/shared/types/package';
 
 // 定義產品的型別
@@ -77,7 +77,7 @@ const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({
   const [filteredItems, setFilteredItems] = useState<(Product | Package)[]>([]);
   const [isEditingName, setIsEditingName] = useState<boolean>(false);
   const [editingName, setEditingName] = useState<string>('');
-  
+
   // 防重複觸發機制
   const isProcessingRef = React.useRef<boolean>(false);
   const lastSelectedItemRef = React.useRef<string | null>(null);
@@ -117,7 +117,7 @@ const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({
       setFilteredItems([]);
     } else {
       const lowerCaseSearchTerm = searchTerm.toLowerCase();
-      
+
       // 篩選產品
       const productResults = allProducts?.filter(p =>
         (p?.name?.toLowerCase().includes(lowerCaseSearchTerm)) ||
@@ -125,14 +125,14 @@ const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({
         (p?.barcode?.toLowerCase().includes(lowerCaseSearchTerm)) ||
         (p?.healthInsuranceCode?.toLowerCase().includes(lowerCaseSearchTerm))
       ) ?? [];
-      
+
       // 篩選套餐 - 修正搜尋邏輯，確保大小寫不敏感的比較
       const packageResults = allPackages?.filter(pkg =>
         (pkg?.name?.toLowerCase().includes(lowerCaseSearchTerm)) ||
         (pkg?.code?.toLowerCase().includes(lowerCaseSearchTerm)) ||
         (pkg?.shortCode?.toLowerCase().includes(lowerCaseSearchTerm))
       ) ?? [];
-      
+
       // 合併結果，套餐優先顯示，限制總數量
       const allResults = [...packageResults, ...productResults].slice(0, 20);
       setFilteredItems(allResults);
@@ -275,7 +275,7 @@ const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({
         `}
       </style>
       <DialogContent dividers>
-        <Box sx={{ display: 'flex', mb: 2 }}>
+        <Box sx={{ mb: 2 }}>
           <Autocomplete
             fullWidth
             freeSolo
@@ -292,27 +292,27 @@ const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({
               if (!newValue || typeof newValue === 'string') {
                 return;
               }
-              
+
               // 防止重複觸發的嚴格檢查
               if (isProcessingRef.current) {
                 console.log('onChange blocked - already processing');
                 return;
               }
-              
+
               const itemId = getItemId(newValue);
-              
+
               // 檢查是否是重複選擇同一個項目
               if (lastSelectedItemRef.current === itemId) {
                 console.log('onChange blocked - same item already selected:', itemId);
                 return;
               }
-              
+
               // 立即設置處理標誌和記錄選擇的項目
               isProcessingRef.current = true;
               lastSelectedItemRef.current = itemId || null;
-              
+
               console.log('Processing selection:', newValue.name, 'ID:', itemId);
-              
+
               try {
                 // 確保有有效的 ID 才處理
                 if (itemId) {
@@ -343,7 +343,7 @@ const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({
                 className: InputLabelProps.className || '',
                 style: InputLabelProps.style || {}
               } : {};
-              
+
               return (
                 <TextField
                   {...restParams}
@@ -353,7 +353,7 @@ const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({
                     if (e.key === 'Enter') {
                       e.preventDefault();
                       const allOptions = filteredItems;
-                      
+
                       if (allOptions.length > 0) {
                         const firstItemId = getItemId(allOptions[0]);
                         if (firstItemId) {
@@ -367,14 +367,14 @@ const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({
                       } else if (searchTerm.trim()) {
                         // 如果沒有搜尋結果但有輸入，嘗試精確匹配
                         const exactSearchTerm = searchTerm.trim();
-                        
+
                         // 在所有套餐中尋找精確匹配
                         const exactPackageMatch = allPackages?.find(pkg =>
                           pkg?.code === exactSearchTerm ||
                           pkg?.shortCode === exactSearchTerm ||
                           pkg?.name === exactSearchTerm
                         );
-                        
+
                         if (exactPackageMatch) {
                           const packageId = getItemId(exactPackageMatch);
                           if (packageId) {
@@ -382,7 +382,7 @@ const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({
                             return;
                           }
                         }
-                        
+
                         // 在所有產品中尋找精確匹配
                         const exactProductMatch = allProducts?.find(p =>
                           p?.code === exactSearchTerm ||
@@ -390,7 +390,7 @@ const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({
                           p?.healthInsuranceCode === exactSearchTerm ||
                           p?.name === exactSearchTerm
                         );
-                        
+
                         if (exactProductMatch) {
                           const productId = getItemId(exactProductMatch);
                           if (productId) {
@@ -398,7 +398,7 @@ const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({
                             return;
                           }
                         }
-                        
+
                         // 如果都找不到，顯示錯誤訊息
                         console.warn(`找不到代碼 "${exactSearchTerm}" 對應的產品或套餐`);
                       }
@@ -520,7 +520,7 @@ const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({
                     </ListItem>
                   );
                 })}
-                
+
                 {/* 顯示產品 */}
                 {selectedProductIds.map((productId, index) => {
                   const product = getProductDetails(productId);
@@ -542,7 +542,7 @@ const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({
                           <IconButton
                             edge="end"
                             aria-label="move down"
-                            onClick={() => handleMoveProductDown(index)}
+                            onClick={() => handleMovePackageDown(index)}
                             size="small"
                             disabled={index === selectedProductIds.length - 1}
                             sx={{ mr: 0.5 }}
@@ -625,7 +625,7 @@ const ShortcutButtonManager: React.FC<ShortcutButtonManagerProps> = ({
         name: newShortcutName.trim(),
         productIds: []
       };
-      
+
       const success = await addShortcut(newShortcut);
       if (success) {
         setSnackbar({ open: true, message: '快捷按鈕已新增', severity: 'success' });
@@ -680,7 +680,7 @@ const ShortcutButtonManager: React.FC<ShortcutButtonManagerProps> = ({
   };
 
 
-  // --- Render Logic --- 
+  // --- Render Logic ---
 
   if (loading) {
     return <CircularProgress size={24} sx={{ ml: 1, height: 56, width: 56 }} />;
@@ -711,13 +711,13 @@ const ShortcutButtonManager: React.FC<ShortcutButtonManagerProps> = ({
             borderRadius: 'var(--shape-corner-large, 16px)',
             position: 'relative',
             overflow: 'hidden',
-            
+
             // Material3 動態背景 - 使用低飽和度的 primaryContainer
             background: `linear-gradient(145deg,
               rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.08) 0%,
               rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.12) 50%,
               rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.06) 100%)`,
-            
+
             // 浮雕效果 - 多層陰影
             boxShadow: `
               0 1px 3px 0 rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.12),
@@ -725,16 +725,16 @@ const ShortcutButtonManager: React.FC<ShortcutButtonManagerProps> = ({
               inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
               inset 0 -1px 0 0 rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.05)
             `,
-            
+
             // 微妙邊框
             border: `1px solid rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.15)`,
-            
+
             // 文字顏色 - 深色背景使用白色文字確保最佳對比度
             color: 'rgba(255, 255, 255, 0.95)',
-            
+
             // 平滑過渡
             transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-            
+
             // 偽元素 - 增強浮雕效果
             '&::before': {
               content: '""',
@@ -750,26 +750,26 @@ const ShortcutButtonManager: React.FC<ShortcutButtonManagerProps> = ({
               pointerEvents: 'none',
               borderRadius: 'inherit',
             },
-            
+
             '&:hover': {
               // 懸停時增強效果
               background: `linear-gradient(145deg,
                 rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.12) 0%,
                 rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.18) 50%,
                 rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.10) 100%)`,
-              
+
               boxShadow: `
                 0 2px 6px 0 rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.15),
                 0 6px 12px 0 rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.12),
                 inset 0 1px 0 0 rgba(255, 255, 255, 0.15),
                 inset 0 -1px 0 0 rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.08)
               `,
-              
+
               transform: 'translateY(-1px)',
               borderColor: `rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.25)`,
               color: 'rgba(255, 255, 255, 1.0)',
             },
-            
+
             '&:active': {
               // 按下時的內凹效果
               transform: 'translateY(0px) scale(0.98)',
@@ -784,7 +784,7 @@ const ShortcutButtonManager: React.FC<ShortcutButtonManagerProps> = ({
                 rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.10) 50%,
                 rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.04) 100%)`,
             },
-            
+
             '&:disabled': {
               background: `rgba(var(--on-surface-variant-r), var(--on-surface-variant-g), var(--on-surface-variant-b), 0.04)`,
               color: `rgba(var(--on-surface-variant-r), var(--on-surface-variant-g), var(--on-surface-variant-b), 0.38)`,
@@ -792,7 +792,7 @@ const ShortcutButtonManager: React.FC<ShortcutButtonManagerProps> = ({
               transform: 'none',
               border: `1px solid rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.08)`,
             },
-            
+
             // 圖示樣式 - 與白色文字保持一致
             '& .MuiButton-startIcon': {
               marginRight: { xs: 1, sm: 1.5 },
@@ -817,13 +817,13 @@ const ShortcutButtonManager: React.FC<ShortcutButtonManagerProps> = ({
           borderRadius: 'var(--shape-corner-medium, 12px)',
           position: 'relative',
           overflow: 'hidden',
-          
+
           // Material3 動態背景 - 使用 surfaceVariant
           background: `linear-gradient(145deg,
             rgba(var(--surface-r), var(--surface-g), var(--surface-b), 0.8) 0%,
             rgba(var(--surface-r), var(--surface-g), var(--surface-b), 0.95) 50%,
             rgba(var(--surface-r), var(--surface-g), var(--surface-b), 0.75) 100%)`,
-          
+
           // 浮雕效果 - 與快捷按鈕一致的陰影
           boxShadow: `
             0 1px 3px 0 rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.12),
@@ -831,13 +831,13 @@ const ShortcutButtonManager: React.FC<ShortcutButtonManagerProps> = ({
             inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
             inset 0 -1px 0 0 rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.05)
           `,
-          
+
           // 微妙邊框
           border: `1px solid rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.2)`,
-          
+
           // 平滑過渡
           transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-          
+
           // 偽元素 - 增強浮雕效果
           '&::before': {
             content: '""',
@@ -853,25 +853,25 @@ const ShortcutButtonManager: React.FC<ShortcutButtonManagerProps> = ({
             pointerEvents: 'none',
             borderRadius: 'inherit',
           },
-          
+
           '&:hover': {
             // 懸停時增強效果
             background: `linear-gradient(145deg,
               rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.08) 0%,
               rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.12) 50%,
               rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.06) 100%)`,
-            
+
             boxShadow: `
               0 2px 6px 0 rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.15),
               0 6px 12px 0 rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.12),
               inset 0 1px 0 0 rgba(255, 255, 255, 0.15),
               inset 0 -1px 0 0 rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.08)
             `,
-            
+
             transform: 'translateY(-1px)',
             borderColor: `rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.3)`,
           },
-          
+
           '&:active': {
             // 按下時的內凹效果
             transform: 'translateY(0px) scale(0.95)',
@@ -886,7 +886,7 @@ const ShortcutButtonManager: React.FC<ShortcutButtonManagerProps> = ({
               rgba(var(--surface-r), var(--surface-g), var(--surface-b), 0.8) 50%,
               rgba(var(--surface-r), var(--surface-g), var(--surface-b), 0.5) 100%)`,
           },
-          
+
           '&:disabled': {
             background: `rgba(var(--on-surface-variant-r), var(--on-surface-variant-g), var(--on-surface-variant-b), 0.04)`,
             boxShadow: 'none',

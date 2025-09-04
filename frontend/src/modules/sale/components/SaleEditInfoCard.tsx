@@ -28,7 +28,7 @@ const SaleEditInfoCard: React.FC<SaleEditInfoCardProps> = ({
       if (barcodeInputRef.current) {
         // Initial focus or refocus after barcode scan (handled by parent potentially)
         // Let's ensure initial focus on mount if needed
-        // barcodeInputRef.current.focus(); 
+        // barcodeInputRef.current.focus();
         // Decided against auto-focus on every render here, parent controls explicit focus.
       }
     }, 100);

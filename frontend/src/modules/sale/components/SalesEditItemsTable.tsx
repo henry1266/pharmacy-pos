@@ -131,7 +131,7 @@ const SalesEditItemsTable: React.FC<SalesEditItemsTableProps> = ({
                       onClick={() => handleQuantityChange(index, Number(item.quantity) + 1)}
                       // disabled={item.quantity >= item.stock} // Optional: Disable if exceeding stock
                     >
-                      <AddIcon fontSize="small" /> {/* Assuming AddIcon is imported */} 
+                      <AddIcon fontSize="small" /> {/* Assuming AddIcon is imported */}
                     </IconButton>
                   </Box>
                 </TableCell>
