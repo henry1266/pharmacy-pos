@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, useState } from 'react';
 import {
   Box,
   Card,
@@ -13,7 +13,8 @@ import {
   Tooltip,
   Button,
   Chip,
-  Grid
+  Grid,
+  Paper
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -21,7 +22,9 @@ import {
   Receipt as ReceiptIcon,
   AccountBalance as AccountBalanceIcon,
   Link as LinkIcon,
-  Lock as LockIcon
+  Lock as LockIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon
 } from '@mui/icons-material';
 import StatusChip from '../common/StatusChip';
 import PaymentStatusChip from '../common/PaymentStatusChip';
@@ -43,6 +46,13 @@ interface PurchaseOrderDetailPanelProps {
 const PurchaseOrderDetailPanel: FC<PurchaseOrderDetailPanelProps> = ({
   selectedPurchaseOrder
 }) => {
+  // 添加展開/摺疊狀態
+  const [expanded, setExpanded] = useState(false);
+
+  // 切換展開/摺疊狀態
+  const handleToggleExpand = () => {
+    setExpanded(!expanded);
+  };
   if (!selectedPurchaseOrder) {
     return (
       <Card elevation={2} sx={{ borderRadius: '0.5rem', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -95,60 +105,148 @@ const PurchaseOrderDetailPanel: FC<PurchaseOrderDetailPanelProps> = ({
           <>
             <Divider sx={{ my: 1.5 }} />
             
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>商品項目</Typography>
-            <List dense sx={{ py: 0 }}>
-              {selectedPurchaseOrder.items.slice(0, 3).map((item, index) => (
-                <ListItem key={index} sx={{ py: 0.5, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                    <Typography variant="body2" sx={{ fontWeight: 500 }}>{item.dname || '未命名商品'}</Typography>
-                    <Typography variant="body2">
-                      ${typeof item.dtotalCost === 'number'
-                        ? item.dtotalCost.toLocaleString()
-                        : parseFloat(item.dtotalCost || '0').toLocaleString()}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
-                    <Typography variant="caption" color="text.secondary" sx={{ mr: 1 }}>
-                      編號: <Typography
-                              component="span"
-                              variant="caption"
-                              color="primary"
-                              sx={{
-                                textDecoration: 'underline',
-                                cursor: 'pointer',
-                                '&:hover': { color: 'primary.dark' }
-                              }}
-                              onClick={() => window.open(`/products?code=${item.did}`, '_blank')}
-                            >
-                              {item.did}
-                            </Typography>
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {typeof item.dquantity === 'number'
-                        ? item.dquantity
-                        : parseFloat(item.dquantity || '0')} 件
-                    </Typography>
-                  </Box>
-                </ListItem>
-              ))}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>商品項目</Typography>
               {selectedPurchaseOrder.items.length > 3 && (
-                <ListItem sx={{ py: 0.5 }}>
-                  <Typography variant="body2" color="primary">
-                    +{selectedPurchaseOrder.items.length - 3} 個更多項目...
-                  </Typography>
-                </ListItem>
+                <Button
+                  size="small"
+                  color="primary"
+                  onClick={handleToggleExpand}
+                  endIcon={expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                  sx={{
+                    textTransform: 'none',
+                    minWidth: 'auto',
+                    py: 0.5
+                  }}
+                >
+                  {expanded ? '收起' : '展開全部'}
+                </Button>
               )}
-            </List>
+            </Box>
+            
+            <Paper
+              variant="outlined"
+              sx={{
+                borderRadius: '0.5rem',
+                overflow: 'hidden',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              <List dense sx={{ py: 0 }}>
+                {/* 根據展開狀態決定顯示的項目數量 */}
+                {(expanded
+                  ? selectedPurchaseOrder.items!
+                  : selectedPurchaseOrder.items!.slice(0, 3)
+                ).map((item, index) => (
+                  <ListItem
+                    key={index}
+                    sx={{
+                      py: 0.5,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'flex-start',
+                      borderBottom: index < (expanded ? selectedPurchaseOrder.items!.length - 1 : Math.min(selectedPurchaseOrder.items!.length, 3) - 1)
+                        ? '1px solid rgba(0, 0, 0, 0.08)'
+                        : 'none',
+                      bgcolor: index % 2 === 0 ? 'rgba(0, 0, 0, 0.02)' : 'transparent',
+                      '&:hover': {
+                        bgcolor: 'rgba(0, 0, 0, 0.04)'
+                      }
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>{item.dname || '未命名商品'}</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 500, color: 'primary.main' }}>
+                        ${typeof item.dtotalCost === 'number'
+                          ? item.dtotalCost.toLocaleString()
+                          : parseFloat(item.dtotalCost || '0').toLocaleString()}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ mr: 1 }}>
+                        編號: <Typography
+                                component="span"
+                                variant="caption"
+                                color="primary"
+                                sx={{
+                                  textDecoration: 'underline',
+                                  cursor: 'pointer',
+                                  '&:hover': { color: 'primary.dark' }
+                                }}
+                                onClick={() => window.open(`/products?code=${item.did}`, '_blank')}
+                              >
+                                {item.did}
+                              </Typography>
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {typeof item.dquantity === 'number'
+                          ? item.dquantity
+                          : parseFloat(item.dquantity || '0')} 件
+                      </Typography>
+                    </Box>
+                  </ListItem>
+                ))}
+                
+                {/* 未展開且項目數量超過3個時顯示展開按鈕 */}
+                {!expanded && selectedPurchaseOrder.items.length > 3 && (
+                  <ListItem
+                    button
+                    onClick={handleToggleExpand}
+                    sx={{
+                      py: 0.5,
+                      justifyContent: 'center',
+                      bgcolor: 'rgba(0, 0, 0, 0.03)',
+                      '&:hover': {
+                        bgcolor: 'rgba(0, 0, 0, 0.06)'
+                      }
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', color: 'primary.main' }}>
+                      <Typography variant="body2" sx={{ mr: 0.5 }}>
+                        顯示全部 {selectedPurchaseOrder.items!.length} 個項目
+                      </Typography>
+                      <ExpandMoreIcon fontSize="small" />
+                    </Box>
+                  </ListItem>
+                )}
+              </List>
+            </Paper>
           </>
         )}
 
-                    <Divider sx={{ my: 1.5 }} />
-          <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-            <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>總金額:</Typography>
-            <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>
-              ${selectedPurchaseOrder.totalAmount ? selectedPurchaseOrder.totalAmount.toLocaleString() : '0'}
-            </Typography>
-          </ListItem>
+          <Divider sx={{ my: 1.5 }} />
+          <Paper
+            variant="outlined"
+            sx={{
+              borderRadius: '0.5rem',
+              overflow: 'hidden',
+              transition: 'all 0.3s ease',
+              bgcolor: 'rgba(0, 0, 0, 0.02)'
+            }}
+          >
+            <ListItem
+              sx={{
+                py: 1,
+                display: 'flex',
+                justifyContent: 'space-between',
+                borderBottom: '1px solid rgba(0, 0, 0, 0.08)'
+              }}
+            >
+              <Typography variant="body1" sx={{ fontWeight: 500, color: 'text.secondary' }}>總金額</Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  fontWeight: 700,
+                  color: 'primary.main',
+                  fontSize: '1.1rem'
+                }}
+              >
+                ${selectedPurchaseOrder.totalAmount ? selectedPurchaseOrder.totalAmount.toLocaleString() : '0'}
+              </Typography>
+            </ListItem>
+            
+            {/* 可以在這裡添加更多摘要信息，如稅額、折扣等 */}
+          </Paper>
       </CardContent>
     </Card>
   );

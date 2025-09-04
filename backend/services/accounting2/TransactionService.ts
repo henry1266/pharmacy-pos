@@ -1365,13 +1365,13 @@ export class TransactionService {
       }
       
       // 只在最後輸出摘要信息
-      logger.debug('批量付款狀態檢查完成', {
-        totalOrders: purchaseOrders.length,
-        missingTransactionIdCount,
-        missingPaymentCount,
-        hasPaymentCount,
-        paymentTransactionsCount: paymentCount
-      });
+      //logger.debug('批量付款狀態檢查完成', {
+        //totalOrders: purchaseOrders.length,
+        //missingTransactionIdCount,
+        //missingPaymentCount,
+        //hasPaymentCount,
+        //paymentTransactionsCount: paymentCount
+      //});
       
       return paymentStatusMap;
     } catch (error) {
@@ -1398,10 +1398,10 @@ export class TransactionService {
   ): Promise<void> {
     try {
       // 只記錄開始的摘要信息
-      logger.debug(`開始更新進貨單付款狀態`, {
-        transactionCount: transactionIds.length,
-        status: paymentStatus
-      });
+      //logger.debug(`開始更新進貨單付款狀態`, {
+        //transactionCount: transactionIds.length,
+        //status: paymentStatus
+      //});
       
       // 查找與這些交易相關的進貨單
       const PurchaseOrder = require('../../models/PurchaseOrder').default;
