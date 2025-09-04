@@ -63,7 +63,8 @@ export const saleApi = createApi({
       queryFn: async (id) => {
         try {
           const response = await saleApiClient.get(`/sales/${id}`);
-          const saleData = mapSaleResponseToSaleData(response.data);
+          // 確保從 response.data.data 獲取銷售數據，而不是直接使用 response.data
+          const saleData = mapSaleResponseToSaleData(response.data.data);
           return { data: saleData };
         } catch (error: any) {
           return { error: { status: error.status, data: error.message } };
