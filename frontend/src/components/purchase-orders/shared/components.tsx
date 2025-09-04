@@ -86,7 +86,7 @@ const getAccountingConfig = (accountingEntryType?: string, relatedTransactionGro
     return {
       color: COLORS.EXPENSE_ASSET,
       tooltip: TOOLTIPS.EXPENSE_ASSET,
-      icon: <TrendingUpIcon fontSize="small" />
+      icon: <TrendingUpIcon fontSize="medium" />
     };
   }
   
@@ -94,7 +94,7 @@ const getAccountingConfig = (accountingEntryType?: string, relatedTransactionGro
     return {
       color: COLORS.ASSET_LIABILITY,
       tooltip: TOOLTIPS.ASSET_LIABILITY,
-      icon: <SwapHorizIcon fontSize="small" />
+      icon: <SwapHorizIcon fontSize="medium" />
     };
   }
   
@@ -105,14 +105,14 @@ const getAccountingConfig = (accountingEntryType?: string, relatedTransactionGro
     return {
       color: COLORS.DEFAULT,
       tooltip: TOOLTIPS.DEFAULT,
-      icon: <AccountBalanceIcon fontSize="small" />
+      icon: <AccountBalanceIcon fontSize="medium" />
     };
   }
   
   return {
     color: COLORS.DEFAULT,
     tooltip: TOOLTIPS.DEFAULT,
-    icon: <AccountBalanceIcon fontSize="small" />
+    icon: <AccountBalanceIcon fontSize="medium" />
   };
 };
 
@@ -154,7 +154,7 @@ const ActionIconButton: FC<{
   sx?: any;
 }> = ({ icon, onClick, color = 'default', disabled = false, title, sx }) => (
   <IconButton
-    size="small"
+    size="medium"
     onClick={onClick}
     color={color}
     disabled={disabled}
@@ -297,11 +297,11 @@ export const ActionButtons: FC<ActionButtonsProps> = ({
   return (
     <Box>
       <IconButton
-        size="small"
+        size="medium"
         onClick={onView}
         sx={{ '&:hover': { backgroundColor: COMMON_STYLES.hoverBackground } }}
       >
-        <OpenInNewIcon fontSize="small" />
+        <OpenInNewIcon fontSize="medium" />
       </IconButton>
       
       {/* 付款狀態指示器 - 顯示 $ 符號表示已付款 */}
@@ -339,7 +339,7 @@ export const ActionButtons: FC<ActionButtonsProps> = ({
       {isCompleted && onUnlock && !hasPaidAmount ? (
         // 已完成狀態且沒有付款記錄：顯示解鎖按鈕
         <ActionIconButton
-          icon={<LockIcon fontSize="small" />}
+          icon={<LockIcon fontSize="medium" />}
           onClick={onUnlock}
           title="點擊解鎖並改為待處理"
         />
@@ -347,11 +347,11 @@ export const ActionButtons: FC<ActionButtonsProps> = ({
         // 待處理或其他狀態且沒有付款記錄：顯示編輯和刪除按鈕
         <>
           <ActionIconButton
-            icon={<EditIcon fontSize="small" />}
+            icon={<EditIcon fontSize="medium" />}
             onClick={onEdit}
           />
           <ActionIconButton
-            icon={<DeleteIcon fontSize="small" />}
+            icon={<DeleteIcon fontSize="medium" />}
             onClick={onDelete}
             disabled={isDeleteDisabled}
           />

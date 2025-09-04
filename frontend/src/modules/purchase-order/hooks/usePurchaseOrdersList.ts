@@ -298,7 +298,9 @@ export const usePurchaseOrdersList = (initialSupplierId: string | null = null) =
         accountingEntryType: po.accountingEntryType,
         selectedAccountIds: po.selectedAccountIds,
         // 付款狀態
-        hasPaidAmount: paymentStatusMap.get(po._id) || false
+        hasPaidAmount: paymentStatusMap.get(po._id) || false,
+        // 更新時間欄位
+        updatedAt: po.updatedAt ?? po.pobilldate ?? new Date().toISOString()
       })) as FilteredRow[];
       
       // 根據選擇的供應商進行過濾

@@ -211,7 +211,6 @@ const PurchaseOrdersPage: FC<PurchaseOrdersPageProps> = ({ initialSupplierId = n
   // 定義表格列
   const columns = [
     { field: 'poid', headerName: '進貨單號', flex: 1.5 },
-    { field: 'pobill', headerName: '發票號碼', flex: 1.5 },
     {
       field: 'posupplier',
       headerName: '供應商',
@@ -237,6 +236,28 @@ const PurchaseOrdersPage: FC<PurchaseOrdersPageProps> = ({ initialSupplierId = n
       headerName: '付款狀態',
       flex: 1.1,
       renderCell: (params: any) => <PaymentStatusChip status={params.value} />
+    },
+    {
+      field: 'updatedAt',
+      headerName: '更新時間',
+      flex: 1.3,
+      valueFormatter: (params: any) => {
+        if (!params.value) return '';
+        try {
+          // 嘗試將日期字串轉換為可讀格式
+          const date = new Date(params.value);
+          return date.toLocaleString('zh-TW', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+        } catch (error) {
+          console.error('日期格式化錯誤:', error);
+          return params.value;
+        }
+      }
     },
     {
       field: 'actions',
@@ -293,7 +314,8 @@ const PurchaseOrdersPage: FC<PurchaseOrdersPageProps> = ({ initialSupplierId = n
     relatedTransactionGroupId: po.relatedTransactionGroupId || '',
     accountingEntryType: po.accountingEntryType || 'expense-asset',
     selectedAccountIds: po.selectedAccountIds || [],
-    hasPaidAmount: po.hasPaidAmount || false
+    hasPaidAmount: po.hasPaidAmount || false,
+    updatedAt: po.updatedAt || po.pobilldate // 如果沒有更新時間，則使用發票日期作為替代
   }));
 
   // 操作按鈕區域
@@ -351,8 +373,6 @@ const PurchaseOrdersPage: FC<PurchaseOrdersPageProps> = ({ initialSupplierId = n
     <PurchaseOrderDetailPanel
       selectedPurchaseOrder={previewPurchaseOrder as any}
       onEdit={handleEdit}
-      onDelete={(order) => handleDeleteClick(order as any)}
-      onViewAccountingEntry={handleViewAccountingEntry}
     />
   ) : (
     <Card elevation={2} sx={{ borderRadius: '0.5rem', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

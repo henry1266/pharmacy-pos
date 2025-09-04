@@ -44,6 +44,8 @@ export interface PurchaseOrder {
   selectedAccountIds?: string[];
   // 付款狀態相關欄位
   hasPaidAmount?: boolean;
+  // 更新時間欄位
+  updatedAt?: string;
   items?: PurchaseOrderItem[];
   [key: string]: any; // 添加索引簽名以允許動態屬性
 }
@@ -67,6 +69,8 @@ export interface FilteredRow {
   selectedAccountIds?: string[];
   // 付款狀態相關欄位
   hasPaidAmount?: boolean;
+  // 更新時間欄位
+  updatedAt?: string;
 }
 
 /**
