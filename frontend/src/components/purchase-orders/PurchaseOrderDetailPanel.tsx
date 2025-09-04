@@ -69,7 +69,6 @@ const PurchaseOrderDetailPanel: FC<PurchaseOrderDetailPanelProps> = ({
       <CardHeader
         avatar={<Avatar sx={{ bgcolor: 'primary.main' }}>{selectedPurchaseOrder.poid.charAt(0) || 'P'}</Avatar>}
         title={<Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>進貨單 {selectedPurchaseOrder.poid}</Typography>}
-        subheader={`發票號碼: ${selectedPurchaseOrder.pobill || '無'}`}
         action={
           <Box>
             <Tooltip title="編輯">
