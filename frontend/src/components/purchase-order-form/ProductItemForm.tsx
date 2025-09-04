@@ -51,6 +51,7 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
     handleChartButtonClick,
     handleProductChangeWithChart,
     handleAddItemWithReset,
+    handleQuantityChange,
     setChartModalOpen
   } = useProductItemForm({
     currentItem,
@@ -59,7 +60,7 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
     products
   });
 
-  const dQuantityValue = String(currentItem.dquantity ?? '');
+  const dQuantityValue = displayInputQuantity;
   const mainQuantityDisabled = false; // 簡化邏輯，因為不再有舊的大包裝輸入欄位
 
   return (
@@ -94,6 +95,7 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
                           selectedProduct={selectedProduct}
                           disabled={mainQuantityDisabled}
                           onFocus={handleFocus}
+                          onQuantityChange={handleQuantityChange}
                         />
                       </Grid>
 

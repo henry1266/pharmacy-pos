@@ -123,13 +123,23 @@ export const useProductItemForm = ({
   };
   
   /**
+   * 處理數量輸入變化
+   * @param displayValue 用戶輸入的顯示值
+   * @param actualValue 計算出的實際值
+   */
+  const handleQuantityChange = (displayValue: string, actualValue: number) => {
+    setDisplayInputQuantity(displayValue);
+    setActualTotalQuantity(actualValue);
+  };
+
+  /**
    * 添加項目後重置所有輸入狀態
    * 重置數量輸入、總數量和輸入模式
    */
   const handleAddItemWithReset = () => {
     // 調用原始的添加項目函數
     handleAddItem();
-    
+
     // 重置所有相關狀態
     setDisplayInputQuantity('');
     setActualTotalQuantity(0);
@@ -159,6 +169,7 @@ export const useProductItemForm = ({
     isInventorySufficient,
     handleChartButtonClick,
     handleProductChangeWithChart,
-    handleAddItemWithReset
+    handleAddItemWithReset,
+    handleQuantityChange
   };
 };
