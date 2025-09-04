@@ -261,7 +261,21 @@ export const selectSaleListSort = (state: RootState) => state.sale.list.sort;
 export const selectSaleListPagination = (state: RootState) => state.sale.list.pagination;
 export const selectSaleListSelectedIds = (state: RootState) => state.sale.list.selectedIds;
 export const selectSaleListViewMode = (state: RootState) => state.sale.list.viewMode;
-export const selectSaleEditFormState = (state: RootState) => state.sale.edit.formState;
+// 默認的表單狀態，用於防禦性編程
+const defaultFormState: SaleEditFormState = {
+  isDirty: false,
+  isSubmitting: false,
+  validationErrors: {}
+};
+
+export const selectSaleEditFormState = (state: RootState) => {
+  // 防禦性代碼，處理 state.sale 或 state.sale.edit 為 undefined 的情況
+  if (!state.sale || !state.sale.edit) {
+    console.warn('state.sale 或 state.sale.edit 為 undefined，返回默認表單狀態');
+    return defaultFormState;
+  }
+  return state.sale.edit.formState;
+};
 export const selectSaleEditActiveTab = (state: RootState) => state.sale.edit.activeTab;
 export const selectSaleEditShowConfirmDialog = (state: RootState) => state.sale.edit.showConfirmDialog;
 export const selectSaleEditConfirmDialogType = (state: RootState) => state.sale.edit.confirmDialogType;

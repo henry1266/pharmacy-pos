@@ -1,5 +1,10 @@
 import { createStore, combineReducers, applyMiddleware, compose, Store } from 'redux';
 import thunk, { ThunkDispatch } from 'redux-thunk';
+import { setupListeners } from '@reduxjs/toolkit/query';
+
+// 導入 RTK Query API 和 Slice
+import { saleApi } from '../modules/sale/api/saleApi';
+import saleReducer from '../modules/sale/model/saleSlice';
 
 /* 專案內的 reducer 與型別 */
 import {
@@ -50,7 +55,10 @@ const rootReducer = combineReducers({
   accountingEntry2: accountingEntry2Reducer,
   accountBalance2: accountBalance2Reducer,
   // 內嵌分錄交易群組 reducer
-  transactionGroupWithEntries: transactionGroupWithEntriesReducer
+  transactionGroupWithEntries: transactionGroupWithEntriesReducer,
+  // 添加 RTK Query API 和 Slice
+  [saleApi.reducerPath]: saleApi.reducer,
+  sale: saleReducer
 });
 
 // 定義 AppDispatch 類型
@@ -64,10 +72,15 @@ export type AppStore = Store<RootState> & {
 // 創建Redux store
 
 
+// 創建 Redux store
+// 使用類型斷言來解決類型兼容性問題
 const store = createStore(
   rootReducer,
-  composeEnhancers(applyMiddleware(thunk))
+  composeEnhancers(applyMiddleware(thunk, saleApi.middleware as any))
 );
+
+// 啟用 RTK Query 的 refetchOnFocus/refetchOnReconnect
+setupListeners(store.dispatch);
 
 // 導出 RootState 類型
 export type { RootState };

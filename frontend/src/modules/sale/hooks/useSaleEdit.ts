@@ -6,23 +6,30 @@ import { useState, useEffect, useCallback, KeyboardEvent, ChangeEvent } from 're
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Product } from '@pharmacy-pos/shared/types/entities';
-import { 
-  SaleDataDto, 
-  SaleItemWithDetailsDto, 
-  mapSaleDataToSaleRequest 
+import {
+  SaleDataDto,
+  SaleItemWithDetailsDto,
+  mapSaleDataToSaleRequest
 } from '../api/dto';
-import { 
-  useGetSaleDataByIdQuery, 
-  useUpdateSaleMutation 
+import {
+  useGetSaleDataByIdQuery,
+  useUpdateSaleMutation
 } from '../api/saleApi';
-import { 
-  setFormDirty, 
-  setFormSubmitting, 
+import {
+  setFormDirty,
+  setFormSubmitting,
   showNotification,
   selectSaleEditFormState
 } from '../model/saleSlice';
 import { InputMode, SnackbarState } from '../types/edit';
 import { findProductByCode, calculateTotalAmount } from '../utils/editUtils';
+
+// 默認的表單狀態，用於防禦性編程
+const defaultFormState = {
+  isDirty: false,
+  isSubmitting: false,
+  validationErrors: {}
+};
 
 /**
  * 銷售編輯管理 Hook
@@ -34,7 +41,17 @@ import { findProductByCode, calculateTotalAmount } from '../utils/editUtils';
 export const useSaleEdit = (saleId: string, products: Product[]) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const formState = useSelector(selectSaleEditFormState);
+  // 使用自定義選擇器，添加防禦性代碼處理 state.sale.edit 為 undefined 的情況
+  const formState = useSelector((state: any) => {
+    try {
+      // 嘗試使用原始選擇器
+      return selectSaleEditFormState(state);
+    } catch (error) {
+      // 如果出錯，返回默認表單狀態
+      console.warn('無法獲取銷售編輯表單狀態，使用默認值', error);
+      return defaultFormState;
+    }
+  });
   
   // 使用 RTK Query 獲取銷售數據
   const { 

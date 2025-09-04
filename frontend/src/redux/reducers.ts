@@ -978,4 +978,7 @@ export interface RootState {
   accountBalance2: AccountBalance2State;
   // 內嵌分錄交易群組狀態
   transactionGroupWithEntries: TransactionGroupWithEntriesState;
+  // RTK Query 相關狀態
+  sale: any;
+  saleApi: any;
 }
