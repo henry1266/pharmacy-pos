@@ -14,8 +14,8 @@ import {
 // 單獨引入 Grid 組件
 import Grid from '@mui/material/Grid';
 import { Add as AddIcon } from '@mui/icons-material';
-import useInventoryData from '../../../../hooks/useInventoryData';
-import PriceTooltip from '../../../form-widgets/PriceTooltip';
+import useInventoryData from '../../../hooks/useInventoryData';
+import PriceTooltip from '../../../components/form-widgets/PriceTooltip';
 
 // 定義產品介面
 interface Product {

@@ -23,8 +23,8 @@ import PurchaseOrderFormPage from './modules/purchase-order/pages/PurchaseOrderF
 import PurchaseOrderDetailPage from './modules/purchase-order/pages/PurchaseOrderDetailPage';
 import PurchaseOrdersSupplierFilterPage from './modules/purchase-order/pages/PurchaseOrdersSupplierFilterPage';
 // 出貨管理頁面元件
-import ShippingOrdersPage from './pages/ShippingOrdersPage';
-import ShippingOrderFormPage from './pages/ShippingOrderFormPage';
+import ShippingOrdersPage from './modules/shipping-order/pages/ShippingOrdersPage';
+import ShippingOrderFormPage from './modules/shipping-order/pages/ShippingOrderFormPage';
 import ShippingOrderDetailPage from './pages/ShippingOrderDetailPage';
 // 日常記帳管理頁面元件
 import { JournalPage, NewEntryPage, CategoryPage, CategoryDetailPage } from './modules/daily-journal/pages';

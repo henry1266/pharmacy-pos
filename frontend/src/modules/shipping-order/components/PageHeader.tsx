@@ -3,10 +3,10 @@ import { Box, Paper, Typography, Button } from '@mui/material';
 import {
   Add as AddIcon,
   ArrowBack as ArrowBackIcon,
-  ShoppingCart as ShoppingCartIcon,
+  LocalShipping as LocalShippingIcon,
   Home as HomeIcon,
 } from '@mui/icons-material';
-import BreadcrumbNavigation from '../common/BreadcrumbNavigation';
+import BreadcrumbNavigation from '../../../components/common/BreadcrumbNavigation';
 
 interface PageHeaderProps {
   mode: 'list' | 'new' | 'edit';
@@ -17,7 +17,7 @@ interface PageHeaderProps {
 }
 
 /**
- * 進貨單頁面標題組件
+ * 出貨單頁面標題組件
  * 包含麵包屑導航和操作按鈕
  */
 export const PageHeader: React.FC<PageHeaderProps> = ({
@@ -38,7 +38,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
         zIndex: 1
       }}>
         <Box sx={{
-          p: 1,
+          p: 1.5,
           borderBottom: 1,
           borderColor: 'divider',
           display: 'flex',
@@ -66,12 +66,12 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
                 <BreadcrumbNavigation
                   items={[
                     {
-                      label: '進貨單管理',
-                      path: '/purchase-orders',
-                      icon: <ShoppingCartIcon sx={{ fontSize: '1.1rem' }} />
+                      label: '出貨單管理',
+                      path: '/shipping-orders',
+                      icon: <LocalShippingIcon sx={{ fontSize: '1.1rem' }} />
                     },
                     {
-                      label: mode === 'new' ? '新增進貨單' : `編輯進貨單${editId ? ` ${editId}` : ''}`,
+                      label: mode === 'new' ? '新增出貨單' : `編輯出貨單${editId ? ` ${editId}` : ''}`,
                       icon: <AddIcon sx={{ fontSize: '1.1rem' }} />
                     }
                   ]}
@@ -120,7 +120,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
       zIndex: 1
     }}>
       <Box sx={{
-        p: 1,
+        p: 1.5,
         borderBottom: 1,
         borderColor: 'divider',
         display: 'flex',
@@ -154,8 +154,8 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
                     icon: <HomeIcon sx={{ fontSize: '1.1rem' }} />
                   },
                   {
-                    label: '進貨單管理',
-                    icon: <ShoppingCartIcon sx={{ fontSize: '1.1rem' }} />
+                    label: '出貨單管理',
+                    icon: <LocalShippingIcon sx={{ fontSize: '1.1rem' }} />
                   }
                 ]}
                 fontSize="0.975rem"
@@ -184,7 +184,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
                 minWidth: 110
               }}
             >
-              新增進貨單
+              新增出貨單
             </Button>
           )}
         </Box>

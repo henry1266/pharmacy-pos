@@ -11,7 +11,7 @@ import {
   TrendingUp as TrendingUpIcon,
   Percent as PercentIcon
 } from '@mui/icons-material';
-import CollapsibleAmountInfo from '../common/CollapsibleAmountInfo';
+import CollapsibleAmountInfo from '../../../components/common/CollapsibleAmountInfo';
 // import { createDetailItem } from './shared/utils'; // 移除不存在的導入
 
 interface ShippingOrder {

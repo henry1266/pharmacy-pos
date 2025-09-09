@@ -1,5 +1,5 @@
 import React, { FC } from 'react';
-import ItemPreview from '../common/preview/ItemPreview';
+import ItemPreview from '../../../components/common/preview/ItemPreview';
 
 // 定義項目介面
 interface Item {

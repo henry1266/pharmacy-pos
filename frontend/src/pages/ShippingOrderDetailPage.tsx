@@ -14,10 +14,10 @@ import BreadcrumbNavigation from '../components/common/BreadcrumbNavigation';
 
 import { fetchShippingOrder } from '../redux/actions';
 import DetailLayout from '../components/DetailLayout';
-import ShippingOrderBasicInfo from '../components/shipping-orders/ShippingOrderBasicInfo';
-import ShippingOrderAmountInfo from '../components/shipping-orders/ShippingOrderAmountInfo';
-import ShippingOrderItemsTable from '../components/shipping-orders/ShippingOrderItemsTable';
-import { useShippingOrderActions } from '../components/shipping-orders/ShippingOrderActions';
+import ShippingOrderBasicInfo from '../modules/shipping-order/components/ShippingOrderBasicInfo';
+import ShippingOrderAmountInfo from '../modules/shipping-order/components/ShippingOrderAmountInfo';
+import ShippingOrderItemsTable from '../modules/shipping-order/components/ShippingOrderItemsTable';
+import { useShippingOrderActions } from '../modules/shipping-order/components/ShippingOrderActions';
 import { useShippingOrderFifo } from '../hooks/useShippingOrderFifo';
 import { useProductDetails } from '../hooks/useProductDetails';
 

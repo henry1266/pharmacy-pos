@@ -5,7 +5,7 @@ import {
   CardContent,
   Divider
 } from '@mui/material';
-import ProductItemsTable from '../common/ProductItemsTable';
+import ProductItemsTable from '../../../components/common/ProductItemsTable';
 
 interface ShippingOrderItem {
   did?: string;

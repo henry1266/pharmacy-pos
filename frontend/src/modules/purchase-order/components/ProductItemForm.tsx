@@ -12,15 +12,15 @@ import { Product } from '@pharmacy-pos/shared/types/entities';
 import PropTypes from 'prop-types';
 
 // 導入自定義組件
-import ProductSelector from './components/ProductSelector';
-import QuantityInput from './components/QuantityInput';
-import PriceTooltip from '../form-widgets/PriceTooltip';
-import ChartModal from '../products/ChartModal';
-import ProductSummaryDisplay from '../products/ProductSummaryDisplay';
+import ProductSelector from './ProductSelector';
+import QuantityInput from './QuantityInput';
+import PriceTooltip from '../../../components/form-widgets/PriceTooltip';
+import ChartModal from '../../../components/products/ChartModal';
+import ProductSummaryDisplay from '../../../components/products/ProductSummaryDisplay';
 
 // 導入自定義 Hook 和類型
-import { useProductItemForm } from './hooks/useProductItemForm';
-import { ProductItemFormProps } from './types';
+import { useProductItemForm } from '../hooks/useProductItemForm';
+import { ProductItemFormProps } from '../types';
 
 /**
  * 產品項目表單組件

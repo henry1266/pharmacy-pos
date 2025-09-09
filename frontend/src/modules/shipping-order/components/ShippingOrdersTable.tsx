@@ -12,7 +12,7 @@ import {
   getLocalizedPaginationText,
   TABLE_LOCALE_TEXT,
   SHIPPING_ORDER_COLUMNS
-} from '../shared';
+} from '../../../components/shipping-orders/shared';
 
 /**
  * 出貨單表格組件

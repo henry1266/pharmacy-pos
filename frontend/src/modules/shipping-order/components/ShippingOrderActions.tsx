@@ -11,7 +11,7 @@ import {
   downloadShippingOrderPdf,
   downloadShippingOrderPdfV2,
   downloadShippingOrderPdfV3
-} from '../../services/pdf/shippingOrderPdf';
+} from '../../../services/pdf/shippingOrderPdf';
 
 interface ShippingOrder {
   soid?: string;

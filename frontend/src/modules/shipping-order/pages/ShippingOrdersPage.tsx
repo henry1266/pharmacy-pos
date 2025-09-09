@@ -19,25 +19,25 @@ import {
   CalculateOutlined
 } from '@mui/icons-material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAppDispatch } from '../hooks/redux';
+import { useAppDispatch } from '../../../hooks/redux';
 
 // Import Hook
-import useShippingOrdersData from '../hooks/useShippingOrdersData';
-import { useShippingOrdersBatchFifo } from '../hooks/useShippingOrdersBatchFifo';
+import useShippingOrdersData from '../../../hooks/useShippingOrdersData';
+import { useShippingOrdersBatchFifo } from '../../../hooks/useShippingOrdersBatchFifo';
 
 // Import Service functions for CSV import
-import { shippingOrderServiceV2 } from '../services/shippingOrderServiceV2';
-import { fetchShippingOrders, API_BASE_URL } from '../redux/actions';
+import { shippingOrderServiceV2 } from '../../../services/shippingOrderServiceV2';
+import { fetchShippingOrders, API_BASE_URL } from '../../../redux/actions';
 import axios from 'axios';
 
 // Import Presentation Components
-import ShippingOrderPreview from '../components/shipping-orders/ShippingOrderPreview';
-import SupplierCheckboxFilter from '../components/filters/SupplierCheckboxFilter';
-import ShippingOrdersTable from '../components/shipping-orders/list/ShippingOrdersTable';
-import ShippingOrdersFilter from '../components/shipping-orders/list/ShippingOrdersFilter';
-import CsvImportDialog from '../components/shipping-orders/import/CsvImportDialog';
-import ShippingOrderImportOptions from '../components/shipping-orders/import/ShippingOrderImportOptions';
-import GenericConfirmDialog from '../components/common/GenericConfirmDialog';
+import ShippingOrderPreview from '../components/ShippingOrderPreview';
+import SupplierCheckboxFilter from '../../../components/filters/SupplierCheckboxFilter';
+import ShippingOrdersTable from '../components/ShippingOrdersTable';
+import ShippingOrdersFilter from '../components/ShippingOrdersFilter';
+import CsvImportDialog from '../../../components/shipping-orders/import/CsvImportDialog';
+import ShippingOrderImportOptions from '../components/ShippingOrderImportOptions';
+import GenericConfirmDialog from '../../../components/common/GenericConfirmDialog';
 
 // 使用通用類型定義
 interface ShippingOrder {

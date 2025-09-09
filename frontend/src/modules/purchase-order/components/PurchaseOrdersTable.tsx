@@ -13,9 +13,9 @@ import {
 } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridRenderCellParams, GridLocaleText } from '@mui/x-data-grid';
 import { format } from 'date-fns';
-import StatusChip from '../common/StatusChip';
-import PaymentStatusChip from '../common/PaymentStatusChip';
-import { ActionButtons } from './shared/components';
+import StatusChip from '../../../components/common/StatusChip';
+import PaymentStatusChip from '../../../components/common/PaymentStatusChip';
+import { ActionButtons } from '../shared/components';
 
 // 定義進貨單的介面
 interface PurchaseOrder {

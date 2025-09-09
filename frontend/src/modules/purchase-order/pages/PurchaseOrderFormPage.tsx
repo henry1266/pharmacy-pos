@@ -11,7 +11,7 @@ import {
   CircularProgress,
   Grid
 } from '@mui/material';
-import PageHeader from '@/components/purchase-orders/PageHeader';
+import PageHeader from '../components/PageHeader';
 import { format } from 'date-fns';
 import { DropResult } from 'react-beautiful-dnd';
 import { Product, Supplier } from '@pharmacy-pos/shared/types/entities';
@@ -19,11 +19,11 @@ import { PurchaseOrder } from '@pharmacy-pos/shared/types/purchase-order';
 import { purchaseOrderServiceV2 } from '@/services/purchaseOrderServiceV2';
 import usePurchaseOrderData from '../hooks/usePurchaseOrderData';
 import usePurchaseOrderItems from '../hooks/usePurchaseOrderItems';
-import BasicInfoForm from '@/components/purchase-order-form/BasicInfoForm';
-import ProductItemForm from '@/components/purchase-order-form/ProductItemForm';
-import ProductItemsTable from '@/components/purchase-order-form/ProductItemsTable';
+import BasicInfoForm from '../components/BasicInfoForm';
+import ProductItemForm from '@/modules/purchase-order/components/ProductItemForm';
+import ProductItemsTable from '@/modules/purchase-order/components/ProductItemsTable';
 import GenericConfirmDialog from '@/components/common/GenericConfirmDialog';
-import ActionButtons from '@/components/purchase-order-form/ActionButtons';
+import ActionButtons from '@/modules/purchase-order/components/ActionButtons';
 import TestModeConfig from '@/testMode/config/TestModeConfig';
 import testModeDataService from '@/testMode/services/TestModeDataService';
 

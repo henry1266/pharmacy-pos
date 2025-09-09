@@ -9,7 +9,7 @@ import {
   SelectChangeEvent,
   CircularProgress
 } from '@mui/material';
-import { accounting3Service } from '../../modules/accounting3/services/accounting3Service';
+import { accounting3Service } from '../../accounting3/services/accounting3Service';
 
 interface AccountingEntrySelectorProps {
   organizationId?: string;

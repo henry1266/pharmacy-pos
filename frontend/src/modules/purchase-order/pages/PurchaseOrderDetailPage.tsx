@@ -54,7 +54,7 @@ import CollapsibleAmountInfo from '@/components/common/CollapsibleAmountInfo';
 import { RootState } from '@/types/store';
 import { Product, PurchaseOrder, PurchaseOrderItem } from '@pharmacy-pos/shared/types/entities';
 import { Organization } from '@pharmacy-pos/shared/types/organization';
-import { usePurchaseOrderActions } from '@/components/purchase-orders/PurchaseOrderActions';
+import { usePurchaseOrderActions } from '../components/PurchaseOrderActions';
 import { purchaseOrderServiceV2 } from '@/services/purchaseOrderServiceV2';
 import { useOrganizations } from '@/hooks/useOrganizations';
 import StatusChip from '@/components/common/StatusChip';

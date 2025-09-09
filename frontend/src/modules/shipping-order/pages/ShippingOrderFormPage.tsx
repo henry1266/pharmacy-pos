@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { useAppDispatch } from '../hooks/redux';
+import { useAppDispatch } from '../../../hooks/redux';
 import {
   Box,
   Typography,
@@ -16,25 +16,25 @@ import {
 import { format } from 'date-fns';
 import { DropResult } from 'react-beautiful-dnd';
 import { Product, Supplier } from '@pharmacy-pos/shared/types/entities';
-import { RootState } from '../redux/store';
+import { RootState } from '../../../redux/store';
 import {
   fetchShippingOrder,
   addShippingOrder,
   updateShippingOrder,
   fetchSuppliers,
   fetchProducts
-} from '../redux/actions';
+} from '../../../redux/actions';
 
 // 導入拆分後的組件
-import PageHeader from '../components/shipping-orders/PageHeader';
-import ActionButtons from '../components/shipping-orders/form/ActionButtons';
-import BasicInfoForm from '../components/shipping-orders/form/BasicInfo/index';
-import ProductItemForm from '../components/shipping-orders/form/ProductItems/ItemForm';
-import ItemsTable from '../components/shipping-orders/form/ProductItems/ItemsTable';
-import GenericConfirmDialog from '../components/common/GenericConfirmDialog';
-import TestModeConfig from '../testMode/config/TestModeConfig';
-import testModeDataService from '../testMode/services/TestModeDataService';
-import useShippingOrderItems from '../hooks/useShippingOrderItems';
+import PageHeader from '../components/PageHeader';
+import ActionButtons from '../components/ActionButtons';
+import BasicInfoForm from '../components/BasicInfo';
+import ProductItemForm from '../components/ItemForm';
+import ItemsTable from '../components/ItemsTable';
+import GenericConfirmDialog from '../../../components/common/GenericConfirmDialog';
+import TestModeConfig from '../../../testMode/config/TestModeConfig';
+import testModeDataService from '../../../testMode/services/TestModeDataService';
+import useShippingOrderItems from '../../../hooks/useShippingOrderItems';
 
 // =================================================================
 // 1. 型別定義 (Type Definitions)

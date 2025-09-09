@@ -13,7 +13,7 @@ import {
   SelectChangeEvent
 } from '@mui/material';
 import PropTypes from 'prop-types';
-import SupplierSelect from '../../../common/SupplierSelect'; // 假設你有一個供應商選擇組件
+import SupplierSelect from '../../../components/common/SupplierSelect'; // 假設你有一個供應商選擇組件
 import { Supplier } from '@pharmacy-pos/shared/types/entities';
 
 // 直接使用 MuiGrid

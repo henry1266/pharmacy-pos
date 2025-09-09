@@ -6,7 +6,7 @@ import {
   TableHead,
   Paper
 } from '@mui/material';
-import PriceSummary from '../../../common/PriceSummary';
+import PriceSummary from '../../../components/common/PriceSummary';
 import {
   ItemsTableProps,
   EditableRow,
@@ -14,7 +14,7 @@ import {
   EmptyState,
   TableHeaderRow,
   TABLE_CONFIG
-} from '../../shared';
+} from '../../../components/shipping-orders/shared';
 
 /**
  * 藥品項目表格組件

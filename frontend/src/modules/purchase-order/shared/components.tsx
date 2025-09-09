@@ -30,8 +30,8 @@ import {
   TrendingUp as TrendingUpIcon,
   SwapHoriz as SwapHorizIcon
 } from '@mui/icons-material';
-import StatusChip from '../../common/StatusChip';
-import PaymentStatusChip from '../../common/PaymentStatusChip';
+import StatusChip from '../../../components/common/StatusChip';
+import PaymentStatusChip from '../../../components/common/PaymentStatusChip';
 import {
   EditableRowProps,
   DisplayRowProps,

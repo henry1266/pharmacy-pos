@@ -18,9 +18,9 @@ import {
   DragIndicator as DragIndicatorIcon
 } from '@mui/icons-material';
 import { DragDropContext, Draggable, DropResult } from 'react-beautiful-dnd';
-import { StrictModeDroppable } from '../common/StrictModeDroppable';
-import ProductCodeLink from '../common/ProductCodeLink';
-import { PackageInventoryDisplay } from '../package-units';
+import { StrictModeDroppable } from '../../../components/common/StrictModeDroppable';
+import ProductCodeLink from '../../../components/common/ProductCodeLink';
+import { PackageInventoryDisplay } from '../../../components/package-units';
 import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
 
 // 共用樣式常數
