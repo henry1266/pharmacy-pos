@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react';
+import React, { FC, useState, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -27,9 +27,11 @@ import {
 import StatusChip from '../common/StatusChip';
 import PaymentStatusChip from '../common/PaymentStatusChip';
 import { format } from 'date-fns';
+import { productServiceV2 } from '@/services/productServiceV2';
 
 // 引入進貨單項目類型
 import { PurchaseOrder as PurchaseOrderType, PurchaseOrderItem } from '@/modules/purchase-order/types/list';
+import { Product } from '@pharmacy-pos/shared';
 
 // 定義進貨單的介面，擴展自 PurchaseOrderType
 interface PurchaseOrder extends PurchaseOrderType {
@@ -41,10 +43,57 @@ interface PurchaseOrderDetailPanelProps {
   onEdit: (id: string) => void;
 }
 
+// 定義產品詳情狀態類型
+interface ProductDetailsState {
+  [code: string]: Product;
+}
+
 const PurchaseOrderDetailPanel: FC<PurchaseOrderDetailPanelProps> = ({
   selectedPurchaseOrder
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [productDetails, setProductDetails] = useState<ProductDetailsState>({});
+  const [productDetailsLoading, setProductDetailsLoading] = useState<boolean>(false);
+  
+  // 獲取產品詳情
+  useEffect(() => {
+    const fetchProductDetails = async (): Promise<void> => {
+      if (!selectedPurchaseOrder?.items?.length) {
+        setProductDetails({});
+        return;
+      }
+
+      setProductDetailsLoading(true);
+      const details: ProductDetailsState = {};
+      // 使用 'did' 作為產品代碼字段
+      const productCodes = Array.from(new Set(selectedPurchaseOrder.items?.map(item => item.did).filter(Boolean) || []));
+
+      try {
+        const promises = productCodes.map(async (code) => {
+          try {
+            if (code) {
+              const productData = await productServiceV2.getProductByCode(code);
+              if (productData) {
+                details[code] = productData;
+              }
+            }
+          } catch (err) {
+            console.error(`獲取產品 ${code} 詳情失敗:`, err);
+          }
+        });
+
+        await Promise.all(promises);
+        setProductDetails(details);
+
+      } catch (err) {
+        console.error('獲取所有產品詳情過程中發生錯誤:', err);
+      } finally {
+        setProductDetailsLoading(false);
+      }
+    };
+
+    fetchProductDetails();
+  }, [selectedPurchaseOrder]);
   if (!selectedPurchaseOrder) {
     return (
       <Card elevation={2} sx={{ borderRadius: '0.5rem', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -182,7 +231,10 @@ const PurchaseOrderDetailPanel: FC<PurchaseOrderDetailPanelProps> = ({
                                 cursor: 'pointer',
                                 '&:hover': { color: 'primary.dark' }
                               }}
-                              onClick={() => window.open(`/products/${item.did}`, '_blank')}
+                              onClick={() => {
+                                const product = productDetails[item.did];
+                                window.open(`/products${product?._id ? `/${product._id}` : `?code=${item.did}`}`, '_blank');
+                              }}
                             >
                               {item.did}
                             </Typography>
