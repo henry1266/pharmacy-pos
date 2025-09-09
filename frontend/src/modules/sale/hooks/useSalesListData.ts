@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { format } from 'date-fns';
-import testModeDataService from '../testMode/services/TestModeDataService';
-import { getTestSales, type ExtendedSale } from '../testMode/data/TestModeData';
+import testModeDataService from '../../../testMode/services/TestModeDataService';
+import { getTestSales, type ExtendedSale } from '../../../testMode/data/TestModeData';
 
 // API 回應型別定義
 interface ApiResponse<T> {

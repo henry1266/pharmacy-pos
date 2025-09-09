@@ -5,7 +5,7 @@ import DashboardDateDetailPage from './modules/dashboard/pages/DashboardDateDeta
 import ProductsPage from './pages/ProductsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import ProductEditPage from './pages/ProductEditPage';
-import PackagesPage from './pages/PackagesPage';
+import PackagesPage from './modules/package/pages/PackagesPage';
 import SuppliersPage from './modules/Supplier/pages/SuppliersPage';
 import SupplierDetailPage from './modules/Supplier/pages/SupplierDetailPage';
 import CustomersPage from './pages/CustomersPage';

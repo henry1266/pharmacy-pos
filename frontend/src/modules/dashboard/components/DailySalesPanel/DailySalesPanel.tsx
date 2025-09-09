@@ -21,7 +21,7 @@ import {
 } from '@components/dashboard/panels/shared';
 
 // 支援兩種不同的 Sale 型別
-type SaleFromHook = import('@/hooks/useSalesListData').Sale;
+type SaleFromHook = import('@/modules/sale/hooks/useSalesListData').Sale;
 type SaleFromShared = import('@pharmacy-pos/shared/types/entities').Sale;
 
 // 創建一個聯合型別來支援兩種 Sale 型別

@@ -22,9 +22,9 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 // Import hooks
-import useSalesData from '@/hooks/useSalesData';
-import useSaleManagementV2 from '@/hooks/useSaleManagementV2';
-import useSalesListData from '@/hooks/useSalesListData';
+import useSalesData from '../hooks/useSalesData';
+import useSaleManagementV2 from '../hooks/useSaleManagementV2';
+import useSalesListData from '../hooks/useSalesListData';
 import usePackageData from '@/hooks/usePackageData';
 
 // Import sub-components
