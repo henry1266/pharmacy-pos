@@ -1365,13 +1365,13 @@ export class TransactionService {
       }
       
       // 只在最後輸出摘要信息
-      logger.debug('批量付款狀態檢查完成', {
-        totalOrders: purchaseOrders.length,
-        missingTransactionIdCount,
-        missingPaymentCount,
-        hasPaymentCount,
-        paymentTransactionsCount: paymentCount
-      });
+      //logger.debug('批量付款狀態檢查完成', {
+        //totalOrders: purchaseOrders.length,
+        //missingTransactionIdCount,
+        //missingPaymentCount,
+        //hasPaymentCount,
+        //paymentTransactionsCount: paymentCount
+      //});
       
       return paymentStatusMap;
     } catch (error) {

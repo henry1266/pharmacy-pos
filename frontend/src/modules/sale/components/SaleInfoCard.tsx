@@ -23,7 +23,7 @@ interface SaleData {
   customer: string;
   paymentMethod: string;
   discount: string | number;
-  note: string;
+  notes: string;
 }
 
 interface SaleInfoCardProps {
@@ -200,8 +200,8 @@ const SaleInfoCard: React.FC<SaleInfoCardProps> = ({
               <TextField
                 fullWidth
                 label="備註"
-                name="note"
-                value={saleData.note}
+                name="notes"
+                value={saleData.notes}
                 onChange={onInputChange}
                 size="small"
                 multiline

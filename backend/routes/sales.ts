@@ -74,7 +74,7 @@ const router: express.Router = express.Router();
  *           description: 支付狀態
  *           enum: [paid, pending, partial, cancelled]
  *           default: paid
- *         note:
+ *         notes:
  *           type: string
  *           description: 備註
  *         cashier:
@@ -731,7 +731,7 @@ router.get('/:id', async (req: Request, res: Response) => {
  *                 type: string
  *                 description: 支付狀態
  *                 enum: [paid, pending, partial, cancelled]
- *               note:
+ *               notes:
  *                 type: string
  *                 description: 備註
  *               cashier:
@@ -1406,7 +1406,7 @@ async function updateCustomerPoints(sale: SaleDocument): Promise<void> {
  *                 type: string
  *                 description: 支付狀態
  *                 enum: [paid, pending, partial, cancelled]
- *               note:
+ *               notes:
  *                 type: string
  *                 description: 備註
  *               cashier:

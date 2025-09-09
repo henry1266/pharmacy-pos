@@ -29,7 +29,7 @@ interface SaleData {
   discount: number; // 前端特有，用於處理整體折扣
   paymentMethod: 'cash' | 'card' | 'transfer' | 'other' | 'credit_card' | 'debit_card' | 'mobile_payment';
   paymentStatus: 'paid' | 'pending' | 'cancelled'; // 對應後端的 status: 'completed' | 'pending' | 'cancelled'
-  note: string; // 對應後端的 notes
+  notes: string; // 對應後端的 notes
 }
 
 /**
@@ -90,7 +90,7 @@ export const useSalesEditData = (saleId: string) => {
             discount: 0, // 在 Sale 介面中沒有 discount 屬性，設為 0
             paymentMethod: saleData.paymentMethod ?? 'cash',
             paymentStatus: paymentStatus,
-            note: saleData.notes ?? ''
+            notes: saleData.notes ?? ''
           });
       } else {
           // Handle case where saleData or saleData.items is not as expected
