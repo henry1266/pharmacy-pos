@@ -20,7 +20,7 @@ import productCategoriesRoutes from "./routes/productCategories";
 import productsRoutes from "./routes/products";
 import packagesRoutes from "./routes/packages";
 import customersRoutes from "./routes/customers";
-import salesRoutes from "./routes/sales";
+import salesRoutes from "./modules/sales";
 import accountingRoutes from "./routes/accounting";
 import dashboardRoutes from "./routes/dashboard";
 import reportsRoutes from "./routes/reports";

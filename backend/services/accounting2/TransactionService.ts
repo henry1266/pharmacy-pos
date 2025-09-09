@@ -1320,9 +1320,6 @@ export class TransactionService {
         }
       }).lean();
       
-      // 記錄找到的付款交易數量
-      const paymentCount = paymentTransactions.length;
-      
       // 處理每個進貨單
       let missingTransactionIdCount = 0;
       let missingPaymentCount = 0;
