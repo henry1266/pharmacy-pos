@@ -102,7 +102,7 @@ async function performWildcardSearch(wildcardSearch: string): Promise<any[]> {
         $match: {
           $or: [
             { saleNumber: searchRegex },
-            { notes: searchRegex },
+            { note: searchRegex },
             { 'customerData.name': searchRegex },
             { 'productData.name': searchRegex }
           ]
@@ -239,7 +239,7 @@ async function performRegularSearch(searchTerm: string): Promise<any[]> {
         $match: {
           $or: [
             { saleNumber: searchRegex },
-            { notes: searchRegex },
+            { note: searchRegex },
             { 'customerData.name': searchRegex },
             { 'productData.name': searchRegex }
           ]
@@ -763,7 +763,7 @@ async function createSaleRecord(requestBody: SaleCreationRequest): Promise<SaleD
     discount: requestBody.discount,
     paymentMethod: requestBody.paymentMethod,
     paymentStatus: requestBody.paymentStatus,
-    notes: requestBody.notes,
+    note: requestBody.note,
     cashier: requestBody.cashier
   };
   
@@ -775,7 +775,7 @@ async function createSaleRecord(requestBody: SaleCreationRequest): Promise<SaleD
     discount: saleData.discount || 0,
     paymentMethod: saleData.paymentMethod,
     paymentStatus: saleData.paymentStatus || 'pending',
-    notes: saleData.notes || '',
+    note: saleData.note || '',
     cashier: saleData.cashier || ''
   });
 
@@ -1205,7 +1205,7 @@ async function updateSaleRecord(saleId: string, requestBody: SaleCreationRequest
     discount: requestBody.discount,
     paymentMethod: requestBody.paymentMethod,
     paymentStatus: requestBody.paymentStatus,
-    notes: requestBody.notes, // 使用正確的欄位名稱
+    note: requestBody.note, // 使用正確的欄位名稱
     cashier: requestBody.cashier
   };
   

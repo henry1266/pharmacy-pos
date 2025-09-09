@@ -1,0 +1,450 @@
+{
+  "/api/sales": {
+    "get": {
+      "summary": "獲取所有銷售記錄",
+      "description": "獲取所有銷售記錄，支援多種過濾和搜尋選項",
+      "tags": ["Sales"],
+      "parameters": [
+        {
+          "in": "query",
+          "name": "search",
+          "schema": {
+            "type": "string"
+          },
+          "description": "搜尋關鍵字（銷貨單號、客戶名稱、產品名稱等）"
+        },
+        {
+          "in": "query",
+          "name": "wildcardSearch",
+          "schema": {
+            "type": "string"
+          },
+          "description": "萬用字元搜尋（支援 * 和 ? 萬用字元）"
+        },
+        {
+          "in": "query",
+          "name": "startDate",
+          "schema": {
+            "type": "string",
+            "format": "date"
+          },
+          "description": "開始日期"
+        },
+        {
+          "in": "query",
+          "name": "endDate",
+          "schema": {
+            "type": "string",
+            "format": "date"
+          },
+          "description": "結束日期"
+        },
+        {
+          "in": "query",
+          "name": "customerId",
+          "schema": {
+            "type": "string"
+          },
+          "description": "客戶ID"
+        },
+        {
+          "in": "query",
+          "name": "status",
+          "schema": {
+            "type": "string",
+            "enum": ["paid", "pending", "partial", "cancelled"]
+          },
+          "description": "付款狀態"
+        },
+        {
+          "in": "query",
+          "name": "page",
+          "schema": {
+            "type": "integer"
+          },
+          "description": "頁碼"
+        },
+        {
+          "in": "query",
+          "name": "limit",
+          "schema": {
+            "type": "integer"
+          },
+          "description": "每頁數量"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "成功獲取銷售記錄列表",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "message": {
+                    "type": "string",
+                    "example": "銷售記錄列表獲取成功"
+                  },
+                  "data": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "../components/schemas/sales.json#/Sale"
+                    }
+                  },
+                  "timestamp": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "伺服器錯誤",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "../components/schemas/common.json#/ErrorResponse"
+              }
+            }
+          }
+        }
+      }
+    },
+    "post": {
+      "summary": "創建銷售記錄",
+      "description": "創建一個新的銷售記錄",
+      "tags": ["Sales"],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/sales.json#/SaleCreateRequest"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "銷售記錄創建成功",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "message": {
+                    "type": "string",
+                    "example": "銷售記錄創建成功"
+                  },
+                  "data": {
+                    "$ref": "../components/schemas/sales.json#/Sale"
+                  },
+                  "timestamp": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "請求參數錯誤",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": {
+                    "type": "boolean",
+                    "example": false
+                  },
+                  "message": {
+                    "type": "string",
+                    "example": "驗證失敗"
+                  },
+                  "error": {
+                    "type": "string",
+                    "description": "詳細錯誤信息"
+                  },
+                  "timestamp": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "404": {
+          "description": "找不到相關資源",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "../components/schemas/common.json#/ErrorResponse"
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "伺服器錯誤",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "../components/schemas/common.json#/ErrorResponse"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "/api/sales/{id}": {
+    "get": {
+      "summary": "獲取單個銷售記錄",
+      "description": "根據ID獲取單個銷售記錄的詳細信息",
+      "tags": ["Sales"],
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "description": "銷售記錄ID"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "成功獲取銷售記錄",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "message": {
+                    "type": "string",
+                    "example": "銷售記錄獲取成功"
+                  },
+                  "data": {
+                    "$ref": "../components/schemas/sales.json#/Sale"
+                  },
+                  "timestamp": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "404": {
+          "description": "找不到銷售記錄",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "../components/schemas/common.json#/ErrorResponse"
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "伺服器錯誤",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "../components/schemas/common.json#/ErrorResponse"
+              }
+            }
+          }
+        }
+      }
+    },
+    "put": {
+      "summary": "更新銷售記錄",
+      "description": "根據ID更新銷售記錄",
+      "tags": ["Sales"],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "description": "銷售記錄ID"
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/sales.json#/SaleUpdateRequest"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "銷售記錄更新成功",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "message": {
+                    "type": "string",
+                    "example": "銷售記錄更新成功"
+                  },
+                  "data": {
+                    "$ref": "../components/schemas/sales.json#/Sale"
+                  },
+                  "timestamp": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "請求參數錯誤",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "../components/schemas/common.json#/ErrorResponse"
+              }
+            }
+          }
+        },
+        "404": {
+          "description": "找不到銷售記錄",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "../components/schemas/common.json#/ErrorResponse"
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "伺服器錯誤",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "../components/schemas/common.json#/ErrorResponse"
+              }
+            }
+          }
+        }
+      }
+    },
+    "delete": {
+      "summary": "刪除銷售記錄",
+      "description": "根據ID刪除銷售記錄",
+      "tags": ["Sales"],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "description": "銷售記錄ID"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "銷售記錄刪除成功",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "message": {
+                    "type": "string",
+                    "example": "銷售記錄已刪除"
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "被刪除的銷售記錄ID"
+                      }
+                    }
+                  },
+                  "timestamp": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "404": {
+          "description": "找不到銷售記錄",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "../components/schemas/common.json#/ErrorResponse"
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "伺服器錯誤",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "../components/schemas/common.json#/ErrorResponse"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

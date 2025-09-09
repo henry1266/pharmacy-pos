@@ -17,7 +17,7 @@
 ## 📁 文件結構
 
 ```
-frontend/src/modules/supplier/
+frontend/src/modules/Supplier/
 ├── README.md                    # 本文檔
 ├── types/
 │   └── supplier.types.ts        # 類型定義
@@ -138,7 +138,7 @@ frontend/src/modules/supplier/
 
 ### 基本使用
 ```tsx
-import SuppliersPage from './modules/supplier/pages/SuppliersPage';
+import SuppliersPage from './modules/Supplier/pages/SuppliersPage';
 
 // 在路由中直接使用
 <Route path="/suppliers" element={<SuppliersPage />} />
@@ -146,7 +146,7 @@ import SuppliersPage from './modules/supplier/pages/SuppliersPage';
 
 ### 自定義 Hook 使用
 ```tsx
-import { useSupplierManagement } from './modules/supplier/hooks/useSupplierManagement';
+import { useSupplierManagement } from './modules/Supplier/hooks/useSupplierManagement';
 
 const MyComponent = () => {
   const {
@@ -162,7 +162,7 @@ const MyComponent = () => {
 
 ### 組件重用
 ```tsx
-import SupplierFormDialog from './modules/supplier/components/SupplierFormDialog';
+import SupplierFormDialog from './modules/Supplier/components/SupplierFormDialog';
 
 const MyPage = () => {
   return (

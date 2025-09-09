@@ -1,0 +1,224 @@
+{
+  "SaleItem": {
+    "type": "object",
+    "required": ["product", "quantity", "price", "subtotal"],
+    "properties": {
+      "product": {
+        "type": "string",
+        "description": "產品ID"
+      },
+      "quantity": {
+        "type": "number",
+        "description": "數量"
+      },
+      "price": {
+        "type": "number",
+        "description": "單價"
+      },
+      "subtotal": {
+        "type": "number",
+        "description": "小計"
+      }
+    }
+  },
+  "Sale": {
+    "type": "object",
+    "properties": {
+      "_id": {
+        "type": "string",
+        "description": "銷售記錄ID"
+      },
+      "saleNumber": {
+        "type": "string",
+        "description": "銷貨單號"
+      },
+      "customer": {
+        "type": "string",
+        "description": "客戶ID"
+      },
+      "items": {
+        "type": "array",
+        "description": "銷售項目",
+        "items": {
+          "$ref": "#/SaleItem"
+        }
+      },
+      "totalAmount": {
+        "type": "number",
+        "description": "總金額"
+      },
+      "discount": {
+        "type": "number",
+        "description": "折扣金額",
+        "default": 0
+      },
+      "paymentMethod": {
+        "type": "string",
+        "enum": ["cash", "credit_card", "debit_card", "mobile_payment", "other"],
+        "description": "付款方式",
+        "default": "cash"
+      },
+      "paymentStatus": {
+        "type": "string",
+        "enum": ["paid", "pending", "partial", "cancelled"],
+        "description": "付款狀態",
+        "default": "paid"
+      },
+      "note": {
+        "type": "string",
+        "description": "備註"
+      },
+      "cashier": {
+        "type": "string",
+        "description": "收銀員ID"
+      },
+      "date": {
+        "type": "string",
+        "format": "date-time",
+        "description": "銷售日期"
+      },
+      "createdAt": {
+        "type": "string",
+        "format": "date-time",
+        "description": "創建時間"
+      },
+      "updatedAt": {
+        "type": "string",
+        "format": "date-time",
+        "description": "更新時間"
+      }
+    }
+  },
+  "SaleCreateRequest": {
+    "type": "object",
+    "required": ["items", "totalAmount"],
+    "properties": {
+      "saleNumber": {
+        "type": "string",
+        "description": "銷貨單號（如果不提供將自動生成）"
+      },
+      "customer": {
+        "type": "string",
+        "description": "客戶ID"
+      },
+      "items": {
+        "type": "array",
+        "description": "銷售項目",
+        "items": {
+          "$ref": "#/SaleItem"
+        }
+      },
+      "totalAmount": {
+        "type": "number",
+        "description": "總金額"
+      },
+      "discount": {
+        "type": "number",
+        "description": "折扣金額",
+        "default": 0
+      },
+      "paymentMethod": {
+        "type": "string",
+        "enum": ["cash", "credit_card", "debit_card", "mobile_payment", "other"],
+        "description": "付款方式",
+        "default": "cash"
+      },
+      "paymentStatus": {
+        "type": "string",
+        "enum": ["paid", "pending", "partial", "cancelled"],
+        "description": "付款狀態",
+        "default": "paid"
+      },
+      "note": {
+        "type": "string",
+        "description": "備註"
+      },
+      "cashier": {
+        "type": "string",
+        "description": "收銀員ID"
+      }
+    }
+  },
+  "SaleUpdateRequest": {
+    "type": "object",
+    "properties": {
+      "customer": {
+        "type": "string",
+        "description": "客戶ID"
+      },
+      "items": {
+        "type": "array",
+        "description": "銷售項目",
+        "items": {
+          "$ref": "#/SaleItem"
+        }
+      },
+      "totalAmount": {
+        "type": "number",
+        "description": "總金額"
+      },
+      "discount": {
+        "type": "number",
+        "description": "折扣金額"
+      },
+      "paymentMethod": {
+        "type": "string",
+        "enum": ["cash", "credit_card", "debit_card", "mobile_payment", "other"],
+        "description": "付款方式"
+      },
+      "paymentStatus": {
+        "type": "string",
+        "enum": ["paid", "pending", "partial", "cancelled"],
+        "description": "付款狀態"
+      },
+      "note": {
+        "type": "string",
+        "description": "備註"
+      },
+      "cashier": {
+        "type": "string",
+        "description": "收銀員ID"
+      }
+    }
+  },
+  "SalesQueryParams": {
+    "type": "object",
+    "properties": {
+      "startDate": {
+        "type": "string",
+        "format": "date",
+        "description": "開始日期"
+      },
+      "endDate": {
+        "type": "string",
+        "format": "date",
+        "description": "結束日期"
+      },
+      "customerId": {
+        "type": "string",
+        "description": "客戶ID"
+      },
+      "status": {
+        "type": "string",
+        "enum": ["paid", "pending", "partial", "cancelled"],
+        "description": "付款狀態"
+      },
+      "page": {
+        "type": "integer",
+        "description": "頁碼"
+      },
+      "limit": {
+        "type": "integer",
+        "description": "每頁數量"
+      },
+      "search": {
+        "type": "string",
+        "description": "搜尋關鍵字"
+      },
+      "wildcardSearch": {
+        "type": "string",
+        "description": "萬用字元搜尋"
+      }
+    }
+  }
+}
