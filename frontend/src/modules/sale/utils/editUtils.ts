@@ -46,7 +46,7 @@ export const formatSaleData = (saleData: any): SaleData => {
     discount: 0, // 在 Sale 介面中沒有 discount 屬性，設為 0
     paymentMethod: saleData.paymentMethod ?? 'cash',
     paymentStatus: paymentStatus,
-    note: saleData.note ?? ''
+    notes: saleData.notes ?? ''
   };
 };
 
@@ -70,7 +70,7 @@ export const prepareSaleDataForSubmission = (saleData: SaleData) => {
     discount: parseFloat(saleData.discount.toString()) ?? 0,
     paymentMethod: saleData.paymentMethod,
     paymentStatus: saleData.paymentStatus,
-    note: saleData.note,
+    notes: saleData.notes,
   };
 };
 

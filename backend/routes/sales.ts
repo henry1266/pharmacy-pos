@@ -1035,7 +1035,7 @@ async function createSaleRecord(requestBody: SaleCreationRequest): Promise<SaleD
     discount: requestBody.discount,
     paymentMethod: requestBody.paymentMethod,
     paymentStatus: requestBody.paymentStatus,
-    note: requestBody.notes,
+    notes: requestBody.notes,
     cashier: requestBody.cashier
   };
   
@@ -1047,7 +1047,7 @@ async function createSaleRecord(requestBody: SaleCreationRequest): Promise<SaleD
     discount: saleData.discount || 0,
     paymentMethod: saleData.paymentMethod,
     paymentStatus: saleData.paymentStatus || 'pending',
-    notes: saleData.note || '',
+    notes: saleData.notes || '',
     cashier: saleData.cashier || ''
   });
 
@@ -1207,7 +1207,7 @@ function buildSaleFields(saleData: SaleFieldsInput): Record<string, any> {
   if (saleData.discount) saleFields.discount = saleData.discount;
   if (saleData.paymentMethod) saleFields.paymentMethod = saleData.paymentMethod as any;
   if (saleData.paymentStatus) saleFields.paymentStatus = saleData.paymentStatus as any;
-  if (saleData.notes) saleFields.note = saleData.notes;
+  if (saleData.notes) saleFields.notes = saleData.notes;
   if (saleData.cashier) saleFields.cashier = saleData.cashier;
   
   // 計算最終金額
@@ -1577,7 +1577,7 @@ async function updateSaleRecord(saleId: string, requestBody: SaleCreationRequest
     discount: requestBody.discount,
     paymentMethod: requestBody.paymentMethod,
     paymentStatus: requestBody.paymentStatus,
-    note: requestBody.notes, // 使用正確的欄位名稱
+    notes: requestBody.notes,
     cashier: requestBody.cashier
   };
   
@@ -1589,7 +1589,7 @@ async function updateSaleRecord(saleId: string, requestBody: SaleCreationRequest
     discount: saleData.discount || 0,
     paymentMethod: saleData.paymentMethod,
     paymentStatus: saleData.paymentStatus || 'pending',
-    notes: saleData.note || '',
+    notes: saleData.notes || '',
     cashier: saleData.cashier || ''
   });
   

@@ -122,10 +122,10 @@ const SaleEditDetailsCard: React.FC<SaleEditDetailsCardProps> = ({
             <TextField
               fullWidth
               label="備註"
-              name="note"
+              name="notes"
               multiline
               rows={isMobile ? 2 : 3}
-              value={currentSale.note ?? ''}
+              value={currentSale.notes ?? ''}
               onChange={handleInputChange}
             />
           </Grid>

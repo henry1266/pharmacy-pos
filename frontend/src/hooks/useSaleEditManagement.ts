@@ -27,7 +27,7 @@ interface SaleData {
   discount: number;
   paymentMethod: 'cash' | 'card' | 'transfer' | 'other' | 'credit_card' | 'debit_card' | 'mobile_payment';
   paymentStatus: 'paid' | 'pending' | 'cancelled';
-  note: string;
+  notes: string;
 }
 
 /**
@@ -60,7 +60,7 @@ export const useSaleEditManagement = (
     discount: 0,
     paymentMethod: 'cash',
     paymentStatus: 'paid',
-    note: ''
+    notes: ''
   });
   const [barcode, setBarcode] = useState<string>('');
   const [inputModes, setInputModes] = useState<InputMode[]>([]); // 新增：輸入模式狀態
@@ -260,7 +260,7 @@ export const useSaleEditManagement = (
       discount: parseFloat(currentSale.discount.toString()) ?? 0,
       paymentMethod: currentSale.paymentMethod,
       paymentStatus: currentSale.paymentStatus,
-      note: currentSale.note,
+      notes: currentSale.notes,
     };
 
     try {

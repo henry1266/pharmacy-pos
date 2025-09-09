@@ -302,6 +302,7 @@ export interface Transaction {
   category: string | AccountingCategory; // 分類ID或分類對象
   description?: string;
   paymentMethod: 'cash' | 'card' | 'transfer' | 'other';
+  notes?: string;
   referenceId?: string; // 參考ID（如銷售ID等）
   createdBy?: string; // 創建者ID
   createdAt: string | Date;

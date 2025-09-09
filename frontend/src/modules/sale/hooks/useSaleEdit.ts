@@ -74,7 +74,7 @@ export const useSaleEdit = (saleId: string, products: Product[]) => {
     discount: 0,
     paymentMethod: 'cash',
     paymentStatus: 'paid',
-    note: ''
+    notes: ''
   });
   const [barcode, setBarcode] = useState<string>('');
   const [inputModes, setInputModes] = useState<InputMode[]>([]);

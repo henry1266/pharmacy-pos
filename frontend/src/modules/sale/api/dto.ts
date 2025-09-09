@@ -165,7 +165,7 @@ export interface SaleDataDto {
   discount: number;
   paymentMethod: 'cash' | 'card' | 'transfer' | 'other' | 'credit_card' | 'debit_card' | 'mobile_payment';
   paymentStatus: 'paid' | 'pending' | 'cancelled';
-  note: string;
+  notes: string;
 }
 
 /**
@@ -195,7 +195,7 @@ export const mapSaleResponseToSaleData = (sale: SaleResponseDto): SaleDataDto =>
     discount: sale.discount || 0,
     paymentMethod: sale.paymentMethod,
     paymentStatus: (sale.paymentStatus || 'paid') as 'paid' | 'pending' | 'cancelled',
-    note: sale.notes || sale.notes || ''
+    notes: sale.notes || ''
   };
 };
 
@@ -217,6 +217,6 @@ export const mapSaleDataToSaleRequest = (saleData: SaleDataDto): SaleRequestDto 
     paymentMethod: saleData.paymentMethod,
     paymentStatus: saleData.paymentStatus,
     status: saleData.paymentStatus === 'paid' ? 'completed' : saleData.paymentStatus,
-    notes: saleData.note
+    notes: saleData.notes
   };
 };

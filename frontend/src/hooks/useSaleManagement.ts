@@ -26,7 +26,7 @@ interface SaleData {
   discount: number;
   paymentMethod: 'cash' | 'card' | 'transfer' | 'other';
   paymentStatus: 'paid' | 'pending' | 'cancelled';
-  note: string;
+  notes: string;
 }
 
 /**
@@ -42,7 +42,7 @@ const initialSaleState: SaleData = {
   discount: 0,
   paymentMethod: 'cash',
   paymentStatus: 'paid',
-  note: ''
+  notes: ''
 };
 
 /**
@@ -216,7 +216,7 @@ const useSaleManagement = (showSnackbar: (message: string, severity: string) => 
       discount: currentSale.discount,
       paymentMethod: currentSale.paymentMethod,
       paymentStatus: currentSale.paymentStatus,
-      note: currentSale.note,
+      notes: currentSale.notes,
     };
   }, [currentSale]);
 

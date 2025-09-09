@@ -25,7 +25,7 @@ export interface SaleData {
   discount: number; // 前端特有，用於處理整體折扣
   paymentMethod: 'cash' | 'card' | 'transfer' | 'other' | 'credit_card' | 'debit_card' | 'mobile_payment';
   paymentStatus: 'paid' | 'pending' | 'cancelled'; // 對應後端的 status: 'completed' | 'pending' | 'cancelled'
-  note: string; // 對應後端的 notes
+  notes: string;
 }
 
 /**
