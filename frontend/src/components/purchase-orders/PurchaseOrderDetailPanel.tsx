@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, useState } from 'react';
 import {
   Box,
   Card,
@@ -13,7 +13,8 @@ import {
   Tooltip,
   Button,
   Chip,
-  Grid
+  Grid,
+  Paper
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -43,6 +44,7 @@ interface PurchaseOrderDetailPanelProps {
 const PurchaseOrderDetailPanel: FC<PurchaseOrderDetailPanelProps> = ({
   selectedPurchaseOrder
 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
   if (!selectedPurchaseOrder) {
     return (
       <Card elevation={2} sx={{ borderRadius: '0.5rem', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -67,19 +69,81 @@ const PurchaseOrderDetailPanel: FC<PurchaseOrderDetailPanelProps> = ({
         {`發票號碼: ${selectedPurchaseOrder.pobill || '無'}`}
         <List dense sx={{ py: 0 }}>
           {/* 供應商和日期左右排列 */}
-          <ListItem sx={{ py: 0.5 }}>
+          <ListItem sx={{ py: 1 }}>
             <Grid container spacing={2}>
               <Grid item xs={6}>
-                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                  <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>供應商:</Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedPurchaseOrder.posupplier}</Typography>
-                </Box>
+                <Paper
+                  elevation={1}
+                  sx={{
+                    p: 1.5,
+                    borderRadius: 1.5,
+                    backgroundColor: 'background.paper',
+                    transition: 'all 0.2s',
+                    '&:hover': {
+                      boxShadow: 3,
+                      transform: 'translateY(-2px)'
+                    }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: 'text.secondary',
+                        mb: 0.5,
+                        fontWeight: 400
+                      }}
+                    >
+                      供應商
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        fontWeight: 600,
+                        color: 'text.primary'
+                      }}
+                    >
+                      {selectedPurchaseOrder.posupplier}
+                    </Typography>
+                  </Box>
+                </Paper>
               </Grid>
               <Grid item xs={6}>
-                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                  <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>日期:</Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 500 }}>{formattedDate}</Typography>
-                </Box>
+                <Paper
+                  elevation={1}
+                  sx={{
+                    p: 1.5,
+                    borderRadius: 1.5,
+                    backgroundColor: 'background.paper',
+                    transition: 'all 0.2s',
+                    '&:hover': {
+                      boxShadow: 3,
+                      transform: 'translateY(-2px)'
+                    }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: 'text.secondary',
+                        mb: 0.5,
+                        fontWeight: 400
+                      }}
+                    >
+                      日期
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        fontWeight: 600,
+                        color: 'text.primary'
+                      }}
+                    >
+                      {formattedDate}
+                    </Typography>
+                  </Box>
+                </Paper>
               </Grid>
             </Grid>
           </ListItem>
@@ -97,7 +161,7 @@ const PurchaseOrderDetailPanel: FC<PurchaseOrderDetailPanelProps> = ({
             
             <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>商品項目</Typography>
             <List dense sx={{ py: 0 }}>
-              {selectedPurchaseOrder.items.slice(0, 3).map((item, index) => (
+              {selectedPurchaseOrder.items.slice(0, isExpanded ? selectedPurchaseOrder.items.length : 3).map((item, index) => (
                 <ListItem key={index} sx={{ py: 0.5, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                     <Typography variant="body2" sx={{ fontWeight: 500 }}>{item.dname || '未命名商品'}</Typography>
@@ -118,7 +182,7 @@ const PurchaseOrderDetailPanel: FC<PurchaseOrderDetailPanelProps> = ({
                                 cursor: 'pointer',
                                 '&:hover': { color: 'primary.dark' }
                               }}
-                              onClick={() => window.open(`/products?code=${item.did}`, '_blank')}
+                              onClick={() => window.open(`/products/${item.did}`, '_blank')}
                             >
                               {item.did}
                             </Typography>
@@ -133,9 +197,16 @@ const PurchaseOrderDetailPanel: FC<PurchaseOrderDetailPanelProps> = ({
               ))}
               {selectedPurchaseOrder.items.length > 3 && (
                 <ListItem sx={{ py: 0.5 }}>
-                  <Typography variant="body2" color="primary">
-                    +{selectedPurchaseOrder.items.length - 3} 個更多項目...
-                  </Typography>
+                  <Button
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    color="primary"
+                    size="small"
+                    sx={{ textTransform: 'none', p: 0, minWidth: 'auto' }}
+                  >
+                    {isExpanded
+                      ? '收起項目列表'
+                      : `+${selectedPurchaseOrder.items.length - 3} 個更多項目...`}
+                  </Button>
                 </ListItem>
               )}
             </List>
