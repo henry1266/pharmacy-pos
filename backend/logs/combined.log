@@ -9657,3 +9657,68 @@
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m為不扣庫存產品 部分負擔 創建毛利記錄，數量: 1, 售價: 40, 進價: 0, 毛利: 40\u001b[39m","timestamp":"2025-09-09 19:36:40:3640"}
 {"hasPaymentCount":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查完成\u001b[39m","missingPaymentCount":45,"missingTransactionIdCount":5,"paymentTransactionsCount":0,"timestamp":"2025-09-09 19:37:01:371","totalOrders":50}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":0,"timestamp":"2025-09-09 19:37:01:371","totalCount":50,"unpaidCount":50}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67eb565d0f2cf9d2647e3adf"},"supplierId":"67eb565d0f2cf9d2647e3adf","timestamp":"2025-09-09 20:29:49:2949"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-09-09 20:29:49:2949"}
+{"0":"686729f987107c6d64bcc6c1","1":"68672a3587107c6d64bcc7a7","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - selectedAccountIds:\u001b[39m","timestamp":"2025-09-09 20:30:31:3031"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - items:\u001b[39m","timestamp":"2025-09-09 20:30:31:3031"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - processedItems:\u001b[39m","timestamp":"2025-09-09 20:30:31:3031"}
+{"0":"686729f987107c6d64bcc6c1","1":"68672a3587107c6d64bcc7a7","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單已儲存 - selectedAccountIds:\u001b[39m","timestamp":"2025-09-09 20:30:32:3032"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 67edfa148b015c0b28783a9b 創建新庫存記錄，進貨單號: 20250909001, 數量: 48, 總金額: 300\u001b[39m","timestamp":"2025-09-09 20:30:32:3032"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m檢查進貨單自動會計分錄條件:\u001b[39m","poid":"20250909001","timestamp":"2025-09-09 20:30:32:3032"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單沒有機構ID，將嘗試從會計科目獲取\u001b[39m","timestamp":"2025-09-09 20:30:32:3032"}
+{"accountCount":2,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m滿足自動會計分錄條件:\u001b[39m","organizationId":"未設置","timestamp":"2025-09-09 20:30:32:3032","totalAmount":300}
+{"asset":true,"expense":false,"level":"\u001b[37mdebug\u001b[39m","liability":true,"message":"\u001b[37m科目類型分析:\u001b[39m","timestamp":"2025-09-09 20:30:32:3032"}
+{"entryType":"asset-liability","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m自動推斷分錄類型:\u001b[39m","timestamp":"2025-09-09 20:30:32:3032"}
+{"entryType":"asset-liability","level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已更新進貨單分錄類型:\u001b[39m","poid":"20250909001","timestamp":"2025-09-09 20:30:32:3032"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m從會計科目推斷機構ID:\u001b[39m","organizationId":"686390c76ac0ff7bb8bb8387","timestamp":"2025-09-09 20:30:32:3032"}
+{"date":"2025-09-08","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m從進貨單號解析日期:\u001b[39m","poid":"20250909001","timestamp":"2025-09-09 20:30:32:3032"}
+{"0":"686729f987107c6d64bcc6c1","1":"68672a3587107c6d64bcc7a7","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - selectedAccountIds:\u001b[39m","timestamp":"2025-09-09 20:30:33:3033"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - items:\u001b[39m","timestamp":"2025-09-09 20:30:33:3033"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - processedItems:\u001b[39m","timestamp":"2025-09-09 20:30:33:3033"}
+{"0":"686729f987107c6d64bcc6c1","1":"68672a3587107c6d64bcc7a7","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單已儲存 - selectedAccountIds:\u001b[39m","timestamp":"2025-09-09 20:30:33:3033"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 67edfa148b015c0b28783a9b 創建新庫存記錄，進貨單號: 20250909002, 數量: 48, 總金額: 300\u001b[39m","timestamp":"2025-09-09 20:30:33:3033"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m檢查進貨單自動會計分錄條件:\u001b[39m","poid":"20250909002","timestamp":"2025-09-09 20:30:33:3033"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單沒有機構ID，將嘗試從會計科目獲取\u001b[39m","timestamp":"2025-09-09 20:30:33:3033"}
+{"accountCount":2,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m滿足自動會計分錄條件:\u001b[39m","organizationId":"未設置","timestamp":"2025-09-09 20:30:33:3033","totalAmount":300}
+{"asset":true,"expense":false,"level":"\u001b[37mdebug\u001b[39m","liability":true,"message":"\u001b[37m科目類型分析:\u001b[39m","timestamp":"2025-09-09 20:30:33:3033"}
+{"entryType":"asset-liability","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m自動推斷分錄類型:\u001b[39m","timestamp":"2025-09-09 20:30:33:3033"}
+{"entryType":"asset-liability","level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已更新進貨單分錄類型:\u001b[39m","poid":"20250909002","timestamp":"2025-09-09 20:30:33:3033"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m從會計科目推斷機構ID:\u001b[39m","organizationId":"686390c76ac0ff7bb8bb8387","timestamp":"2025-09-09 20:30:33:3033"}
+{"date":"2025-09-08","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m從進貨單號解析日期:\u001b[39m","poid":"20250909002","timestamp":"2025-09-09 20:30:33:3033"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建嵌入式交易群組:\u001b[39m","organizationId":"686390c76ac0ff7bb8bb8387","timestamp":"2025-09-09 20:30:33:3033"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m成功創建自動會計分錄:\u001b[39m","organizationId":"686390c76ac0ff7bb8bb8387","poid":"20250909001","timestamp":"2025-09-09 20:30:33:3033"}
+{"code":11000,"errorLabelSet":{},"errorResponse":{"code":11000,"errmsg":"E11000 duplicate key error collection: pharmacy-pos.transactionGroups index: groupNumber_1 dup key: { groupNumber: \"TXN-20250909-001\" }","index":0,"keyPattern":{"groupNumber":1},"keyValue":{"groupNumber":"TXN-20250909-001"}},"index":0,"keyPattern":{"groupNumber":1},"keyValue":{"groupNumber":"TXN-20250909-001"},"level":"\u001b[31merror\u001b[39m","message":"\u001b[31m創建自動會計分錄時發生錯誤: E11000 duplicate key error collection: pharmacy-pos.transactionGroups index: groupNumber_1 dup key: { groupNumber: \"TXN-20250909-001\" }\u001b[39m","stack":"MongoServerError: E11000 duplicate key error collection: pharmacy-pos.transactionGroups index: groupNumber_1 dup key: { groupNumber: \"TXN-20250909-001\" }\n    at InsertOneOperation.execute (D:\\pharmacy-pos\\node_modules\\.pnpm\\mongodb@6.17.0_socks@2.8.5\\node_modules\\mongodb\\src\\operations\\insert.ts:88:13)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async tryOperation (D:\\pharmacy-pos\\node_modules\\.pnpm\\mongodb@6.17.0_socks@2.8.5\\node_modules\\mongodb\\src\\operations\\execute_operation.ts:283:14)\n    at async executeOperation (D:\\pharmacy-pos\\node_modules\\.pnpm\\mongodb@6.17.0_socks@2.8.5\\node_modules\\mongodb\\src\\operations\\execute_operation.ts:115:12)\n    at async Collection.insertOne (D:\\pharmacy-pos\\node_modules\\.pnpm\\mongodb@6.17.0_socks@2.8.5\\node_modules\\mongodb\\src\\collection.ts:286:12)","timestamp":"2025-09-09 20:30:33:3033"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31m處理會計整合時出錯: E11000 duplicate key error collection: pharmacy-pos.transactionGroups index: groupNumber_1 dup key: { groupNumber: \"TXN-20250909-001\" }\u001b[39m","timestamp":"2025-09-09 20:30:33:3033"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m進貨單 20250909001 已關聯交易群組 68c01de8485b2bc1b474dd43\u001b[39m","timestamp":"2025-09-09 20:30:33:3033"}
+{"0":"686729f987107c6d64bcc6c1","1":"68672a3587107c6d64bcc7a7","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - selectedAccountIds:\u001b[39m","timestamp":"2025-09-09 20:30:33:3033"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - items:\u001b[39m","timestamp":"2025-09-09 20:30:33:3033"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - processedItems:\u001b[39m","timestamp":"2025-09-09 20:30:33:3033"}
+{"0":"686729f987107c6d64bcc6c1","1":"68672a3587107c6d64bcc7a7","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單已儲存 - selectedAccountIds:\u001b[39m","timestamp":"2025-09-09 20:30:33:3033"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 67edfa148b015c0b28783a9b 創建新庫存記錄，進貨單號: 20250909003, 數量: 48, 總金額: 300\u001b[39m","timestamp":"2025-09-09 20:30:33:3033"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m檢查進貨單自動會計分錄條件:\u001b[39m","poid":"20250909003","timestamp":"2025-09-09 20:30:33:3033"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單沒有機構ID，將嘗試從會計科目獲取\u001b[39m","timestamp":"2025-09-09 20:30:33:3033"}
+{"accountCount":2,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m滿足自動會計分錄條件:\u001b[39m","organizationId":"未設置","timestamp":"2025-09-09 20:30:33:3033","totalAmount":300}
+{"asset":true,"expense":false,"level":"\u001b[37mdebug\u001b[39m","liability":true,"message":"\u001b[37m科目類型分析:\u001b[39m","timestamp":"2025-09-09 20:30:33:3033"}
+{"entryType":"asset-liability","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m自動推斷分錄類型:\u001b[39m","timestamp":"2025-09-09 20:30:33:3033"}
+{"entryType":"asset-liability","level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已更新進貨單分錄類型:\u001b[39m","poid":"20250909003","timestamp":"2025-09-09 20:30:33:3033"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m從會計科目推斷機構ID:\u001b[39m","organizationId":"686390c76ac0ff7bb8bb8387","timestamp":"2025-09-09 20:30:33:3033"}
+{"date":"2025-09-08","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m從進貨單號解析日期:\u001b[39m","poid":"20250909003","timestamp":"2025-09-09 20:30:33:3033"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建嵌入式交易群組:\u001b[39m","organizationId":"686390c76ac0ff7bb8bb8387","timestamp":"2025-09-09 20:30:33:3033"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m成功創建自動會計分錄:\u001b[39m","organizationId":"686390c76ac0ff7bb8bb8387","poid":"20250909003","timestamp":"2025-09-09 20:30:33:3033"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m進貨單 20250909003 已關聯交易群組 68c01de9485b2bc1b474dd66\u001b[39m","timestamp":"2025-09-09 20:30:33:3033"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":0,"timestamp":"2025-09-09 20:30:36:3036","totalCount":50,"unpaidCount":50}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m更新進貨單 - selectedAccountIds:\u001b[39m","timestamp":"2025-09-09 20:32:01:321"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m進貨單 68c01de9485b2bc1b474dd5d 狀態從完成變為 pending，執行解鎖操作\u001b[39m","timestamp":"2025-09-09 20:32:01:321"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已刪除 1 筆與進貨單 68c01de9485b2bc1b474dd5d 相關的庫存記錄\u001b[39m","timestamp":"2025-09-09 20:32:01:321"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m刪除交易群組會計分錄:\u001b[39m","timestamp":"2025-09-09 20:32:01:321","transactionGroupId":"68c01de9485b2bc1b474dd66"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m成功刪除交易群組及其相關分錄:\u001b[39m","timestamp":"2025-09-09 20:32:01:321","transactionGroupId":"68c01de9485b2bc1b474dd66"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已清除進貨單 20250909003 的關聯交易群組ID\u001b[39m","timestamp":"2025-09-09 20:32:01:321"}
+{"0":"686729f987107c6d64bcc6c1","1":"68672a3587107c6d64bcc7a7","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單已更新 - selectedAccountIds:\u001b[39m","timestamp":"2025-09-09 20:32:01:321"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":0,"timestamp":"2025-09-09 20:32:08:328","totalCount":1,"unpaidCount":1}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m更新進貨單 - selectedAccountIds:\u001b[39m","timestamp":"2025-09-09 20:32:10:3210"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m進貨單 68c01de9485b2bc1b474dd4b 狀態從完成變為 pending，執行解鎖操作\u001b[39m","timestamp":"2025-09-09 20:32:10:3210"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已刪除 1 筆與進貨單 68c01de9485b2bc1b474dd4b 相關的庫存記錄\u001b[39m","timestamp":"2025-09-09 20:32:10:3210"}
+{"0":"686729f987107c6d64bcc6c1","1":"68672a3587107c6d64bcc7a7","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單已更新 - selectedAccountIds:\u001b[39m","timestamp":"2025-09-09 20:32:10:3210"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":0,"timestamp":"2025-09-09 20:32:15:3215","totalCount":1,"unpaidCount":1}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m為產品 67f334e20283a44cfdc53bfe 創建銷售庫存記錄，數量: -3, 總金額: 17500\u001b[39m","timestamp":"2025-09-09 20:34:06:346"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":0,"timestamp":"2025-09-09 23:41:21:4121","totalCount":50,"unpaidCount":50}

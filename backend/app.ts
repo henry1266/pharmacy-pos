@@ -15,7 +15,7 @@ import authRoutes from "./routes/auth";
 import usersRoutes from "./routes/users";
 import suppliersRoutes from "./routes/suppliers";
 import inventoryRoutes from "./routes/inventory";
-import purchaseOrdersRoutes from "./routes/purchaseOrders";
+import purchaseOrdersRoutes from "./modules/purchaseOrders";
 import productCategoriesRoutes from "./routes/productCategories";
 import productsRoutes from "./routes/products";
 import packagesRoutes from "./routes/packages";
