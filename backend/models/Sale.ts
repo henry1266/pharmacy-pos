@@ -28,6 +28,9 @@ const SaleSchema = new Schema<ISaleDocument>({
       subtotal: {
         type: Number,
         required: true
+      },
+      note: {
+        type: String
       }
     }
   ],
@@ -49,7 +52,7 @@ const SaleSchema = new Schema<ISaleDocument>({
     enum: ['paid', 'pending', 'partial', 'cancelled'],
     default: 'paid'
   },
-  note: {
+  notes: {
     type: String
   },
   cashier: {

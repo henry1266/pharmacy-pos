@@ -167,7 +167,6 @@ export interface Sale {
   paymentStatus?: 'paid' | 'pending' | 'partial' | 'cancelled';
   status?: 'completed' | 'pending' | 'cancelled';
   notes?: string;
-  note?: string;
   cashier?: string; // 創建者ID
   createdBy?: string; // 創建者ID
   createdAt: string | Date;
@@ -280,7 +279,7 @@ export interface AccountingItem {
   amount: number;
   category: string;
   categoryId?: string;
-  note?: string;
+  notes?: string;
 }
 
 export interface Accounting {

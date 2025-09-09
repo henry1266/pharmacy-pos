@@ -86,9 +86,9 @@ const JournalDataGrid: React.FC<JournalDataGridProps> = ({
       renderCell: (params) => (
         <div>
           {(params.value as AccountingItem[]).map((item, index) => (
-            <div key={`${item.category}-${item.amount}-${item.note ?? ''}-${index}`}>
+            <div key={`${item.category}-${item.amount}-${item.notes ?? ''}-${index}`}>
               {item.category}: ${item.amount}
-              {item.note && ` (${item.note})`}
+              {item.notes && ` (${item.notes})`}
             </div>
           ))}
         </div>

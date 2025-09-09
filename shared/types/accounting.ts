@@ -13,7 +13,7 @@ export interface AccountingItem {
   amount: number; // 統一為 number 型別
   category: string;
   categoryId?: string;
-  note?: string; // 改為選填，與 backend 一致
+  notes?: string; // 改為選填，與 backend 一致
 }
 
 /**

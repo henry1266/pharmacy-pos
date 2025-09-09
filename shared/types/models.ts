@@ -90,7 +90,7 @@ export interface ISale extends ITimestamps {
   discount: number;
   paymentMethod: 'cash' | 'credit_card' | 'debit_card' | 'mobile_payment' | 'other';
   paymentStatus: 'paid' | 'pending' | 'partial' | 'cancelled';
-  note?: string;
+  notes?: string;
   cashier?: string;
   date: Date;
   finalAmount: number;
@@ -173,7 +173,7 @@ export interface IAccountingItem {
   amount: number;
   category: string;
   categoryId?: string;
-  note?: string;
+  notes?: string;
 }
 
 export interface IAccounting extends ITimestamps {
@@ -201,7 +201,7 @@ export interface ICustomer extends ITimestamps {
   birthdate?: Date;
   gender?: "other" | "male" | "female";
   medicalHistory?: string;
-  note?: string;
+  notes?: string;
   totalPurchases?: number;
   lastPurchaseDate?: Date;
 }

@@ -32,8 +32,8 @@ const useAccountingFormData = () => {
     shift: '',
     status: 'pending',
     items: [
-      { amount: 0, category: '', categoryId: '', note: '' },
-      { amount: 0, category: '', categoryId: '', note: '' }
+      { amount: 0, category: '', categoryId: '', notes: '' },
+      { amount: 0, category: '', categoryId: '', notes: '' }
     ]
   });
 

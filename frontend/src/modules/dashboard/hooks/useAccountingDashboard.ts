@@ -42,8 +42,8 @@ export const useAccountingDashboard = () => {
     shift: '',
     status: 'pending',
     items: [
-      { amount: 0, category: '掛號費', note: '' },
-      { amount: 0, category: '部分負擔', note: '' }
+      { amount: 0, category: '掛號費', notes: '' },
+      { amount: 0, category: '部分負擔', notes: '' }
     ],
     unaccountedSales: []
   });
@@ -100,8 +100,8 @@ export const useAccountingDashboard = () => {
           shift: '早',
           status: 'completed',
           items: [
-            { amount: 500, category: '掛號費', note: '' },
-            { amount: 300, category: '部分負擔', note: '' }
+            { amount: 500, category: '掛號費', notes: '' },
+            { amount: 300, category: '部分負擔', notes: '' }
           ],
           totalAmount: 800
         },
@@ -111,8 +111,8 @@ export const useAccountingDashboard = () => {
           shift: '中',
           status: 'pending',
           items: [
-            { amount: 600, category: '掛號費', note: '' },
-            { amount: 400, category: '部分負擔', note: '' }
+            { amount: 600, category: '掛號費', notes: '' },
+            { amount: 400, category: '部分負擔', notes: '' }
           ],
           totalAmount: 1000
         }
@@ -163,8 +163,8 @@ export const useAccountingDashboard = () => {
       shift: '',
       status: 'pending',
       items: [
-        { amount: 0, category: '掛號費', note: '' },
-        { amount: 0, category: '部分負擔', note: '' }
+        { amount: 0, category: '掛號費', notes: '' },
+        { amount: 0, category: '部分負擔', notes: '' }
       ],
       unaccountedSales: []
     });

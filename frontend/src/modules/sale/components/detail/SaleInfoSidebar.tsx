@@ -92,7 +92,7 @@ const SaleInfoSidebar: FC<SaleInfoSidebarProps> = ({ sale }) => (
             wordBreak: 'break-word' 
           }}
         >
-          {sale.note ?? '無'}
+          {sale.notes ?? '無'}
         </Typography>
       </Stack>
     </CardContent>

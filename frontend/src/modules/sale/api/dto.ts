@@ -195,7 +195,7 @@ export const mapSaleResponseToSaleData = (sale: SaleResponseDto): SaleDataDto =>
     discount: sale.discount || 0,
     paymentMethod: sale.paymentMethod,
     paymentStatus: (sale.paymentStatus || 'paid') as 'paid' | 'pending' | 'cancelled',
-    note: sale.notes || sale.note || ''
+    note: sale.notes || sale.notes || ''
   };
 };
 

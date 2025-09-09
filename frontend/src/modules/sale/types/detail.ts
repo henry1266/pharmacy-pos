@@ -47,7 +47,7 @@ export interface Sale {
   tax?: number;
   paymentMethod: 'cash' | 'credit_card' | 'debit_card' | 'mobile_payment' | 'other';
   paymentStatus: 'paid' | 'pending' | 'partial' | 'cancelled';
-  note?: string;
+  notes?: string;
 }
 
 /**

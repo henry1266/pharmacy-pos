@@ -93,6 +93,7 @@ export interface ISaleItem {
   quantity: number;
   price: number;
   subtotal: number;
+  notes?: string;
 }
 
 export interface ISale {
@@ -103,7 +104,7 @@ export interface ISale {
   discount: number;
   paymentMethod: 'cash' | 'credit_card' | 'debit_card' | 'mobile_payment' | 'other';
   paymentStatus: 'paid' | 'pending' | 'partial' | 'cancelled';
-  note?: string;
+  notes?: string;
   cashier?: Types.ObjectId;
   date: Date;
 }
@@ -247,7 +248,7 @@ export interface ICustomer {
   birthdate?: Date;
   gender?: "other" | "male" | "female";
   medicalHistory?: string;
-  note?: string;
+  notes?: string;
   totalPurchases?: number;
   lastPurchaseDate?: Date;
 }

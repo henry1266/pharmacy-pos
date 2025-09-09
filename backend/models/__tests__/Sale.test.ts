@@ -48,7 +48,7 @@ describe('Sale Model', () => {
       expect(savedSale.discount).toBe(saleData.discount);
       expect(savedSale.paymentMethod).toBe(saleData.paymentMethod);
       expect(savedSale.paymentStatus).toBe(saleData.paymentStatus);
-      expect(savedSale.note).toBe(saleData.note);
+      expect(savedSale.notes).toBe(saleData.note);
       expect(savedSale.cashier).toEqual(saleData.cashier);
       expect((savedSale as any).createdAt).toBeDefined();
       expect((savedSale as any).updatedAt).toBeDefined();
@@ -427,7 +427,7 @@ describe('Sale Model', () => {
       // 等待一毫秒確保時間差異
       await new Promise(resolve => setTimeout(resolve, 1));
       
-      sale.note = '更新的備註';
+      sale.notes = '更新的備註';
       const updatedSale = await sale.save();
       
       expect((updatedSale as any).updatedAt.getTime()).toBeGreaterThan(originalUpdatedAt.getTime());
@@ -584,12 +584,12 @@ describe('Sale Model', () => {
       // 更新付款狀態
       sale.paymentStatus = 'paid';
       sale.paymentMethod = 'cash';
-      sale.note = '現金付款完成';
+      sale.notes = '現金付款完成';
       await sale.save();
 
       expect(sale.paymentStatus).toBe('paid');
       expect(sale.paymentMethod).toBe('cash');
-      expect(sale.note).toBe('現金付款完成');
+      expect(sale.notes).toBe('現金付款完成');
 
       // 驗證計算
       expect(sale.calculateTotalAmount()).toBe(100);

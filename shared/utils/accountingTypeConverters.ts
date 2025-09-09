@@ -12,7 +12,7 @@ export interface BackendAccountingItem {
   amount: number;
   category: string;
   categoryId?: string; // 在轉換時處理 ObjectId
-  note?: string;
+  notes?: string;
 }
 
 /**
@@ -28,8 +28,8 @@ export const toBackendAccountingItem = (frontendItem: AccountingItem): BackendAc
     result.categoryId = frontendItem.categoryId;
   }
   
-  if (frontendItem.note) {
-    result.note = frontendItem.note;
+  if (frontendItem.notes) {
+    result.notes = frontendItem.notes;
   }
   
   return result;
@@ -48,8 +48,8 @@ export const toFrontendAccountingItem = (backendItem: BackendAccountingItem): Ac
     result.categoryId = backendItem.categoryId;
   }
   
-  if (backendItem.note) {
-    result.note = backendItem.note;
+  if (backendItem.notes) {
+    result.notes = backendItem.notes;
   }
   
   return result;

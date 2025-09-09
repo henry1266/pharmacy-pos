@@ -558,8 +558,8 @@ const NewEntryPage: React.FC = () => {
                   <Grid item sm={4} xs={12}>
                     <TextField
                       label="備註"
-                      value={item.note}
-                      onChange={(e) => handleItemChange(index, 'note', e.target.value)}
+                      value={item.notes}
+                      onChange={(e) => handleItemChange(index, 'notes', e.target.value)}
                       fullWidth
                       disabled={submitting}
                     />

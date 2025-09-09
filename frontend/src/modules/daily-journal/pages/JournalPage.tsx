@@ -60,8 +60,8 @@ const JournalPage: React.FC<JournalPageProps> = ({ openAddDialog = false }) => {
     shift: '',
     status: 'pending',
     items: [
-      { amount: 0, category: '掛號費', note: '' },
-      { amount: 0, category: '部分負擔', note: '' }
+      { amount: 0, category: '掛號費', notes: '' },
+      { amount: 0, category: '部分負擔', notes: '' }
     ],
     unaccountedSales: []
   });
@@ -109,8 +109,8 @@ const JournalPage: React.FC<JournalPageProps> = ({ openAddDialog = false }) => {
       shift: '',
       status: 'pending',
       items: [
-        { amount: 0, category: '掛號費', note: '' },
-        { amount: 0, category: '部分負擔', note: '' }
+        { amount: 0, category: '掛號費', notes: '' },
+        { amount: 0, category: '部分負擔', notes: '' }
       ],
       unaccountedSales: []
     });

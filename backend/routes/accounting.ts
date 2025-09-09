@@ -21,7 +21,7 @@ interface AccountingItem {
   amount: number;
   category: string;
   categoryId?: Types.ObjectId | null | undefined;
-  note?: string;
+  notes?: string;
   isAutoLinked?: boolean;
 }
 
@@ -739,8 +739,8 @@ router.put(
           isAutoLinked: item.isAutoLinked
         };
         
-        if (item.note) {
-          accountingItem.note = item.note;
+        if (item.notes) {
+          accountingItem.note = item.notes;
         }
         
         if (item.categoryId) {

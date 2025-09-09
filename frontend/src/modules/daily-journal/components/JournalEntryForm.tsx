@@ -184,7 +184,7 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({
   const handleAddItem = (): void => {
     setFormData({
       ...formData,
-      items: [...formData.items, { amount: 0, category: '', categoryId: '', note: '' }]
+      items: [...formData.items, { amount: 0, category: '', categoryId: '', notes: '' }]
     });
   };
   
@@ -195,7 +195,7 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({
     
     setFormData({
       ...formData,
-      items: updatedItems.length ? updatedItems : [{ amount: 0, category: '', categoryId: '', note: '' }]
+      items: updatedItems.length ? updatedItems : [{ amount: 0, category: '', categoryId: '', notes: '' }]
     });
   };
   
@@ -493,8 +493,8 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({
                 <Grid item xs={12} sm={4}>
                   <TextField
                     label="備註"
-                    value={item.note}
-                    onChange={(e) => handleItemChange(index, 'note', e.target.value)}
+                    value={item.notes}
+                    onChange={(e) => handleItemChange(index, 'notes', e.target.value)}
                     fullWidth
                   />
                 </Grid>

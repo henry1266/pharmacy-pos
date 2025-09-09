@@ -7,7 +7,7 @@ export interface AccountingItem {
   category: string;
   categoryId: string;
   amount: number;
-  note?: string;
+  notes?: string;
 }
 
 // 本地記帳記錄介面 (與API返回的格式匹配)
