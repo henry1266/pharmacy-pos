@@ -769,7 +769,10 @@ const ShippingOrderDetailPage: React.FC = () => {
         profit = totalAmount * profitMarginDecimal;
       }
     }
-    let profit1 = item.dtotalCost - profit;
+    // 確保安全處理 dtotalCost 可能為 undefined 的情況
+    let profit1 = (item.dtotalCost !== undefined && item.dtotalCost !== null && profit !== undefined && profit !== null)
+      ? item.dtotalCost + profit
+      : profit; // 如果無法計算，則使用原始的 profit 值
     return {
       id: index.toString(),
       did: item.did || '',
