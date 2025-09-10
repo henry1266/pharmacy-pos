@@ -38,12 +38,11 @@ import { ApiResponse } from '@pharmacy-pos/shared/types/api';
 
 import CommonListPageLayout from '@/components/common/CommonListPageLayout';
 import CollapsibleAmountInfo from '@/components/common/CollapsibleAmountInfo';
-import StatusChip from '@/components/common/StatusChip';
 import PaymentStatusChip from '@/components/common/PaymentStatusChip';
 import TitleWithCount from '@/components/common/TitleWithCount';
 import GenericConfirmDialog from '@/components/common/GenericConfirmDialog';
 import ProductCodeLink from '@/components/common/ProductCodeLink';
-import { getPaymentMethodText, getPaymentStatusInfo } from '../utils/paymentUtils';
+import { getPaymentMethodText } from '../utils/paymentUtils';
 import { getCollapsibleDetails } from '../utils/fifoUtils';
 import { Sale, FifoData } from '../types/detail';
 

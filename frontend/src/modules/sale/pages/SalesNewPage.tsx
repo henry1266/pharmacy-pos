@@ -49,9 +49,6 @@ import { validateShortcutItems } from '../utils/shortcutUtils';
 import TestModeConfig from '@/testMode/config/TestModeConfig';
 import testModeDataService from '@/testMode/services/TestModeDataService';
 
-// 直接使用 MuiGrid
-const Grid = MuiGrid;
-
 /**
  * 銷售頁面 v2 組件
  * 提供完整的銷售操作功能，包括產品選擇、銷售項目管理、客戶選擇、折扣設定和結帳

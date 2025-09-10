@@ -3,7 +3,7 @@
  * @description 處理 FIFO 毛利計算和顯示相關的工具函數
  */
 
-import { Sale, FifoData, CollapsibleDetail, DetailIconType } from '../types/detail';
+import { Sale, FifoData, CollapsibleDetail } from '../types/detail';
 
 /**
  * 獲取可收合的明細資料

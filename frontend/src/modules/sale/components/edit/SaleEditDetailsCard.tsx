@@ -14,7 +14,6 @@ import {
   useMediaQuery,
   SelectChangeEvent
 } from '@mui/material';
-import { Customer } from '@pharmacy-pos/shared/types/entities';
 import { SaleEditDetailsCardProps } from '../../types/edit';
 
 /**
