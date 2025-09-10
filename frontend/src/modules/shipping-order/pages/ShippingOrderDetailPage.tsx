@@ -251,36 +251,10 @@ const ShippingOrderDetailPage: React.FC = () => {
     if (!currentShippingOrder) return [];
   
     const details: CollapsibleDetail[] = [];
-    const subtotal = (currentShippingOrder.totalAmount ?? 0) + (currentShippingOrder.discountAmount ?? 0);
-  
-    details.push({
-      label: '小計',
-      value: subtotal,
-      icon: <ReceiptLongIcon color="action" fontSize="small" />,
-      condition: true
-    });
-  
-    if (currentShippingOrder?.discountAmount && currentShippingOrder.discountAmount > 0) {
-      details.push({
-        label: '折扣',
-        value: -currentShippingOrder.discountAmount,
-        icon: <PercentIcon color="secondary" fontSize="small" />,
-        color: 'secondary.main',
-        condition: true
-      });
-    }
+
     
     // 使用 FIFO 數據計算成本、毛利和毛利率
     if (!fifoLoading && fifoData?.summary) {
-      // 總成本
-      details.push({
-        label: '總成本',
-        value: fifoData.summary.totalCost || 0,
-        icon: <InfoIcon color="info" fontSize="small" />,
-        color: 'info.main',
-        condition: true
-      });
-      
       // 總毛利
       const isPositiveProfit = (fifoData.summary.totalProfit || fifoData.summary.grossProfit || 0) >= 0;
       details.push({
@@ -300,6 +274,16 @@ const ShippingOrderDetailPage: React.FC = () => {
         color: isPositiveMargin ? 'success.main' : 'error.main',
         condition: true
       });
+      
+      // 總成本
+      details.push({
+        label: '總成本',
+        value: fifoData.summary.totalCost || 0,
+        icon: <InfoIcon color="info" fontSize="small" />,
+        color: 'info.main',
+        condition: true
+      });
+      
     } else if (fifoLoading) {
       // FIFO 數據載入中
       details.push({
@@ -318,39 +302,8 @@ const ShippingOrderDetailPage: React.FC = () => {
         condition: true
       });
     } else {
-      // 使用項目數據計算（備用方案）
-      // 計算總成本
-      const totalCost = currentShippingOrder.items?.reduce((sum, item) => sum + (item.dtotalCost || 0), 0) || 0;
-      details.push({
-        label: '總成本',
-        value: totalCost,
-        icon: <InfoIcon color="info" fontSize="small" />,
-        color: 'info.main',
-        condition: true
-      });
-      
-      // 計算總毛利
-      const totalProfit = currentShippingOrder.items?.reduce((sum, item) => sum + (item.profit || 0), 0) || 0;
-      details.push({
-        label: '總毛利',
-        value: totalProfit,
-        icon: <AccountBalanceWalletIcon color="success" fontSize="small" />,
-        color: 'success.main',
-        condition: true
-      });
-      
-      // 計算毛利率
-      const totalAmount = currentShippingOrder.totalAmount || 0;
-      if (totalAmount > 0) {
-        const profitMarginValue = (totalProfit / totalAmount) * 100;
-        details.push({
-          label: '毛利率',
-          value: profitMarginValue,
-          icon: <PercentIcon color="warning" fontSize="small" />,
-          color: 'warning.main',
-          condition: true
-        });
-      }
+      // 載入失敗
+
     }
   
     return details;
