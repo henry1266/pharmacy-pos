@@ -2,16 +2,19 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import DashboardPage from './modules/dashboard/pages/DashboardPage';
 import DashboardDateDetailPage from './modules/dashboard/pages/DashboardDateDetailPage';
+
 import ProductsPage from './modules/product/pages/ProductsPage';
 import ProductDetailPage from './modules/product/pages/ProductDetailPage';
 import ProductEditPage from './modules/product/pages/ProductEditPage';
-import PackagesPage from './modules/package/pages/PackagesPage';
+import ProductsCategoryDetailPage from './modules/product/pages/ProductsCategoryDetailPage';
+import ProductCategoryPage from './modules/product/pages/ProductCategoryPage';
+import PackagesPage from './pages/PackagesPage';
 import SuppliersPage from './modules/Supplier/pages/SuppliersPage';
 import SupplierDetailPage from './modules/Supplier/pages/SupplierDetailPage';
 import CustomersPage from './pages/CustomersPage';
 import CustomerDetailPage from './pages/CustomerDetailPage';
 // 銷售管理頁面元件
-import SalesNew2Page from './modules/sale/pages/SalesNew2Page';
+import SalesNewPage from './modules/sale/pages/SalesNewPage';
 import SalesListPage from './modules/sale/pages/SalesListPage';
 import SalesEditPage from './modules/sale/pages/SalesEditPage';
 import SalesDetailPage from './modules/sale/pages/SalesDetailPage';
@@ -25,25 +28,24 @@ import PurchaseOrdersSupplierFilterPage from './modules/purchase-order/pages/Pur
 // 出貨管理頁面元件
 import ShippingOrdersPage from './modules/shipping-order/pages/ShippingOrdersPage';
 import ShippingOrderFormPage from './modules/shipping-order/pages/ShippingOrderFormPage';
-import ShippingOrderDetailPage from './pages/ShippingOrderDetailPage';
+import ShippingOrderDetailPage from './modules/shipping-order/pages/ShippingOrderDetailPage';
 // 日常記帳管理頁面元件
 import { JournalPage, NewEntryPage, CategoryPage, CategoryDetailPage } from './modules/daily-journal/pages';
-import ProductsCategoryDetailPage from './modules/product/pages/ProductsCategoryDetailPage';
+
 import AllCategoriesDetailComponent from './modules/daily-journal/components/AllCategoriesDetailComponent';
-import ProductCategoryPage from './modules/product/pages/ProductCategoryPage';
+
 import MonitoredProductsSettingsPage from './pages/MonitoredProductsSettingsPage';
 import SettingsPage from './pages/SettingsPage';
 import AccountSettingsPage from './pages/settings/AccountSettingsPage';
 import EmployeeAccountsPage from './pages/settings/EmployeeAccountsPage';
 import AccountTypeSettingsPage from './pages/settings/AccountTypeSettingsPage';
 
-import OrganizationPage from './modules/accounting3/pages/OrganizationPage';
-import OrganizationFormPage from './modules/accounting3/pages/OrganizationFormPage';
-import PaymentManagementPage from './modules/accounting3/pages/PaymentManagementPage';
-
 // 員工管理頁面元件
   import { EmployeeBasicInfoPage, EmployeeListPage, EmployeeSchedulingPage, OvertimeManagementPage } from './modules/employees';
 // 會計管理頁面元件
+  import OrganizationPage from './modules/accounting3/pages/OrganizationPage';
+  import OrganizationFormPage from './modules/accounting3/pages/OrganizationFormPage';
+  import PaymentManagementPage from './modules/accounting3/pages/PaymentManagementPage';
   import Accounting3TransactionPage from './modules/accounting3/pages/TransactionPage';
   import TransactionEditPage from './modules/accounting3/pages/TransactionPage/TransactionEditPage';
   import TransactionCopyPage from './modules/accounting3/pages/TransactionPage/TransactionCopyPage';
@@ -80,18 +82,18 @@ const AppRouter: React.FC = () => {
       
       {/* Sales routes */}
       <Route path="/sales" element={<SalesListPage />} />
-      <Route path="/sales/new2" element={<SalesNew2Page />} />
+      <Route path="/sales/new" element={<SalesNewPage />} />
       <Route path="/sales/edit/:id" element={<SalesEditPage />} />
       <Route path="/sales/:id" element={<SalesDetailPage />} />
       
       <Route path="/reports" element={<ReportsPage />} />
       
       {/* 日常記帳路由 */}
-      <Route path="/accounting" element={<JournalPage />} />
-      <Route path="/accounting/new" element={<NewEntryPage />} />
-      <Route path="/accounting/categories" element={<CategoryPage />} />
-      <Route path="/accounting/categories/all" element={<AllCategoriesDetailComponent />} />
-      <Route path="/accounting/categories/:categoryId" element={<CategoryDetailPage />} />
+      <Route path="/journals" element={<JournalPage />} />
+      <Route path="/journals/new" element={<NewEntryPage />} />
+      <Route path="/journals/categories" element={<CategoryPage />} />
+      <Route path="/journals/categories/all" element={<AllCategoriesDetailComponent />} />
+      <Route path="/journals/categories/:categoryId" element={<CategoryDetailPage />} />
 
       {/* Accounting3 routes - 內嵌分錄記帳系統 */}
       <Route path="/accounting3" element={<Accounting3DashboardPage />} />
@@ -100,26 +102,16 @@ const AppRouter: React.FC = () => {
       <Route path="/accounting3/transaction/:transactionId" element={<TransactionDetailPage />} />
       <Route path="/accounting3/transaction/:transactionId/edit" element={<TransactionEditPage />} />
       <Route path="/accounting3/transaction/:transactionId/copy" element={<Accounting3TransactionPage />} />
-      
       {/* Accounting3 科目管理路由 */}
       <Route path="/accounting3/accounts" element={<AccountsManagementPage />} />
       <Route path="/accounting3/accounts/:accountId" element={<AccountDetailPage />} />
-      
       {/* Accounting3 機構管理路由 */}
       <Route path="/accounting3/organizations" element={<OrganizationPage />} />
       <Route path="/accounting3/organizations/new" element={<OrganizationFormPage />} />
       <Route path="/accounting3/organizations/:id/edit" element={<OrganizationFormPage />} />
-      
       {/* Accounting3 付款管理路由 */}
       <Route path="/accounting3/payments" element={<PaymentManagementPage />} />
       <Route path="/accounting3/payments/:organizationId" element={<PaymentManagementPage />} />
-      
-      {/* Settings routes (assuming they require login) */}
-      <Route path="/settings" element={<SettingsPage />} /> {/* Add the theme settings route */}
-      <Route path="/settings/account" element={<AccountSettingsPage />} /> {/* Add the account settings route */}
-      <Route path="/settings/employee-accounts" element={<EmployeeAccountsPage />} />
-      <Route path="/settings/account-types" element={<AccountTypeSettingsPage />} /> {/* Add the account types settings route */}
-      <Route path="/settings/monitored-products" element={<MonitoredProductsSettingsPage />} />
       
       {/* Purchase Order routes */}
       <Route path="/purchase-orders" element={<PurchaseOrdersPage />} />
@@ -134,14 +126,22 @@ const AppRouter: React.FC = () => {
       <Route path="/shipping-orders/edit/:id" element={<ShippingOrderFormPage />} />
       <Route path="/shipping-orders/:id" element={<ShippingOrderDetailPage />} />
       
-      {/* 員工排班頁面 - 所有已認證用戶可訪問 */}
-      <Route path="/employees/scheduling" element={<EmployeeSchedulingPage />} />
+      
       
       {/* 員工管理路由 */}
       <Route path="/employees" element={<EmployeeListPage />} />
       <Route path="/employees/basic-info/new" element={<EmployeeBasicInfoPage />} />
       <Route path="/employees/basic-info/:id" element={<EmployeeBasicInfoPage />} />
       <Route path="/employees/overtime" element={<OvertimeManagementPage />} />
+      {/* 員工排班頁面 - 所有已認證用戶可訪問 */}
+      <Route path="/employees/scheduling" element={<EmployeeSchedulingPage />} />
+      
+      {/* Settings routes (assuming they require login) */}
+      <Route path="/settings" element={<SettingsPage />} /> {/* Add the theme settings route */}
+      <Route path="/settings/account" element={<AccountSettingsPage />} /> {/* Add the account settings route */}
+      <Route path="/settings/employee-accounts" element={<EmployeeAccountsPage />} />
+      <Route path="/settings/account-types" element={<AccountTypeSettingsPage />} /> {/* Add the account types settings route */}
+      <Route path="/settings/monitored-products" element={<MonitoredProductsSettingsPage />} />
       
       {/* Fallback for any unmatched route within the protected area */}
       <Route path="*" element={<Navigate to="/dashboard" replace />} />

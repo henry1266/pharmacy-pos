@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { useAppDispatch } from '../hooks/redux';
+import { useAppDispatch } from '../../../hooks/redux';
 import { Typography, Stack, Box, Paper, Button } from '@mui/material';
 import axios from 'axios';
 import {
@@ -10,16 +10,16 @@ import {
   Receipt as ReceiptIcon,
   ArrowBack as ArrowBackIcon
 } from '@mui/icons-material';
-import BreadcrumbNavigation from '../components/common/BreadcrumbNavigation';
+import BreadcrumbNavigation from '../../../components/common/BreadcrumbNavigation';
 
-import { fetchShippingOrder } from '../redux/actions';
-import DetailLayout from '../components/DetailLayout';
-import ShippingOrderBasicInfo from '../modules/shipping-order/components/ShippingOrderBasicInfo';
-import ShippingOrderAmountInfo from '../modules/shipping-order/components/ShippingOrderAmountInfo';
-import ShippingOrderItemsTable from '../modules/shipping-order/components/ShippingOrderItemsTable';
-import { useShippingOrderActions } from '../modules/shipping-order/components/ShippingOrderActions';
-import { useShippingOrderFifo } from '../hooks/useShippingOrderFifo';
-import { useProductDetails } from '../hooks/useProductDetails';
+import { fetchShippingOrder } from '../../../redux/actions';
+import DetailLayout from '../../../components/DetailLayout';
+import ShippingOrderBasicInfo from '../components/ShippingOrderBasicInfo';
+import ShippingOrderAmountInfo from '../components/ShippingOrderAmountInfo';
+import ShippingOrderItemsTable from '../components/ShippingOrderItemsTable';
+import { useShippingOrderActions } from '../components/ShippingOrderActions';
+import { useShippingOrderFifo } from '../../../hooks/useShippingOrderFifo';
+import { useProductDetails } from '../../../hooks/useProductDetails';
 
 // 定義出貨單項目類型
 interface ShippingOrderItem {

@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { CssBaseline } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import MainLayout from './components/layout/MainLayout';
+import MainLayout from './components/MainLayout';
 import LoginPage from './pages/LoginPage';
 // 使用 JSX 元素類型來避免 React Router 類型問題
 // 合併 react-router-dom 的導入，避免重複導入

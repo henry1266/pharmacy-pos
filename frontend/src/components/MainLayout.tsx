@@ -22,31 +22,31 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import AssuredWorkloadIcon from '@mui/icons-material/AssuredWorkload';
 import AssuredWorkloadOutlinedIcon from '@mui/icons-material/AssuredWorkloadOutlined';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
-import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
-import AssignmentIcon from '@mui/icons-material/Assignment';
-import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
-import PointOfSaleIcon from '@mui/icons-material/PointOfSale';
-import PointOfSaleOutlinedIcon from '@mui/icons-material/PointOfSaleOutlined';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import {
-    AccountTree as AccountTreeIcon,
-    Home as HomeIcon,
-    Business as BusinessIcon,
-    AccessTime as AccessTimeIcon,
-    CalendarMonth as CalendarMonthIcon,
-    Person as PersonIcon,
-    BadgeOutlined as BadgeOutlinedIcon,
-    Badge as BadgeIcon,
-    ListAlt as ListAltIcon,
-    Category as CategoryIcon,
-    SettingsOutlined as SettingsOutlinedIcon,
-    Settings as SettingsIcon,
+  LocalShippingOutlined as LocalShippingOutlinedIcon,
+  Assignment as AssignmentIcon,
+  AssignmentOutlined as AssignmentOutlinedIcon,
+  PointOfSale as PointOfSaleIcon,
+  PointOfSaleOutlined as PointOfSaleOutlinedIcon,
+  AccountTree as AccountTreeIcon,
+  Home as HomeIcon,
+  Business as BusinessIcon,
+  AccessTime as AccessTimeIcon,
+  CalendarMonth as CalendarMonthIcon,
+  Person as PersonIcon,
+  BadgeOutlined as BadgeOutlinedIcon,
+  Badge as BadgeIcon,
+  ListAlt as ListAltIcon,
+  Category as CategoryIcon,
+  SettingsOutlined as SettingsOutlinedIcon,
+  Settings as SettingsIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import '../../assets/css/dashui-theme.css';
-import ProductSearchDialog from '../common/ProductSearchDialog';
-import useProductData from '../../hooks/useProductData';
+import '../assets/css/dashui-theme.css';
+import ProductSearchDialog from './common/ProductSearchDialog';
+import useProductData from '../hooks/useProductData';
 
 interface NavIconButtonProps {
   to: string;
@@ -268,9 +268,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     },
     { text: '會員管理', icon: (location.pathname === '/customers') ? <PeopleOutlinedIcon /> : <PeopleIcon />, path: '/customers', adminOnly: true },
     { text: '記帳管理', icon: isAccountingPath(location.pathname) ? <AccountBalanceWalletOutlinedIcon /> : <AccountBalanceWalletIcon />, subItems: [
-        { text: '記帳列表', path: '/accounting' },
-        { text: '名目設定', path: '/accounting/categories', icon: <CategoryIcon fontSize="small" sx={{ ml: 1 }} /> },
-        { text: '業績報表', path: '/accounting/categories/all' },
+        { text: '記帳列表', path: '/journals' },
+        { text: '名目設定', path: '/journals/categories', icon: <CategoryIcon fontSize="small" sx={{ ml: 1 }} /> },
+        { text: '業績報表', path: '/journals/categories/all' },
         { text: '監測列表', path: '/settings/monitored-products' },
       ]
     },
@@ -589,8 +589,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </Tooltip>
           <NavIconButton to="/shipping-orders/new" tooltip="出貨" activeIcon={<LocalShippingIcon />} inactiveIcon={<LocalShippingOutlinedIcon />} adminOnly={true} userRole={user?.role || ''} />
           <NavIconButton to="/purchase-orders/new" tooltip="進貨" activeIcon={<AssignmentIcon />} inactiveIcon={<AssignmentOutlinedIcon />} adminOnly={true} userRole={user?.role || ''} />
-          <NavIconButton to="/sales/new2" tooltip="銷售" activeIcon={<PointOfSaleIcon />} inactiveIcon={<PointOfSaleOutlinedIcon />} />
-          <NavIconButton to="/accounting/new" tooltip="記帳" activeIcon={<AssuredWorkloadIcon />} inactiveIcon={<AssuredWorkloadOutlinedIcon />} />
+          <NavIconButton to="/sales/new" tooltip="銷售" activeIcon={<PointOfSaleIcon />} inactiveIcon={<PointOfSaleOutlinedIcon />} />
+          <NavIconButton to="/journals/new" tooltip="記帳" activeIcon={<AssuredWorkloadIcon />} inactiveIcon={<AssuredWorkloadOutlinedIcon />} />
           
           <Avatar aria-describedby={popoverId} sx={{ width: 36, height: 36, cursor: 'pointer', bgcolor: isTestMode ? 'orange' : 'var(--primary-color)' }} onClick={handleAvatarClick}>
             {getAvatarContent()}

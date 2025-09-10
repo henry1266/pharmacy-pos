@@ -42,10 +42,10 @@ import {
   Category as CategoryIcon,
   Label as TagIcon
 } from '@mui/icons-material';
-import { usePackageData } from '../../../hooks/usePackageData';
+import { usePackageData } from '../hooks/usePackageData';
 import { Package, PackageFilters, PackageCreateRequest, PackageUpdateRequest } from '@pharmacy-pos/shared/types/package';
-import { PackageService } from '../../../services/packageService';
-import PackageFormDialog from '../../../components/packages/PackageFormDialog';
+import { PackageService } from '../services/packageService';
+import PackageFormDialog from '../components/packages/PackageFormDialog';
 
 const PackagesPage: React.FC = () => {
   const {
