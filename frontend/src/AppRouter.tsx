@@ -2,9 +2,9 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import DashboardPage from './modules/dashboard/pages/DashboardPage';
 import DashboardDateDetailPage from './modules/dashboard/pages/DashboardDateDetailPage';
-import ProductsPage from './pages/ProductsPage';
-import ProductDetailPage from './pages/ProductDetailPage';
-import ProductEditPage from './pages/ProductEditPage';
+import ProductsPage from './modules/product/pages/ProductsPage';
+import ProductDetailPage from './modules/product/pages/ProductDetailPage';
+import ProductEditPage from './modules/product/pages/ProductEditPage';
 import PackagesPage from './modules/package/pages/PackagesPage';
 import SuppliersPage from './modules/Supplier/pages/SuppliersPage';
 import SupplierDetailPage from './modules/Supplier/pages/SupplierDetailPage';
@@ -28,9 +28,9 @@ import ShippingOrderFormPage from './modules/shipping-order/pages/ShippingOrderF
 import ShippingOrderDetailPage from './pages/ShippingOrderDetailPage';
 // 日常記帳管理頁面元件
 import { JournalPage, NewEntryPage, CategoryPage, CategoryDetailPage } from './modules/daily-journal/pages';
-import ProductsCategoryDetailPage from './pages/ProductsCategoryDetailPage';
+import ProductsCategoryDetailPage from './modules/product/pages/ProductsCategoryDetailPage';
 import AllCategoriesDetailComponent from './modules/daily-journal/components/AllCategoriesDetailComponent';
-import ProductCategoryPage from './pages/ProductCategoryPage';
+import ProductCategoryPage from './modules/product/pages/ProductCategoryPage';
 import MonitoredProductsSettingsPage from './pages/MonitoredProductsSettingsPage';
 import SettingsPage from './pages/SettingsPage';
 import AccountSettingsPage from './pages/settings/AccountSettingsPage';

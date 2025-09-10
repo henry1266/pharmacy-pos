@@ -15,7 +15,7 @@ import {
   MonetizationOn as MonetizationOnIcon
 } from '@mui/icons-material';
 import { Product } from '@pharmacy-pos/shared/types/entities';
-import { convertToPackageDisplay } from '../package-units/utils';
+import { convertToPackageDisplay } from '../../../components/package-units/utils';
 import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
 import ChartModal from './ChartModal';
 

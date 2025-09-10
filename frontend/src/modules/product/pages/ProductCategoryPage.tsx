@@ -5,8 +5,8 @@ import HomeIcon from '@mui/icons-material/Home';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import CategoryIcon from '@mui/icons-material/Category';
 import AddIcon from '@mui/icons-material/Add';
-import PageHeaderSection from '../components/common/PageHeaderSection';
-import ProductCategoryManager from '../components/products/ProductCategoryManager';
+import PageHeaderSection from '../../../components/common/PageHeaderSection';
+import ProductCategoryManager from '../components/ProductCategoryManager';
 
 /**
  * 產品分類管理頁面

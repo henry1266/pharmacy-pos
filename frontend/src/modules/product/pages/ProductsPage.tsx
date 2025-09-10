@@ -11,17 +11,17 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { LocalOffer as PackageIcon } from '@mui/icons-material';
 import HomeIcon from '@mui/icons-material/Home';
 import InventoryIcon from '@mui/icons-material/Inventory';
-import PageHeaderSection from '../components/common/PageHeaderSection';
+import PageHeaderSection from '../../../components/common/PageHeaderSection';
 import { useNavigate } from 'react-router-dom';
-import CsvImportDialog from '../components/products/CsvImportDialog';
-import ProductDetailCard from '../components/products/ProductDetailCard';
-import ProductSearchBar from '../components/products/ProductSearchBar';
-import DataTable from '../components/tables/DataTable';
-import useProductData from '../hooks/useProductData';
-import useInventoryData from '../hooks/useInventoryData';
-import useCsvImport from '../hooks/useCsvImport';
-import { createProductColumns } from '../components/products/ProductTableColumns';
-import { ProductFilters } from '../services/productServiceV2';
+import CsvImportDialog from '../components/CsvImportDialog';
+import ProductDetailCard from '../components/ProductDetailCard';
+import ProductSearchBar from '../../../components/products/ProductSearchBar';
+import DataTable from '../../../components/tables/DataTable';
+import useProductData from '../../../hooks/useProductData';
+import useInventoryData from '../../../hooks/useInventoryData';
+import useCsvImport from '../../../hooks/useCsvImport';
+import { createProductColumns } from '../components/ProductTableColumns';
+import { ProductFilters } from '../../../services/productServiceV2';
 
 // 產品類型
 type ProductType = 'product' | 'medicine';

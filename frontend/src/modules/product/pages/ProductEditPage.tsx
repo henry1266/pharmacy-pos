@@ -23,11 +23,11 @@ import {
   Save as SaveIcon
 } from '@mui/icons-material';
 import axios from 'axios';
-import { getProductCategories } from '../services/productCategoryService';
-import { PackageUnitsConfig } from '../components/package-units';
+import { getProductCategories } from '../../../services/productCategoryService';
+import { PackageUnitsConfig } from '../../../components/package-units';
 import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
-import ProductNoteEditorV2 from '../components/products/ProductNoteEditorV2';
-import useProductData from '../hooks/useProductData';
+import ProductNoteEditorV2 from '../components/ProductNoteEditorV2';
+import useProductData from '../../../hooks/useProductData';
 
 // 定義 API 回應格式
 interface ApiResponse<T> {

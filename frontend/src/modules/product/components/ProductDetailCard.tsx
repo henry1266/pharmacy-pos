@@ -9,7 +9,7 @@ import {
   Chip
 } from '@mui/material';
 import InventoryList from './InventoryList';
-import { PackageInventoryDisplay } from '../package-units';
+import { PackageInventoryDisplay } from '../../../components/package-units';
 import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
 import ProductSummaryDisplay from './ProductSummaryDisplay';
 

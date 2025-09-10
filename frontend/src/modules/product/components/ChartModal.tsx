@@ -21,9 +21,9 @@ import {
 } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import { Link as RouterLink } from 'react-router-dom';
-import SingleProductProfitLossChart from '../reports/inventory/SingleProductProfitLossChart';
+import SingleProductProfitLossChart from '../../../components/reports/inventory/SingleProductProfitLossChart';
 import InventoryStockChart from './InventoryStockChart';
-import { convertToPackageDisplay } from '../package-units/utils';
+import { convertToPackageDisplay } from '../../../components/package-units/utils';
 import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
 
 // 定義交易記錄的型別

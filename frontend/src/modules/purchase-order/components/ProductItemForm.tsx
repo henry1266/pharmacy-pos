@@ -15,8 +15,8 @@ import PropTypes from 'prop-types';
 import ProductSelector from './ProductSelector';
 import QuantityInput from './QuantityInput';
 import PriceTooltip from '../../../components/form-widgets/PriceTooltip';
-import ChartModal from '../../../components/products/ChartModal';
-import ProductSummaryDisplay from '../../../components/products/ProductSummaryDisplay';
+import ChartModal from '../../product/components/ChartModal';
+import ProductSummaryDisplay from '../../product/components/ProductSummaryDisplay';
 
 // 導入自定義 Hook 和類型
 import { useProductItemForm } from '../hooks/useProductItemForm';

@@ -29,7 +29,7 @@ import {
   AttachMoney as UnitPriceIcon,
   Receipt as SubtotalIcon
 } from '@mui/icons-material';
-import { PackageCreateRequest, PackageUpdateRequest, PackageItem } from '../../../../shared/types/package';
+import { PackageCreateRequest, PackageUpdateRequest, PackageItem } from '@pharmacy-pos/shared/types/package';
 import useProductData from '../../hooks/useProductData';
 
 interface PackageFormDialogProps {

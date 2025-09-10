@@ -14,9 +14,9 @@ import InventoryIcon from '@mui/icons-material/Inventory';
 import CategoryIcon from '@mui/icons-material/Category';
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import PageHeaderSection from '../components/common/PageHeaderSection';
+import PageHeaderSection from '../../../components/common/PageHeaderSection';
 import { DataGrid, GridColDef, GridRenderCellParams, GridValueFormatterParams, GridRowParams } from '@mui/x-data-grid';
-import useCategoryDetailData from '../hooks/useCategoryDetailData'; // Import the new hook
+import useCategoryDetailData from '../../../hooks/useCategoryDetailData'; // Import the new hook
 
 // 定義介面
 interface Category {

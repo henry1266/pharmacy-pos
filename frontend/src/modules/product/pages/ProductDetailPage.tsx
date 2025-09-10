@@ -16,9 +16,9 @@ import {
   Print as PrintIcon
 } from '@mui/icons-material';
 
-import ProductDetailCard from '../components/products/ProductDetailCard';
-import FIFOProfitCalculator from '../components/products/FIFOProfitCalculator';
-import { getProductCategories } from '../services/productCategoryService';
+import ProductDetailCard from '../components/ProductDetailCard';
+import FIFOProfitCalculator from '../components/FIFOProfitCalculator';
+import { getProductCategories } from '../../../services/productCategoryService';
 
 // 定義 API 回應格式
 interface ApiResponse<T> {
