@@ -743,30 +743,23 @@ const ShippingOrderDetailPage: React.FC = () => {
     
     
     // 計算成本、毛利和毛利率
-    let cost = null;
+    let cost = item.dtotalCost || null;
     let profit = null;
     let profitMargin = null;
     
     if (fifoItem && fifoItem.fifoProfit) {
-      // 使用 FIFO 數據中的成本
-      cost = fifoItem.fifoProfit.totalCost !== undefined && fifoItem.fifoProfit.totalCost !== null ?
-        fifoItem.fifoProfit.totalCost : null;
+      profitMargin = fifoItem.fifoProfit.profitMargin;
       
-      // 使用 FIFO 數據中的毛利，或者自行計算
+      // 檢查 profit 是否存在，如果不存在則嘗試計算
       if (fifoItem.fifoProfit.profit !== undefined && fifoItem.fifoProfit.profit !== null) {
         profit = fifoItem.fifoProfit.profit;
-      } else if (fifoItem.fifoProfit.totalProfit !== undefined && fifoItem.fifoProfit.totalProfit !== null) {
-        profit = fifoItem.fifoProfit.totalProfit;
+      } else if (fifoItem.fifoProfit.profitMargin && item.dtotalCost) {
+        // 如果有毛利率和總成本，可以反推計算毛利
+        const totalAmount = item.dprice ? (item.dprice * (item.dquantity || 0)) : (item.totalPrice || 0);
+        // profitMargin 已經是數字類型，直接除以100轉換為小數
+        const profitMarginDecimal = fifoItem.fifoProfit.profitMargin / 100;
+        profit = totalAmount * profitMarginDecimal;
       }
-      
-      // 使用 FIFO 數據中的毛利率
-      profitMargin = fifoItem.fifoProfit.profitMargin !== undefined && fifoItem.fifoProfit.profitMargin !== null ?
-        fifoItem.fifoProfit.profitMargin : null;
-    } else {
-      // 如果沒有 FIFO 數據，使用項目自帶的數據
-      cost = item.dtotalCost || null;
-      profit = item.profit !== undefined && item.profit !== null ? item.profit : null;
-      profitMargin = item.profitMargin || null;
     }
     
     return {
