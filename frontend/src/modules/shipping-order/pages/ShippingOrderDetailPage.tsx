@@ -748,20 +748,28 @@ const ShippingOrderDetailPage: React.FC = () => {
     let profitMargin = null;
     
     if (fifoItem && fifoItem.fifoProfit) {
+      // 設置毛利率
       profitMargin = fifoItem.fifoProfit.profitMargin;
       
-      // 檢查 profit 是否存在，如果不存在則嘗試計算
+      // 設置毛利 - 參考 SalesDetailPage 的處理方式
       if (fifoItem.fifoProfit.profit !== undefined && fifoItem.fifoProfit.profit !== null) {
+        // 如果 fifoProfit 中已有 profit 值，則使用它
         profit = fifoItem.fifoProfit.profit;
-      } else if (fifoItem.fifoProfit.profitMargin && item.dtotalCost) {
-        // 如果有毛利率和總成本，可以反推計算毛利
+      } else if (fifoItem.fifoProfit.totalProfit !== undefined && fifoItem.fifoProfit.totalProfit !== null) {
+        // 如果有 totalProfit，則使用它
+        profit = fifoItem.fifoProfit.totalProfit;
+      } else if (fifoItem.fifoProfit.totalCost !== undefined && fifoItem.fifoProfit.totalCost !== null) {
+        // 否則，自行計算毛利 = 小計 - 成本
+        const subtotal = item.dprice ? (item.dprice * (item.dquantity || 0)) : (item.totalPrice || 0);
+        profit = subtotal - fifoItem.fifoProfit.totalCost;
+      } else if (fifoItem.fifoProfit.profitMargin && (item.dprice || item.totalPrice)) {
+        // 如果有毛利率和總金額，可以反推計算毛利
         const totalAmount = item.dprice ? (item.dprice * (item.dquantity || 0)) : (item.totalPrice || 0);
-        // profitMargin 已經是數字類型，直接除以100轉換為小數
         const profitMarginDecimal = fifoItem.fifoProfit.profitMargin / 100;
         profit = totalAmount * profitMarginDecimal;
       }
     }
-    
+    let profit1 = item.dtotalCost - profit;
     return {
       id: index.toString(),
       did: item.did || '',
@@ -773,7 +781,7 @@ const ShippingOrderDetailPage: React.FC = () => {
       batchNumber: item.batchNumber || '',
       packageQuantity: packageQuantity,
       boxQuantity: boxQuantity,
-      profit: profit,
+      profit: profit1,
       profitMargin: profitMargin
     };
   }) || [];
