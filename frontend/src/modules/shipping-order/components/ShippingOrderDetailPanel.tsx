@@ -11,6 +11,7 @@ import {
   Paper,
   Button
 } from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { format } from 'date-fns';
 import { productServiceV2 } from '@/services/productServiceV2';
 
@@ -97,10 +98,37 @@ const ShippingOrderDetailPanel: FC<ShippingOrderDetailPanelProps> = ({
 
   if (!selectedShippingOrder) {
     return (
-      <Card elevation={2} sx={{ borderRadius: '0.5rem', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <CardContent sx={{ textAlign: 'center' }}>
-          <Typography variant="body1" color="text.secondary">
-            選擇一個出貨單查看詳情
+      <Card
+        elevation={2}
+        sx={{
+          borderRadius: '0.5rem',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+      >
+        <CardContent sx={{ textAlign: 'center', py: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+            <ArrowBackIcon
+              color="primary"
+              sx={{
+                fontSize: '2rem',
+                mr: 1,
+                transform: 'translateX(-10px)',
+                animation: 'arrowPulse 1.5s infinite'
+              }}
+            />
+            <Typography variant="body1" color="primary.main" sx={{ fontWeight: 500 }}>
+              左側列表
+            </Typography>
+          </Box>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
+            選擇出貨單查看詳情
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+            請從左側列表中選擇一個出貨單
           </Typography>
         </CardContent>
       </Card>
