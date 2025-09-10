@@ -1,11 +1,10 @@
 import React from 'react';
 import { Box, Chip } from '@mui/material';
 import { FlowToSectionProps } from '../../types';
-import { formatAmount } from '../../../../utils/transactionUtils';
 import FlowSection from '../ui/FlowSection';
 import TransactionTable from '../ui/TransactionTable';
 import TransactionTableRow from '../rows/TransactionTableRow';
-import { TRANSACTION_TYPES, COLORS } from '../../constants';
+import { TRANSACTION_TYPES } from '../../constants';
 
 /**
  * 流向區塊組件

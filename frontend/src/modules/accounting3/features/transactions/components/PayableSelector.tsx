@@ -11,7 +11,6 @@ import {
   TableRow,
   Paper,
   Checkbox,
-  Chip,
   Box,
   Button,
   TextField,
@@ -27,7 +26,6 @@ import {
   Info as InfoIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { accounting3Service } from '../../../services/accounting3Service';
 import apiService from '../../../../../utils/apiService';
 
 // 應付帳款資訊介面

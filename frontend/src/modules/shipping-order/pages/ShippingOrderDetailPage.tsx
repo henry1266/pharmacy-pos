@@ -1,69 +1,55 @@
-import React, { useEffect, useCallback, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+/**
+ * @file 出貨單詳情頁面
+ * @description 顯示出貨單詳細資訊，包括藥品項目、金額信息和基本資訊
+ */
+
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import { useAppDispatch } from '../../../hooks/redux';
+import { useAppDispatch } from '@/hooks/redux';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   Typography,
+  Divider,
   Stack,
   Box,
   Button,
-  Divider,
-  CircularProgress,
   Snackbar,
   Alert,
-  IconButton
+  CircularProgress
 } from '@mui/material';
-import axios from 'axios';
 import {
-  Home as HomeIcon,
-  LocalShipping as LocalShippingIcon,
   Receipt as ReceiptIcon,
-  ArrowBack as ArrowBackIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Info as InfoIcon,
-  Person as PersonIcon,
   CalendarToday as CalendarTodayIcon,
+  Person as PersonIcon,
+  Info as InfoIcon,
   Payment as PaymentIcon,
   Notes as NotesIcon,
+  Percent as PercentIcon,
   AccountBalanceWallet as AccountBalanceWalletIcon,
   ReceiptLong as ReceiptLongIcon,
-  Percent as PercentIcon
+  AccountBalance as AccountBalanceIcon,
+  ArrowBack as ArrowBackIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon
 } from '@mui/icons-material';
+import CommonListPageLayout from '@/components/common/CommonListPageLayout';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 
-import { fetchShippingOrder } from '../../../redux/actions';
-import CommonListPageLayout from '../../../components/common/CommonListPageLayout';
-import ShippingOrderBasicInfo from '../components/ShippingOrderBasicInfo';
-import CollapsibleAmountInfo from '../../../components/common/CollapsibleAmountInfo';
-import ShippingOrderItemsTable from '../components/ShippingOrderItemsTable';
+import { fetchShippingOrder } from '@/redux/actions';
+import { productServiceV2 } from '@/services/productServiceV2';
+import CollapsibleAmountInfo from '@/components/common/CollapsibleAmountInfo';
+import { Product } from '@pharmacy-pos/shared/types/entities';
+import { Organization } from '@pharmacy-pos/shared/types/organization';
 import { useShippingOrderActions } from '../components/ShippingOrderActions';
-import { useShippingOrderFifo } from '../../../hooks/useShippingOrderFifo';
-import { useProductDetails } from '../../../hooks/useProductDetails';
-import StatusChip from '../../../components/common/StatusChip';
-import PaymentStatusChip from '../../../components/common/PaymentStatusChip';
-import TitleWithCount from '../../../components/common/TitleWithCount';
-import GenericConfirmDialog from '../../../components/common/GenericConfirmDialog';
-import ProductCodeLink from '../../../components/common/ProductCodeLink';
-
-// 定義出貨單項目類型
-interface ShippingOrderItem {
-  did?: string;
-  dname?: string;
-  dquantity?: number;
-  dprice?: number;
-  dtotalCost?: number;
-  totalPrice?: number;
-  profit?: number;
-  profitMargin?: number;
-  packageQuantity?: number | string;
-  boxQuantity?: number | string;
-  [key: string]: any;
-}
-
-// 定義出貨單類型
-interface ShippingOrder {
+import { useOrganizations } from '@/hooks/useOrganizations';
+import StatusChip from '@/components/common/StatusChip';
+import PaymentStatusChip from '@/components/common/PaymentStatusChip';
+import TitleWithCount from '@/components/common/TitleWithCount';
+import GenericConfirmDialog from '@/components/common/GenericConfirmDialog';
+import { useShippingOrderFifo } from '@/hooks/useShippingOrderFifo';
+// 擴展 ShippingOrder 類型以包含實際使用的欄位
+interface ExtendedShippingOrder {
   _id?: string;
   soid?: string;
   status?: string;
@@ -78,16 +64,47 @@ interface ShippingOrder {
   notes?: string;
   createdAt?: string;
   updatedAt?: string;
-  items?: ShippingOrderItem[];
+  organizationId?: string;
+  relatedTransactionGroupId?: string; // 關聯的交易群組ID
+  items: ExtendedShippingOrderItem[]; // 擴展的項目
   [key: string]: any;
+}
+
+// 擴展 ShippingOrderItem 類型以包含實際使用的欄位
+interface ExtendedShippingOrderItem {
+  did?: string;           // 產品代碼
+  dname?: string;         // 產品名稱
+  dquantity?: number;     // 數量
+  dprice?: number;        // 單價
+  dtotalCost?: number;    // 總成本
+  totalPrice?: number;    // 總價格
+  profit?: number;        // 毛利
+  profitMargin?: number;  // 毛利率
+  batchNumber?: string;   // 批號
+  packageQuantity?: number; // 大包裝數量
+  boxQuantity?: number;   // 盒裝數量
+  [key: string]: any;
+}
+
+// 定義狀態類型
+interface ProductDetailsState {
+  [code: string]: Product;
+}
+
+// 定義 CollapsibleDetail 類型
+interface CollapsibleDetail {
+  label: string;
+  value: number;
+  icon: React.ReactElement;
+  color?: string;
+  condition: boolean;
 }
 
 // 定義 Redux 狀態類型
 interface ShippingOrdersState {
-  currentShippingOrder?: ShippingOrder;
-  loading?: boolean;
-  error?: string;
-  [key: string]: any;
+  currentShippingOrder: ExtendedShippingOrder | null;
+  loading: boolean;
+  error: string | null;
 }
 
 interface RootState {
@@ -99,25 +116,39 @@ interface RootState {
   [key: string]: any;
 }
 
-interface RouteParams {
-  id: string;
-  [key: string]: string;
-}
-
+/**
+ * 出貨單詳情頁面
+ * 顯示出貨單詳細資訊，包括藥品項目、金額信息和基本資訊
+ */
 const ShippingOrderDetailPage: React.FC = () => {
-  const { id } = useParams<RouteParams>();
-  const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  
+  const { currentShippingOrder, loading: orderLoading, error: orderError } = useSelector((state: RootState) => state.shippingOrders) as {
+    currentShippingOrder: ExtendedShippingOrder | null;
+    loading: boolean;
+    error: string | null;
+  };
 
-  const { currentShippingOrder, loading: orderLoading, error: orderError } = useSelector(
-    (state: RootState) => state.shippingOrders || {}
-  );
-
+  // 產品詳情狀態
+  const [productDetails, setProductDetails] = useState<ProductDetailsState>({});
+  const [productDetailsLoading, setProductDetailsLoading] = useState<boolean>(false);
+  // 雖然 productDetailsError 變數未被直接使用，但 setter 函數在代碼中有使用
+  const [, setProductDetailsError] = useState<string | null>(null);
+  
+  // 機構資料
+  const { organizations } = useOrganizations();
+  // 雖然 currentOrganization 變數未被直接使用，但 setter 函數在代碼中有使用
+  const [, setCurrentOrganization] = useState<Organization | null>(null);
+  
+  // 分錄資訊狀態
+  const [transactionGroupId, setTransactionGroupId] = useState<string | null>(null);
+  // 雖然 transactionLoading 變數未被直接使用，但 setter 函數在代碼中有使用
+  const [, setTransactionLoading] = useState<boolean>(false);
+  
   // 使用自定義 hooks
   const { fifoData, fifoLoading, fifoError, fetchFifoData } = useShippingOrderFifo(id || '');
-  const { productDetails, productDetailsLoading, productDetailsError } = useProductDetails(
-    currentShippingOrder?.items || []
-  );
   
   // Snackbar 狀態
   const [snackbar, setSnackbar] = useState<{
@@ -132,6 +163,198 @@ const ShippingOrderDetailPage: React.FC = () => {
   
   // 刪除對話框狀態
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+  
+  // 獲取進貨單數據
+  useEffect(() => {
+    if (id) {
+      dispatch(fetchShippingOrder(id));
+    }
+  }, [dispatch, id]);
+
+  // 根據出貨單的 organizationId 設置當前機構
+  useEffect(() => {
+    if (currentShippingOrder?.organizationId && organizations.length > 0) {
+      const foundOrganization = organizations.find(org => org._id === currentShippingOrder.organizationId);
+      setCurrentOrganization(foundOrganization || null);
+    } else {
+      setCurrentOrganization(null);
+    }
+  }, [currentShippingOrder?.organizationId, organizations]);
+
+  // 獲取關聯的分錄資訊
+  useEffect(() => {
+    const fetchTransactionInfo = async () => {
+      if (!currentShippingOrder?.relatedTransactionGroupId) {
+        setTransactionGroupId(null);
+        return;
+      }
+
+      setTransactionLoading(true);
+      try {
+        // 設置交易群組ID
+        setTransactionGroupId(currentShippingOrder.relatedTransactionGroupId.toString());
+      } catch (error) {
+        console.error('獲取分錄資訊時發生錯誤:', error);
+        setTransactionGroupId(null);
+      } finally {
+        setTransactionLoading(false);
+      }
+    };
+
+    fetchTransactionInfo();
+  }, [currentShippingOrder?.relatedTransactionGroupId]);
+
+  // 獲取產品詳情
+  useEffect(() => {
+    const fetchProductDetails = async (): Promise<void> => {
+      if (!currentShippingOrder?.items?.length) {
+        setProductDetails({});
+        return;
+      }
+
+      setProductDetailsLoading(true);
+      setProductDetailsError(null);
+      const details: ProductDetailsState = {};
+      // 使用 'did' 作為產品代碼字段
+      const productCodes = Array.from(new Set(currentShippingOrder.items?.map(item => item.did).filter(Boolean) || []));
+
+      try {
+        const promises = productCodes.map(async (code) => {
+          try {
+            if (code) {
+              const productData = await productServiceV2.getProductByCode(code);
+              if (productData) {
+                details[code] = productData;
+              }
+            }
+          } catch (err) {
+            console.error(`獲取產品 ${code} 詳情失敗:`, err);
+          }
+        });
+
+        await Promise.all(promises);
+        setProductDetails(details);
+
+      } catch (err) {
+        console.error('獲取所有產品詳情過程中發生錯誤:', err);
+        setProductDetailsError('無法載入部分或所有產品的詳細資料。');
+      } finally {
+        setProductDetailsLoading(false);
+      }
+    };
+
+    fetchProductDetails();
+  }, [currentShippingOrder]);
+
+  // 獲取可收合的金額詳情
+  const getCollapsibleDetails = (): CollapsibleDetail[] => {
+    if (!currentShippingOrder) return [];
+  
+    const details: CollapsibleDetail[] = [];
+    const subtotal = (currentShippingOrder.totalAmount ?? 0) + (currentShippingOrder.discountAmount ?? 0);
+  
+    details.push({
+      label: '小計',
+      value: subtotal,
+      icon: <ReceiptLongIcon color="action" fontSize="small" />,
+      condition: true
+    });
+  
+    if (currentShippingOrder?.discountAmount && currentShippingOrder.discountAmount > 0) {
+      details.push({
+        label: '折扣',
+        value: -currentShippingOrder.discountAmount,
+        icon: <PercentIcon color="secondary" fontSize="small" />,
+        color: 'secondary.main',
+        condition: true
+      });
+    }
+    
+    // 使用 FIFO 數據計算成本、毛利和毛利率
+    if (!fifoLoading && fifoData?.summary) {
+      // 總成本
+      details.push({
+        label: '總成本',
+        value: fifoData.summary.totalCost || 0,
+        icon: <InfoIcon color="info" fontSize="small" />,
+        color: 'info.main',
+        condition: true
+      });
+      
+      // 總毛利
+      const isPositiveProfit = (fifoData.summary.totalProfit || fifoData.summary.grossProfit || 0) >= 0;
+      details.push({
+        label: '總毛利',
+        value: fifoData.summary.totalProfit || fifoData.summary.grossProfit || 0,
+        icon: <AccountBalanceWalletIcon color={isPositiveProfit ? "success" : "error"} fontSize="small" />,
+        color: isPositiveProfit ? 'success.main' : 'error.main',
+        condition: true
+      });
+      
+      // 毛利率
+      const isPositiveMargin = parseFloat(fifoData.summary.totalProfitMargin || '0') >= 0;
+      details.push({
+        label: '毛利率',
+        value: parseFloat(fifoData.summary.totalProfitMargin || '0'),
+        icon: <PercentIcon color={isPositiveMargin ? "success" : "error"} fontSize="small" />,
+        color: isPositiveMargin ? 'success.main' : 'error.main',
+        condition: true
+      });
+    } else if (fifoLoading) {
+      // FIFO 數據載入中
+      details.push({
+        label: '毛利資訊',
+        value: 0,
+        icon: <CircularProgress size={16} />,
+        condition: true
+      });
+    } else if (fifoError) {
+      // FIFO 數據載入錯誤
+      details.push({
+        label: '毛利資訊',
+        value: 0,
+        icon: <InfoIcon color="error" fontSize="small" />,
+        color: 'error.main',
+        condition: true
+      });
+    } else {
+      // 使用項目數據計算（備用方案）
+      // 計算總成本
+      const totalCost = currentShippingOrder.items?.reduce((sum, item) => sum + (item.dtotalCost || 0), 0) || 0;
+      details.push({
+        label: '總成本',
+        value: totalCost,
+        icon: <InfoIcon color="info" fontSize="small" />,
+        color: 'info.main',
+        condition: true
+      });
+      
+      // 計算總毛利
+      const totalProfit = currentShippingOrder.items?.reduce((sum, item) => sum + (item.profit || 0), 0) || 0;
+      details.push({
+        label: '總毛利',
+        value: totalProfit,
+        icon: <AccountBalanceWalletIcon color="success" fontSize="small" />,
+        color: 'success.main',
+        condition: true
+      });
+      
+      // 計算毛利率
+      const totalAmount = currentShippingOrder.totalAmount || 0;
+      if (totalAmount > 0) {
+        const profitMarginValue = (totalProfit / totalAmount) * 100;
+        details.push({
+          label: '毛利率',
+          value: profitMarginValue,
+          icon: <PercentIcon color="warning" fontSize="small" />,
+          color: 'warning.main',
+          condition: true
+        });
+      }
+    }
+  
+    return details;
+  };
   
   // 顯示 Snackbar
   const showSnackbar = (message: string, severity: 'success' | 'info' | 'warning' | 'error') => {
@@ -167,16 +390,18 @@ const ShippingOrderDetailPage: React.FC = () => {
     if (!id || !currentShippingOrder) return;
     
     try {
-      const API_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
-      const response = await axios.delete(`${API_URL}/api/shipping-orders/${id}`);
+      // 這裡需要實現刪除功能
+      const response = await fetch(`/api/shipping-orders/${id}`, {
+        method: 'DELETE',
+      });
       
-      if (response.status === 200) {
+      if (response.ok) {
         showSnackbar('出貨單已成功刪除', 'success');
         setTimeout(() => {
           navigate('/shipping-orders');
         }, 1500);
       } else {
-        const errorData = response.data;
+        const errorData = await response.json();
         showSnackbar(`刪除失敗: ${errorData.message || '未知錯誤'}`, 'error');
       }
     } catch (error: any) {
@@ -197,15 +422,22 @@ const ShippingOrderDetailPage: React.FC = () => {
     if (!id) return;
     
     try {
-      const API_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
-      const response = await axios.put(`${API_URL}/api/shipping-orders/${id}`, {
-        status: 'pending'
+      // 使用 fetch API 代替 axios
+      const response = await fetch(`/api/shipping-orders/${id}/unlock`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: 'pending' })
       });
       
-      if (response.status === 200) {
+      if (response.ok) {
         // 重新載入出貨單資料
         dispatch(fetchShippingOrder(id));
         showSnackbar('出貨單已解鎖並改為待處理狀態', 'success');
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.message || '解鎖失敗');
       }
     } catch (error: any) {
       console.error('解鎖出貨單時發生錯誤:', error);
@@ -246,7 +478,7 @@ const ShippingOrderDetailPage: React.FC = () => {
     );
   }
   
-  // 側邊欄內容 - 基本資訊
+  // 側邊欄內容 - 金額信息和基本資訊
   const sidebarContent = (
     <Stack spacing={2}>
       {currentShippingOrder && (
@@ -260,23 +492,9 @@ const ShippingOrderDetailPage: React.FC = () => {
             mainAmountLabel="總金額"
             mainAmountValue={currentShippingOrder.totalAmount ?? 0}
             mainAmountIcon={<ReceiptLongIcon />}
-            collapsibleDetails={[
-              {
-                label: '小計',
-                value: (currentShippingOrder.totalAmount ?? 0) + (currentShippingOrder.discountAmount ?? 0),
-                icon: <ReceiptLongIcon color="action" fontSize="small" />,
-                condition: true
-              },
-              ...(currentShippingOrder?.discountAmount && currentShippingOrder.discountAmount > 0 ? [{
-                label: '折扣',
-                value: -currentShippingOrder.discountAmount,
-                icon: <PercentIcon color="secondary" fontSize="small" />,
-                color: 'secondary.main',
-                condition: true
-              }] : [])
-            ]}
+            collapsibleDetails={getCollapsibleDetails()}
             initialOpenState={true}
-            isLoading={orderLoading ?? false}
+            isLoading={orderLoading}
             error={orderError ? "金額資訊載入失敗" : ''}
             noDetailsText="無金額明細"
           />
@@ -292,7 +510,7 @@ const ShippingOrderDetailPage: React.FC = () => {
             <Stack spacing={1.5}>
               <Stack direction="row" spacing={1} alignItems="center">
                 <ReceiptIcon fontSize="small" color="action"/>
-                <Typography variant="body2">單號: {currentShippingOrder.soid ?? 'N/A'}</Typography>
+                <Typography variant="body2">出貨單號: {currentShippingOrder.soid || 'N/A'}</Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
                 <PersonIcon fontSize="small" color="action"/>
@@ -302,6 +520,36 @@ const ShippingOrderDetailPage: React.FC = () => {
                     : currentShippingOrder.customer ?? currentShippingOrder.sosupplier ?? '未指定'
                 }</Typography>
               </Stack>
+              {transactionGroupId && (
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <AccountBalanceIcon fontSize="small" color="action"/>
+                  <Typography variant="body2">
+                    分錄:
+                    <Link
+                      to={`/accounting3/transaction/${transactionGroupId}`}
+                      style={{
+                        textDecoration: 'none',
+                        color: 'inherit',
+                        marginLeft: '4px'
+                      }}
+                    >
+                      <Typography
+                        component="span"
+                        variant="body2"
+                        sx={{
+                          color: 'primary.main',
+                          textDecoration: 'underline',
+                          '&:hover': {
+                            color: 'primary.dark'
+                          }
+                        }}
+                      >
+                        {transactionGroupId}
+                      </Typography>
+                    </Link>
+                  </Typography>
+                </Stack>
+              )}
               <Stack direction="row" spacing={1} alignItems="center">
                 <InfoIcon fontSize="small" color="action"/>
                 <Typography variant="body2" component="div">狀態: <StatusChip status={currentShippingOrder.status || ''} /></Typography>
@@ -377,7 +625,7 @@ const ShippingOrderDetailPage: React.FC = () => {
         const productCode = params.value;
         const product = productDetails[productCode];
         
-        // 使用 MUI Link 組件，與 PurchaseOrderDetailPage 保持一致
+        // 使用 MUI Link 組件
         return (
           <Typography
             component={Link}
@@ -401,10 +649,12 @@ const ShippingOrderDetailPage: React.FC = () => {
       valueGetter: (params: any) => {
         const productCode = params.row.did;
         const product = productDetails[productCode];
-        return product ? (product as any).healthInsuranceCode || '-' : '-';
+        // 使用類型斷言和索引訪問來安全地訪問可能存在的屬性
+        return product ? (product as any).healthInsuranceCode || 'N/A' : 'N/A';
       }
     },
     { field: 'dname', headerName: '名稱', flex: 2.7 },
+    { field: 'batchNumber', headerName: '批號', flex: 0.8 },
     {
       field: 'packageInfo',
       headerName: '包裝數量',
@@ -427,9 +677,9 @@ const ShippingOrderDetailPage: React.FC = () => {
       headerAlign: 'right'
     },
     {
-      field: 'dprice',
+      field: 'unitPrice',
       headerName: '單價',
-      flex: 0.9,
+      flex: 1,
       align: 'right',
       headerAlign: 'right',
       valueFormatter: (params: any) => {
@@ -478,7 +728,7 @@ const ShippingOrderDetailPage: React.FC = () => {
   
   // 為DataGrid準備行數據
   const rows = currentShippingOrder?.items?.map((item, index) => {
-    // 確保 packageQuantity 是從資料庫中正確獲取的，並轉換為數字
+    // 確保 packageQuantity 是從資料庫中正確獲取的
     const packageQuantity = Number(item.packageQuantity || 0);
     
     // 計算 boxQuantity 的值為 總數量/packageQuantity
@@ -487,18 +737,55 @@ const ShippingOrderDetailPage: React.FC = () => {
       boxQuantity = Math.floor(Number(item.dquantity) / packageQuantity);
     }
     
+    // 從 FIFO 數據中查找對應的項目
+    const fifoItem = !fifoLoading && fifoData?.items ?
+      fifoData.items.find(fi => fi.product?.code === item.did) : null;
+    
+    // 計算小計
+    const subtotal = (item.dprice || 0) * (item.dquantity || 0);
+    
+    // 計算成本、毛利和毛利率
+    let cost = null;
+    let profit = null;
+    let profitMargin = null;
+    
+    if (fifoItem && fifoItem.fifoProfit) {
+      // 使用 FIFO 數據中的成本
+      cost = fifoItem.fifoProfit.totalCost !== undefined && fifoItem.fifoProfit.totalCost !== null ?
+        fifoItem.fifoProfit.totalCost : null;
+      
+      // 使用 FIFO 數據中的毛利，或者自行計算
+      if (fifoItem.fifoProfit.profit !== undefined && fifoItem.fifoProfit.profit !== null) {
+        profit = fifoItem.fifoProfit.profit;
+      } else if (fifoItem.fifoProfit.totalProfit !== undefined && fifoItem.fifoProfit.totalProfit !== null) {
+        profit = fifoItem.fifoProfit.totalProfit;
+      } else if (cost !== null) {
+        profit = subtotal - cost;
+      }
+      
+      // 使用 FIFO 數據中的毛利率
+      profitMargin = fifoItem.fifoProfit.profitMargin !== undefined && fifoItem.fifoProfit.profitMargin !== null ?
+        fifoItem.fifoProfit.profitMargin : null;
+    } else {
+      // 如果沒有 FIFO 數據，使用項目自帶的數據
+      cost = item.dtotalCost || null;
+      profit = item.profit !== undefined && item.profit !== null ? item.profit : null;
+      profitMargin = item.profitMargin || null;
+    }
+    
     return {
       id: index.toString(),
       did: item.did || '',
       dname: item.dname || '',
       dquantity: item.dquantity || 0,
-      dprice: item.dprice || 0,
-      dtotalCost: item.dtotalCost || 0,
-      profit: item.profit !== undefined && item.profit !== null ? item.profit : null,
-      profitMargin: item.profitMargin || null,
+      unitPrice: item.dprice || 0,
+      dtotalCost: cost,
+      batchNumber: item.batchNumber || '',
       packageQuantity: packageQuantity,
       boxQuantity: boxQuantity,
-      healthInsuranceCode: (productDetails[item.did || ''] as any)?.healthInsuranceCode || '-'
+      profit: profit,
+      profitMargin: profitMargin,
+      healthInsuranceCode: (productDetails[item.did || ''] as any)?.healthInsuranceCode || 'N/A'
     };
   }) || [];
 
