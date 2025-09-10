@@ -26,16 +26,12 @@ import {
   Tooltip,
   Snackbar,
   Alert,
-  SelectChangeEvent,
-  Paper
+  SelectChangeEvent
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import HomeIcon from '@mui/icons-material/Home';
-import PeopleIcon from '@mui/icons-material/People';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import BreadcrumbNavigation from '../components/common/BreadcrumbNavigation';
 
 import CommonListPageLayout from '../components/common/CommonListPageLayout';
 import useCustomerData from '../hooks/useCustomerData';
