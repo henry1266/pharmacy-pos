@@ -48,6 +48,8 @@ export interface Sale {
   paymentMethod: 'cash' | 'credit_card' | 'debit_card' | 'mobile_payment' | 'other';
   paymentStatus: 'paid' | 'pending' | 'partial' | 'cancelled';
   notes?: string;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
 }
 
 /**

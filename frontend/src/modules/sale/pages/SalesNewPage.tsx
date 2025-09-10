@@ -58,7 +58,7 @@ const Grid = MuiGrid;
  * 
  * @returns 銷售頁面 v2 組件
  */
-const SalesNew2Page: FC = () => {
+const SalesNewPage: FC = () => {
   const theme = useTheme();
   const isSmallMobile = useMediaQuery(theme.breakpoints.down("sm")); // 真正的手機
   const isTablet = useMediaQuery(theme.breakpoints.between("sm", "lg")); // 平板
@@ -584,4 +584,4 @@ const SalesNew2Page: FC = () => {
   );
 };
 
-export default SalesNew2Page;
+export default SalesNewPage;

@@ -7,7 +7,7 @@ import { Sale, FifoData, CollapsibleDetail, DetailIconType } from '../types/deta
 
 /**
  * 獲取可收合的明細資料
- * 
+ *
  * @param sale - 銷售記錄
  * @param fifoLoading - 是否正在載入 FIFO 數據
  * @param fifoError - FIFO 數據載入錯誤信息
@@ -15,11 +15,11 @@ import { Sale, FifoData, CollapsibleDetail, DetailIconType } from '../types/deta
  * @returns 可收合的明細資料陣列
  */
 export const getCollapsibleDetails = (
-  sale: Sale, 
-  fifoLoading: boolean, 
-  fifoError: string | null, 
+  sale: Sale,
+  fifoLoading: boolean,
+  fifoError: string | null,
   fifoData: FifoData | null
-): CollapsibleDetail[] => {
+): any[] => {
   const details: CollapsibleDetail[] = [];
   
   // 小計
