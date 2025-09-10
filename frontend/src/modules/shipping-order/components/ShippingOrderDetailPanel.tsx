@@ -292,11 +292,42 @@ const ShippingOrderDetailPanel: FC<ShippingOrderDetailPanelProps> = ({
         )}
 
         <Divider sx={{ my: 1.5 }} />
-        <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-          <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>總金額:</Typography>
-          <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>
-            ${selectedShippingOrder.totalAmount ? selectedShippingOrder.totalAmount.toLocaleString() : '0'}
-          </Typography>
+        <ListItem sx={{ py: 1 }}>
+          <Paper
+            elevation={1}
+            sx={{
+              p: 1.5,
+              borderRadius: 1.5,
+              backgroundColor: 'background.paper',
+              transition: 'all 0.2s',
+              width: '100%',
+              '&:hover': {
+                boxShadow: 3,
+                transform: 'translateY(-2px)'
+              }
+            }}
+          >
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'text.secondary',
+                  fontWeight: 400
+                }}
+              >
+                總金額
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  fontWeight: 600,
+                  color: 'primary.main'
+                }}
+              >
+                ${selectedShippingOrder.totalAmount ? selectedShippingOrder.totalAmount.toLocaleString() : '0'}
+              </Typography>
+            </Box>
+          </Paper>
         </ListItem>
       </CardContent>
     </Card>
