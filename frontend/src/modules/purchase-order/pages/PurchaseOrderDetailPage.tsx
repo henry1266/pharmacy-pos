@@ -686,7 +686,7 @@ const PurchaseOrderDetailPage: React.FC = () => {
           initialState: {
             pagination: { pageSize: 25 },
             sorting: {
-              sortModel: [{ field: 'did', sort: 'asc' }],
+              sortModel: [{ field: 'index', sort: 'asc' }],
             },
           },
           getRowId: (row: any) => row.id,

@@ -579,7 +579,7 @@ const SalesDetailPage: React.FC = () => {
           initialState: {
             pagination: { pageSize: 25 },
             sorting: {
-              sortModel: [{ field: 'code', sort: 'asc' }],
+              sortModel: [{ field: 'index', sort: 'asc' }],
             },
           },
           getRowId: (row: any) => row.id,
