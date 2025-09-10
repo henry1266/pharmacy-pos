@@ -9,7 +9,7 @@ import {
   Close as CloseIcon,
   StickyNote2 as NoteIcon
 } from '@mui/icons-material';
-import ProductSummaryDisplay from '../../modules/product/components/ProductSummaryDisplay';
+import ProductSummaryDisplay from './ProductSummaryDisplay';
 
 interface ProductNotePopoverProps {
   productId: string;

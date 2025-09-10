@@ -15,7 +15,7 @@ import PageHeaderSection from '../../../components/common/PageHeaderSection';
 import { useNavigate } from 'react-router-dom';
 import CsvImportDialog from '../components/CsvImportDialog';
 import ProductDetailCard from '../components/ProductDetailCard';
-import ProductSearchBar from '../../../components/products/ProductSearchBar';
+import ProductSearchBar from '../components/ProductSearchBar';
 import DataTable from '../../../components/tables/DataTable';
 import useProductData from '../../../hooks/useProductData';
 import useInventoryData from '../../../hooks/useInventoryData';

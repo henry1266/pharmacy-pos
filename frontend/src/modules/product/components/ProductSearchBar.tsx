@@ -13,7 +13,7 @@ import {
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import FilterListIcon from '@mui/icons-material/FilterList';
-import { ProductFilters } from '../../services/productServiceV2';
+import { ProductFilters } from '../../../services/productServiceV2';
 import { Category, Supplier } from '@pharmacy-pos/shared/types/entities';
 
 /**
