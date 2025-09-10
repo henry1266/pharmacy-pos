@@ -152,7 +152,24 @@ const ShippingOrderDetailPanel: FC<ShippingOrderDetailPanelProps> = ({
                         color: 'text.primary'
                       }}
                     >
-                      {selectedShippingOrder.socustomer || '無客戶資訊'}
+                      {(() => {
+                        // 確保供應商數據正確顯示
+                        if (selectedShippingOrder.socustomer) {
+                          return selectedShippingOrder.socustomer;
+                        } else if (selectedShippingOrder.sosupplier) {
+                          return selectedShippingOrder.sosupplier;
+                        } else if (selectedShippingOrder.supplier) {
+                          // 如果 supplier 是對象，則獲取其名稱
+                          const supplierObj = selectedShippingOrder.supplier;
+                          if (supplierObj && typeof supplierObj === 'object') {
+                            return supplierObj.name || supplierObj.supplierName || '無客戶資訊';
+                          } else {
+                            return String(supplierObj || '無客戶資訊');
+                          }
+                        } else {
+                          return '無客戶資訊';
+                        }
+                      })()}
                     </Typography>
                   </Box>
                 </Paper>

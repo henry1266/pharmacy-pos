@@ -500,16 +500,34 @@ const ShippingOrdersPage: React.FC = () => {
   ];
 
   // 為DataGrid準備行數據
-  const rows = filteredRows.map(so => ({
-    id: so._id, // DataGrid需要唯一的id字段
-    _id: so._id, // 保留原始_id用於操作
-    soid: so.soid,
-    socustomer: (so as any).socustomer, // 使用類型斷言解決類型問題
-    totalAmount: so.totalAmount,
-    status: so.status,
-    paymentStatus: so.paymentStatus,
-    updatedAt: so.updatedAt || (so as any).sodate // 如果沒有更新時間，則使用出貨日期作為替代
-  }));
+  const rows = filteredRows.map(so => {
+    // 確保供應商數據正確顯示
+    let customerName = '';
+    if ((so as any).socustomer) {
+      customerName = (so as any).socustomer;
+    } else if ((so as any).sosupplier) {
+      customerName = (so as any).sosupplier;
+    } else if ((so as any).supplier) {
+      // 如果 supplier 是對象，則獲取其名稱
+      const supplierObj = (so as any).supplier;
+      if (supplierObj && typeof supplierObj === 'object') {
+        customerName = supplierObj.name || supplierObj.supplierName || '';
+      } else {
+        customerName = String(supplierObj || '');
+      }
+    }
+
+    return {
+      id: so._id, // DataGrid需要唯一的id字段
+      _id: so._id, // 保留原始_id用於操作
+      soid: so.soid,
+      socustomer: customerName, // 確保供應商名稱正確顯示
+      totalAmount: so.totalAmount,
+      status: so.status,
+      paymentStatus: so.paymentStatus,
+      updatedAt: so.updatedAt || (so as any).sodate // 如果沒有更新時間，則使用出貨日期作為替代
+    };
+  });
 
   // 計算毛利相關狀態
   const [calculatingProfit, setCalculatingProfit] = useState(false);
