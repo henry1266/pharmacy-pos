@@ -35,7 +35,7 @@ import ShippingOrderPreview from '../components/ShippingOrderPreview';
 import SupplierCheckboxFilter from '../../../components/filters/SupplierCheckboxFilter';
 import ShippingOrdersTable from '../components/ShippingOrdersTable';
 import ShippingOrdersFilter from '../components/ShippingOrdersFilter';
-import CsvImportDialog from '../../../components/shipping-orders/import/CsvImportDialog';
+import CsvImportDialog from '../components/CsvImportDialog';
 import ShippingOrderImportOptions from '../components/ShippingOrderImportOptions';
 import GenericConfirmDialog from '../../../components/common/GenericConfirmDialog';
 

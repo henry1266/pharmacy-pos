@@ -2,7 +2,7 @@ import React, { useState, useCallback, FC, ChangeEvent } from 'react';
 import { Button, Box, Typography, Alert } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import MedicineCsvImportDialog from './MedicineCsvImportDialog';
-import { parseMedicineCsvForPreview, importMedicineCsv } from '../../../../services/medicineCsvService';
+import { parseMedicineCsvForPreview, importMedicineCsv } from '../../../services/medicineCsvService';
 
 // 定義預覽數據項目的介面
 interface PreviewItem {
