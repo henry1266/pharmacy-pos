@@ -6,7 +6,7 @@ import {
   Paper,
   CircularProgress
 } from '@mui/material';
-import DataTable from '../tables/DataTable'; // Assuming DataTable is in ./tables/
+import DataTable from '../DataTable'; // Assuming DataTable is in ./tables/
 import PageHeaderSection from './PageHeaderSection';
 import HomeIcon from '@mui/icons-material/Home';
 

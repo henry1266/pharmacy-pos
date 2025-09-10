@@ -1,43 +1,58 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+/**
+ * @file 出貨單列表頁面
+ * @description 顯示出貨單列表，提供搜索、預覽、編輯和刪除功能
+ */
+
+import React, { FC, useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Box,
   Typography,
   Button,
-  Tooltip,
-  Fab,
   Snackbar,
   Alert,
-  Popover,
+  CircularProgress,
   TextField,
   InputAdornment,
-  CircularProgress
+  IconButton,
+  Card,
+  CardContent,
+  Popover,
+  Tooltip,
+  Fab
 } from '@mui/material';
 import {
   Add as AddIcon,
   CloudUpload as CloudUploadIcon,
   Search as SearchIcon,
+  Clear as ClearIcon,
   CalculateOutlined
 } from '@mui/icons-material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAppDispatch } from '../../../hooks/redux';
+import { useAppDispatch } from '@/hooks/redux';
 
 // Import Hook
-import useShippingOrdersData from '../../../hooks/useShippingOrdersData';
-import { useShippingOrdersBatchFifo } from '../../../hooks/useShippingOrdersBatchFifo';
+import useShippingOrdersData from '@/hooks/useShippingOrdersData';
+import { useShippingOrdersBatchFifo } from '@/hooks/useShippingOrdersBatchFifo';
 
 // Import Service functions for CSV import
-import { shippingOrderServiceV2 } from '../../../services/shippingOrderServiceV2';
-import { fetchShippingOrders, API_BASE_URL } from '../../../redux/actions';
+import { shippingOrderServiceV2 } from '@/services/shippingOrderServiceV2';
+import { fetchShippingOrders, API_BASE_URL } from '@/redux/actions';
 import axios from 'axios';
 
 // Import Presentation Components
-import ShippingOrderPreview from '../components/ShippingOrderPreview';
-import SupplierCheckboxFilter from '../../../components/filters/SupplierCheckboxFilter';
-import ShippingOrdersTable from '../components/ShippingOrdersTable';
-import ShippingOrdersFilter from '../components/ShippingOrdersFilter';
-import CsvImportDialog from '../components/CsvImportDialog';
-import ShippingOrderImportOptions from '../components/ShippingOrderImportOptions';
-import GenericConfirmDialog from '../../../components/common/GenericConfirmDialog';
+import ShippingOrderPreview from '@/modules/shipping-order/components/ShippingOrderPreview';
+import SupplierCheckboxFilter from '@/components/filters/SupplierCheckboxFilter';
+import ShippingOrdersTable from '@/modules/shipping-order/components/ShippingOrdersTable';
+import ShippingOrdersFilter from '@/modules/shipping-order/components/ShippingOrdersFilter';
+import CsvImportDialog from '@/modules/shipping-order/components/CsvImportDialog';
+import ShippingOrderImportOptions from '@/modules/shipping-order/components/ShippingOrderImportOptions';
+import GenericConfirmDialog from '@/components/common/GenericConfirmDialog';
+import CommonListPageLayout from '@/components/common/CommonListPageLayout';
+import TitleWithCount from '@/components/common/TitleWithCount';
+import ShippingOrderDetailPanel from '@/modules/shipping-order/components/ShippingOrderDetailPanel';
+import StatusChip from '@/components/common/StatusChip';
+import PaymentStatusChip from '@/components/common/PaymentStatusChip';
+import { ActionButtons } from '@/modules/purchase-order/shared/components';
 
 // 使用通用類型定義
 interface ShippingOrder {
@@ -157,6 +172,7 @@ const ShippingOrdersPage: React.FC = () => {
   });
   const [previewOpen, setPreviewOpen] = useState<boolean>(false);
   const [previewAnchorEl, setPreviewAnchorEl] = useState<HTMLElement | null>(null);
+  const [showDetailPanel, setShowDetailPanel] = useState<boolean>(false);
   const [csvImportDialogOpen, setCsvImportDialogOpen] = useState<boolean>(false);
   const [csvType, setCsvType] = useState<'basic' | 'items'>('basic');
   const [csvFile, setCsvFile] = useState<File | null>(null);
@@ -192,6 +208,46 @@ const ShippingOrdersPage: React.FC = () => {
 
   const handleView = (id: string): void => {
     navigate(`/shipping-orders/${id}`);
+  };
+
+  // 選擇出貨單函數 - 用於點擊表格行時
+  const selectShippingOrder = async (id: string): Promise<void> => {
+    try {
+      // 直接從 filteredRows 中查找選中的出貨單
+      let selectedOrder = filteredRows.find(so => so._id === id);
+      
+      // 始終獲取詳細數據，確保有完整的出貨單信息
+      try {
+        // 獲取詳細數據
+        const response = await axios.get(`${API_BASE_URL}/shipping-orders/${id}`);
+        if (response.data.success) {
+          selectedOrder = response.data.data;
+        }
+      } catch (error) {
+        console.error('獲取出貨單詳細數據失敗:', error);
+      }
+      
+      // 更新 previewShippingOrder 狀態
+      if (selectedOrder) {
+        // 使用 handlePreviewMouseEnter 函數的邏輯，但不設置 previewAnchorEl
+        const fakeEvent = {
+          currentTarget: document.createElement('div')
+        } as unknown as React.MouseEvent<HTMLElement>;
+        
+        // 調用 handlePreviewMouseEnter 函數來更新 previewShippingOrder 狀態
+        handlePreviewMouseEnter(fakeEvent, id);
+      }
+      
+      // 顯示詳情面板
+      setShowDetailPanel(true);
+    } catch (err) {
+      console.error('獲取出貨單詳情失敗:', err);
+      setSnackbar({
+        open: true,
+        message: '獲取出貨單詳情失敗',
+        severity: 'error'
+      });
+    }
   };
 
   // --- Unlock Handler ---
@@ -356,6 +412,105 @@ const ShippingOrdersPage: React.FC = () => {
     return filteredRows.reduce((sum, row) => sum + (row.totalAmount || 0), 0);
   }, [filteredRows]);
 
+  // 供應商篩選器頭部渲染
+  const renderSupplierHeader = useCallback((): React.ReactNode => {
+    return (
+      <SupplierCheckboxFilter
+        suppliers={suppliers}
+        selectedSuppliers={selectedSuppliers}
+        onFilterChange={handleSupplierFilterChange}
+      />
+    );
+  }, [suppliers, selectedSuppliers, handleSupplierFilterChange]);
+
+  // 定義表格列
+  const columns = [
+    { field: 'soid', headerName: '出貨單號', flex: 1.5 },
+    {
+      field: 'socustomer',
+      headerName: '客戶',
+      flex: 1.5,
+      renderHeader: renderSupplierHeader
+    },
+    {
+      field: 'totalAmount',
+      headerName: '總金額',
+      flex: 1.3,
+      valueFormatter: (params: any) => {
+        return params.value ? params.value.toLocaleString() : '';
+      }
+    },
+    {
+      field: 'status',
+      headerName: '狀態',
+      flex: 1.1,
+      renderCell: (params: any) => <StatusChip status={params.value} />
+    },
+    {
+      field: 'paymentStatus',
+      headerName: '付款狀態',
+      flex: 1.1,
+      renderCell: (params: any) => <PaymentStatusChip status={params.value} />
+    },
+    {
+      field: 'updatedAt',
+      headerName: '更新時間',
+      flex: 1.3,
+      valueFormatter: (params: any) => {
+        if (!params.value) return '';
+        try {
+          // 嘗試將日期字串轉換為可讀格式
+          const date = new Date(params.value);
+          return date.toLocaleString('zh-TW', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+        } catch (error) {
+          console.error('日期格式化錯誤:', error);
+          return params.value;
+        }
+      }
+    },
+    {
+      field: 'actions',
+      headerName: '操作',
+      flex: 2,
+      renderCell: (params: any) => {
+        return (
+          <ActionButtons
+            onView={() => handleView(params.row._id)}
+            onEdit={() => handleEdit(params.row._id)}
+            onDelete={() => handleDeleteClick(params.row)}
+            onPreviewMouseEnter={(e) => {
+              if (e && e.currentTarget) {
+                handlePreviewMouseEnter(e as React.MouseEvent<HTMLElement>, params.row._id);
+              }
+            }}
+            onPreviewMouseLeave={handlePreviewMouseLeave}
+            isDeleteDisabled={params.row.status === 'completed'}
+            status={params.row.status}
+            onUnlock={() => handleUnlock(params.row._id)}
+          />
+        );
+      },
+    },
+  ];
+
+  // 為DataGrid準備行數據
+  const rows = filteredRows.map(so => ({
+    id: so._id, // DataGrid需要唯一的id字段
+    _id: so._id, // 保留原始_id用於操作
+    soid: so.soid,
+    socustomer: (so as any).socustomer, // 使用類型斷言解決類型問題
+    totalAmount: so.totalAmount,
+    status: so.status,
+    paymentStatus: so.paymentStatus,
+    updatedAt: so.updatedAt || (so as any).sodate // 如果沒有更新時間，則使用出貨日期作為替代
+  }));
+
   // 計算毛利相關狀態
   const [calculatingProfit, setCalculatingProfit] = useState(false);
   const [calculatedProfit, setCalculatedProfit] = useState<number | null>(null);
@@ -383,129 +538,167 @@ const ShippingOrdersPage: React.FC = () => {
     }
   }, [calculateBatchFifoProfit, filteredRows]);
 
-  // --- Supplier Header Renderer ---
-  const renderSupplierHeader = useCallback((): React.ReactNode => {
-    return (
-      <SupplierCheckboxFilter
-        suppliers={suppliers}
-        selectedSuppliers={selectedSuppliers}
-        onFilterChange={handleSupplierFilterChange}
+  // 操作按鈕區域
+  const actionButtons = (
+    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, alignItems: { xs: 'stretch', sm: 'center' } }}>
+      <TextField
+        placeholder="搜索出貨單（單號、客戶、日期）"
+        name="searchTerm"
+        value={searchParams.searchTerm || ''}
+        onChange={handleInputChange}
+        size="small"
+        sx={{ minWidth: { xs: '100%', sm: '300px' } }}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon color="action" />
+            </InputAdornment>
+          ),
+          endAdornment: searchParams.searchTerm && (
+            <InputAdornment position="end">
+              <IconButton
+                size="small"
+                onClick={handleClearSearchWithUrlUpdate}
+                edge="end"
+              >
+                <ClearIcon />
+              </IconButton>
+            </InputAdornment>
+          ),
+        }}
       />
-    );
-  }, [suppliers, selectedSuppliers, handleSupplierFilterChange]);
+      <Box sx={{ display: 'flex', gap: 1, flexShrink: 0 }}>
+        {/* 計算毛利按鈕 */}
+        {filteredRows.length > 0 && (
+          <Button
+            variant="outlined"
+            color="primary"
+            size="small"
+            startIcon={calculatingProfit ? <CircularProgress size={16} /> : <CalculateOutlined />}
+            onClick={handleCalculateProfitClick}
+            disabled={calculatingProfit || filteredRows.length === 0}
+          >
+            {calculatingProfit ? '計算中...' : '計算毛利'}
+          </Button>
+        )}
+        <Button
+          variant="outlined"
+          color="primary"
+          startIcon={<CloudUploadIcon />}
+          onClick={handleOpenCsvImport}
+        >
+          匯入CSV
+        </Button>
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<AddIcon />}
+          onClick={handleAddNew}
+        >
+          添加出貨單
+        </Button>
+      </Box>
+    </Box>
+  );
+
+  // 詳情面板
+  const detailPanel = showDetailPanel ? (
+    <ShippingOrderDetailPanel
+      selectedShippingOrder={previewShippingOrder as any}
+      onEdit={handleEdit}
+    />
+  ) : (
+    <Card elevation={2} sx={{ borderRadius: '0.5rem', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <CardContent sx={{ textAlign: 'center' }}>
+        <Typography variant="body1" color="text.secondary">
+          選擇一個出貨單查看詳情
+        </Typography>
+      </CardContent>
+    </Card>
+  );
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Typography variant="h5" component="h1">
-            出貨單管理
-          </Typography>
-          {/* 總金額顯示 */}
-          <Box sx={{
-            display: 'flex',
-            alignItems: 'center',
-            backgroundColor: 'primary.main',
-            color: 'primary.contrastText',
-            px: 2,
-            py: 1,
-            borderRadius: 2,
-            minWidth: 'fit-content'
-          }}>
-            <Typography variant="caption" sx={{ fontSize: '0.8rem', mr: 1 }}>
-              總計
-            </Typography>
-            <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
-              ${totalAmount.toLocaleString()}
-            </Typography>
-          </Box>
-          {/* 筆數統計 */}
-          <Box sx={{
-            display: 'flex',
-            alignItems: 'center',
-            backgroundColor: 'secondary.main',
-            color: 'secondary.contrastText',
-            px: 2,
-            py: 1,
-            borderRadius: 2,
-            minWidth: 'fit-content'
-          }}>
-            <Typography variant="caption" sx={{ fontSize: '0.8rem', mr: 1 }}>
-              筆數
-            </Typography>
-            <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
-              {filteredRows.length}
-            </Typography>
-          </Box>
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          {/* 計算毛利按鈕 */}
-          {filteredRows.length > 0 && (
-            <Button
-              variant="outlined"
-              color="primary"
-              size="small"
-              startIcon={calculatingProfit ? <CircularProgress size={16} /> : <CalculateOutlined />}
-              onClick={handleCalculateProfitClick}
-              disabled={calculatingProfit || filteredRows.length === 0}
-              sx={{ mr: 1 }}
-            >
-              {calculatingProfit ? '計算中...' : '計算毛利'}
-            </Button>
-          )}
-          {/* 顯示計算結果 */}
-          {calculatedProfit !== null && (
+    <Box sx={{ width: '95%', mx: 'auto' }}>
+      <CommonListPageLayout
+        title={
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <TitleWithCount title="出貨單管理" count={filteredRows.length} />
+            {/* 總金額顯示 */}
             <Box sx={{
               display: 'flex',
               alignItems: 'center',
-              backgroundColor: calculatedProfit >= 0 ? 'success.main' : 'error.main',
-              color: 'white',
+              backgroundColor: 'primary.main',
+              color: 'primary.contrastText',
               px: 2,
-              py: 1,
+              py: 0.5,
               borderRadius: 2,
-              minWidth: 'fit-content',
-              mr: 1
+              minWidth: 'fit-content'
             }}>
               <Typography variant="caption" sx={{ fontSize: '0.8rem', mr: 1 }}>
-                毛利
+                總計
               </Typography>
               <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
-                ${calculatedProfit.toLocaleString()}
+                ${totalAmount.toLocaleString()}
               </Typography>
             </Box>
-          )}
-          {/* 搜尋區域 */}
-          <TextField
-            size="small"
-            placeholder="搜尋出貨單"
-            name="searchTerm"
-            value={searchParams.searchTerm || ''}
-            onChange={handleInputChange}
-            sx={{ minWidth: 300 }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              )
-            }}
-          />
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleSearchWithUrlUpdate}
-          >
-            搜尋
-          </Button>
-          <Button
-            variant="outlined"
-            color="secondary"
-            onClick={handleClearSearchWithUrlUpdate}
-          >
-            清除
-          </Button>
-        </Box>
-      </Box>
+            {/* 顯示計算結果 */}
+            {calculatedProfit !== null && (
+              <Box sx={{
+                display: 'flex',
+                alignItems: 'center',
+                backgroundColor: calculatedProfit >= 0 ? 'success.main' : 'error.main',
+                color: 'white',
+                px: 2,
+                py: 0.5,
+                borderRadius: 2,
+                minWidth: 'fit-content'
+              }}>
+                <Typography variant="caption" sx={{ fontSize: '0.8rem', mr: 1 }}>
+                  毛利
+                </Typography>
+                <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
+                  ${calculatedProfit.toLocaleString()}
+                </Typography>
+              </Box>
+            )}
+          </Box>
+        }
+        actionButtons={actionButtons}
+        columns={columns}
+        rows={rows}
+        loading={listLoading}
+        {...(listError && { error: listError })}
+        onRowClick={(params) => selectShippingOrder(params.row._id)}
+        detailPanel={detailPanel}
+        tableGridWidth={9}
+        detailGridWidth={3}
+        dataTableProps={{
+          rowsPerPageOptions: [25, 50, 100],
+          disablePagination: false,
+          pageSize: 25,
+          initialState: {
+            pagination: { pageSize: 25 },
+            sorting: {
+              sortModel: [{ field: 'soid', sort: 'desc' }],
+            },
+          },
+          getRowId: (row: any) => row.id,
+          sx: {
+            // 自定義滾動條樣式
+            '& .MuiDataGrid-virtualScroller::-webkit-scrollbar': {
+              width: '4px',
+              height: '4px',
+            },
+            '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-track': {
+              background: '#ffffff02',
+            },
+            '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb': {
+              background: '#a7a7a796',
+              borderRadius: '4px',
+            },
+          }
+        }}
+      />
 
       {/* 匯入選項區塊 - 當showImportOptions為true時顯示 */}
       {showImportOptions && (
@@ -525,104 +718,6 @@ const ShippingOrdersPage: React.FC = () => {
           success={csvImportSuccess}
         />
       )}
-
-      <Box sx={{
-        width: '100%',
-        position: 'relative',
-        minHeight: '70vh',
-        height: '100%',
-        bgcolor: 'background.paper',
-        borderRadius: 1,
-        border: 1,
-        borderColor: 'divider',
-        boxShadow: 1,
-        overflow: 'hidden'
-      }}>
-        {showFilters && (
-          <Box sx={{ mb: 2, p: 2 }}>
-            <ShippingOrdersFilter
-              searchParams={searchParams}
-              handleInputChange={handleInputChange}
-              handleSearch={handleSearchWithUrlUpdate}
-              handleClearSearch={handleClearSearchWithUrlUpdate}
-            />
-          </Box>
-        )}
-
-
-        <ShippingOrdersTable
-          filteredRows={filteredRows}
-          paginationModel={paginationModel}
-          setPaginationModel={setPaginationModel}
-          loading={listLoading}
-          handleView={handleView}
-          handleEdit={handleEdit}
-          handleDeleteClick={handleDeleteClick}
-          handlePreviewMouseEnter={handlePreviewMouseEnter}
-          handlePreviewMouseLeave={handlePreviewMouseLeave}
-          renderSupplierHeader={renderSupplierHeader}
-          handleUnlock={handleUnlock}
-        />
-      </Box>
-
-      {/* 使用 Popover 組件實現預覽功能 */}
-      <Popover
-        open={previewOpen}
-        anchorEl={previewAnchorEl}
-        onClose={handlePreviewMouseLeave}
-        anchorOrigin={{
-          vertical: 'bottom',  // 從底部開始
-          horizontal: 'left',  // 從左側開始
-        }}
-        transformOrigin={{
-          vertical: 'top',     // 轉換原點在頂部
-          horizontal: 'right', // 轉換原點在右側，這樣彈出框會在錨點元素的左側
-        }}
-        // 添加水平偏移，使彈出框再左一點
-        marginThreshold={16}   // 設置邊距閾值
-        sx={{
-          pointerEvents: 'none',  // 避免鼠標事件干擾
-          marginLeft: '0px',   // 添加負的左邊距，使彈出框再左一點
-          '& .MuiPopover-paper': {
-            width: '600px',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-            borderRadius: '4px',
-            padding: '8px'
-          }
-        }}
-      >
-        {previewShippingOrder && (
-          <ShippingOrderPreview
-            shippingOrder={previewShippingOrder}
-            loading={previewLoading}
-            error={previewError || ''}
-          />
-        )}
-      </Popover>
-
-      <Box
-        sx={{
-          position: 'fixed',
-          right: 5,
-          top: '40%',
-          transform: 'translateY(-50%)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 2,
-          zIndex: 1000
-        }}
-      >
-        <Tooltip title="新增出貨單" placement="left" arrow>
-          <Fab color="primary" size="medium" onClick={handleAddNew} aria-label="新增出貨單">
-            <AddIcon />
-          </Fab>
-        </Tooltip>
-        <Tooltip title={showImportOptions ? "隱藏匯入選項" : "顯示匯入選項"} placement="left" arrow>
-          <Fab color="secondary" size="medium" onClick={handleOpenCsvImport} aria-label="CSV匯入">
-            <CloudUploadIcon />
-          </Fab>
-        </Tooltip>
-      </Box>
 
       <GenericConfirmDialog
         open={deleteDialogOpen}
