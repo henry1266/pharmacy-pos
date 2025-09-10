@@ -741,8 +741,6 @@ const ShippingOrderDetailPage: React.FC = () => {
     const fifoItem = !fifoLoading && fifoData?.items ?
       fifoData.items.find(fi => fi.product?.code === item.did) : null;
     
-    // 計算小計
-    const subtotal = (item.dprice || 0) * (item.dquantity || 0);
     
     // 計算成本、毛利和毛利率
     let cost = null;
@@ -759,8 +757,6 @@ const ShippingOrderDetailPage: React.FC = () => {
         profit = fifoItem.fifoProfit.profit;
       } else if (fifoItem.fifoProfit.totalProfit !== undefined && fifoItem.fifoProfit.totalProfit !== null) {
         profit = fifoItem.fifoProfit.totalProfit;
-      } else if (cost !== null) {
-        profit = subtotal - cost;
       }
       
       // 使用 FIFO 數據中的毛利率
@@ -777,15 +773,15 @@ const ShippingOrderDetailPage: React.FC = () => {
       id: index.toString(),
       did: item.did || '',
       dname: item.dname || '',
+      healthInsuranceCode: (productDetails[item.did || ''] as any)?.healthInsuranceCode || 'N/A',
       dquantity: item.dquantity || 0,
-      unitPrice: item.dprice || 0,
+      unitPrice: item.unitPrice || item.dprice || 0,
       dtotalCost: cost,
       batchNumber: item.batchNumber || '',
       packageQuantity: packageQuantity,
       boxQuantity: boxQuantity,
       profit: profit,
-      profitMargin: profitMargin,
-      healthInsuranceCode: (productDetails[item.did || ''] as any)?.healthInsuranceCode || 'N/A'
+      profitMargin: profitMargin
     };
   }) || [];
 
