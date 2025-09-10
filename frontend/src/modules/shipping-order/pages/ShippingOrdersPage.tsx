@@ -620,19 +620,11 @@ const ShippingOrdersPage: React.FC = () => {
   );
 
   // 詳情面板
-  const detailPanel = showDetailPanel ? (
+  const detailPanel = (
     <ShippingOrderDetailPanel
-      selectedShippingOrder={previewShippingOrder as any}
+      selectedShippingOrder={showDetailPanel ? (previewShippingOrder as any) : null}
       onEdit={handleEdit}
     />
-  ) : (
-    <Card elevation={2} sx={{ borderRadius: '0.5rem', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <CardContent sx={{ textAlign: 'center' }}>
-        <Typography variant="body1" color="text.secondary">
-          選擇一個出貨單查看詳情
-        </Typography>
-      </CardContent>
-    </Card>
   );
 
   return (
