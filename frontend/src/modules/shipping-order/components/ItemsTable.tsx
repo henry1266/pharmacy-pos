@@ -14,7 +14,7 @@ import {
   EmptyState,
   TableHeaderRow,
   TABLE_CONFIG
-} from '../../../components/shipping-orders/shared';
+} from '../shared';
 
 /**
  * 藥品項目表格組件

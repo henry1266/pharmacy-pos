@@ -17,7 +17,7 @@ import {
   StatusMessage,
   LoadingButton,
   CSV_IMPORT_TABS
-} from '../shared';
+} from '../../../modules/shipping-order/shared';
 
 /**
  * CSV導入對話框組件

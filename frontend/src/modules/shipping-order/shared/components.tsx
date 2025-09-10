@@ -16,7 +16,7 @@ import {
   Alert,
   CircularProgress
 } from '@mui/material';
-import { PackageInventoryDisplay } from '../../package-units';
+import { PackageInventoryDisplay } from '../../../components/package-units';
 import {
   Delete as DeleteIcon,
   Edit as EditIcon,
@@ -28,8 +28,8 @@ import {
   CloudUpload as CloudUploadIcon,
   Lock as LockIcon
 } from '@mui/icons-material';
-import StatusChip from '../../common/StatusChip';
-import PaymentStatusChip from '../../common/PaymentStatusChip';
+import StatusChip from '../../../components/common/StatusChip';
+import PaymentStatusChip from '../../../components/common/PaymentStatusChip';
 import {
   EditableRowProps,
   DisplayRowProps,
