@@ -150,7 +150,6 @@ const ShippingOrdersPage: React.FC = () => {
   }, [handleClearSearch, setUrlSearchParams]);
 
   // --- Local UI State ---
-  const [showFilters] = useState<boolean>(false);
   const [showImportOptions, setShowImportOptions] = useState<boolean>(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [shippingOrderToDelete, setShippingOrderToDelete] = useState<ShippingOrder | null>(null);
