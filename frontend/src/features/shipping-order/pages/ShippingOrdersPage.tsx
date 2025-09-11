@@ -548,12 +548,12 @@ const ShippingOrdersPage: React.FC = () => {
   const actionButtons = (
     <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, alignItems: { xs: 'stretch', sm: 'center' } }}>
       <TextField
-        placeholder="搜索出貨單（單號、客戶、日期）"
+        placeholder="搜索出貨單"
         name="searchTerm"
         value={searchParams.searchTerm || ''}
         onChange={handleInputChange}
         size="small"
-        sx={{ minWidth: { xs: '100%', sm: '300px' } }}
+        sx={{ minWidth: { xs: '100%', sm: '30%' } }}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
@@ -584,7 +584,7 @@ const ShippingOrdersPage: React.FC = () => {
             onClick={handleCalculateProfitClick}
             disabled={calculatingProfit || filteredRows.length === 0}
           >
-            {calculatingProfit ? '計算中...' : '計算毛利'}
+            {calculatingProfit ? '計算中...' : '算毛利'}
           </Button>
         )}
         <Button

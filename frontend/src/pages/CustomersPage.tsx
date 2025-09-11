@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, FC, ChangeEvent } from 'react';
+import { keyframes } from '@emotion/react';
 import { useNavigate } from 'react-router-dom';
 import TitleWithCount from '../components/common/TitleWithCount';
 import PropTypes from 'prop-types';
@@ -32,6 +33,7 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import PersonIcon from '@mui/icons-material/Person';
 
 import CommonListPageLayout from '../components/common/CommonListPageLayout';
 import useCustomerData from '../hooks/useCustomerData';
@@ -283,17 +285,85 @@ CustomerFormDialog.propTypes = {
   loading: PropTypes.bool.isRequired
 } as any; // 使用 any 類型來避免 TypeScript 錯誤
 
+// 定義箭頭動畫
+const arrowBounce = keyframes`
+  0%, 100% {
+    transform: translateX(-5px);
+  }
+  50% {
+    transform: translateX(-15px);
+  }
+`;
+
 // ---
 // Extracted Component for Customer Detail Panel
 // ---
 const CustomerDetailPanel: FC<CustomerDetailPanelProps> = ({ selectedCustomer, handleEdit, handleDelete }) => {
   if (!selectedCustomer) {
     return (
-      <Card elevation={2} sx={{ borderRadius: '0.5rem', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <CardContent sx={{ textAlign: 'center' }}>
-          <Typography variant="body1" color="text.secondary">
-            選擇一個會員查看詳情
-          </Typography>
+      <Card
+        elevation={2}
+        className="customer-card"
+        sx={{
+          borderRadius: '0.5rem',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            boxShadow: 6
+          },
+          '&:hover .arrow-icon': {
+            animation: `${arrowBounce} 0.8s infinite`,
+            color: 'primary.dark'
+          }
+        }}
+      >
+        <CardContent sx={{ textAlign: 'center', py: 3, width: '100%' }}>
+          {/* 大型會員圖標 */}
+          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
+            <PersonIcon
+              color="primary"
+              sx={{
+                fontSize: '4rem',
+                mb: 1,
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'scale(1.1)',
+                  color: 'primary.dark'
+                }
+              }}
+            />
+          </Box>
+          
+          {/* 內容區域 */}
+          <Box sx={{ width: '100%' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, justifyContent: 'center' }}>
+              <ArrowBackIcon
+                color="primary"
+                className="arrow-icon"
+                sx={{
+                  fontSize: '2rem',
+                  mr: 1,
+                  transform: 'translateX(-10px)',
+                  animation: 'arrowPulse 1.5s infinite',
+                  transition: 'color 0.3s ease'
+                }}
+              />
+              <Typography variant="body1" color="primary.main" sx={{ fontWeight: 500 }}>
+                左側列表
+              </Typography>
+            </Box>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
+              選擇一個會員查看詳情
+            </Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+              請從左側列表中選擇一個會員
+            </Typography>
+          </Box>
         </CardContent>
       </Card>
     );

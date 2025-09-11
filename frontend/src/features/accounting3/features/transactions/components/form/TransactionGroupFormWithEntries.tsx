@@ -18,7 +18,6 @@ import { accounting3Service } from '../../../../services/accounting3Service';
 // 導入 accounting3 專用的 hooks 和組件
 import { useTransactionForm3 } from '../../../../core/hooks/useTransactionForm3';
 import { BasicInfoSection } from '../../../../components/ui/BasicInfoSection';
-import { DoubleEntrySection3 } from '../../../../components/ui/DoubleEntrySection3';
 import { EnhancedDoubleEntrySection } from '../../../../components/ui/EnhancedDoubleEntrySection';
 import { FundingSourceSelector3 } from '../../../../components/ui/FundingSourceSelector3';
 
