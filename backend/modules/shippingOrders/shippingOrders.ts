@@ -4,13 +4,13 @@ import { check, validationResult } from 'express-validator';
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
-import ShippingOrder from '../models/ShippingOrder';
-import BaseProduct from '../models/BaseProduct';
-import Inventory from '../models/Inventory';
-import Customer from '../models/Customer';
-import Supplier from '../models/Supplier';
-import OrderNumberService from '../utils/OrderNumberService';
-import logger from '../utils/logger';
+import ShippingOrder from '../../models/ShippingOrder';
+import BaseProduct from '../../models/BaseProduct';
+import Inventory from '../../models/Inventory';
+import Customer from '../../models/Customer';
+import Supplier from '../../models/Supplier';
+import OrderNumberService from '../../utils/OrderNumberService';
+import logger from '../../utils/logger';
 
 // 使用 shared 架構的類型
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
@@ -167,9 +167,42 @@ function handleDatabaseError(res: Response, err: Error, customMessage?: string):
   res.status(500).json(createErrorResponse(ERROR_MESSAGES.GENERIC.SERVER_ERROR));
 }
 
-// @route   GET api/shipping-orders
-// @desc    獲取所有出貨單
-// @access  Public
+/**
+ * @swagger
+ * /api/shipping-orders:
+ *   get:
+ *     tags:
+ *       - 出貨單
+ *     summary: 獲取所有出貨單
+ *     description: 返回系統中所有出貨單的列表
+ *     responses:
+ *       200:
+ *         description: 成功獲取出貨單列表
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: 操作成功
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/ShippingOrder'
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *       500:
+ *         description: 伺服器錯誤
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 router.get('/', async (_req: Request, res: Response) => {
   try {
     const shippingOrders = await ShippingOrder.find()
@@ -184,9 +217,53 @@ router.get('/', async (_req: Request, res: Response) => {
   }
 });
 
-// @route   GET api/shipping-orders/:id
-// @desc    獲取單個出貨單
-// @access  Public
+/**
+ * @swagger
+ * /api/shipping-orders/{id}:
+ *   get:
+ *     tags:
+ *       - 出貨單
+ *     summary: 獲取單個出貨單
+ *     description: 根據ID獲取特定出貨單的詳細信息
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: 出貨單ID
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: 成功獲取出貨單
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: 操作成功
+ *                 data:
+ *                   $ref: '#/components/schemas/ShippingOrder'
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *       404:
+ *         description: 找不到出貨單
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: 伺服器錯誤
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 router.get('/:id', async (req: Request, res: Response) => {
   try {
     if (!req.params.id) {
@@ -333,9 +410,107 @@ async function findSupplier(supplier?: Types.ObjectId | string, sosupplier?: str
   return supplierDoc ? (supplierDoc._id as any).toString() : null;
 }
 
-// @route   POST api/shipping-orders
-// @desc    創建新出貨單
-// @access  Public
+/**
+ * @swagger
+ * /api/shipping-orders:
+ *   post:
+ *     tags:
+ *       - 出貨單
+ *     summary: 創建新出貨單
+ *     description: 創建一個新的出貨單記錄
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - sosupplier
+ *               - items
+ *             properties:
+ *               soid:
+ *                 type: string
+ *                 description: 出貨單號（可選，如不提供則自動生成）
+ *               sosupplier:
+ *                 type: string
+ *                 description: 供應商名稱
+ *               supplier:
+ *                 type: string
+ *                 description: 供應商ID（可選）
+ *               items:
+ *                 type: array
+ *                 description: 出貨項目列表
+ *                 items:
+ *                   type: object
+ *                   required:
+ *                     - did
+ *                     - dname
+ *                     - dquantity
+ *                     - dtotalCost
+ *                   properties:
+ *                     did:
+ *                       type: string
+ *                       description: 產品代碼
+ *                     dname:
+ *                       type: string
+ *                       description: 產品名稱
+ *                     dquantity:
+ *                       type: number
+ *                       description: 數量
+ *                     dtotalCost:
+ *                       type: number
+ *                       description: 總成本
+ *                     packageQuantity:
+ *                       type: number
+ *                       description: 包裝數量
+ *                     boxQuantity:
+ *                       type: number
+ *                       description: 每盒數量
+ *                     unit:
+ *                       type: string
+ *                       description: 單位
+ *               notes:
+ *                 type: string
+ *                 description: 備註
+ *               status:
+ *                 type: string
+ *                 enum: [pending, completed, cancelled]
+ *                 description: 出貨單狀態
+ *               paymentStatus:
+ *                 type: string
+ *                 description: 付款狀態
+ *     responses:
+ *       200:
+ *         description: 成功創建出貨單
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: 出貨單創建成功
+ *                 data:
+ *                   $ref: '#/components/schemas/ShippingOrder'
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *       400:
+ *         description: 請求參數錯誤
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: 伺服器錯誤
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 router.post('/', [
   check('sosupplier', '供應商為必填項').not().isEmpty(),
   check('items', '至少需要一個藥品項目').isArray().not().isEmpty()
@@ -509,9 +684,112 @@ function prepareUpdateData(requestBody: ShippingOrderRequest, orderNumberResult?
   return updateData;
 }
 
-// @route   PUT api/shipping-orders/:id
-// @desc    更新出貨單
-// @access  Public
+/**
+ * @swagger
+ * /api/shipping-orders/{id}:
+ *   put:
+ *     tags:
+ *       - 出貨單
+ *     summary: 更新出貨單
+ *     description: 根據ID更新特定出貨單的信息
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: 出貨單ID
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               soid:
+ *                 type: string
+ *                 description: 出貨單號
+ *               sosupplier:
+ *                 type: string
+ *                 description: 供應商名稱
+ *               supplier:
+ *                 type: string
+ *                 description: 供應商ID
+ *               items:
+ *                 type: array
+ *                 description: 出貨項目列表
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     did:
+ *                       type: string
+ *                       description: 產品代碼
+ *                     dname:
+ *                       type: string
+ *                       description: 產品名稱
+ *                     dquantity:
+ *                       type: number
+ *                       description: 數量
+ *                     dtotalCost:
+ *                       type: number
+ *                       description: 總成本
+ *                     packageQuantity:
+ *                       type: number
+ *                       description: 包裝數量
+ *                     boxQuantity:
+ *                       type: number
+ *                       description: 每盒數量
+ *                     unit:
+ *                       type: string
+ *                       description: 單位
+ *               notes:
+ *                 type: string
+ *                 description: 備註
+ *               status:
+ *                 type: string
+ *                 enum: [pending, completed, cancelled]
+ *                 description: 出貨單狀態
+ *               paymentStatus:
+ *                 type: string
+ *                 description: 付款狀態
+ *     responses:
+ *       200:
+ *         description: 成功更新出貨單
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: 出貨單更新成功
+ *                 data:
+ *                   $ref: '#/components/schemas/ShippingOrder'
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *       400:
+ *         description: 請求參數錯誤
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: 找不到出貨單
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: 伺服器錯誤
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 router.put('/:id', async (req: Request, res: Response) => {
   try {
     const { soid, status } = req.body as ShippingOrderRequest;
@@ -585,9 +863,53 @@ router.put('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// @route   DELETE api/shipping-orders/:id
-// @desc    刪除出貨單
-// @access  Public
+/**
+ * @swagger
+ * /api/shipping-orders/{id}:
+ *   delete:
+ *     tags:
+ *       - 出貨單
+ *     summary: 刪除出貨單
+ *     description: 根據ID刪除特定出貨單
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: 出貨單ID
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: 成功刪除出貨單
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: 出貨單已刪除
+ *                 data:
+ *                   type: null
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *       404:
+ *         description: 找不到出貨單
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: 伺服器錯誤
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
     const shippingOrder = await ShippingOrder.findById(req.params.id);
@@ -608,9 +930,55 @@ router.delete('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// @route   GET api/shipping-orders/supplier/:supplierId
-// @desc    獲取特定供應商的出貨單
-// @access  Public
+/**
+ * @swagger
+ * /api/shipping-orders/supplier/{supplierId}:
+ *   get:
+ *     tags:
+ *       - 出貨單
+ *     summary: 獲取特定供應商的出貨單
+ *     description: 根據供應商ID獲取該供應商的所有出貨單
+ *     parameters:
+ *       - in: path
+ *         name: supplierId
+ *         required: true
+ *         description: 供應商ID
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: 成功獲取供應商出貨單列表
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: 操作成功
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/ShippingOrder'
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *       400:
+ *         description: 請求參數錯誤
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: 伺服器錯誤
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 router.get('/supplier/:supplierId', async (req: Request, res: Response) => {
   try {
     if (!req.params.supplierId) {
@@ -629,9 +997,76 @@ router.get('/supplier/:supplierId', async (req: Request, res: Response) => {
     handleDatabaseError(res, err as Error);
   }
 });
-// @route   GET api/shipping-orders/search/query
-// @desc    搜索出貨單
-// @access  Public
+/**
+ * @swagger
+ * /api/shipping-orders/search/query:
+ *   get:
+ *     tags:
+ *       - 出貨單
+ *     summary: 搜索出貨單
+ *     description: 根據多種條件搜索出貨單
+ *     parameters:
+ *       - in: query
+ *         name: soid
+ *         description: 出貨單號（支持模糊搜索）
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: sosupplier
+ *         description: 供應商名稱（支持模糊搜索）
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: startDate
+ *         description: 開始日期（格式：YYYY-MM-DD）
+ *         schema:
+ *           type: string
+ *           format: date
+ *       - in: query
+ *         name: endDate
+ *         description: 結束日期（格式：YYYY-MM-DD）
+ *         schema:
+ *           type: string
+ *           format: date
+ *       - in: query
+ *         name: status
+ *         description: 出貨單狀態
+ *         schema:
+ *           type: string
+ *           enum: [pending, completed, cancelled]
+ *       - in: query
+ *         name: paymentStatus
+ *         description: 付款狀態
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: 成功獲取搜索結果
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: 操作成功
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/ShippingOrder'
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *       500:
+ *         description: 伺服器錯誤
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 router.get('/search/query', async (req: Request, res: Response) => {
   try {
     const { soid, sosupplier, startDate, endDate, status, paymentStatus } = req.query;
@@ -689,9 +1124,55 @@ router.get('/search/query', async (req: Request, res: Response) => {
 });
 
 
-// @route   GET api/shipping-orders/product/:productId
-// @desc    獲取特定產品的出貨單
-// @access  Public
+/**
+ * @swagger
+ * /api/shipping-orders/product/{productId}:
+ *   get:
+ *     tags:
+ *       - 出貨單
+ *     summary: 獲取特定產品的出貨單
+ *     description: 根據產品ID獲取包含該產品的所有出貨單
+ *     parameters:
+ *       - in: path
+ *         name: productId
+ *         required: true
+ *         description: 產品ID
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: 成功獲取產品出貨單列表
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: 操作成功
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/ShippingOrder'
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *       400:
+ *         description: 請求參數錯誤
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: 伺服器錯誤
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 router.get('/product/:productId', async (req: Request, res: Response) => {
   try {
     // 安全處理：驗證和清理productId
@@ -733,9 +1214,42 @@ router.get('/product/:productId', async (req: Request, res: Response) => {
   }
 });
 
-// @route   GET api/shipping-orders/recent
-// @desc    獲取最近的出貨單
-// @access  Public
+/**
+ * @swagger
+ * /api/shipping-orders/recent/list:
+ *   get:
+ *     tags:
+ *       - 出貨單
+ *     summary: 獲取最近的出貨單
+ *     description: 獲取最近創建的10筆出貨單
+ *     responses:
+ *       200:
+ *         description: 成功獲取最近出貨單列表
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: 操作成功
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/ShippingOrder'
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *       500:
+ *         description: 伺服器錯誤
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 router.get('/recent/list', async (_req: Request, res: Response) => {
   try {
     const shippingOrders = await ShippingOrder.find()
@@ -857,9 +1371,58 @@ async function deleteShippingInventoryRecords(shippingOrderId?: Types.ObjectId):
   }
 }
 
-// @route   POST api/shipping-orders/import/basic
-// @desc    導入出貨單基本資訊CSV
-// @access  Public
+/**
+ * @swagger
+ * /api/shipping-orders/import/basic:
+ *   post:
+ *     tags:
+ *       - 出貨單
+ *     summary: 導入出貨單基本資訊CSV
+ *     description: 通過上傳CSV文件批量導入出貨單基本信息
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - file
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *                 description: 包含出貨單基本信息的CSV文件
+ *     responses:
+ *       200:
+ *         description: 成功導入出貨單基本信息
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   example: 成功導入 5 筆出貨單基本資訊
+ *                 success:
+ *                   type: number
+ *                   example: 5
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *       400:
+ *         description: 請求參數錯誤
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: 伺服器錯誤
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 router.post('/import/basic', upload.single('file'), async (req: Request, res: Response) => {
   try {
     if (!req.file) {

@@ -5,8 +5,8 @@ import { Types } from 'mongoose';
 
 // 使用 ES6 import 導入模型和PDFKit
 const PDFDocument = require('pdfkit');
-import ShippingOrder from '../models/ShippingOrder';
-import BaseProduct from '../models/BaseProduct';
+import ShippingOrder from '../../models/ShippingOrder';
+import BaseProduct from '../../models/BaseProduct';
 
 // 擴展PDFKit類型
 interface PDFTextOptions {
@@ -43,7 +43,50 @@ interface ShippingOrderDocument {
 
 const router: express.Router = express.Router();
 
-// 生成出貨單PDF - 移除isAuthenticated中間件以解決undefined問題
+/**
+ * @swagger
+ * /api/shipping-orders/pdf/{id}:
+ *   get:
+ *     tags:
+ *       - 出貨單PDF
+ *     summary: 生成出貨單PDF
+ *     description: 根據出貨單ID生成標準格式的PDF文件
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: 出貨單ID
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: 成功生成PDF
+ *         content:
+ *           application/pdf:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       404:
+ *         description: 找不到出貨單
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   example: 找不到出貨單
+ *       500:
+ *         description: 伺服器錯誤
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   example: 生成PDF時發生錯誤
+ */
 router.get('/pdf/:id', async (req: Request, res: Response) => {
   try {
     // 驗證 ID 參數存在性
@@ -311,7 +354,50 @@ const formatCurrency = (value?: number | null): string => {
   return `$${parseFloat(value.toString()).toFixed(1)}`;
 };
 
-// 生成出貨單PDF - 第二種排版（無健保代碼，副標題小字）
+/**
+ * @swagger
+ * /api/shipping-orders/pdf-v2/{id}:
+ *   get:
+ *     tags:
+ *       - 出貨單PDF
+ *     summary: 生成出貨單PDF（第二種排版）
+ *     description: 根據出貨單ID生成第二種排版的PDF文件（無健保代碼，副標題小字）
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: 出貨單ID
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: 成功生成PDF
+ *         content:
+ *           application/pdf:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       404:
+ *         description: 找不到出貨單
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   example: 找不到出貨單
+ *       500:
+ *         description: 伺服器錯誤
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   example: 生成PDF時發生錯誤
+ */
 router.get('/pdf-v2/:id', async (req: Request, res: Response) => {
   try {
     // 驗證 ID 參數存在性
@@ -565,7 +651,56 @@ router.get('/pdf-v2/:id', async (req: Request, res: Response) => {
   }
 });
 
-// 生成出貨單PDF - 第三種排版（基於第一版，添加大包裝信息）
+/**
+ * @swagger
+ * /api/shipping-orders/pdf-v3/{id}:
+ *   get:
+ *     tags:
+ *       - 出貨單PDF
+ *     summary: 生成出貨單PDF（第三種排版）
+ *     description: 根據出貨單ID生成第三種排版的PDF文件（基於第一版，添加大包裝信息）
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: 出貨單ID
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: showPackageInfo
+ *         description: 是否顯示大包裝信息（默認為true）
+ *         schema:
+ *           type: boolean
+ *           default: true
+ *     responses:
+ *       200:
+ *         description: 成功生成PDF
+ *         content:
+ *           application/pdf:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       404:
+ *         description: 找不到出貨單
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   example: 找不到出貨單
+ *       500:
+ *         description: 伺服器錯誤
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   example: 生成PDF時發生錯誤
+ */
 router.get('/pdf-v3/:id', async (req: Request, res: Response) => {
   try {
     // 驗證 ID 參數存在性

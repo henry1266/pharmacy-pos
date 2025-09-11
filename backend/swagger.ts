@@ -230,6 +230,112 @@ const options: swaggerJSDoc.Options = {
               }
             }
           ]
+        },
+        // 出貨單項目模型
+        ShippingOrderItem: {
+          type: 'object',
+          properties: {
+            did: {
+              type: 'string',
+              description: '產品代碼'
+            },
+            dname: {
+              type: 'string',
+              description: '產品名稱'
+            },
+            dquantity: {
+              type: 'number',
+              description: '數量'
+            },
+            dtotalCost: {
+              type: 'number',
+              description: '總成本'
+            },
+            product: {
+              type: 'string',
+              description: '產品ID'
+            },
+            healthInsuranceCode: {
+              type: 'string',
+              description: '健保代碼'
+            },
+            batchNumber: {
+              type: 'string',
+              description: '批號'
+            },
+            packageQuantity: {
+              type: 'number',
+              description: '包裝數量'
+            },
+            boxQuantity: {
+              type: 'number',
+              description: '每盒數量'
+            },
+            unit: {
+              type: 'string',
+              description: '單位'
+            }
+          }
+        },
+        // 出貨單模型
+        ShippingOrder: {
+          type: 'object',
+          properties: {
+            _id: {
+              type: 'string',
+              description: '出貨單ID'
+            },
+            soid: {
+              type: 'string',
+              description: '出貨單號'
+            },
+            orderNumber: {
+              type: 'string',
+              description: '訂單號'
+            },
+            sosupplier: {
+              type: 'string',
+              description: '供應商名稱'
+            },
+            supplier: {
+              type: 'string',
+              description: '供應商ID'
+            },
+            items: {
+              type: 'array',
+              description: '出貨項目列表',
+              items: {
+                $ref: '#/components/schemas/ShippingOrderItem'
+              }
+            },
+            notes: {
+              type: 'string',
+              description: '備註'
+            },
+            status: {
+              type: 'string',
+              enum: ['pending', 'completed', 'cancelled'],
+              description: '出貨單狀態'
+            },
+            paymentStatus: {
+              type: 'string',
+              description: '付款狀態'
+            },
+            totalAmount: {
+              type: 'number',
+              description: '總金額'
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+              description: '創建時間'
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
+              description: '更新時間'
+            }
+          }
         }
       }
     },
@@ -243,7 +349,8 @@ const options: swaggerJSDoc.Options = {
   apis: [
     './routes/*.ts',
     './routes/*/*.ts',
-    './controllers/*/*.ts'
+    './controllers/*/*.ts',
+    './modules/**/*.ts'  // 添加 modules 目錄下的所有 TypeScript 檔案
   ]
 };
 

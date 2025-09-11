@@ -2,30 +2,15 @@ import React, { FC, useState, useEffect } from 'react';
 import {
   Box,
   Card,
-  CardHeader,
   CardContent,
   Typography,
   Divider,
   List,
   ListItem,
-  Avatar,
-  IconButton,
-  Tooltip,
   Button,
-  Chip,
   Grid,
   Paper
 } from '@mui/material';
-import {
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Receipt as ReceiptIcon,
-  AccountBalance as AccountBalanceIcon,
-  Link as LinkIcon,
-  Lock as LockIcon
-} from '@mui/icons-material';
-import StatusChip from '../../../components/common/StatusChip';
-import PaymentStatusChip from '../../../components/common/PaymentStatusChip';
 import { format } from 'date-fns';
 import { productServiceV2 } from '@/services/productServiceV2';
 

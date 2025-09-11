@@ -79,11 +79,8 @@ const ShippingOrdersPage: React.FC = () => {
     suppliers,
     filteredRows,
     listLoading,
-    // suppliersLoading, // 移除未使用的變數
-    previewLoading,
     listError,
     suppliersError,
-    previewError,
     searchParams,
     selectedSuppliers,
     handleSearch,

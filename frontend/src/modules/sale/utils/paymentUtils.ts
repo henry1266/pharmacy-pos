@@ -3,7 +3,7 @@
  * @description 處理付款方式和付款狀態的顯示和轉換
  */
 
-import { PaymentStatusInfo, PaymentStatusIconType } from '../types/detail';
+import { PaymentStatusInfo } from '../types/detail';
 
 /**
  * 獲取付款方式的顯示文字
