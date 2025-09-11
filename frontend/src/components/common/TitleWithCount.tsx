@@ -15,7 +15,8 @@ interface TitleWithCountProps {
 const TitleWithCount: React.FC<TitleWithCountProps> = ({ title, count }) => {
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-      <Typography variant="inherit" component="span">
+      {/* 使用 component="div" 避免 DOM 嵌套警告 */}
+      <Typography variant="inherit" component="div">
         {title}
       </Typography>
       <Box sx={{
@@ -28,10 +29,11 @@ const TitleWithCount: React.FC<TitleWithCountProps> = ({ title, count }) => {
         borderRadius: 2,
         minWidth: 'fit-content'
       }}>
-        <Typography variant="caption" sx={{ fontSize: '0.8rem', mr: 1 }}>
+        <Typography variant="caption" component="div" sx={{ fontSize: '0.8rem', mr: 1 }}>
           筆數
         </Typography>
-        <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
+        {/* 使用 component="div" 避免 h6 嵌套在 p 中的警告 */}
+        <Typography variant="h6" component="div" sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
           {count}
         </Typography>
       </Box>

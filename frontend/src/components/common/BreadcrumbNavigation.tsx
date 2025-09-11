@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Breadcrumbs,
-  Link,
   Typography,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
@@ -13,7 +12,7 @@ export interface BreadcrumbItem {
   label: string | React.ReactNode;
   path?: string;
   icon?: React.ReactNode;
-  onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
+  onClick?: (e: React.MouseEvent<HTMLElement>) => void;
 }
 
 // 定義組件的屬性類型
@@ -61,7 +60,7 @@ export const BreadcrumbNavigation: React.FC<BreadcrumbNavigationProps> = ({
           const isLast = index === items.length - 1;
 
           // 處理點擊事件
-          const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+          const handleClick = (e: React.MouseEvent<HTMLElement>) => {
             e.preventDefault();
             if (item.onClick) {
               item.onClick(e);
@@ -75,6 +74,7 @@ export const BreadcrumbNavigation: React.FC<BreadcrumbNavigationProps> = ({
             <Typography
               key={`breadcrumb-${index}`}
               color="text.primary"
+              component="div" // 使用 div 避免 DOM 嵌套警告
               sx={{
                 display: 'flex',
                 alignItems: 'center',
@@ -88,10 +88,9 @@ export const BreadcrumbNavigation: React.FC<BreadcrumbNavigationProps> = ({
             </Typography>
           ) : (
             // 其他項目顯示為鏈接
-            <Link
+            <Box
               key={`breadcrumb-${index}`}
-              color="inherit"
-              href={item.path || '#'}
+              component="span"
               onClick={handleClick}
               sx={{
                 display: 'flex',
@@ -99,6 +98,8 @@ export const BreadcrumbNavigation: React.FC<BreadcrumbNavigationProps> = ({
                 gap: 0.8,
                 fontSize,
                 fontWeight: 500,
+                color: 'inherit',
+                cursor: 'pointer',
                 '&:hover': {
                   textDecoration: 'none',
                   color: 'primary.main',
@@ -107,7 +108,7 @@ export const BreadcrumbNavigation: React.FC<BreadcrumbNavigationProps> = ({
             >
               {item.icon}
               {item.label}
-            </Link>
+            </Box>
           );
         })}
       </Breadcrumbs>
