@@ -27,7 +27,7 @@ import reportsRoutes from "./routes/reports";
 import employeesRoutes from "./routes/employees";
 import employeeAccountsRoutes from "./routes/employeeAccounts";
 import accountingCategoriesRoutes from "./routes/accountingCategories";
-import shippingOrdersRoutes from "./modules/shippingOrders/shippingOrders";
+import shippingOrdersRoutes from "./modules/shippingOrders";
 import shippingOrderPdfRoutes from "./modules/shippingOrders/shippingOrderPdf";
 import shippingOrdersImportRoutes from "./routes/shippingOrdersImport";
 import fifoRoutes from "./routes/fifo";
