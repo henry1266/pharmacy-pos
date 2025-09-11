@@ -13,7 +13,6 @@ import {
   Paper,
   Snackbar,
   Alert,
-  Container,
   CircularProgress,
   Table,
   TableBody,
@@ -30,7 +29,6 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import HomeIcon from '@mui/icons-material/Home';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import PageHeaderSection from '../../../components/common/PageHeaderSection';
 import zhTW from 'date-fns/locale/zh-TW';
@@ -111,7 +109,7 @@ const NewEntryPage: React.FC = () => {
     if (submitSuccess) {
       showSnackbar('記帳記錄已新增', 'success');
       const timer: NodeJS.Timeout = setTimeout(() => {
-        navigate('/accounting');
+        navigate('/journals', { replace: true });
       }, 1500);
       return () => clearTimeout(timer); // Cleanup timer on unmount
     }
@@ -157,7 +155,8 @@ const NewEntryPage: React.FC = () => {
 
   // Back navigation
   const handleBack = (): void => {
-    navigate('/accounting');
+    // 確保導航到 journals 頁面，而不是 dashboard
+    navigate('/journals', { replace: true });
   };
 
   // Handle local amount input changes
@@ -436,7 +435,7 @@ const NewEntryPage: React.FC = () => {
         breadcrumbItems={[
           {
             label: '記帳管理',
-            path: '/accounting',
+            path: '/journals',
             icon: <AccountBalanceWalletIcon sx={{ fontSize: '1.1rem' }} />
           },
           {

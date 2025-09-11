@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { keyframes } from '@emotion/react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -22,9 +23,13 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Link,
   Fab,
   Tooltip,
+  Card,
+  CardContent,
+  List,
+  ListItem,
+  Divider,
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -32,18 +37,40 @@ import {
   Add as AddIcon,
   Search as SearchIcon,
   Business as BusinessIcon,
-  Receipt as ReceiptIcon,
   ArrowBack as ArrowBackIcon,
   Home as HomeIcon,
+  AddBusiness as AddBusinessIcon,
 } from '@mui/icons-material';
 import { BreadcrumbNavigation } from '../components/ui/BreadcrumbNavigation';
+import CommonListPageLayout from '@/components/common/CommonListPageLayout';
+import TitleWithCount from '@/components/common/TitleWithCount';
 
 import { Organization } from '@pharmacy-pos/shared/types/organization';
 import organizationService from '../services/organizationService';
 
+// 定義箭頭動畫
+const arrowBounce = keyframes`
+  0%, 100% {
+    transform: translateX(-5px);
+  }
+  50% {
+    transform: translateX(-15px);
+  }
+`;
+
+// 定義圖標縮放動畫
+const iconPulse = keyframes`
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+`;
+
 /**
  * 組織管理頁面
- * 
+ *
  * 功能：
  * - 顯示組織列表
  * - 搜尋和過濾組織
@@ -56,9 +83,12 @@ const OrganizationPage: React.FC = () => {
   // 狀態管理
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [organizationToDelete, setOrganizationToDelete] = useState<Organization | null>(null);
+  const [selectedOrganization, setSelectedOrganization] = useState<Organization | null>(null);
+  const [showDetailPanel, setShowDetailPanel] = useState<boolean>(false);
   
   // 通知狀態
   const [snackbar, setSnackbar] = useState<{
@@ -80,10 +110,12 @@ const OrganizationPage: React.FC = () => {
         setOrganizations(response.data);
       } else {
         showSnackbar('載入組織資料失敗', 'error');
+        setError(true);
       }
     } catch (error) {
       console.error('載入組織資料失敗:', error);
       showSnackbar('載入組織資料失敗', 'error');
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -118,6 +150,12 @@ const OrganizationPage: React.FC = () => {
   // 處理編輯組織
   const handleEditOrganization = (organization: Organization) => {
     navigate(`/accounting3/organizations/${organization._id}/edit`);
+  };
+
+  // 選擇組織函數 - 用於點擊表格行時
+  const selectOrganization = (organization: Organization) => {
+    setSelectedOrganization(organization);
+    setShowDetailPanel(true);
   };
 
   // 處理刪除組織 - 開啟確認對話框
@@ -181,264 +219,274 @@ const OrganizationPage: React.FC = () => {
     }
   };
 
+  // 定義表格列
+  const columns = [
+    { field: 'code', headerName: '組織代碼', flex: 1.5 },
+    { field: 'name', headerName: '組織名稱', flex: 1.5 },
+    { field: 'description', headerName: '描述', flex: 1.5 },
+    {
+      field: 'status',
+      headerName: '狀態',
+      flex: 1,
+      renderCell: (params: any) => (
+        <Chip
+          label={getStatusText(params.value)}
+          color={getStatusColor(params.value)}
+          size="small"
+        />
+      )
+    },
+    {
+      field: 'createdAt',
+      headerName: '建立時間',
+      flex: 1.3,
+      valueFormatter: (params: any) => {
+        if (!params.value) return '';
+        try {
+          const date = new Date(params.value);
+          return date.toLocaleDateString('zh-TW');
+        } catch (error) {
+          console.error('日期格式化錯誤:', error);
+          return params.value;
+        }
+      }
+    },
+    {
+      field: 'actions',
+      headerName: '操作',
+      flex: 1.5,
+      renderCell: (params: any) => (
+        <Box>
+          <IconButton
+            size="small"
+            onClick={() => handleEditOrganization(params.row)}
+            color="primary"
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
+          <IconButton
+            size="small"
+            onClick={() => handleDeleteOrganization(params.row)}
+            color="error"
+          >
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      ),
+    },
+  ];
+
+  // 為DataGrid準備行數據
+  const rows = filteredOrganizations.map(org => ({
+    id: org._id,
+    _id: org._id,
+    code: org.code,
+    name: org.name,
+    description: '-',
+    status: org.status,
+    createdAt: org.createdAt
+  }));
+
+  // 操作按鈕區域
+  const actionButtons = (
+    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+      <TextField
+        size="small"
+        label="搜尋"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        placeholder="組織名稱、代碼..."
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon />
+            </InputAdornment>
+          )
+        }}
+        sx={{ minWidth: '250px' }}
+      />
+      <Button
+        variant="contained"
+        size="small"
+        startIcon={<AddIcon />}
+        onClick={handleAddOrganization}
+      >
+        新增組織
+      </Button>
+    </Box>
+  );
+
+  // 詳情面板
+  const detailPanel = showDetailPanel ? (
+    <Card elevation={2} sx={{ borderRadius: '0.5rem', height: '100%' }}>
+      <CardContent sx={{ py: 1 }}>
+        <Typography component="div" sx={{ fontWeight: 600 }}>組織 {selectedOrganization?.code}</Typography>
+        <List dense sx={{ py: 0 }}>
+          <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
+            <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>組織名稱:</Typography>
+            <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedOrganization?.name}</Typography>
+          </ListItem>
+          <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
+            <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>狀態:</Typography>
+            <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>
+              <Chip
+                label={getStatusText(selectedOrganization?.status || '')}
+                color={getStatusColor(selectedOrganization?.status || '')}
+                size="small"
+              />
+            </Typography>
+          </ListItem>
+          <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
+            <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>建立時間:</Typography>
+            <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>
+              {selectedOrganization?.createdAt ? new Date(selectedOrganization.createdAt).toLocaleDateString('zh-TW') : ''}
+            </Typography>
+          </ListItem>
+        </List>
+        <Divider sx={{ my: 1.5 }} />
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
+          <Button
+            onClick={() => handleEditOrganization(selectedOrganization as Organization)}
+            variant="contained"
+            color="primary"
+            size="small"
+            sx={{ textTransform: 'none' }}
+            startIcon={<EditIcon />}
+          >
+            編輯組織
+          </Button>
+        </Box>
+      </CardContent>
+    </Card>
+  ) : (
+    <Card
+      elevation={2}
+      className="organization-card"
+      sx={{
+        borderRadius: '0.5rem',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        transition: 'all 0.3s ease',
+        '&:hover': {
+          boxShadow: 6
+        },
+        '&:hover .arrow-icon': {
+          animation: `${arrowBounce} 0.8s infinite`,
+          color: 'primary.dark'
+        }
+      }}
+    >
+      <CardContent sx={{ textAlign: 'center', py: 3, width: '100%' }}>
+        {/* 大型組織圖標 */}
+        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
+          <BusinessIcon
+            color="primary"
+            sx={{
+              fontSize: '4rem',
+              mb: 1,
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'scale(1.1)',
+                color: 'primary.dark'
+              }
+            }}
+          />
+        </Box>
+        
+        {/* 內容區域 */}
+        <Box sx={{ width: '100%' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, justifyContent: 'center' }}>
+            <ArrowBackIcon
+              color="primary"
+              className="arrow-icon"
+              sx={{
+                fontSize: '2rem',
+                mr: 1,
+                transform: 'translateX(-10px)',
+                animation: 'arrowPulse 1.5s infinite',
+                transition: 'color 0.3s ease'
+              }}
+            />
+            <Typography variant="body1" color="primary.main" sx={{ fontWeight: 500 }}>
+              左側列表
+            </Typography>
+          </Box>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
+            選擇一個組織查看詳情
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+            請從左側列表中選擇一個組織
+          </Typography>
+        </Box>
+      </CardContent>
+    </Card>
+  );
+
   return (
-    <Container maxWidth="xl" sx={{ py: 0, px: 0 }}>
-      {/* 標題區域 */}
-      <Paper sx={{
-        mb: 3,
-        bgcolor: 'background.paper',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 10
-      }}>
-        <Box sx={{
-          p: 1.5,
-          borderBottom: 1,
-          borderColor: 'divider',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          minHeight: 48
-        }}>
-          <Box sx={{
-            display: 'flex',
-            alignItems: 'center',
-            height: '100%'
-          }}>
+    <Box sx={{ width: '95%', mx: 'auto' }}>
+      <CommonListPageLayout
+        title={
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <TitleWithCount title="組織管理" count={filteredOrganizations.length} />
             <Box sx={{
               display: 'flex',
               alignItems: 'center',
-              height: 44
+              backgroundColor: 'primary.main',
+              color: 'primary.contrastText',
+              px: 2,
+              py: 0.5,
+              borderRadius: 2,
+              minWidth: 'fit-content'
             }}>
-              <Box sx={{
-                '& > div': {
-                  marginBottom: 0,
-                  display: 'flex',
-                  alignItems: 'center'
-                }
-              }}>
-                <BreadcrumbNavigation
-                  items={[
-                    {
-                      label: '會計首頁',
-                      path: '/accounting3',
-                      icon: <HomeIcon sx={{ fontSize: '1.1rem' }} />
-                    },
-                    {
-                      label: '組織管理',
-                      icon: <BusinessIcon sx={{ fontSize: '1.1rem' }} />
-                    }
-                  ]}
-                  fontSize="0.975rem"
-                  padding={0}
-                />
-              </Box>
-              <Box sx={{
-                display: 'flex',
-                alignItems: 'center',
-                backgroundColor: 'secondary.main',
-                color: 'secondary.contrastText',
-                px: 2,
-                py: 0.5,
-                ml: 2,
-                borderRadius: 2,
-                minWidth: 'fit-content',
-                height: 36
-              }}>
-                <Typography variant="caption" sx={{ fontSize: '0.85rem', mr: 0.75 }}>
-                  總筆數
-                </Typography>
-                <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: 'bold', lineHeight: 1 }}>
-                  {filteredOrganizations.length}
-                </Typography>
-              </Box>
+              <Typography variant="caption" sx={{ fontSize: '0.8rem', mr: 1 }}>
+                總筆數
+              </Typography>
+              <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
+                {filteredOrganizations.length}
+              </Typography>
             </Box>
           </Box>
-          <Box sx={{
-            display: 'flex',
-            gap: 1,
-            alignItems: 'center',
-            height: '100%'
-            }}>
-            <TextField
-              size="small"
-              label="搜尋"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="組織名稱、代碼..."
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-                sx: { height: 44 }
-              }}
-              sx={{
-                mr: 1,
-                '& .MuiInputBase-root': {
-                  height: 44
-                }
-              }}
-            />
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={<AddIcon />}
-              onClick={handleAddOrganization}
-              sx={{
-                height: 44,
-                minWidth: 110
-              }}
-            >
-              新增組織
-            </Button>
-          </Box>
-        </Box>
-      </Paper>
-
-
-      {/* 組織列表 */}
-      <Box sx={{ p: 2, width: '100%', maxWidth: '100%', overflow: 'hidden', bgcolor: 'background.default' }}>
-        <Paper sx={{
-          width: '100%',
-          overflow: 'hidden',
-          bgcolor: 'background.paper',
-          borderRadius: 1,
-          border: 1,
-          borderColor: 'divider',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-        }}>
-          <TableContainer sx={{ maxHeight: 600 }}>
-          <Table stickyHeader>
-            <TableHead>
-              <TableRow sx={{
-                bgcolor: 'action.hover',
-                '& th': {
-                  fontWeight: 600
-                }
-              }}>
-                <TableCell>組織代碼</TableCell>
-                <TableCell>組織名稱</TableCell>
-                <TableCell>描述</TableCell>
-                <TableCell>狀態</TableCell>
-                <TableCell>建立時間</TableCell>
-                <TableCell align="center">操作</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={6} align="center">
-                    載入中...
-                  </TableCell>
-                </TableRow>
-              ) : filteredOrganizations.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} align="center">
-                    {searchTerm ? '沒有找到符合條件的組織' : '尚未建立任何組織'}
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredOrganizations.map((organization, index) => (
-                  <TableRow
-                    key={organization._id}
-                    hover
-                    sx={{
-                      '&:hover': {
-                        bgcolor: 'action.hover'
-                      },
-                      ...(index % 2 === 1 ? { bgcolor: 'action.hover' } : {})
-                    }}
-                  >
-                    <TableCell>
-                      <Typography variant="body2" fontWeight="medium">
-                        {organization.code}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" fontWeight="medium">
-                        {organization.name}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" color="text.secondary">
-                        -
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={getStatusText(organization.status)}
-                        color={getStatusColor(organization.status)}
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" color="text.secondary">
-                        {new Date(organization.createdAt).toLocaleDateString('zh-TW')}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="center">
-                      <IconButton
-                        size="small"
-                        onClick={() => handleEditOrganization(organization)}
-                        color="primary"
-                      >
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        onClick={() => handleDeleteOrganization(organization)}
-                        color="error"
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Paper>
-    </Box>
-
-      {/* 右側固定按鈕 */}
-      <Box
-        sx={{
-          position: 'fixed',
-          right: 16,
-          top: '40%',
-          transform: 'translateY(-50%)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 2,
-          zIndex: 1000
+        }
+        actionButtons={actionButtons}
+        columns={columns}
+        rows={rows}
+        loading={loading}
+        {...(error && { error: '載入組織資料失敗' })}
+        onRowClick={(params) => selectOrganization(params.row)}
+        detailPanel={detailPanel}
+        tableGridWidth={9}
+        detailGridWidth={3}
+        dataTableProps={{
+          rowsPerPageOptions: [25, 50, 100],
+          disablePagination: false,
+          pageSize: 25,
+          initialState: {
+            pagination: { pageSize: 25 },
+            sorting: {
+              sortModel: [{ field: 'code', sort: 'asc' }],
+            },
+          },
+          getRowId: (row: any) => row.id,
+          sx: {
+            // 自定義滾動條樣式
+            '& .MuiDataGrid-virtualScroller::-webkit-scrollbar': {
+              width: '4px',
+              height: '4px',
+            },
+            '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-track': {
+              background: '#ffffff02',
+            },
+            '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb': {
+              background: '#a7a7a796',
+              borderRadius: '4px',
+            },
+          }
         }}
-      >
-        <Tooltip title="返回會計管理" placement="left" arrow>
-          <Fab 
-            color="secondary" 
-            size="medium" 
-            onClick={() => navigate('/accounting3')}
-            aria-label="返回會計系統"
-          >
-            <ArrowBackIcon />
-          </Fab>
-        </Tooltip>
-        
-        <Tooltip title="新增組織" placement="left" arrow>
-          <Fab
-            color="primary"
-            size="medium"
-            onClick={handleAddOrganization}
-            aria-label="新增組織"
-          >
-            <AddIcon />
-          </Fab>
-        </Tooltip>
-      </Box>
+      />
 
       {/* 刪除確認對話框 */}
       <Dialog
@@ -460,9 +508,9 @@ const OrganizationPage: React.FC = () => {
           <Button onClick={cancelDeleteOrganization}>
             取消
           </Button>
-          <Button 
-            onClick={confirmDeleteOrganization} 
-            color="error" 
+          <Button
+            onClick={confirmDeleteOrganization}
+            color="error"
             variant="contained"
           >
             確認刪除
@@ -475,17 +523,13 @@ const OrganizationPage: React.FC = () => {
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Alert
-          onClose={handleCloseSnackbar}
-          severity={snackbar.severity}
-          sx={{ width: '100%' }}
-        >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </Container>
+    </Box>
   );
 };
 
