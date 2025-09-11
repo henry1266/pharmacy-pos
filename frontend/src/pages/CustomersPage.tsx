@@ -725,17 +725,8 @@ const CustomersPage: FC = () => {
                 color="primary"
                 startIcon={<AddIcon />}
                 onClick={handleAddCustomer}
-                size="small"
               >
-                新增會員
-              </MuiButton>
-              <MuiButton
-                variant="outlined"
-                size="small"
-                startIcon={<ArrowBackIcon />}
-                onClick={() => navigate('/')}
-              >
-                返回首頁
+                添加會員
               </MuiButton>
             </Box>
           }
