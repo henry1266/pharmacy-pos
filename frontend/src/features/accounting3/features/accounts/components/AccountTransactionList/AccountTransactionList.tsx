@@ -3,15 +3,11 @@ import {
   Box,
   Typography,
   Paper,
-  Chip,
   CircularProgress,
-  Alert,
-  Button,
-  Snackbar
+  Alert
 } from '@mui/material';
 import {
-  Receipt as ReceiptIcon,
-  Add as AddIcon
+  Receipt as ReceiptIcon
 } from '@mui/icons-material';
 import { Account2 } from '@pharmacy-pos/shared/types/accounting2';
 import { TransactionGroupWithEntries, EmbeddedAccountingEntry } from '@pharmacy-pos/shared/types/accounting2';
