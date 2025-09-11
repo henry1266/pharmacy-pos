@@ -1,4 +1,5 @@
 import React, { FC, useState, useEffect } from 'react';
+import { keyframes } from '@emotion/react';
 import {
   Box,
   Card,
@@ -12,6 +13,11 @@ import {
   Button
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import PendingIcon from '@mui/icons-material/Pending';
+import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { format } from 'date-fns';
 import { productServiceV2 } from '@/services/productServiceV2';
 
@@ -43,6 +49,16 @@ interface ShippingOrderDetailPanelProps {
   selectedShippingOrder: ShippingOrder | null;
   onEdit?: (id: string) => void;
 }
+
+// 定義動畫
+const arrowBounce = keyframes`
+  0%, 100% {
+    transform: translateX(-5px);
+  }
+  50% {
+    transform: translateX(-15px);
+  }
+`;
 
 // 定義產品詳情狀態類型
 interface ProductDetailsState {
@@ -100,45 +116,132 @@ const ShippingOrderDetailPanel: FC<ShippingOrderDetailPanelProps> = ({
     return (
       <Card
         elevation={2}
+        className="shipping-card"
         sx={{
           borderRadius: '0.5rem',
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center'
+          justifyContent: 'center',
+          cursor: 'pointer',
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            boxShadow: 6
+          },
+          '&:hover .arrow-icon': {
+            animation: `${arrowBounce} 0.8s infinite`,
+            color: 'primary.dark'
+          }
         }}
       >
-        <CardContent sx={{ textAlign: 'center', py: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <ArrowBackIcon
+        <CardContent sx={{ textAlign: 'center', py: 3, width: '100%' }}>
+          {/* 大型出貨圖標 */}
+          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
+            <LocalShippingIcon
               color="primary"
               sx={{
-                fontSize: '2rem',
-                mr: 1,
-                transform: 'translateX(-10px)',
-                animation: 'arrowPulse 1.5s infinite'
+                fontSize: '4rem',
+                mb: 1,
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'scale(1.1)',
+                  color: 'primary.dark'
+                }
               }}
             />
-            <Typography variant="body1" color="primary.main" sx={{ fontWeight: 500 }}>
-              左側列表
+          </Box>
+          
+          {/* 內容區域 */}
+          <Box sx={{ width: '100%' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, justifyContent: 'center' }}>
+              <ArrowBackIcon
+                color="primary"
+                className="arrow-icon"
+                sx={{
+                  fontSize: '2rem',
+                  mr: 1,
+                  transform: 'translateX(-10px)',
+                  animation: 'arrowPulse 1.5s infinite',
+                  transition: 'color 0.3s ease'
+                }}
+              />
+              <Typography variant="body1" color="primary.main" sx={{ fontWeight: 500 }}>
+                左側列表
+              </Typography>
+            </Box>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
+              選擇出貨單查看詳情
+            </Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+              請從左側列表中選擇一個出貨單
             </Typography>
           </Box>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
-            選擇出貨單查看詳情
-          </Typography>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-            請從左側列表中選擇一個出貨單
-          </Typography>
         </CardContent>
       </Card>
     );
   }
 
   // 格式化日期
-  const formattedDate = selectedShippingOrder.sodate 
-    ? format(new Date(selectedShippingOrder.sodate), 'yyyy-MM-dd')
-    : '無日期';
+    const formattedDate = selectedShippingOrder.sodate
+      ? format(new Date(selectedShippingOrder.sodate), 'yyyy-MM-dd')
+      : '無日期';
+  
+    // 獲取出貨單狀態信息
+    const getStatusInfo = (order: ShippingOrder) => {
+      // 根據出貨單數據確定狀態
+      let status = order.status || '';
+      
+      // 如果沒有明確的狀態字段，根據其他字段推斷
+      if (!status) {
+        if (order.completed || order.isCompleted) {
+          status = 'completed';
+        } else if (order.shipped || order.isShipped) {
+          status = 'shipped';
+        } else if (order.confirmed || order.isConfirmed) {
+          status = 'confirmed';
+        } else {
+          status = 'pending';
+        }
+      }
+      
+      // 根據狀態返回相應的顏色、圖標和文字
+      switch (status.toLowerCase()) {
+        case 'completed':
+          return {
+            color: 'success.main',
+            icon: <CheckCircleIcon sx={{ fontSize: '1.5rem', mr: 1 }} />,
+            text: '已完成'
+          };
+        case 'shipped':
+          return {
+            color: 'info.main',
+            icon: <LocalShippingOutlinedIcon sx={{ fontSize: '1.5rem', mr: 1 }} />,
+            text: '已出貨'
+          };
+        case 'confirmed':
+          return {
+            color: 'primary.main',
+            icon: <CheckCircleIcon sx={{ fontSize: '1.5rem', mr: 1 }} />,
+            text: '已確認'
+          };
+        case 'pending':
+          return {
+            color: 'warning.main',
+            icon: <PendingIcon sx={{ fontSize: '1.5rem', mr: 1 }} />,
+            text: '待處理'
+          };
+        default:
+          return {
+            color: 'text.secondary',
+            icon: <ErrorOutlineIcon sx={{ fontSize: '1.5rem', mr: 1 }} />,
+            text: '未知狀態'
+          };
+      }
+    };
+    
+    // 獲取狀態信息
+    const statusInfo = getStatusInfo(selectedShippingOrder);
 
   return (
     <Card elevation={2} sx={{ borderRadius: '0.5rem', height: '100%' }}>
@@ -225,17 +328,20 @@ const ShippingOrderDetailPanel: FC<ShippingOrderDetailPanelProps> = ({
                         fontWeight: 400
                       }}
                     >
-                      日期
+                      狀態
                     </Typography>
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        fontWeight: 600,
-                        color: 'text.primary'
-                      }}
-                    >
-                      {formattedDate}
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      {statusInfo.icon}
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          fontWeight: 600,
+                          color: statusInfo.color
+                        }}
+                      >
+                        {statusInfo.text}
+                      </Typography>
+                    </Box>
                   </Box>
                 </Paper>
               </Grid>
