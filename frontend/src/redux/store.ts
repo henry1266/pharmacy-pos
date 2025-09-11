@@ -3,8 +3,8 @@ import thunk, { ThunkDispatch } from 'redux-thunk';
 import { setupListeners } from '@reduxjs/toolkit/query';
 
 // 導入 RTK Query API 和 Slice
-import { saleApi } from '../modules/sale/api/saleApi';
-import saleReducer from '../modules/sale/model/saleSlice';
+import { saleApi } from '../features/sale/api/saleApi';
+import saleReducer from '../features/sale/model/saleSlice';
 
 /* 專案內的 reducer 與型別 */
 import {

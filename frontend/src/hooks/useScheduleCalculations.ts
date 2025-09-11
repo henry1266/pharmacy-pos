@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { SchedulesByDate, EmployeeSchedule, useShiftTimeConfig } from '../modules/employees';
+import { SchedulesByDate, EmployeeSchedule, useShiftTimeConfig } from '../features/employees';
 
 /**
  * 員工工時數據介面

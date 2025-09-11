@@ -23,17 +23,17 @@ import {
   Search as SearchIcon,
   Clear as ClearIcon
 } from '@mui/icons-material';
-import { ActionButtons } from '@/modules/purchase-order/shared/components';
+import { ActionButtons } from '@/features/purchase-order/shared/components';
 import { usePurchaseOrdersList } from '../hooks/usePurchaseOrdersList';
 import { PurchaseOrdersPageProps, PurchaseOrder } from '../types/list';
-import PurchaseOrderPreview from '@/modules/purchase-order/components/PurchaseOrderPreview';
+import PurchaseOrderPreview from '@/features/purchase-order/components/PurchaseOrderPreview';
 import SupplierCheckboxFilter from '@/components/filters/SupplierCheckboxFilter';
-import PurchaseOrdersTable from '@/modules/purchase-order/components/PurchaseOrdersTable';
-import CsvImportDialog from '@/modules/purchase-order/components/CsvImportDialog';
+import PurchaseOrdersTable from '@/features/purchase-order/components/PurchaseOrdersTable';
+import CsvImportDialog from '@/features/purchase-order/components/CsvImportDialog';
 import GenericConfirmDialog from '@/components/common/GenericConfirmDialog';
 import CommonListPageLayout from '@/components/common/CommonListPageLayout';
 import TitleWithCount from '@/components/common/TitleWithCount';
-import PurchaseOrderDetailPanel from '@/modules/purchase-order/components/PurchaseOrderDetailPanel';
+import PurchaseOrderDetailPanel from '@/features/purchase-order/components/PurchaseOrderDetailPanel';
 import StatusChip from '@/components/common/StatusChip';
 import PaymentStatusChip from '@/components/common/PaymentStatusChip';
 

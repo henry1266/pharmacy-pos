@@ -9,8 +9,8 @@ import {
   ShiftType,
   ShiftTime
 } from '@pharmacy-pos/shared/utils';
-import { SchedulesByDate, EmployeeSchedule } from '../modules/employees';
-import { useShiftTimeConfig } from '../modules/employees/core/hooks/useShiftTimeConfig';
+import { SchedulesByDate, EmployeeSchedule } from '../features/employees';
+import { useShiftTimeConfig } from '../features/employees/core/hooks/useShiftTimeConfig';
 
 /**
  * 排班介面 (與 workHoursUtils 中的 Schedule 相容)

@@ -6,7 +6,7 @@
 import React, { FC } from 'react';
 import { Box, Typography, Button, Drawer, Badge } from '@mui/material';
 import { Receipt as ReceiptIcon, Close as CloseIcon } from '@mui/icons-material';
-import DailySalesPanel from '@/modules/dashboard/components/DailySalesPanel';
+import DailySalesPanel from '@/features/dashboard/components/DailySalesPanel';
 
 interface MobileSalesDrawerProps {
   /** 是否開啟抽屜 */

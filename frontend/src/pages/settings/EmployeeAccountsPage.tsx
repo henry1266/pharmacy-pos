@@ -26,8 +26,8 @@ import {
   AccountDialog,
   FormField,
   EmployeeAccountRow
-} from '../../modules/employees/components';
-import { useEmployeeAccounts } from '../../modules/employees';
+} from '../../features/employees/components';
+import { useEmployeeAccounts } from '../../features/employees';
 import { getRoleName, getRoleColor, roleOptions } from '../../utils/roleUtils';
 
 /**

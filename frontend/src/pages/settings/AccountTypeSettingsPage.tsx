@@ -8,7 +8,7 @@ import {
   Link
 } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
-import { AccountTypeManagement } from '../../modules/accounting3/features/accounts/components';
+import { AccountTypeManagement } from '../../features/accounting3/features/accounts/components';
 
 const AccountTypeSettingsPage: React.FC = () => {
 

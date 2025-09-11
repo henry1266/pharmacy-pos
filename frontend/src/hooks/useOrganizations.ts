@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Organization } from '@pharmacy-pos/shared/types/organization';
-import organizationService from '../modules/accounting3/services/organizationService';
+import organizationService from '../features/accounting3/services/organizationService';
 
 interface UseOrganizationsReturn {
   organizations: Organization[];

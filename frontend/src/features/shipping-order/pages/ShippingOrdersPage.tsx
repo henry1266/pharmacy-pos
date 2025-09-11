@@ -36,15 +36,15 @@ import axios from 'axios';
 
 // Import Presentation Components
 import SupplierCheckboxFilter from '@/components/filters/SupplierCheckboxFilter';
-import CsvImportDialog from '@/modules/shipping-order/components/CsvImportDialog';
-import ShippingOrderImportOptions from '@/modules/shipping-order/components/ShippingOrderImportOptions';
+import CsvImportDialog from '@/features/shipping-order/components/CsvImportDialog';
+import ShippingOrderImportOptions from '@/features/shipping-order/components/ShippingOrderImportOptions';
 import GenericConfirmDialog from '@/components/common/GenericConfirmDialog';
 import CommonListPageLayout from '@/components/common/CommonListPageLayout';
 import TitleWithCount from '@/components/common/TitleWithCount';
-import ShippingOrderDetailPanel from '@/modules/shipping-order/components/ShippingOrderDetailPanel';
+import ShippingOrderDetailPanel from '@/features/shipping-order/components/ShippingOrderDetailPanel';
 import StatusChip from '@/components/common/StatusChip';
 import PaymentStatusChip from '@/components/common/PaymentStatusChip';
-import { ActionButtons } from '@/modules/purchase-order/shared/components';
+import { ActionButtons } from '@/features/purchase-order/shared/components';
 
 // 使用通用類型定義
 interface ShippingOrder {

@@ -1,38 +1,38 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import DashboardPage from './modules/dashboard/pages/DashboardPage';
-import DashboardDateDetailPage from './modules/dashboard/pages/DashboardDateDetailPage';
+import DashboardPage from './features/dashboard/pages/DashboardPage';
+import DashboardDateDetailPage from './features/dashboard/pages/DashboardDateDetailPage';
 
-import ProductsPage from './modules/product/pages/ProductsPage';
-import ProductDetailPage from './modules/product/pages/ProductDetailPage';
-import ProductEditPage from './modules/product/pages/ProductEditPage';
-import ProductsCategoryDetailPage from './modules/product/pages/ProductsCategoryDetailPage';
-import ProductCategoryPage from './modules/product/pages/ProductCategoryPage';
+import ProductsPage from './features/product/pages/ProductsPage';
+import ProductDetailPage from './features/product/pages/ProductDetailPage';
+import ProductEditPage from './features/product/pages/ProductEditPage';
+import ProductsCategoryDetailPage from './features/product/pages/ProductsCategoryDetailPage';
+import ProductCategoryPage from './features/product/pages/ProductCategoryPage';
 import PackagesPage from './pages/PackagesPage';
-import SuppliersPage from './modules/Supplier/pages/SuppliersPage';
-import SupplierDetailPage from './modules/Supplier/pages/SupplierDetailPage';
+import SuppliersPage from './features/Supplier/pages/SuppliersPage';
+import SupplierDetailPage from './features/Supplier/pages/SupplierDetailPage';
 import CustomersPage from './pages/CustomersPage';
 import CustomerDetailPage from './pages/CustomerDetailPage';
 // 銷售管理頁面元件
-import SalesNewPage from './modules/sale/pages/SalesNewPage';
-import SalesListPage from './modules/sale/pages/SalesListPage';
-import SalesEditPage from './modules/sale/pages/SalesEditPage';
-import SalesDetailPage from './modules/sale/pages/SalesDetailPage';
+import SalesNewPage from './features/sale/pages/SalesNewPage';
+import SalesListPage from './features/sale/pages/SalesListPage';
+import SalesEditPage from './features/sale/pages/SalesEditPage';
+import SalesDetailPage from './features/sale/pages/SalesDetailPage';
 
 import ReportsPage from './pages/ReportsPage';
 // 進貨管理頁面元件
-import PurchaseOrdersPage from './modules/purchase-order/pages/PurchaseOrdersPage';
-import PurchaseOrderFormPage from './modules/purchase-order/pages/PurchaseOrderFormPage';
-import PurchaseOrderDetailPage from './modules/purchase-order/pages/PurchaseOrderDetailPage';
-import PurchaseOrdersSupplierFilterPage from './modules/purchase-order/pages/PurchaseOrdersSupplierFilterPage';
+import PurchaseOrdersPage from './features/purchase-order/pages/PurchaseOrdersPage';
+import PurchaseOrderFormPage from './features/purchase-order/pages/PurchaseOrderFormPage';
+import PurchaseOrderDetailPage from './features/purchase-order/pages/PurchaseOrderDetailPage';
+import PurchaseOrdersSupplierFilterPage from './features/purchase-order/pages/PurchaseOrdersSupplierFilterPage';
 // 出貨管理頁面元件
-import ShippingOrdersPage from './modules/shipping-order/pages/ShippingOrdersPage';
-import ShippingOrderFormPage from './modules/shipping-order/pages/ShippingOrderFormPage';
-import ShippingOrderDetailPage from './modules/shipping-order/pages/ShippingOrderDetailPage';
+import ShippingOrdersPage from './features/shipping-order/pages/ShippingOrdersPage';
+import ShippingOrderFormPage from './features/shipping-order/pages/ShippingOrderFormPage';
+import ShippingOrderDetailPage from './features/shipping-order/pages/ShippingOrderDetailPage';
 // 日常記帳管理頁面元件
-import { JournalPage, NewEntryPage, CategoryPage, CategoryDetailPage } from './modules/daily-journal/pages';
+import { JournalPage, NewEntryPage, CategoryPage, CategoryDetailPage } from './features/daily-journal/pages';
 
-import AllCategoriesDetailComponent from './modules/daily-journal/components/AllCategoriesDetailComponent';
+import AllCategoriesDetailComponent from './features/daily-journal/components/AllCategoriesDetailComponent';
 
 import MonitoredProductsSettingsPage from './pages/MonitoredProductsSettingsPage';
 import SettingsPage from './pages/SettingsPage';
@@ -41,18 +41,18 @@ import EmployeeAccountsPage from './pages/settings/EmployeeAccountsPage';
 import AccountTypeSettingsPage from './pages/settings/AccountTypeSettingsPage';
 
 // 員工管理頁面元件
-  import { EmployeeBasicInfoPage, EmployeeListPage, EmployeeSchedulingPage, OvertimeManagementPage } from './modules/employees';
+  import { EmployeeBasicInfoPage, EmployeeListPage, EmployeeSchedulingPage, OvertimeManagementPage } from './features/employees';
 // 會計管理頁面元件
-  import OrganizationPage from './modules/accounting3/pages/OrganizationPage';
-  import OrganizationFormPage from './modules/accounting3/pages/OrganizationFormPage';
-  import PaymentManagementPage from './modules/accounting3/pages/PaymentManagementPage';
-  import Accounting3TransactionPage from './modules/accounting3/pages/TransactionPage';
-  import TransactionEditPage from './modules/accounting3/pages/TransactionPage/TransactionEditPage';
-  import TransactionCopyPage from './modules/accounting3/pages/TransactionPage/TransactionCopyPage';
-  import { AccountsManagementPage } from './modules/accounting3/accounts/pages';
-  import { Accounting3DashboardPage } from './modules/accounting3/accounts/pages';
-  import AccountDetailPage from './modules/accounting3/accounts/pages/AccountDetailPage';
-  import TransactionDetailPage from './modules/accounting3/pages/TransactionPage/TransactionDetailPage';
+  import OrganizationPage from './features/accounting3/pages/OrganizationPage';
+  import OrganizationFormPage from './features/accounting3/pages/OrganizationFormPage';
+  import PaymentManagementPage from './features/accounting3/pages/PaymentManagementPage';
+  import Accounting3TransactionPage from './features/accounting3/pages/TransactionPage';
+  import TransactionEditPage from './features/accounting3/pages/TransactionPage/TransactionEditPage';
+  import TransactionCopyPage from './features/accounting3/pages/TransactionPage/TransactionCopyPage';
+  import { AccountsManagementPage } from './features/accounting3/accounts/pages';
+  import { Accounting3DashboardPage } from './features/accounting3/accounts/pages';
+  import AccountDetailPage from './features/accounting3/accounts/pages/AccountDetailPage';
+  import TransactionDetailPage from './features/accounting3/pages/TransactionPage/TransactionDetailPage';
 
 // AppRouter now only contains routes accessible *after* login
 const AppRouter: React.FC = () => {

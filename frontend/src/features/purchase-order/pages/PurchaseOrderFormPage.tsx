@@ -20,10 +20,10 @@ import { purchaseOrderServiceV2 } from '@/services/purchaseOrderServiceV2';
 import usePurchaseOrderData from '../hooks/usePurchaseOrderData';
 import usePurchaseOrderItems from '../hooks/usePurchaseOrderItems';
 import BasicInfoForm from '../components/BasicInfoForm';
-import ProductItemForm from '@/modules/purchase-order/components/ProductItemForm';
-import ProductItemsTable from '@/modules/purchase-order/components/ProductItemsTable';
+import ProductItemForm from '@/features/purchase-order/components/ProductItemForm';
+import ProductItemsTable from '@/features/purchase-order/components/ProductItemsTable';
 import GenericConfirmDialog from '@/components/common/GenericConfirmDialog';
-import ActionButtons from '@/modules/purchase-order/components/ActionButtons';
+import ActionButtons from '@/features/purchase-order/components/ActionButtons';
 import TestModeConfig from '@/testMode/config/TestModeConfig';
 import testModeDataService from '@/testMode/services/TestModeDataService';
 

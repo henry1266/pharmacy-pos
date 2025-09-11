@@ -23,8 +23,8 @@ import {
 } from '../../redux/reducers';
 
 // 導入 RTK Query API 和 Slice
-import { saleApi } from '../../modules/sale/api/saleApi';
-import saleReducer from '../../modules/sale/model/saleSlice';
+import { saleApi } from '../../features/sale/api/saleApi';
+import saleReducer from '../../features/sale/model/saleSlice';
 
 /**
  * 配置 Redux store

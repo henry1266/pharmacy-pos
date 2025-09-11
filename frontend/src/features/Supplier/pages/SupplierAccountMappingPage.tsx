@@ -36,7 +36,7 @@ import {
   SupplierAccountMappingFormData,
   SelectedAccount
 } from '@pharmacy-pos/shared/types/entities';
-import AccountSelector3 from '../../../modules/accounting3/accounts/components/AccountSelector';
+import AccountSelector3 from '../../../features/accounting3/accounts/components/AccountSelector';
 import { useOrganizations } from '../../../hooks/useOrganizations';
 import { useAppDispatch } from '../../../hooks/redux';
 import { fetchAccounts2, fetchOrganizations2 } from '../../../redux/actions';
