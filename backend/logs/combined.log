@@ -9831,3 +9831,4 @@
 {"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m進貨單 20250911002 已關聯交易群組 68c28d58fe3f90f7f0751fee\u001b[39m","timestamp":"2025-09-11 16:50:32:5032"}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":0,"timestamp":"2025-09-11 16:50:35:5035","totalCount":50,"unpaidCount":50}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":0,"timestamp":"2025-09-11 17:22:28:2228","totalCount":50,"unpaidCount":50}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":0,"timestamp":"2025-09-11 18:30:38:3038","totalCount":50,"unpaidCount":50}

@@ -250,7 +250,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   const menuItems: MenuItem[] = [
     { text: '儀表板', icon: (location.pathname === '/dashboard') ? <DashboardOutlinedIcon /> : <DashboardIcon />, path: '/dashboard' },
-    { text: '銷售管理', icon: (location.pathname.startsWith('/sales')) ? <SellOutlinedIcon /> : <SellIcon />, path: '/sales' },
+    { text: '銷售管理', icon: (location.pathname.startsWith('/sales')) ? <PointOfSaleOutlinedIcon /> : <PointOfSaleIcon />, path: '/sales' },
     { text: '商品管理', icon: isProductPath(location.pathname) ? <LocalMallOutlinedIcon /> : <LocalMallIcon />, subItems: [
         { text: '商品列表', path: '/products', icon: <ListAltIcon fontSize="small" sx={{ ml: 1 }} /> },
         { text: '商品分類', path: '/product-categories', icon: <CategoryIcon fontSize="small" sx={{ ml: 1 }} /> },

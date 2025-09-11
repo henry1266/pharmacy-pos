@@ -4,6 +4,7 @@
  */
 
 import React, { FC, useState } from 'react';
+import { keyframes } from '@emotion/react';
 import {
   Box,
   Typography,
@@ -25,7 +26,9 @@ import {
   FilterAlt as FilterAltIcon,
   Visibility as VisibilityIcon,
   Edit as EditIcon,
-  Delete as DeleteIcon
+  Delete as DeleteIcon,
+  PointOfSale as PointOfSaleIcon,
+  ArrowBack as ArrowBackIcon
 } from '@mui/icons-material';
 import { useSalesList } from '../hooks/useSalesList';
 import { SalesListPageProps, Sale } from '../types/list';
@@ -42,6 +45,16 @@ import { getPaymentMethodText, getPaymentStatusInfo } from '../utils/listUtils';
  * 銷售列表頁面
  * 顯示銷售記錄列表，提供搜索、預覽、編輯和刪除功能
  */
+// 定義箭頭動畫
+const arrowBounce = keyframes`
+  0%, 100% {
+    transform: translateX(-5px);
+  }
+  50% {
+    transform: translateX(-15px);
+  }
+`;
+
 const SalesListPage: FC<SalesListPageProps> = () => {
   const {
     // 狀態
@@ -322,11 +335,69 @@ const SalesListPage: FC<SalesListPageProps> = () => {
       selectedSale={selectedSale}
     />
   ) : (
-    <Card elevation={2} sx={{ borderRadius: '0.5rem', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <CardContent sx={{ textAlign: 'center' }}>
-        <Typography variant="body1" color="text.secondary">
-          選擇一個銷售記錄查看詳情
-        </Typography>
+    <Card
+      elevation={2}
+      className="sales-card"
+      sx={{
+        borderRadius: '0.5rem',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        transition: 'all 0.3s ease',
+        '&:hover': {
+          boxShadow: 6
+        },
+        '&:hover .arrow-icon': {
+          animation: `${arrowBounce} 0.8s infinite`,
+          color: 'primary.dark'
+        }
+      }}
+    >
+      <CardContent sx={{ textAlign: 'center', py: 3, width: '100%' }}>
+        {/* 大型銷售圖標 */}
+        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
+          <PointOfSaleIcon
+            color="primary"
+            sx={{
+              fontSize: '4rem',
+              mb: 1,
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'scale(1.1)',
+                color: 'primary.dark'
+              }
+            }}
+          />
+        </Box>
+        
+        {/* 內容區域 */}
+        <Box sx={{ width: '100%' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, justifyContent: 'center' }}>
+            <ArrowBackIcon
+              color="primary"
+              className="arrow-icon"
+              sx={{
+                fontSize: '2rem',
+                mr: 1,
+                transform: 'translateX(-10px)',
+                animation: 'arrowPulse 1.5s infinite',
+                transition: 'color 0.3s ease'
+              }}
+            />
+            <Typography variant="body1" color="primary.main" sx={{ fontWeight: 500 }}>
+              左側列表
+            </Typography>
+          </Box>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
+            選擇一個銷售記錄查看詳情
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+            請從左側列表中選擇一個銷售記錄
+          </Typography>
+        </Box>
       </CardContent>
     </Card>
   );
