@@ -35,10 +35,7 @@ import { fetchShippingOrders, API_BASE_URL } from '@/redux/actions';
 import axios from 'axios';
 
 // Import Presentation Components
-import ShippingOrderPreview from '@/modules/shipping-order/components/ShippingOrderPreview';
 import SupplierCheckboxFilter from '@/components/filters/SupplierCheckboxFilter';
-import ShippingOrdersTable from '@/modules/shipping-order/components/ShippingOrdersTable';
-import ShippingOrdersFilter from '@/modules/shipping-order/components/ShippingOrdersFilter';
 import CsvImportDialog from '@/modules/shipping-order/components/CsvImportDialog';
 import ShippingOrderImportOptions from '@/modules/shipping-order/components/ShippingOrderImportOptions';
 import GenericConfirmDialog from '@/components/common/GenericConfirmDialog';
