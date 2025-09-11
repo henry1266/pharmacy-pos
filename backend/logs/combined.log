@@ -10292,3 +10292,4 @@
 {"executionTime":"6ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":52,"timestamp":"2025-09-11 20:12:10:1210"}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-09-11 20:12:10:1210"}
 {"executionTime":"5ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":52,"timestamp":"2025-09-11 20:12:10:1210"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":0,"timestamp":"2025-09-11 20:19:00:190","totalCount":50,"unpaidCount":50}
