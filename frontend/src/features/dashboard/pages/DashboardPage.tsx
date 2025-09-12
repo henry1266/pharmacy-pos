@@ -10,7 +10,7 @@ import {
 } from '@mui/material';
 import { format } from 'date-fns';
 // Import Custom Hooks
-import useDashboardData from '../../../hooks/useDashboardData';
+import useDashboardData from '../hooks/useDashboardData';
 import useTestMode from '../hooks/useTestMode';
 import useAccountingDashboard from '../hooks/useAccountingDashboard';
 import useSalesDashboard from '../hooks/useSalesDashboard';

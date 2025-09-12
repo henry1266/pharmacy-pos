@@ -34,7 +34,7 @@ import ItemsTable from '../components/ItemsTable';
 import GenericConfirmDialog from '../../../components/common/GenericConfirmDialog';
 import TestModeConfig from '../../../testMode/config/TestModeConfig';
 import testModeDataService from '../../../testMode/services/TestModeDataService';
-import useShippingOrderItems from '../../../hooks/useShippingOrderItems';
+import useShippingOrderItems from '../hooks/useShippingOrderItems';
 
 // =================================================================
 // 1. 型別定義 (Type Definitions)

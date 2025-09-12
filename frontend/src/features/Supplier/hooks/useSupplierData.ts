@@ -4,7 +4,7 @@ import {
   createSupplier,
   updateSupplier as updateSupplierService,
   deleteSupplier as deleteSupplierService
-} from '../services/supplierServiceV2';
+} from '../../../services/supplierServiceV2';
 import { Supplier } from '@pharmacy-pos/shared/types/entities';
 
 /**

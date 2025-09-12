@@ -16,7 +16,7 @@ import {
 } from '@mui/icons-material';
 
 // Import Hook
-import useCustomerDetailData from '../../../hooks/useCustomerDetailData';
+import useCustomerDetailData from '../hooks/useCustomerDetailData';
 
 // Import Presentation Components
 import CustomerInfoCard from '../components/CustomerInfoCard';

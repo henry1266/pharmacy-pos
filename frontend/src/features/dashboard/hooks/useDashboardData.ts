@@ -6,7 +6,7 @@ import {
   DashboardSummary,
   SalesTrend,
   CategorySales
-} from '../services/dashboardService';
+} from '../../../services/dashboardService';
 
 /**
  * Custom Hook to fetch data required for the Dashboard Page using the service layer.

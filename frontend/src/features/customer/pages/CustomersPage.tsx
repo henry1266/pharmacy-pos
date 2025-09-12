@@ -35,7 +35,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PersonIcon from '@mui/icons-material/Person';
 
 import CommonListPageLayout from '../../../components/common/CommonListPageLayout';
-import useCustomerData from '../../../hooks/useCustomerData';
+import useCustomerData from '../hooks/useCustomerData';
 import testModeDataService from '../../../testMode/services/TestModeDataService';
 
 // 定義客戶資料介面

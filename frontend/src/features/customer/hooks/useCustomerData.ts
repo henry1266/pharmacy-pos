@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getAllCustomers, createCustomer, updateCustomer as updateCustomerService, deleteCustomer as deleteCustomerService } from '../services/customerServiceV2';
+import { getAllCustomers, createCustomer, updateCustomer as updateCustomerService, deleteCustomer as deleteCustomerService } from '../../../services/customerServiceV2';
 import { Customer } from '@pharmacy-pos/shared/types/entities';
 
 // 擴展 Customer 類型以包含前端需要的額外屬性

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getCustomerById } from '../services/customerServiceV2';
+import { getCustomerById } from '../../../services/customerServiceV2';
 import { Customer } from '@pharmacy-pos/shared/types/entities';
 
 /**

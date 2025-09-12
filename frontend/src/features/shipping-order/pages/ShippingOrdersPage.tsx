@@ -26,8 +26,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppDispatch } from '@/hooks/redux';
 
 // Import Hook
-import useShippingOrdersData from '@/hooks/useShippingOrdersData';
-import { useShippingOrdersBatchFifo } from '@/hooks/useShippingOrdersBatchFifo';
+import useShippingOrdersData from '@/features/shipping-order/hooks/useShippingOrdersData';
+import { useShippingOrdersBatchFifo } from '@/features/shipping-order/hooks/useShippingOrdersBatchFifo';
 
 // Import Service functions for CSV import
 import { shippingOrderServiceV2 } from '@/services/shippingOrderServiceV2';

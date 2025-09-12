@@ -1,5 +1,5 @@
 import { useState, useCallback, RefObject, ChangeEvent } from 'react';
-import { productServiceV2 } from '../services/productServiceV2';
+import { productServiceV2 } from '../../../services/productServiceV2';
 import { Product } from '@pharmacy-pos/shared/types/entities';
 import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
 
@@ -11,7 +11,7 @@ interface CurrentItem {
   dname: string;
   dquantity: string;
   dtotalCost: string;
-  product: string | null; // 產品ID
+  product: string | null | undefined; // 產品ID
   batchNumber?: string; // 批號
   packageQuantity?: string; // 大包裝數量
   boxQuantity?: string; // 盒裝數量
@@ -29,27 +29,23 @@ interface ProductDetailsMap {
  * 表單數據介面
  */
 interface FormData {
-  poid: string;
-  pobill: string;
-  pobilldate: Date;
-  posupplier: string;
+  soid: string;
+  sobill: string;
+  sobilldate: Date;
+  sosupplier: string;
   supplier: string;
-  organizationId?: string;
-  transactionType?: string;
-  selectedAccountIds?: string[];
-  accountingEntryType?: 'expense-asset' | 'asset-liability';
   items: CurrentItem[];
   notes: string;
-  status: string;
-  paymentStatus: string;
+  status: 'pending' | 'completed' | 'cancelled';
+  paymentStatus: '未收' | '已收款' | '已開立';
   multiplierMode: string | number;
   [key: string]: any; // 允許其他屬性
 }
 
 /**
- * 採購訂單項目 Hook 參數介面
+ * 出貨訂單項目 Hook 參數介面
  */
-interface PurchaseOrderItemsProps {
+interface ShippingOrderItemsProps {
   showSnackbar: (message: string, severity: 'success' | 'error' | 'info' | 'warning') => void;
   productInputRef: RefObject<HTMLInputElement>;
   formData: FormData;
@@ -61,9 +57,9 @@ interface PurchaseOrderItemsProps {
 }
 
 /**
- * 採購訂單項目 Hook 返回值介面
+ * 出貨訂單項目 Hook 返回值介面
  */
-interface PurchaseOrderItemsResult {
+interface ShippingOrderItemsResult {
   currentItem: CurrentItem;
   setCurrentItem: (item: CurrentItem | ((prev: CurrentItem) => CurrentItem)) => void;
   editingItemIndex: number;
@@ -78,13 +74,14 @@ interface PurchaseOrderItemsResult {
   handleSaveEditItem: () => Promise<void>;
   handleCancelEditItem: () => void;
   handleMoveItem: (index: number, direction: 'up' | 'down') => void;
+  handleMainQuantityChange: (e: ChangeEvent<HTMLInputElement>, inputMode: 'base' | 'package', selectedProduct: Product | null) => number;
 }
 
 /**
- * 採購訂單項目 Hook
- * 用於管理採購訂單中的項目
+ * 出貨訂單項目 Hook
+ * 用於管理出貨訂單中的項目
  */
-const usePurchaseOrderItems = ({
+const useShippingOrderItems = ({
   showSnackbar,
   productInputRef,
   formData,
@@ -93,7 +90,7 @@ const usePurchaseOrderItems = ({
   setProductDetails,
   initialItems: _initialItems = [],
   productsData: _productsData = []
-}: PurchaseOrderItemsProps): PurchaseOrderItemsResult => {
+}: ShippingOrderItemsProps): ShippingOrderItemsResult => {
   const [currentItem, setCurrentItem] = useState<CurrentItem>({
     did: '', // 產品代碼
     dname: '',
@@ -103,7 +100,7 @@ const usePurchaseOrderItems = ({
     batchNumber: '', // 批號
     packageQuantity: '', // 大包裝數量
     boxQuantity: '', // 盒裝數量
-    packageUnits: [], // 包裝單位數據
+    packageUnits: [] // 包裝單位數據
   });
   const [editingItemIndex, setEditingItemIndex] = useState<number>(-1);
   const [editingItem, setEditingItem] = useState<CurrentItem | null>(null);
@@ -123,7 +120,7 @@ const usePurchaseOrderItems = ({
         did: newValue.code, // 使用產品代碼作為 'did'
         dname: newValue.name,
         product: newValue._id, // 存儲實際的產品ID
-        packageUnits: newValue.packageUnits || [], // 傳遞包裝單位數據
+        packageUnits: newValue.packageUnits || [] // 傳遞包裝單位數據
       }));
     } else {
       setCurrentItem(prev => ({
@@ -248,6 +245,60 @@ const usePurchaseOrderItems = ({
     }
   }, [formData.items, setFormData]);
 
+  // 處理主要數量輸入變更
+  const handleMainQuantityChange = useCallback((e: ChangeEvent<HTMLInputElement>, inputMode: 'base' | 'package', selectedProduct: Product | null) => {
+    const { value } = e.target;
+    
+    // 計算實際的總數量（基礎單位）
+    let actualQuantity = 0;
+    const numericValue = Number(value) || 0;
+    
+    if (inputMode === 'base' || !selectedProduct?.packageUnits?.length) {
+      // 基礎單位模式，直接使用輸入的數量
+      actualQuantity = numericValue;
+      
+      // 在基礎單位模式下，將 packageQuantity 和 boxQuantity 設置為空字符串
+      handleItemInputChange({
+        target: { name: 'packageQuantity', value: '' }
+      });
+      
+      handleItemInputChange({
+        target: { name: 'boxQuantity', value: '' }
+      });
+      
+      // unit 屬性不再需要設置
+    } else {
+      // 大包裝單位模式，將輸入的數量乘以大包裝單位的數量
+      const largestPackageUnit = [...(selectedProduct.packageUnits || [])]
+        .sort((a, b) => b.unitValue - a.unitValue)[0];
+      
+      if (largestPackageUnit) {
+        // 計算實際總數量（基礎單位）
+        actualQuantity = numericValue * largestPackageUnit.unitValue;
+        
+        // 更新 packageQuantity 為輸入的大包裝數量
+        handleItemInputChange({
+          target: { name: 'packageQuantity', value: numericValue.toString() }
+        });
+        
+        // 更新 boxQuantity 為每盒的數量（大包裝單位的值）
+        handleItemInputChange({
+          target: { name: 'boxQuantity', value: largestPackageUnit.unitValue.toString() }
+        });
+        
+        // unit 屬性不再需要設置
+      }
+    }
+    
+    // 更新實際的總數量
+    handleItemInputChange({
+      target: { name: 'dquantity', value: actualQuantity.toString() }
+    });
+    
+    // 返回計算出的實際總數量，以便 ItemForm 組件可以直接使用
+    return actualQuantity;
+  }, [handleItemInputChange]);
+
   return {
     currentItem,
     setCurrentItem,
@@ -263,7 +314,8 @@ const usePurchaseOrderItems = ({
     handleSaveEditItem,
     handleCancelEditItem,
     handleMoveItem,
+    handleMainQuantityChange,
   };
 };
 
-export default usePurchaseOrderItems;
+export default useShippingOrderItems;

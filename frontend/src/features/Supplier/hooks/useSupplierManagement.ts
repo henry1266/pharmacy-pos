@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { SupplierData, SupplierFormState } from '../types/supplier.types';
-import useSupplierData from '../../../hooks/useSupplierData';
+import useSupplierData from './useSupplierData';
 import testModeDataService from '../../../testMode/services/TestModeDataService';
 
 export const useSupplierManagement = () => {

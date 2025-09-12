@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ImportResult } from '../types/supplier.types';
-import useSupplierData from '../../../hooks/useSupplierData';
+import useSupplierData from './useSupplierData';
 
 export const useSupplierImport = (isTestMode: boolean) => {
   const [openImportDialog, setOpenImportDialog] = useState<boolean>(false);

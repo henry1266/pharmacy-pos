@@ -47,7 +47,7 @@ import StatusChip from '@/components/common/StatusChip';
 import PaymentStatusChip from '@/components/common/PaymentStatusChip';
 import TitleWithCount from '@/components/common/TitleWithCount';
 import GenericConfirmDialog from '@/components/common/GenericConfirmDialog';
-import { useShippingOrderFifo } from '@/hooks/useShippingOrderFifo';
+import { useShippingOrderFifo } from '@/features/shipping-order/hooks/useShippingOrderFifo';
 // 擴展 ShippingOrder 類型以包含實際使用的欄位
 interface ExtendedShippingOrder {
   _id?: string;
