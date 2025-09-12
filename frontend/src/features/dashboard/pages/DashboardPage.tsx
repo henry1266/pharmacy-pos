@@ -161,7 +161,7 @@ const DashboardPage: FC = () => {
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h4" component="h2" fontWeight="600" color="var(--text-primary)">
+        <Typography variant="h5" component="h2" fontWeight="600" color="var(--text-primary)">
           儀表板 {isTestMode && <Typography component="span" sx={{ fontSize: '0.7em', color: 'orange', fontWeight: 'bold' }}>(測試模式)</Typography>}
         </Typography>
         <Button 

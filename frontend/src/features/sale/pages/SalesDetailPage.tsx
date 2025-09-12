@@ -3,9 +3,9 @@
  * @description 顯示單筆銷售記錄的詳細信息，包括基本信息、金額信息和銷售項目
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,

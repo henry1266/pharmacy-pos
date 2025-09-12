@@ -1,7 +1,8 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-// 儀錶板頁面元件
+// 頁面元件
 import { DashboardPage, DashboardDateDetailPage } from './features/dashboard/pages';
+import { SalesPage, SalesDetailPage, SalesEditPage, SalesNewPage} from './features/sale/pages';
 
 import ProductsPage from './features/product/pages/ProductsPage';
 import ProductDetailPage from './features/product/pages/ProductDetailPage';
@@ -13,11 +14,6 @@ import SuppliersPage from './features/Supplier/pages/SuppliersPage';
 import SupplierDetailPage from './features/Supplier/pages/SupplierDetailPage';
 import CustomersPage from './pages/CustomersPage';
 import CustomerDetailPage from './pages/CustomerDetailPage';
-// 銷售管理頁面元件
-import SalesNewPage from './features/sale/pages/SalesNewPage';
-import SalesListPage from './features/sale/pages/SalesListPage';
-import SalesEditPage from './features/sale/pages/SalesEditPage';
-import SalesDetailPage from './features/sale/pages/SalesDetailPage';
 
 import ReportsPage from './pages/ReportsPage';
 // 進貨管理頁面元件
@@ -81,7 +77,7 @@ const AppRouter: React.FC = () => {
       <Route path="/customers/:id" element={<CustomerDetailPage />} /> {/* Add Customer Detail Route */}
       
       {/* Sales routes */}
-      <Route path="/sales" element={<SalesListPage />} />
+      <Route path="/sales" element={<SalesPage />} />
       <Route path="/sales/new" element={<SalesNewPage />} />
       <Route path="/sales/edit/:id" element={<SalesEditPage />} />
       <Route path="/sales/:id" element={<SalesDetailPage />} />
