@@ -2,24 +2,16 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 // 頁面元件
 import { DashboardPage, DashboardDateDetailPage } from './features/dashboard/pages';
-import { SalesPage, SalesDetailPage, SalesEditPage, SalesNewPage} from './features/sale/pages';
-import { ProductsPage, ProductDetailPage, ProductEditPage, ProductsCategoryDetailPage, ProductCategoryPage} from './features/product/pages';
-import { CustomersPage, CustomerDetailPage} from './features/customer/pages';
-import { SuppliersPage, SupplierDetailPage } from './features/Supplier/pages';
-import PackagesPage from './pages/PackagesPage';
-
-import ReportsPage from './pages/ReportsPage';
-// 進貨管理頁面元件
-import PurchaseOrdersPage from './features/purchase-order/pages/PurchaseOrdersPage';
-import PurchaseOrderFormPage from './features/purchase-order/pages/PurchaseOrderFormPage';
-import PurchaseOrderDetailPage from './features/purchase-order/pages/PurchaseOrderDetailPage';
-import PurchaseOrdersSupplierFilterPage from './features/purchase-order/pages/PurchaseOrdersSupplierFilterPage';
-// 出貨管理頁面元件
-import ShippingOrdersPage from './features/shipping-order/pages/ShippingOrdersPage';
-import ShippingOrderFormPage from './features/shipping-order/pages/ShippingOrderFormPage';
-import ShippingOrderDetailPage from './features/shipping-order/pages/ShippingOrderDetailPage';
-// 日常記帳管理頁面元件
+import { SalesPage, SalesDetailPage, SalesEditPage, SalesNewPage } from './features/sale/pages';
+import { ProductsPage, ProductDetailPage, ProductEditPage, ProductsCategoryDetailPage, ProductCategoryPage } from './features/product/pages';
+import { CustomersPage, CustomerDetailPage } from './features/customer/pages';
+import { SuppliersPage, SupplierDetailPage } from './features/supplier/pages';
+import { ShippingOrdersPage, ShippingOrderFormPage, ShippingOrderDetailPage } from './features/shipping-order/pages';
+import { PurchaseOrdersPage, PurchaseOrderFormPage, PurchaseOrderDetailPage, PurchaseOrdersSupplierFilterPage } from './features/purchase-order/pages';
 import { JournalPage, NewEntryPage, CategoryPage, CategoryDetailPage } from './features/daily-journal/pages';
+
+import PackagesPage from './pages/PackagesPage';
+import ReportsPage from './pages/ReportsPage';
 
 import AllCategoriesDetailComponent from './features/daily-journal/components/AllCategoriesDetailComponent';
 

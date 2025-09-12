@@ -19,17 +19,18 @@ import {
   InputAdornment,
   Snackbar
 } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
-import SearchIcon from '@mui/icons-material/Search';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import LaunchIcon from '@mui/icons-material/Launch';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import MonitorIcon from '@mui/icons-material/Monitor';
-// 移除拖曳圖標引入
+import {
+  Search as SearchIcon,
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  ArrowBack as ArrowBackIcon,
+  Launch as LaunchIcon,
+  Visibility as VisibilityIcon,
+  Monitor as MonitorIcon,
+  Home as HomeIcon,
+} from '@mui/icons-material';
+
 import PageHeaderSection from '../components/common/PageHeaderSection';
-import HomeIcon from '@mui/icons-material/Home';
-// 移除拖曳相關的引入
 import {
   getMonitoredProducts,
   addMonitoredProduct,
