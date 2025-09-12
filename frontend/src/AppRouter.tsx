@@ -5,9 +5,8 @@ import { DashboardPage, DashboardDateDetailPage } from './features/dashboard/pag
 import { SalesPage, SalesDetailPage, SalesEditPage, SalesNewPage} from './features/sale/pages';
 import { ProductsPage, ProductDetailPage, ProductEditPage, ProductsCategoryDetailPage, ProductCategoryPage} from './features/product/pages';
 import { CustomersPage, CustomerDetailPage} from './features/customer/pages';
+import { SuppliersPage, SupplierDetailPage } from './features/Supplier/pages';
 import PackagesPage from './pages/PackagesPage';
-import SuppliersPage from './features/Supplier/pages/SuppliersPage';
-import SupplierDetailPage from './features/Supplier/pages/SupplierDetailPage';
 
 import ReportsPage from './pages/ReportsPage';
 // 進貨管理頁面元件
