@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-
+// 儀錶板頁面元件
 import DashboardPage from './features/dashboard/pages/DashboardPage';
 import DashboardDateDetailPage from './features/dashboard/pages/DashboardDateDetailPage';
 
