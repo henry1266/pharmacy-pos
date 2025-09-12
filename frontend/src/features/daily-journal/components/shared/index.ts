@@ -29,8 +29,7 @@ export * from './businessComponents';
 export {
   MonthList,
   YearSelector,
-  CalendarGrid,
-  DataVisualization
+  CalendarGrid
 } from './businessComponents';
 
 // 工具函數

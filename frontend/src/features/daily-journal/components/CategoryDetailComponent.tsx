@@ -11,7 +11,6 @@ import {
   MonthList,
   YearSelector,
   CalendarGrid,
-  DataVisualization,
   // Hooks
   useAccountingCategories,
   useAccountingData,
@@ -133,16 +132,6 @@ const CategoryDetailComponent: React.FC = () => {
               currentYear={currentYear}
               selectedMonth={selectedMonth}
               dailyData={dailyData}
-            />
-          </ContentSection>
-          
-          {/* 右側數據可視化 */}
-          <ContentSection maxWidth={SECTION_WIDTHS.visualization} withPaper>
-            <DataVisualization
-              currentYear={currentYear}
-              monthlyData={monthlyData}
-              chartType={chartType}
-              onChartTypeChange={handleChartTypeChange}
             />
           </ContentSection>
         </Box>

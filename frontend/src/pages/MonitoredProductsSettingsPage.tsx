@@ -27,11 +27,10 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import LaunchIcon from '@mui/icons-material/Launch';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import MonitorIcon from '@mui/icons-material/Monitor';
-import DragHandleIcon from '@mui/icons-material/DragHandle';
+// 移除拖曳圖標引入
 import PageHeaderSection from '../components/common/PageHeaderSection';
 import HomeIcon from '@mui/icons-material/Home';
-import { DragDropContext, Draggable, DropResult } from 'react-beautiful-dnd';
-import { StrictModeDroppable } from '../components/common/StrictModeDroppable';
+// 移除拖曳相關的引入
 import {
   getMonitoredProducts,
   addMonitoredProduct,
@@ -139,43 +138,7 @@ const MonitoredProductsSettingsPage: React.FC = () => {
     setSearchTerm(e.target.value);
   };
   
-  // 處理拖放結束
-  const handleDragEnd = async (result: DropResult): Promise<void> => {
-    if (!result.destination) return;
-    
-    const items = Array.from(products);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    if (reorderedItem) {
-      items.splice(result.destination.index, 0, reorderedItem);
-    }
-    
-    // 更新本地狀態
-    setProducts(items);
-    
-    // 更新所有項目的順序
-    try {
-      const updatedItems = items.map((item, index) => ({
-        ...item,
-        order: (index + 1) * 10 // 每個項目間隔10，方便將來插入新項目
-      }));
-      
-      setProducts(updatedItems);
-      
-      // 逐個更新到資料庫
-      for (const item of updatedItems) {
-        await updateMonitoredProduct(item._id, {
-          order: item.order
-        });
-      }
-      
-      showSnackbar('監測產品順序已更新', 'success');
-    } catch (err: any) {
-      console.error('更新監測產品順序失敗:', err);
-      showSnackbar('更新監測產品順序失敗', 'error');
-      // 重新獲取產品，恢復原始順序
-      fetchProducts();
-    }
-  };
+  // 移除拖放處理函數
   
   // 顯示提示訊息
   const showSnackbar = (message: string, severity: 'success' | 'error' | 'warning' | 'info'): void => {
@@ -206,11 +169,10 @@ const MonitoredProductsSettingsPage: React.FC = () => {
   };
 
   // 渲染產品項目
-  const renderProductItem = (product: MonitoredProduct, _index: number, provided: any): JSX.Element => {
+  const renderProductItem = (product: MonitoredProduct): JSX.Element => {
     return (
       <ListItem
-        ref={provided.innerRef}
-        {...provided.draggableProps}
+        key={product._id}
         onClick={() => handleProductClick(product)}
         sx={{
           borderRadius: 1,
@@ -259,12 +221,6 @@ const MonitoredProductsSettingsPage: React.FC = () => {
           </Box>
         }
       >
-        <IconButton
-          {...provided.dragHandleProps}
-          sx={{ mr: 1 }}
-        >
-          <DragHandleIcon />
-        </IconButton>
         <ListItemText
           primary={
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -292,44 +248,22 @@ const MonitoredProductsSettingsPage: React.FC = () => {
     );
   };
   
-  // 將產品映射到Draggable組件
-  const mapProductToDraggable = (product: MonitoredProduct, index: number): JSX.Element => {
+  // 渲染產品列表
+  const renderProductList = (): JSX.Element => {
     return (
-      <Draggable
-        key={product._id}
-        draggableId={product._id}
-        index={index}
+      <List
+        sx={{
+          bgcolor: 'background.paper',
+          borderRadius: 1,
+          '& > div:nth-of-type(odd)': {
+            bgcolor: 'rgba(150, 150, 150, 0.04)'
+          },
+          border: 'none',
+          boxShadow: 'none'
+        }}
       >
-        {(draggableProvided) => renderProductItem(product, index, draggableProvided)}
-      </Draggable>
-    );
-  };
-  
-  // 渲染可拖放的產品列表
-  const renderDraggableProductList = (): JSX.Element => {
-    return (
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <StrictModeDroppable droppableId="products">
-          {(droppableProvided) => (
-            <List
-              {...droppableProvided.droppableProps}
-              ref={droppableProvided.innerRef}
-              sx={{
-                bgcolor: 'background.paper',
-                borderRadius: 1,
-                '& > div:nth-of-type(odd)': {
-                  bgcolor: 'rgba(150, 150, 150, 0.04)'
-                },
-                border: 'none',
-                boxShadow: 'none'
-              }}
-            >
-              {filteredProducts.map(mapProductToDraggable)}
-              {droppableProvided.placeholder}
-            </List>
-          )}
-        </StrictModeDroppable>
-      </DragDropContext>
+        {filteredProducts.map(renderProductItem)}
+      </List>
     );
   };
 
@@ -362,9 +296,9 @@ const MonitoredProductsSettingsPage: React.FC = () => {
     return (
       <Box sx={{ p: 2 }}>
         <Typography variant="body2" sx={{ mb: 1, color: 'text.secondary' }}>
-          拖動項目可調整順序。點擊產品可查看詳情，點擊刪除按鈕可移除監測產品。
+          點擊產品可查看詳情，點擊刪除按鈕可移除監測產品。
         </Typography>
-        {renderDraggableProductList()}
+        {renderProductList()}
       </Box>
     );
   };

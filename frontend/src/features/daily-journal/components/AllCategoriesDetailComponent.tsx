@@ -10,7 +10,6 @@ import {
   MonthList,
   YearSelector,
   CalendarGrid,
-  DataVisualization,
   // Hooks
   useAccountingCategories,
   useAccountingData,
@@ -122,18 +121,6 @@ const AllCategoriesDetailComponent: React.FC = () => {
                 currentYear={currentYear}
                 selectedMonth={selectedMonth}
                 dailyData={dailyData}
-              />
-            </Box>
-          </Box>
-          
-          {/* 右側數據可視化 */}
-          <Box sx={{ flex: '1 1 100%', maxWidth: SECTION_WIDTHS.visualization }}>
-            <Box sx={{ p: 1, border: '1px solid #e0e0e0', borderRadius: '4px', backgroundColor: 'white' }}>
-              <DataVisualization
-                currentYear={currentYear}
-                monthlyData={monthlyData}
-                chartType={chartType}
-                onChartTypeChange={handleChartTypeChange}
               />
             </Box>
           </Box>
