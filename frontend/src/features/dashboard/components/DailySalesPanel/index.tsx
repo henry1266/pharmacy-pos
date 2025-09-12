@@ -18,7 +18,7 @@ import {
   getPaymentStatusInfo,
   convertToStandardItems,
   DAILY_PANEL_STYLES
-} from '@components/dashboard/panels/shared';
+} from '..';
 
 // 支援兩種不同的 Sale 型別
 type SaleFromHook = import('@/hooks/useSalesListData').Sale;

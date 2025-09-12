@@ -64,7 +64,6 @@ export const AccountsManagementPage: React.FC = () => {
   const [selectedAccount, setSelectedAccount] = useState<Account3 | null>(null); // 選中的科目
   const [formLoading, setFormLoading] = useState(false);
   const [hierarchyKey, setHierarchyKey] = useState(0); // 用於強制重新載入階層
-  const [transactionListKey, setTransactionListKey] = useState(0); // 用於強制重新載入交易列表
   const [searchQuery, setSearchQuery] = useState(''); // 查詢科目的關鍵字
   
   // 通知狀態

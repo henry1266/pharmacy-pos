@@ -39,7 +39,7 @@ const AllCategoriesDetailComponent: React.FC = () => {
   
   // 處理返回按鈕點擊
   const handleBack = (): void => {
-    navigate('/accounting/categories');
+    navigate('/journals/categories');
   };
   
   // 處理導出CSV

@@ -10637,3 +10637,4 @@
 {"executionTime":"7ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":52,"timestamp":"2025-09-12 11:42:30:4230"}
 {"level":"\u001b[31merror\u001b[39m","message":"\u001b[31m資料庫錯誤: read ECONNRESET\u001b[39m","timestamp":"2025-09-12 12:01:46:146"}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":0,"timestamp":"2025-09-12 12:10:33:1033","totalCount":50,"unpaidCount":50}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":0,"timestamp":"2025-09-12 12:54:44:5444","totalCount":50,"unpaidCount":50}

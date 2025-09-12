@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
-import { DAILY_PANEL_STYLES } from '../styles';
+import { DAILY_PANEL_STYLES } from '../shared/styles';
 
 export interface ItemSummaryProps {
   orderNumber?: string;

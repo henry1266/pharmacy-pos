@@ -17,7 +17,7 @@ import {
   formatDate,
   convertToStandardItems,
   DAILY_PANEL_STYLES
-} from '../../../../components/dashboard/panels/shared';
+} from '..';
 
 interface DailyShippingPanelProps {
   shippingOrders: ShippingOrder[];
