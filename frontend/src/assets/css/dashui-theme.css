@@ -121,6 +121,21 @@ body {
   background-color: var(--bg-primary);
 }
 
+/* 全域滾動條樣式 */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #a7a7a796;
+  border-radius: 4px;
+}
+
 /* 側邊欄樣式 */
 .sidebar {
   background-color: var(--bg-sidebar);

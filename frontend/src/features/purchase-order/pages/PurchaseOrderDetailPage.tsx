@@ -9,18 +9,13 @@ import { useAppDispatch } from '@/hooks/redux';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   Typography,
-  Chip,
-  Card,
-  CardContent,
   Divider,
   Stack,
   Box,
-  Paper,
   Button,
   Snackbar,
   Alert,
   CircularProgress,
-  IconButton,
   Link as MuiLink
 } from '@mui/material';
 import {
@@ -30,23 +25,17 @@ import {
   Info as InfoIcon,
   Payment as PaymentIcon,
   Notes as NotesIcon,
-  Inventory as InventoryIcon,
   Percent as PercentIcon,
   AccountBalanceWallet as AccountBalanceWalletIcon,
   ReceiptLong as ReceiptLongIcon,
   AccountBalance as AccountBalanceIcon,
-  ShoppingCart as ShoppingCartIcon,
-  Home as HomeIcon,
   ArrowBack as ArrowBackIcon,
   Edit as EditIcon,
   Delete as DeleteIcon
 } from '@mui/icons-material';
-import PageHeaderSection from '@/components/common/PageHeaderSection';
-import BreadcrumbNavigation from '@/components/common/BreadcrumbNavigation';
 import CommonListPageLayout from '@/components/common/CommonListPageLayout';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
-
 import { fetchPurchaseOrder } from '@/redux/actions';
 import ProductItemsTable from '@/components/common/ProductItemsTable';
 import { productServiceV2 } from '@/services/productServiceV2';
@@ -690,20 +679,7 @@ const PurchaseOrderDetailPage: React.FC = () => {
             },
           },
           getRowId: (row: any) => row.id,
-          sx: {
-            // 自定義滾動條樣式
-            '& .MuiDataGrid-virtualScroller::-webkit-scrollbar': {
-              width: '4px',
-              height: '4px',
-            },
-            '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-track': {
-              background: '#ffffff02',
-            },
-            '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb': {
-              background: '#a7a7a796',
-              borderRadius: '4px',
-            },
-          }
+          sx: {}
         }}
       />
 

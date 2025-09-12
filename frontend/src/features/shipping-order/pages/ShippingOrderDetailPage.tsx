@@ -803,18 +803,6 @@ const ShippingOrderDetailPage: React.FC = () => {
           },
           getRowId: (row: any) => row.id,
           sx: {
-            // 自定義滾動條樣式
-            '& .MuiDataGrid-virtualScroller::-webkit-scrollbar': {
-              width: '4px',
-              height: '4px',
-            },
-            '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-track': {
-              background: '#ffffff02',
-            },
-            '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb': {
-              background: '#a7a7a796',
-              borderRadius: '4px',
-            },
             '& .positive-profit': {
               color: 'success.main'
             },

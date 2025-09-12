@@ -152,23 +152,7 @@ const SalesInputPanel: FC<SalesInputPanelProps> = ({
               <Box sx={{
                 flex: 1,
                 minHeight: 0,
-                pr: { sm: 0.5 },
-                '&::-webkit-scrollbar': {
-                  width: '6px'
-                },
-                '&::-webkit-scrollbar-track': {
-                  background: 'transparent'
-                },
-                '&::-webkit-scrollbar-thumb': {
-                  background: 'rgba(0,0,0,0.2)',
-                  borderRadius: '3px',
-                  '&:hover': {
-                    background: 'rgba(0,0,0,0.4)'
-                  }
-                },
-                // Firefox 滾輪樣式
-                scrollbarWidth: 'thin',
-                scrollbarColor: 'rgba(0,0,0,0.2) transparent'
+                pr: { sm: 0.5 }
               }}>
                 <SalesItemsTable
                   items={currentSale.items}

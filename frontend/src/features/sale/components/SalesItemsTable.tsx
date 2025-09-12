@@ -168,23 +168,6 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
         sx={{
           flex: 1,
           overflow: 'auto',
-          // 智能滾輪：只有在需要時才顯示
-          '&::-webkit-scrollbar': {
-            width: '6px'
-          },
-          '&::-webkit-scrollbar-track': {
-            background: 'transparent'
-          },
-          '&::-webkit-scrollbar-thumb': {
-            background: 'rgba(0,0,0,0.2)',
-            borderRadius: '3px',
-            '&:hover': {
-              background: 'rgba(0,0,0,0.4)'
-            }
-          },
-          // Firefox 滾輪樣式
-          scrollbarWidth: 'thin',
-          scrollbarColor: 'rgba(0,0,0,0.2) transparent',
           // 當內容不超出時，滾輪會自動隱藏
           overflowY: items.length > 8 ? 'scroll' : 'auto' // 超過8個項目才強制顯示滾輪
         }}
