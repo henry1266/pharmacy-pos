@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, ChangeEvent } from 'react';
 import { useSelector } from 'react-redux';
 import { useAppDispatch } from './redux';
-import { fetchShippingOrders, deleteShippingOrder, searchShippingOrders, fetchSuppliers } from '../redux/actions';
+import { fetchShippingOrders, deleteShippingOrder, fetchSuppliers } from '../redux/actions';
 import { shippingOrderServiceV2 } from '../services/shippingOrderServiceV2';
 import { RootState, ShippingOrdersState, SuppliersState } from '../types/store';
 import { ShippingOrder, Supplier } from '@pharmacy-pos/shared/types/entities';

@@ -125,17 +125,7 @@ const MonitoredProductsSettingsPage: React.FC = () => {
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
-  
-  // 移除拖放處理函數
-  
-  // 顯示提示訊息
-  const showSnackbar = (message: string, severity: 'success' | 'error' | 'warning' | 'info'): void => {
-    setSnackbar({
-      open: true,
-      message,
-      severity
-    });
-  };
+
   
   // 關閉提示訊息
   const handleCloseSnackbar = (): void => {

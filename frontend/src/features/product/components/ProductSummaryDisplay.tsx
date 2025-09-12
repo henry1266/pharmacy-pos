@@ -47,7 +47,6 @@ const ProductSummaryDisplay: React.FC<ProductSummaryDisplayProps> = ({
   variant = 'normal',
   clickable = true
 }) => {
-  const navigate = useNavigate();
   const [summary, setSummary] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [processedSummary, setProcessedSummary] = useState<string>('');

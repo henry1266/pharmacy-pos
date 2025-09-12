@@ -7,8 +7,6 @@
 
 import React from 'react';
 import {
-  TransactionGroupWithEntries3,
-  EmbeddedAccountingEntry3,
   Account3
 } from '@pharmacy-pos/shared/types/accounting3';
 import { useTransactionDetail } from '../../hooks';

@@ -11,7 +11,7 @@ import {
   CircularProgress,
   Grid
 } from '@mui/material';
-import PageHeader from '../components/PageHeader';
+import PageHeader from '../components/PurchaseOrdersPageHeader';
 import { format } from 'date-fns';
 import { DropResult } from 'react-beautiful-dnd';
 import { Product, Supplier } from '@pharmacy-pos/shared/types/entities';
@@ -20,7 +20,7 @@ import { purchaseOrderServiceV2 } from '@/services/purchaseOrderServiceV2';
 import usePurchaseOrderData from '../hooks/usePurchaseOrderData';
 import usePurchaseOrderItems from '../hooks/usePurchaseOrderItems';
 import BasicInfoForm from '../components/BasicInfoForm';
-import ProductItemForm from '@/features/purchase-order/components/ProductItemForm';
+import ProductItemForm from '../components/ProductItemForm';
 import ProductItemsTable from '@/features/purchase-order/components/ProductItemsTable';
 import GenericConfirmDialog from '@/components/common/GenericConfirmDialog';
 import ActionButtons from '@/features/purchase-order/components/ActionButtons';

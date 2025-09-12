@@ -27,8 +27,7 @@ import {
   Add as AddIcon,
   Search as SearchIcon,
   Business as BusinessIcon,
-  ArrowBack as ArrowBackIcon,
-  Home as HomeIcon
+  ArrowBack as ArrowBackIcon
 } from '@mui/icons-material';
 import CommonListPageLayout from '@/components/common/CommonListPageLayout';
 import TitleWithCount from '@/components/common/TitleWithCount';
@@ -42,16 +41,6 @@ const arrowBounce = keyframes`
   }
   50% {
     transform: translateX(-15px);
-  }
-`;
-
-// 定義圖標縮放動畫
-const iconPulse = keyframes`
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
   }
 `;
 

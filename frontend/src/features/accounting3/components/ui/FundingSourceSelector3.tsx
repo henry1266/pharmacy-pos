@@ -35,13 +35,12 @@ import {
   AccountTree as AccountTreeIcon,
   TrendingFlat as TrendingFlatIcon,
   MonetizationOn as MonetizationOnIcon,
-  CheckCircle as CheckCircleIcon,
-  Edit as EditIcon
+  CheckCircle as CheckCircleIcon
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 import { fundingTrackingService, transactionGroupService } from '../../services/transactionGroupService';
-import { TransactionGroup, FundingSource, TransactionGroupWithEntries } from '@pharmacy-pos/shared/types/accounting2';
+import { TransactionGroupWithEntries } from '@pharmacy-pos/shared/types/accounting2';
 
 interface FundingSourceSelector3Props {
   open: boolean;

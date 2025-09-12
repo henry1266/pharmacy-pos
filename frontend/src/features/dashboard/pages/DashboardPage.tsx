@@ -9,8 +9,6 @@ import {
   Snackbar
 } from '@mui/material';
 import { format } from 'date-fns';
-import { useNavigate } from 'react-router-dom';
-
 // Import Custom Hooks
 import useDashboardData from '../../../hooks/useDashboardData';
 import useTestMode from '../hooks/useTestMode';
@@ -47,7 +45,6 @@ const Grid = MuiGrid;
  * - 使用多個展示型組件渲染 UI 區塊
  */
 const DashboardPage: FC = () => {
-  const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
   
   // 使用測試模式 Hook

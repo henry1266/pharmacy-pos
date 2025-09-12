@@ -15,10 +15,8 @@ import {
 } from '@mui/material';
 import {
   Speed as SpeedIcon,
-  Settings as AdvancedIcon,
   SwapHoriz as SwapHorizIcon,
-  Balance as BalanceIcon,
-  AccountBalance as AccountIcon
+  Balance as BalanceIcon
 } from '@mui/icons-material';
 import { EmbeddedAccountingEntryFormData } from '@pharmacy-pos/shared/types/accounting2';
 import { AccountSelector3 } from '../../accounts/components/AccountSelector/AccountSelector';

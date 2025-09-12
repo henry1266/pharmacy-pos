@@ -12,8 +12,7 @@ import {
   Alert,
   useTheme,
   useMediaQuery,
-  CircularProgress,
-  Grid as MuiGrid
+  CircularProgress
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,

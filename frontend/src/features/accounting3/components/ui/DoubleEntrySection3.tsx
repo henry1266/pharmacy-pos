@@ -8,8 +8,6 @@ import {
   Alert
 } from '@mui/material';
 import {
-  Speed as SpeedIcon,
-  Help as HelpIcon,
   SwapHoriz as SwapHorizIcon,
   Balance as BalanceIcon
 } from '@mui/icons-material';

@@ -26,7 +26,7 @@ import {
 } from '../../../redux/actions';
 
 // 導入拆分後的組件
-import PageHeader from '../components/PageHeader';
+import PageHeader from '../components/ShippingOrderPageHeader';
 import ActionButtons from '../components/ActionButtons';
 import BasicInfoForm from '../components/BasicInfo';
 import ProductItemForm from '../components/ItemForm';

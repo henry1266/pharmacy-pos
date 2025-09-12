@@ -35,10 +35,7 @@ const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
     hasMultipleSources,
     calculateUsedAmount,
     calculateBalanceInfo,
-    calculateSourceTotal,
     calculateFlowTotal,
-    calculateRemainingAmount,
-    calculateAvailableAmount
   } = useTransactionCalculations(transaction, linkedTransactionDetails);
 
   // 處理帳戶點擊事件

@@ -3,7 +3,7 @@
  * @description 顯示出貨單列表，提供搜索、預覽、編輯和刪除功能
  */
 
-import React, { FC, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Box,
   Typography,

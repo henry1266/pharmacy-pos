@@ -3,7 +3,7 @@
  * 提供班次時間的查看、編輯和管理功能
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Card,
@@ -14,10 +14,6 @@ import {
   Button,
   Alert,
   Snackbar,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Chip,
   IconButton,
   Tooltip
