@@ -6,7 +6,7 @@ import { useAppSelector } from '../../../../hooks/redux';
 import { useTransactionCopyPage } from '../../pages/TransactionPage/hooks/useTransactionCopyPage';
 
 // 導入子組件
-import PageHeader from '../../pages/TransactionPage/components/PageHeader';
+import PageHeader from '../components/PageHeader';
 import TransactionPageForm from '../../pages/TransactionPage/components/TransactionPageForm';
 
 /**

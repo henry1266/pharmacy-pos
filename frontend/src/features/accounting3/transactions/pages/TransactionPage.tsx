@@ -6,8 +6,8 @@ import { useAppSelector } from '../../../../hooks/redux';
 import { useTransactionPage } from '../../pages/TransactionPage/hooks/useTransactionPage';
 
 // 導入子組件
-import PageHeader from '../../pages/TransactionPage/components/PageHeader';
-import FilterPanel from '../../pages/TransactionPage/components/FilterPanel';
+import PageHeader from '../components/PageHeader';
+import FilterPanel from '../components/FilterPanel';
 import TransactionList from '../../pages/TransactionPage/components/TransactionList';
 
 // 導入類型

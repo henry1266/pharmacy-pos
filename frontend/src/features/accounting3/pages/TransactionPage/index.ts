@@ -3,8 +3,8 @@ export { default as TransactionPage } from '../../transactions/pages/Transaction
 export { default as TransactionNewPage } from '../../transactions/pages/TransactionNewPage';
 
 // 導出子組件
-export { default as PageHeader } from './components/PageHeader';
-export { default as FilterPanel } from './components/FilterPanel';
+export { default as PageHeader } from '../../transactions/components/PageHeader';
+export { default as FilterPanel } from '../../transactions/components/FilterPanel';
 export { default as TransactionList } from './components/TransactionList';
 export { default as TransactionForm } from './components/TransactionForm';
 export { default as TransactionDetail } from './components/TransactionDetail';
