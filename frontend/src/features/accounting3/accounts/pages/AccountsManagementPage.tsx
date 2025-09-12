@@ -20,9 +20,9 @@ import {
 } from '@mui/icons-material';
 
 // 導入 accounting3 階層管理組件
-import { AccountHierarchyManager, AccountTransactionList } from '../../features/accounts/components';
+import { AccountHierarchyManager, AccountTransactionList } from '../components';
 // 導入 accounting3 科目表單組件
-import { AccountForm } from '../../features/accounts/components';
+import { AccountForm } from '../components';
 // 導入美化的麵包屑導航組件
 import { BreadcrumbNavigation } from '../../components/ui';
 

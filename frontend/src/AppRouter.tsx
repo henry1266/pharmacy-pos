@@ -30,9 +30,7 @@ import AccountTypeSettingsPage from './pages/settings/AccountTypeSettingsPage';
   import Accounting3TransactionPage from './features/accounting3/pages/TransactionPage';
   import TransactionEditPage from './features/accounting3/pages/TransactionPage/TransactionEditPage';
   import TransactionCopyPage from './features/accounting3/pages/TransactionPage/TransactionCopyPage';
-  import { AccountsManagementPage } from './features/accounting3/accounts/pages';
-  import { Accounting3DashboardPage } from './features/accounting3/accounts/pages';
-  import AccountDetailPage from './features/accounting3/accounts/pages/AccountDetailPage';
+  import { AccountsManagementPage, Accounting3DashboardPage, AccountDetailPage } from './features/accounting3/accounts/pages';
   import TransactionDetailPage from './features/accounting3/pages/TransactionPage/TransactionDetailPage';
 
 // AppRouter now only contains routes accessible *after* login

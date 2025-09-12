@@ -24,7 +24,7 @@ import {
 } from '@mui/icons-material';
 
 import { Account3 } from '@pharmacy-pos/shared/types/accounting3';
-import { accountHierarchyService } from '../../../../core/AccountHierarchyService';
+import { accountHierarchyService } from '../../../core/AccountHierarchyService';
 import {
   AccountHierarchyNode,
   AccountHierarchyConfig,
@@ -32,8 +32,8 @@ import {
   HierarchyExpandState,
   HierarchySelectionState,
   HierarchyRenderConfig
-} from '../../../../types';
-import AccountTreeView from '../../../../accounts/components/AccountTreeView/AccountTreeView';
+} from '../../../types';
+import AccountTreeView from '../AccountTreeView/AccountTreeView';
 
 interface AccountHierarchyManagerProps {
   organizationId?: string | null;
@@ -345,7 +345,7 @@ export const AccountHierarchyManager: React.FC<AccountHierarchyManagerProps> = (
       
       // 載入完成後立即計算統計資料
       console.log('🔄 開始計算統計資料...');
-      const { accountStatisticsService } = await import('../../../../core/AccountStatisticsService');
+      const { accountStatisticsService } = await import('../../../core/AccountStatisticsService');
       await accountStatisticsService.calculateStatistics(nodes, organizationId);
       console.log('✅ 統計資料計算完成');
       

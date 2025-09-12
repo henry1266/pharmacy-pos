@@ -10,13 +10,12 @@ import {
   Receipt as ReceiptIcon
 } from '@mui/icons-material';
 import { Account2 } from '@pharmacy-pos/shared/types/accounting2';
-import { TransactionGroupWithEntries, EmbeddedAccountingEntry } from '@pharmacy-pos/shared/types/accounting2';
-import { accounting3Service } from '../../../../services/accounting3Service';
+import { TransactionGroupWithEntries } from '@pharmacy-pos/shared/types/accounting2';
+import { accounting3Service } from '../../../services/accounting3Service';
 import { AccountTransactionListStatisticsCards as TransactionStatisticsCards } from './AccountTransactionListStatisticsCards';
-import { AccountTransactionListDetailDialog as TransactionDetailDialog } from './AccountTransactionListDetailDialog';
 import { AccountTransactionListTable as TransactionTable } from './AccountTransactionListTable';
 import { ExtendedTransactionGroupWithEntries } from './types';
-import { useAppSelector } from '../../../../../../hooks/redux';
+import { useAppSelector } from '../../../../../hooks/redux';
 
 interface AccountTransactionListProps {
   selectedAccount: Account2 | null;
