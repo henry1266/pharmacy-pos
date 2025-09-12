@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import { OrganizationForm } from '../features/organizations';
+import { OrganizationForm } from '../../features/organizations';
 
 /**
  * 組織表單頁面

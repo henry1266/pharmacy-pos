@@ -32,7 +32,7 @@ import {
 import CommonListPageLayout from '@/components/common/CommonListPageLayout';
 import TitleWithCount from '@/components/common/TitleWithCount';
 import { Organization } from '@pharmacy-pos/shared/types/organization';
-import organizationService from '../services/organizationService';
+import organizationService from '../../services/organizationService';
 
 // 定義箭頭動畫
 const arrowBounce = keyframes`

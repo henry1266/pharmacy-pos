@@ -24,8 +24,8 @@ import AccountTypeSettingsPage from './pages/settings/AccountTypeSettingsPage';
 // 員工管理頁面元件
   import { EmployeeBasicInfoPage, EmployeeListPage, EmployeeSchedulingPage, OvertimeManagementPage } from './features/employees';
 // 會計管理頁面元件
-  import OrganizationPage from './features/accounting3/pages/OrganizationPage';
-  import OrganizationFormPage from './features/accounting3/pages/OrganizationFormPage';
+  import OrganizationPage from './features/accounting3/organizations/pages/OrganizationPage';
+  import OrganizationFormPage from './features/accounting3/organizations/pages/OrganizationFormPage';
   import PaymentManagementPage from './features/accounting3/pages/PaymentManagementPage';
   import Accounting3TransactionPage from './features/accounting3/pages/TransactionPage';
   import TransactionEditPage from './features/accounting3/pages/TransactionPage/TransactionEditPage';

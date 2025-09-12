@@ -3,4 +3,4 @@
  */
 
 // Organization Form
-export { default as OrganizationForm } from './OrganizationForm/OrganizationForm';
+export { default as OrganizationForm } from './OrganizationForm';
