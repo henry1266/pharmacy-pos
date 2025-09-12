@@ -236,9 +236,8 @@ const CategoryPage: React.FC = () => {
           bgcolor: 'transparent',
           cursor: 'pointer',
           color: 'text.primary',
-          border: '1px solid rgba(0, 0, 0, 0.8)',
+          border: '1px solid rgba(5, 5, 5, 0.2)',
           '&:hover': {
-            bgcolor: 'rgba(0, 0, 0, 0.8)',
             borderColor: 'rgba(0, 0, 0, 0.8)'
           },
           '& .MuiListItemText-primary': {
@@ -263,7 +262,6 @@ const CategoryPage: React.FC = () => {
             sx={{
               padding: '12px',
               backgroundColor: 'transparent',
-              border: '1px solid',
               borderColor: 'primary.main',
               '&:hover': {
                 backgroundColor: 'primary.hover',
@@ -284,7 +282,6 @@ const CategoryPage: React.FC = () => {
             sx={{
               padding: '12px',
               backgroundColor: 'transparent',
-              border: '1px solid',
               borderColor: 'info.main',
               '&:hover': {
                 backgroundColor: 'info.hover',
@@ -305,7 +302,6 @@ const CategoryPage: React.FC = () => {
             sx={{
               padding: '12px',
               backgroundColor: 'transparent',
-              border: '1px solid',
               borderColor: 'error.main',
               '&:hover': {
                 backgroundColor: 'error.hover',
@@ -324,7 +320,6 @@ const CategoryPage: React.FC = () => {
             mr: 1.5,
             padding: '12px',
             backgroundColor: 'transparent',
-            border: '1px solid',
             borderColor: 'action.active',
             '&:hover': {
               backgroundColor: 'action.hover',
@@ -339,10 +334,7 @@ const CategoryPage: React.FC = () => {
           primary={category.name}
           secondary={category.description ?? '無描述'}
           primaryTypographyProps={{
-            sx: { color: '#000000 !important', fontWeight: 500 }
-          }}
-          secondaryTypographyProps={{
-            sx: { color: 'rgba(0, 0, 0, 0.8) !important' }
+            sx: { fontWeight: 500 }
           }}
         />
       </ListItem>
