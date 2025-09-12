@@ -2,8 +2,8 @@ import React, { memo, useEffect } from 'react';
 import { Chip, Typography } from '@mui/material';
 import { LocalShipping as LocalShippingIcon, Business as BusinessIcon } from '@mui/icons-material';
 import type { ShippingOrder } from '@pharmacy-pos/shared/types/entities';
-import { shippingOrderServiceV2 } from '../../../../services/shippingOrderServiceV2';
-import { useDailyShipping } from '../../hooks/useDailyShipping';
+import { shippingOrderServiceV2 } from '../../../services/shippingOrderServiceV2';
+import { useDailyShipping } from '../hooks/useDailyShipping';
 import {
   DailyPanel,
   DailyPanelConfig,
@@ -17,7 +17,7 @@ import {
   formatDate,
   convertToStandardItems,
   DAILY_PANEL_STYLES
-} from '..';
+} from '.';
 
 export interface DailyShippingPanelProps {
   shippingOrders: ShippingOrder[];

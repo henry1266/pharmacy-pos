@@ -18,7 +18,7 @@ import {
   getPaymentStatusInfo,
   convertToStandardItems,
   DAILY_PANEL_STYLES
-} from '..';
+} from '.';
 
 // 支援兩種不同的 Sale 型別
 type SaleFromHook = import('@/features/sale/hooks/useSalesListData').Sale;

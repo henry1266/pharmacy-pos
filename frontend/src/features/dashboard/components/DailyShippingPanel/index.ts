@@ -5,7 +5,7 @@
  */
 
 // 從組件實現文件導入
-import DailyShippingPanel, { DailyShippingPanelProps } from './DailyShippingPanel';
+import DailyShippingPanel, { DailyShippingPanelProps } from '../DailyShippingPanel';
 
 // 匯出組件
 export { DailyShippingPanel };

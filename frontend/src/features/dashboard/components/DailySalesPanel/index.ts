@@ -5,7 +5,7 @@
  */
 
 // 從組件實現文件導入
-import DailySalesPanel, { DailySalesPanelProps, Sale } from './DailySalesPanel';
+import DailySalesPanel, { DailySalesPanelProps, Sale } from '../DailySalesPanel';
 
 // 匯出組件
 export { DailySalesPanel };
