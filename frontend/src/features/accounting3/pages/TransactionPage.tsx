@@ -19,14 +19,10 @@ import {
 } from '@mui/material';
 import { BreadcrumbNavigation } from '../components/ui/BreadcrumbNavigation';
 import {
-  AccountBalance as AccountBalanceIcon,
-  ListAlt as ListIcon,
   Add as AddIcon,
-  Edit as EditIcon,
   FilterList as FilterListIcon,
   Search as SearchIcon,
   ArrowBack as ArrowBackIcon,
-  AccountTree as AccountTreeIcon,
   Receipt as ReceiptIcon,
   Home as HomeIcon,
 } from '@mui/icons-material';

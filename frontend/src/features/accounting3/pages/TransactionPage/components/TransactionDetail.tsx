@@ -29,7 +29,7 @@ import {
   LockOpen as LockOpenIcon
 } from '@mui/icons-material';
 import { TransactionGroupWithEntries } from '../types';
-import { formatDateToString } from '../utils/dateUtils';
+import { formatDateToString } from '../../../transactions/utils/dateUtils';
 
 interface TransactionDetailProps {
   open: boolean;

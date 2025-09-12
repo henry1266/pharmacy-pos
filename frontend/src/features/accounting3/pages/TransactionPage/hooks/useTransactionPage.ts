@@ -13,7 +13,7 @@ import {
   TransactionGroupWithEntries, 
   SnackbarState
 } from '../types';
-import { safeDateConvert } from '../utils/dateUtils';
+import { safeDateConvert } from '../../../transactions/utils/dateUtils';
 
 /**
  * 交易頁面的主要 Hook

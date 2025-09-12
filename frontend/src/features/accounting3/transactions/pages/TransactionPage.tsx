@@ -3,15 +3,15 @@ import { Container, Alert, Snackbar, Box } from '@mui/material';
 import { useAppSelector } from '../../../../hooks/redux';
 
 // 導入自定義 hook
-import { useTransactionPage } from './hooks/useTransactionPage';
+import { useTransactionPage } from '../../pages/TransactionPage/hooks/useTransactionPage';
 
 // 導入子組件
-import PageHeader from './components/PageHeader';
-import FilterPanel from './components/FilterPanel';
-import TransactionList from './components/TransactionList';
+import PageHeader from '../../pages/TransactionPage/components/PageHeader';
+import FilterPanel from '../../pages/TransactionPage/components/FilterPanel';
+import TransactionList from '../../pages/TransactionPage/components/TransactionList';
 
 // 導入類型
-import { FilterOptions } from './types';
+import { FilterOptions } from '../../pages/TransactionPage/types';
 
 /**
  * 會計系統交易列表頁面

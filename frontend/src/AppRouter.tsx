@@ -28,10 +28,10 @@ import AccountTypeSettingsPage from './pages/settings/AccountTypeSettingsPage';
   import OrganizationFormPage from './features/accounting3/organizations/pages/OrganizationFormPage';
   import PaymentManagementPage from './features/accounting3/pages/PaymentManagementPage';
   import Accounting3TransactionPage from './features/accounting3/pages/TransactionPage';
-  import TransactionEditPage from './features/accounting3/pages/TransactionPage/TransactionEditPage';
-  import TransactionCopyPage from './features/accounting3/pages/TransactionPage/TransactionCopyPage';
+  import TransactionEditPage from './features/accounting3/transactions/pages/TransactionEditPage';
+  import TransactionCopyPage from './features/accounting3/transactions/pages/TransactionCopyPage';
   import { AccountsManagementPage, Accounting3DashboardPage, AccountDetailPage } from './features/accounting3/accounts/pages';
-  import TransactionDetailPage from './features/accounting3/pages/TransactionPage/TransactionDetailPage';
+  import TransactionDetailPage from './features/accounting3/transactions/pages/TransactionDetailPage';
 
 // AppRouter now only contains routes accessible *after* login
 const AppRouter: React.FC = () => {

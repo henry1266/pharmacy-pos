@@ -34,7 +34,7 @@ import {
   TransactionGroupWithEntriesFormData,
   EmbeddedAccountingEntryFormData
 } from '../types';
-import { safeDateConvert } from '../utils/dateUtils';
+import { safeDateConvert } from '../../../transactions/utils/dateUtils';
 
 interface TransactionFormProps {
   open: boolean;

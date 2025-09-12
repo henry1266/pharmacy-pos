@@ -3,26 +3,27 @@ import { Container, Alert, Box, Snackbar } from '@mui/material';
 import { useAppSelector } from '../../../../hooks/redux';
 
 // 導入自定義 hook
-import { useTransactionCopyPage } from './hooks/useTransactionCopyPage';
+import { useTransactionNewPage } from '../../pages/TransactionPage/hooks/useTransactionNewPage';
 
 // 導入子組件
-import PageHeader from './components/PageHeader';
-import TransactionPageForm from './components/TransactionPageForm';
+import PageHeader from '../../pages/TransactionPage/components/PageHeader';
+import TransactionPageForm from '../../pages/TransactionPage/components/TransactionPageForm';
 
 /**
- * 會計系統交易複製頁面
- * 專門用於複製交易
+ * 會計系統交易新增頁面
+ * 專門用於新增交易
  */
-export const TransactionCopyPage: React.FC = () => {
+export const TransactionNewPage: React.FC = () => {
   // 使用自定義 hook 獲取頁面狀態和事件處理函數
   const {
     // 狀態
-    copyingTransaction,
     loading,
     error,
     snackbar,
     
     // URL 參數
+    defaultAccountId,
+    defaultOrganizationId,
     
     // 事件處理函數
     handleFormSubmit,
@@ -31,7 +32,7 @@ export const TransactionCopyPage: React.FC = () => {
     
     // 導航
     navigate
-  } = useTransactionCopyPage();
+  } = useTransactionNewPage();
 
   // 獲取帳戶和組織數據
   const { accounts } = useAppSelector(state => state.account2);
@@ -51,7 +52,7 @@ export const TransactionCopyPage: React.FC = () => {
       />
 
       {/* 載入中提示 */}
-      {loading && !copyingTransaction && (
+      {loading && (
         <Alert severity="info" sx={{ mb: 3 }}>
           正在載入資料...
         </Alert>
@@ -64,17 +65,17 @@ export const TransactionCopyPage: React.FC = () => {
         </Alert>
       )}
 
-      {/* 複製交易表單 */}
+      {/* 新增交易表單 */}
       <Box sx={{ p: 2, bgcolor: 'background.paper', borderRadius: 1 }}>
         <TransactionPageForm
           onCancel={handleCancel}
           onSubmit={handleFormSubmit}
           editingTransaction={null}
-          copyingTransaction={copyingTransaction}
+          copyingTransaction={null}
           accounts={accounts}
           organizations={organizations}
-          defaultAccountId={null}
-          defaultOrganizationId={null}
+          defaultAccountId={defaultAccountId}
+          defaultOrganizationId={defaultOrganizationId}
         />
       </Box>
 
@@ -97,4 +98,4 @@ export const TransactionCopyPage: React.FC = () => {
   );
 };
 
-export default TransactionCopyPage;
+export default TransactionNewPage;
