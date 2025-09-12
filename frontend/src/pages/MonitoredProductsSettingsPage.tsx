@@ -12,7 +12,6 @@ import {
   CircularProgress,
   Alert,
   Paper,
-  Divider,
   Chip,
   Card,
   CardContent,
@@ -35,7 +34,6 @@ import {
   getMonitoredProducts,
   addMonitoredProduct,
   deleteMonitoredProduct,
-  updateMonitoredProduct,
   MonitoredProduct
 } from '../services/monitoredProductService';
 
@@ -46,16 +44,6 @@ const arrowBounce = keyframes`
   }
   50% {
     transform: translateX(-15px);
-  }
-`;
-
-// 定義圖標縮放動畫
-const iconPulse = keyframes`
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
   }
 `;
 

@@ -47,9 +47,9 @@ router.get('/', auth, async (_req: Request, res: Response): Promise<void> => {
         });
         
         // 記錄查詢結果，幫助調試
-        console.log(`查詢產品: ${productCodeStr}, 結果:`, baseProduct ?
-          `找到產品 - 名稱: ${baseProduct.name}, code: ${baseProduct.code}, shortCode: ${baseProduct.shortCode}` :
-          '未找到產品');
+       // console.log(`查詢產品: ${productCodeStr}, 結果:`, baseProduct ?
+          //`找到產品 - 名稱: ${baseProduct.name}, code: ${baseProduct.code}, shortCode: ${baseProduct.shortCode}` :
+          //'未找到產品');
         
         // 返回合併後的資料，不包含 addedAt
         // 確保 productName 欄位一定有值，並記錄最終回傳的資料
@@ -60,7 +60,7 @@ router.get('/', auth, async (_req: Request, res: Response): Promise<void> => {
           addedBy: product.addedBy ? product.addedBy.toString() : ''
         };
         
-        console.log(`最終回傳資料: ${JSON.stringify(result)}`);
+        //console.log(`最終回傳資料: ${JSON.stringify(result)}`);
         return result;
       })
     );

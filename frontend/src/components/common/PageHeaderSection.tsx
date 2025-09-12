@@ -2,7 +2,6 @@ import React, { ReactNode } from 'react';
 import {
   Paper,
   Box,
-  Button,
   SxProps,
   Theme
 } from '@mui/material';

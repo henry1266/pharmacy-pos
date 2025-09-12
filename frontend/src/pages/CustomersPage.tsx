@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, FC, ChangeEvent } from 'react';
 import { keyframes } from '@emotion/react';
-import { useNavigate } from 'react-router-dom';
 import TitleWithCount from '../components/common/TitleWithCount';
 import PropTypes from 'prop-types';
 import {
@@ -528,7 +527,6 @@ const handleDeleteCustomerActual = async (
 // Refactored CustomersPage Component
 // ---
 const CustomersPage: FC = () => {
-  const navigate = useNavigate();
   const [isTestMode, setIsTestMode] = useState<boolean>(false);
 
   useEffect(() => {

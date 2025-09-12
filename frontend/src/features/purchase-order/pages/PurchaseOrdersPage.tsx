@@ -30,7 +30,6 @@ import {
 import { ActionButtons } from '@/features/purchase-order/shared/components';
 import { usePurchaseOrdersList } from '../hooks/usePurchaseOrdersList';
 import { PurchaseOrdersPageProps, PurchaseOrder } from '../types/list';
-import PurchaseOrderPreview from '@/features/purchase-order/components/PurchaseOrderPreview';
 import SupplierCheckboxFilter from '@/components/filters/SupplierCheckboxFilter';
 import PurchaseOrdersTable from '@/features/purchase-order/components/PurchaseOrdersTable';
 import CsvImportDialog from '@/features/purchase-order/components/CsvImportDialog';

@@ -10,7 +10,6 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import UnifiedThemeSettings from '../components/settings/UnifiedThemeSettings';
-import { useTheme } from '../contexts/ThemeContext';
 import {
   Palette as PaletteIcon,
   Settings as SettingsIcon,
@@ -52,7 +51,6 @@ const TabPanel: React.FC<TabPanelProps> = ({ children, value, index, ...other })
  */
 const SettingsPage: React.FC = () => {
   const [tabValue, setTabValue] = useState(0);
-  const { currentTheme } = useTheme();
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);

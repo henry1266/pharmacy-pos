@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Paper, Typography, Button } from '@mui/material';
+import { Box, Paper, Button } from '@mui/material';
 import {
   Add as AddIcon,
   ArrowBack as ArrowBackIcon,
