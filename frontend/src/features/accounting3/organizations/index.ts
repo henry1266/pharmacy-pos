@@ -1,31 +1,57 @@
 /**
- * Organizations 功能模組導出
- * 
- * 此文件將導出 organizations 功能模組的所有公共 API
+ * Organizations Feature Export
+ * 統一導出 organizations 功能的所有內容
  */
 
-// 臨時導出一個空對象，以便 TypeScript 將此文件視為模組
-export const OrganizationModule = {
-  // 將來會導出實際的組件、hooks、服務等
-};
+// 組件導出
+export { OrganizationForm } from './components';
 
-// 當子目錄中的文件準備好後，將取消註釋以下導出
-/*
-// 導出組件
-export * from './components';
+// Hooks 導出
+export { useOrganizationForm } from './hooks';
 
-// 導出 hooks
-export * from './hooks';
+// 服務導出
+export {
+  getOrganizations,
+  getOrganizationById,
+  createOrganization,
+  updateOrganization,
+  deleteOrganization,
+  getOrganizationStatistics,
+  getOrganizationTree,
+  filterOrganizationList,
+  checkOrganizationCodeAvailability,
+  toggleOrganizationStatus
+} from './services';
 
-// 導出服務
-export * from './services';
+// 型別導出
+export type {
+  Organization,
+  OrganizationType,
+  OrganizationFormData,
+  OrganizationTreeNode,
+  OrganizationFilterOptions,
+  OrganizationStatistics,
+  OrganizationsResponse,
+  CreateOrganizationRequest,
+  UpdateOrganizationRequest
+} from './types';
 
-// 導出工具函數
-export * from './utils';
+// Hook 型別導出
+export type { UseOrganizationFormReturn } from './hooks';
 
-// 導出類型
-export * from './types';
-
-// 導出頁面
-export * from './pages';
-*/
+// 工具函數導出
+export {
+  buildOrganizationTree,
+  generateOrganizationCode,
+  getOrganizationTypePrefix,
+  getOrganizationTypeName,
+  validateOrganizationCode,
+  filterOrganizations,
+  calculateOrganizationLevel,
+  getOrganizationPath,
+  canDeleteOrganization,
+  formatOrganizationDisplayName,
+  validateEmail,
+  validatePhone,
+  formatAddress
+} from './utils';
