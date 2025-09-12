@@ -3,16 +3,8 @@ import { keyframes } from '@emotion/react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
-  Container,
   Typography,
   Button,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   IconButton,
   Chip,
   TextField,
@@ -23,8 +15,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Fab,
-  Tooltip,
   Card,
   CardContent,
   List,
@@ -38,13 +28,10 @@ import {
   Search as SearchIcon,
   Business as BusinessIcon,
   ArrowBack as ArrowBackIcon,
-  Home as HomeIcon,
-  AddBusiness as AddBusinessIcon,
+  Home as HomeIcon
 } from '@mui/icons-material';
-import { BreadcrumbNavigation } from '../components/ui/BreadcrumbNavigation';
 import CommonListPageLayout from '@/components/common/CommonListPageLayout';
 import TitleWithCount from '@/components/common/TitleWithCount';
-
 import { Organization } from '@pharmacy-pos/shared/types/organization';
 import organizationService from '../services/organizationService';
 

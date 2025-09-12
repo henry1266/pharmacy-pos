@@ -9,9 +9,7 @@ import {
   Paper,
   Button,
   List,
-  ListItem,
-  Tab,
-  Tabs
+  ListItem
 } from '@mui/material';
 import { getDaysInMonth } from 'date-fns';
 import {
@@ -20,18 +18,13 @@ import {
 } from './types';
 import {
   MonthListItem,
-  CalendarCell,
-  BarChartComponent,
-  LineChartComponent,
-  PieChartComponent
+  CalendarCell
 } from './components';
 import {
   MONTH_NAMES,
-  WEEKDAYS,
-  CHART_COLORS
+  WEEKDAYS
 } from './constants';
 import {
-  prepareChartData,
   calculateYearlyTotal
 } from './utils';
 
