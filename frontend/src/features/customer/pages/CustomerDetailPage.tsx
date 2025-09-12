@@ -16,11 +16,11 @@ import {
 } from '@mui/icons-material';
 
 // Import Hook
-import useCustomerDetailData from '../hooks/useCustomerDetailData';
+import useCustomerDetailData from '../../../hooks/useCustomerDetailData';
 
 // Import Presentation Components
-import CustomerInfoCard from '../components/customers/CustomerInfoCard';
-import TwoColumnLayout from '../components/common/TwoColumnLayout';
+import CustomerInfoCard from '../components/CustomerInfoCard';
+import TwoColumnLayout from '../../../components/common/TwoColumnLayout';
 
 // 定義路由參數介面
 interface CustomerDetailParams {

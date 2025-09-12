@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, FC, ChangeEvent } from 'react';
 import { keyframes } from '@emotion/react';
-import TitleWithCount from '../components/common/TitleWithCount';
+import TitleWithCount from '../../../components/common/TitleWithCount';
 import PropTypes from 'prop-types';
 import {
   Box,
@@ -34,9 +34,9 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PersonIcon from '@mui/icons-material/Person';
 
-import CommonListPageLayout from '../components/common/CommonListPageLayout';
-import useCustomerData from '../hooks/useCustomerData';
-import testModeDataService from '../testMode/services/TestModeDataService';
+import CommonListPageLayout from '../../../components/common/CommonListPageLayout';
+import useCustomerData from '../../../hooks/useCustomerData';
+import testModeDataService from '../../../testMode/services/TestModeDataService';
 
 // 定義客戶資料介面
 interface Customer {

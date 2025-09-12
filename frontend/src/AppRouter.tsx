@@ -3,17 +3,11 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 // 頁面元件
 import { DashboardPage, DashboardDateDetailPage } from './features/dashboard/pages';
 import { SalesPage, SalesDetailPage, SalesEditPage, SalesNewPage} from './features/sale/pages';
-
-import ProductsPage from './features/product/pages/ProductsPage';
-import ProductDetailPage from './features/product/pages/ProductDetailPage';
-import ProductEditPage from './features/product/pages/ProductEditPage';
-import ProductsCategoryDetailPage from './features/product/pages/ProductsCategoryDetailPage';
-import ProductCategoryPage from './features/product/pages/ProductCategoryPage';
+import { ProductsPage, ProductDetailPage, ProductEditPage, ProductsCategoryDetailPage, ProductCategoryPage} from './features/product/pages';
+import { CustomersPage, CustomerDetailPage} from './features/customer/pages';
 import PackagesPage from './pages/PackagesPage';
 import SuppliersPage from './features/Supplier/pages/SuppliersPage';
 import SupplierDetailPage from './features/Supplier/pages/SupplierDetailPage';
-import CustomersPage from './pages/CustomersPage';
-import CustomerDetailPage from './pages/CustomerDetailPage';
 
 import ReportsPage from './pages/ReportsPage';
 // 進貨管理頁面元件
