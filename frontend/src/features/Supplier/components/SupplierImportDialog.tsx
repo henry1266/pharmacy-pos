@@ -10,8 +10,7 @@ import {
   LinearProgress,
   List,
   ListItem,
-  ListItemText,
-  Alert
+  ListItemText
 } from '@mui/material';
 import { FileDownload as FileDownloadIcon, UploadFile as UploadFileIcon } from '@mui/icons-material';
 import { ImportResult } from '../types/supplier.types';

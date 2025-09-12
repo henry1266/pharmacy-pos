@@ -17,7 +17,6 @@ import {
 import {
   Edit as EditIcon,
   Delete as DeleteIcon,
-  Visibility as VisibilityIcon,
   Business as BusinessIcon,
   ArrowBack as ArrowBackIcon
 } from '@mui/icons-material';

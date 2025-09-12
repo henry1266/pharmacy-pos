@@ -32,15 +32,12 @@ const SuppliersPage: FC<{}> = () => {
     selectedSupplier,
     selectSupplier,
     handleDeleteSupplier,
-    handleSaveSupplier,
-    setActualError
+    handleSaveSupplier
   } = useSupplierManagement();
 
   const {
     openDialog,
-    setOpenDialog,
     currentSupplierState,
-    setCurrentSupplierState,
     editMode,
     handleInputChange,
     handleEditSupplier,
@@ -58,7 +55,6 @@ const SuppliersPage: FC<{}> = () => {
 
   const {
     openImportDialog,
-    setOpenImportDialog,
     csvFile,
     importLoading,
     importResult,

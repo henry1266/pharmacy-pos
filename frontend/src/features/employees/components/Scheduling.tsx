@@ -16,7 +16,7 @@ import { useEmployeeScheduling } from '../core';
 import useCalendarGrid from '../hooks/useCalendarGrid';
 import useKeyboardNavigation from '../hooks/useKeyboardNavigation';
 import useWorkHoursCalculation from '../hooks/useWorkHoursCalculation';
-import useScheduleOperations from '../../../hooks/useScheduleOperations';
+import useScheduleOperations from '../hooks/useScheduleOperations';
 import { SchedulesByDate } from '../types';
 import ShiftSelectionModal from './ShiftSelectionModal';
 import QuickSelectPanel from './QuickSelectPanel';
@@ -33,7 +33,7 @@ import {
   getLeaveTypeText,
   getBorderStyle,
   getBorderColor
-} from '../../../utils/calendarUtils';
+} from '../utils/calendarUtils';
 
 // 定義排班資料介面
 interface Schedule {

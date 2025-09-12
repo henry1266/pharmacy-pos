@@ -20,7 +20,7 @@ import { useShiftTimeConfig } from '../../core/hooks/useShiftTimeConfig';
 import useWorkHoursCalculation from '../../hooks/useWorkHoursCalculation';
 import useScheduleCalculations from '../../hooks/useScheduleCalculations';
 import ShiftTimeConfigManager from './ShiftTimeConfigManager';
-import { formatDateString } from '../../../../utils/calendarUtils';
+import { formatDateString } from '../../utils/calendarUtils';
 
 /**
  * 排班管理主組件
