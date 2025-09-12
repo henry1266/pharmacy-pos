@@ -75,7 +75,7 @@ const JournalPage: React.FC<JournalPageProps> = ({ openAddDialog = false }) => {
 
   // Navigate to the dedicated new accounting record page
   const handleOpenAddDialog = (): void => {
-    navigate('/accounting/new');
+    navigate('/journals/new');
   };
 
   // Open Edit Dialog - Fetch data using hook

@@ -114,7 +114,7 @@ const JournalFilter: React.FC<JournalFilterProps> = ({
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Button
               component={Link}
-              to="/accounting/categories"
+              to="/journals/categories"
               variant="outlined"
               color="primary"
               startIcon={<SettingsIcon />}

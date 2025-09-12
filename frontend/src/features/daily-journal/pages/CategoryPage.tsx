@@ -92,7 +92,7 @@ const CategoryPage: React.FC = () => {
   
   // 返回上一頁
   const handleBack = (): void => {
-    navigate('/accounting');
+    navigate('/journals');
   };
   
   // 獲取類別
@@ -204,7 +204,7 @@ const CategoryPage: React.FC = () => {
   // 處理詳細按鈕點擊
   const handleDetailButtonClick = (e: React.MouseEvent<HTMLButtonElement>, categoryId: string): void => {
     e.stopPropagation();
-    window.location.href = `/accounting/categories/${categoryId}`;
+    window.location.href = `/journals/categories/${categoryId}`;
   };
   
   // 處理對話框提交
@@ -304,7 +304,7 @@ const CategoryPage: React.FC = () => {
         breadcrumbItems={[
           {
             label: '記帳管理',
-            path: '/accounting',
+            path: '/journals',
             icon: <AccountBalanceWalletIcon sx={{ fontSize: '1.1rem' }} />
           },
           {
