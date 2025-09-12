@@ -448,9 +448,6 @@ const PurchaseOrdersPage: FC<PurchaseOrdersPageProps> = ({ initialSupplierId = n
           <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
             選擇一個進貨單查看詳情
           </Typography>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-            請從左側列表中選擇一個進貨單
-          </Typography>
         </Box>
       </CardContent>
     </Card>

@@ -173,9 +173,6 @@ const ShippingOrderDetailPanel: FC<ShippingOrderDetailPanelProps> = ({
             <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
               選擇出貨單查看詳情
             </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-              請從左側列表中選擇一個出貨單
-            </Typography>
           </Box>
         </CardContent>
       </Card>

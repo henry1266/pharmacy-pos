@@ -266,8 +266,8 @@ const CategoryPage: React.FC = () => {
               border: '1px solid',
               borderColor: 'primary.main',
               '&:hover': {
-                backgroundColor: 'primary.main',
-                opacity: 0.1
+                backgroundColor: 'primary.hover',
+                opacity: 0.7
               }
             }}
           >
@@ -287,8 +287,8 @@ const CategoryPage: React.FC = () => {
               border: '1px solid',
               borderColor: 'info.main',
               '&:hover': {
-                backgroundColor: 'info.main',
-                opacity: 0.1
+                backgroundColor: 'info.hover',
+                opacity: 0.7
               }
             }}
           >
@@ -308,8 +308,8 @@ const CategoryPage: React.FC = () => {
               border: '1px solid',
               borderColor: 'error.main',
               '&:hover': {
-                backgroundColor: 'error.main',
-                opacity: 0.1
+                backgroundColor: 'error.hover',
+                opacity: 0.7
               }
             }}
           >
@@ -328,7 +328,7 @@ const CategoryPage: React.FC = () => {
             borderColor: 'action.active',
             '&:hover': {
               backgroundColor: 'action.hover',
-              opacity: 0.1
+              opacity: 0.7
             }
           }}
           size="medium"
@@ -554,9 +554,6 @@ const CategoryPage: React.FC = () => {
           </Box>
           <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
             選擇一個分類查看詳情
-          </Typography>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-            請從左側列表中選擇一個分類
           </Typography>
         </Box>
       </CardContent>

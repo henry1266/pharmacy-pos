@@ -638,9 +638,6 @@ export const AccountSelector3: React.FC<AccountSelector3Props> = ({
           }}>
             <Box sx={{ textAlign: 'center' }}>
               <AccountBalanceIcon sx={{ fontSize: 48, mb: 2, opacity: 0.5 }} />
-              <Typography variant="body1">
-                請從左側選擇一個會計科目
-              </Typography>
               <Typography variant="body2" sx={{ mt: 1 }}>
                 點擊科目名稱查看詳細資訊
               </Typography>
