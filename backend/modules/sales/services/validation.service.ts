@@ -11,6 +11,25 @@ import {
   SaleCreationRequest
 } from '../sales.types';
 
+// Use shared zod schemas (ESM) via dynamic import to validate request payloads
+async function validateWithSharedZod(body: any, mode: 'create' | 'update'): Promise<ValidationResult> {
+  try {
+    const modulePath = require.resolve('@pharmacy-pos/shared/dist/schemas/zod/sale.js');
+    const mod = await import(modulePath);
+    const schema = mode === 'create' ? (mod as any).createSaleSchema : (mod as any).updateSaleSchema;
+    const result = schema.safeParse(body);
+    if (!result.success) {
+      const message = result.error.errors?.map((e: any) => e.message).join('; ') || 'Validation failed';
+      return { success: false, statusCode: 400, message };
+    }
+    return { success: true };
+  } catch (err) {
+    // If shared schemas cannot be loaded (build/runtime mismatch), skip silently
+    logger.warn(`Shared zod sale schema not applied: ${err instanceof Error ? err.message : String(err)}`);
+    return { success: true };
+  }
+}
+
 /**
  * 驗證 MongoDB ObjectId 是否有效
  * 防止 NoSQL 注入攻擊
@@ -153,6 +172,9 @@ function calculateTotalInventory(inventories: any[]): number {
 
 // 驗證銷售創建請求
 export async function validateSaleCreationRequest(requestBody: SaleCreationRequest): Promise<ValidationResult> {
+  // Zod shape validation first (SSOT)
+  const z = await validateWithSharedZod(requestBody, 'create');
+  if (!z.success) return z;
   const { customer, items } = requestBody;
   
   // 檢查客戶是否存在
@@ -190,6 +212,9 @@ export async function validateSaleCreationRequest(requestBody: SaleCreationReque
 
 // 驗證銷售更新請求
 export async function validateSaleUpdateRequest(requestBody: SaleCreationRequest): Promise<ValidationResult> {
+  // Zod shape validation first (SSOT)
+  const z = await validateWithSharedZod(requestBody, 'update');
+  if (!z.success) return z;
   const { customer, items } = requestBody;
   
   // 檢查客戶是否存在
