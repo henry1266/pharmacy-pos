@@ -18,16 +18,13 @@ import {
   List,
   ListItem,
   ListItemIcon,
-  ListItemText,
-  Divider
+  ListItemText
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
   ShoppingCart as ShoppingCartIcon,
   People as PeopleIcon,
-  Assessment as AssessmentIcon,
-  Settings as SettingsIcon,
-  Notifications as NotificationsIcon
+  Assessment as AssessmentIcon
 } from '@mui/icons-material';
 
 interface ThemePreviewProps {

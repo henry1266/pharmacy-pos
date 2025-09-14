@@ -20,7 +20,6 @@ import {
   CircularProgress
 } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
-import InventoryIcon from '@mui/icons-material/Inventory';
 import CategoryIcon from '@mui/icons-material/Category';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -31,7 +30,6 @@ import DragHandleIcon from '@mui/icons-material/DragHandle';
 import LaunchIcon from '@mui/icons-material/Launch';
 import { DragDropContext, Draggable, DropResult } from 'react-beautiful-dnd';
 import { StrictModeDroppable } from '../../../components/common/StrictModeDroppable';
-import TitleWithCount from '../../../components/common/TitleWithCount';
 import PageHeaderSection from '../../../components/common/PageHeaderSection';
 import { getProductCategories, updateProductCategory } from '../../../services/productCategoryService';
 import { Category } from '@pharmacy-pos/shared/types/entities';

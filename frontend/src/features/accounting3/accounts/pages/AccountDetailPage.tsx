@@ -13,8 +13,6 @@ import {
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
-  AccountBalance as AccountBalanceIcon,
-  Receipt as ReceiptIcon,
   Add as AddIcon,
   AccountTree as AccountTreeIcon,
   Home as HomeIcon,

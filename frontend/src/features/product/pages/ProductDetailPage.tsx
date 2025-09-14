@@ -12,8 +12,7 @@ import {
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
-  Edit as EditIcon,
-  Print as PrintIcon
+  Edit as EditIcon
 } from '@mui/icons-material';
 
 import ProductDetailCard from '../components/ProductDetailCard';

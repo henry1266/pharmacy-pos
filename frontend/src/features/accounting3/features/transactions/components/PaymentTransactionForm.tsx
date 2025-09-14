@@ -20,7 +20,6 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Chip,
   CircularProgress
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';

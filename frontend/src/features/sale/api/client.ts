@@ -2,7 +2,7 @@
  * Sale API 客戶端
  * 實作 Axios 客戶端 + 攔截器 + 錯誤映射
  */
-import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+import axios, { AxiosError, AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
 // API 錯誤類型
 export enum ApiErrorType {

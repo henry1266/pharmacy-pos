@@ -62,7 +62,7 @@ export const PaymentManagementPage: React.FC<PaymentManagementPageProps> = () =>
         );
         
         setOrganizations(uniqueOrgs);
-        console.log('✅ 組織列表載入成功:', uniqueOrgs.length, '個組織');
+        //console.log('✅ 組織列表載入成功:', uniqueOrgs.length, '個組織');
       } else {
         throw new Error('無法獲取組織資料');
       }

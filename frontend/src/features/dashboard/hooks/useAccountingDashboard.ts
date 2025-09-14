@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { format } from 'date-fns';
 import { accountingServiceV2 } from '../../../services/accountingServiceV2';
 import type { ExtendedAccountingRecord, FormData } from '@pharmacy-pos/shared/types/accounting';
 import type { AccountingRecord } from '@pharmacy-pos/shared/types/entities';

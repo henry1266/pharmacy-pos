@@ -9,8 +9,7 @@ import {
   Snackbar,
   Paper,
   Fab,
-  Tooltip,
-  Chip,
+  Tooltip
 } from '@mui/material';
 import {
   AccountTree as AccountTreeIcon,
