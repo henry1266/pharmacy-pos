@@ -4,9 +4,8 @@
  */
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { useSelector } from 'react-redux';
-import { useAppDispatch } from '@/hooks/redux';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useGetShippingOrderByIdQuery } from '@/features/shipping-order/api/shippingOrderApi';
 import {
   Typography,
   Divider,
@@ -36,7 +35,7 @@ import CommonListPageLayout from '@/components/common/CommonListPageLayout';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 
-import { fetchShippingOrder } from '@/redux/actions';
+// 使用 RTK Query 取代 Redux action 載入單筆資料
 import { productServiceV2 } from '@/services/productServiceV2';
 import CollapsibleAmountInfo from '@/components/common/CollapsibleAmountInfo';
 import { Product } from '@pharmacy-pos/shared/types/entities';
@@ -121,15 +120,12 @@ interface RootState {
  * 顯示出貨單詳細資訊，包括藥品項目、金額信息和基本資訊
  */
 const ShippingOrderDetailPage: React.FC = () => {
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const { data: currentShippingOrder, isLoading: orderLoading, error: orderErrorObj } = useGetShippingOrderByIdQuery(id as string, { skip: !id });
+  const orderError = orderErrorObj ? ((orderErrorObj as any).data?.message || (orderErrorObj as any).message || '載入出貨單失敗') : null;
   
-  const { currentShippingOrder, loading: orderLoading, error: orderError } = useSelector((state: RootState) => state.shippingOrders) as {
-    currentShippingOrder: ExtendedShippingOrder | null;
-    loading: boolean;
-    error: string | null;
-  };
+  // 由 RTK Query 取得 currentShippingOrder / orderLoading / orderError
 
   // 產品詳情狀態
   const [productDetails, setProductDetails] = useState<ProductDetailsState>({});
