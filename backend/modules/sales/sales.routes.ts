@@ -132,6 +132,8 @@ const router: express.Router = express.Router();
 // @desc    Get all sales with optional wildcard search
 // @access  Public
 router.get('/', salesController.getAllSales);
+// 今日銷售
+router.get('/today', salesController.getTodaySales);
 
 /**
  * @swagger

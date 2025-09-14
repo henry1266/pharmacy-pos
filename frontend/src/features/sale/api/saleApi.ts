@@ -3,10 +3,10 @@
  * 使用 RTK Query 定義 API 端點
  */
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { 
-  SaleResponseDto, 
-  SaleRequestDto, 
-  SaleQueryParams, 
+import {
+  SaleResponseDto,
+  SaleRequestDto,
+  SaleQueryParams,
   PaginatedResponse,
   SaleStatsResponseDto,
   SaleRefundRequestDto,
@@ -17,16 +17,12 @@ import {
 } from './dto';
 import { saleApiClient } from './client';
 
-/**
- * 創建 Sale API
- * 使用 RTK Query 的 createApi 函數
- */
 export const saleApi = createApi({
   reducerPath: 'saleApi',
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
   tagTypes: ['Sale', 'SaleStats'],
   endpoints: (builder) => ({
-    // 獲取銷售列表
+    // 銷售清單
     getSales: builder.query<PaginatedResponse<SaleResponseDto>, SaleQueryParams | void>({
       queryFn: async (params = {}) => {
         try {
@@ -36,8 +32,8 @@ export const saleApi = createApi({
           return { error: { status: error.status, data: error.message } };
         }
       },
-      providesTags: (result) => 
-        result 
+      providesTags: (result) =>
+        result
           ? [
               ...result.data.map(({ _id }) => ({ type: 'Sale' as const, id: _id })),
               { type: 'Sale', id: 'LIST' }
@@ -45,7 +41,7 @@ export const saleApi = createApi({
           : [{ type: 'Sale', id: 'LIST' }]
     }),
 
-    // 獲取單個銷售
+    // 取得單筆銷售
     getSaleById: builder.query<SaleResponseDto, string>({
       queryFn: async (id) => {
         try {
@@ -58,12 +54,11 @@ export const saleApi = createApi({
       providesTags: (_result, _error, id) => [{ type: 'Sale', id }]
     }),
 
-    // 獲取單個銷售並轉換為前端格式
+    // 取得單筆並轉為前端使用格式
     getSaleDataById: builder.query<SaleDataDto, string>({
       queryFn: async (id) => {
         try {
           const response = await saleApiClient.get(`/sales/${id}`);
-          // 確保從 response.data.data 獲取銷售數據，而不是直接使用 response.data
           const saleData = mapSaleResponseToSaleData(response.data.data);
           return { data: saleData };
         } catch (error: any) {
@@ -73,7 +68,7 @@ export const saleApi = createApi({
       providesTags: (_result, _error, id) => [{ type: 'Sale', id }]
     }),
 
-    // 創建銷售
+    // 新增銷售
     createSale: builder.mutation<SaleResponseDto, SaleRequestDto>({
       queryFn: async (saleData) => {
         try {
@@ -120,7 +115,7 @@ export const saleApi = createApi({
       ]
     }),
 
-    // 獲取銷售統計
+    // 銷售統計
     getSaleStats: builder.query<SaleStatsResponseDto, { startDate?: string; endDate?: string } | void>({
       queryFn: async (params = {}) => {
         try {
@@ -133,7 +128,7 @@ export const saleApi = createApi({
       providesTags: [{ type: 'SaleStats' }]
     }),
 
-    // 獲取客戶銷售記錄
+    // 客戶銷售
     getCustomerSales: builder.query<PaginatedResponse<SaleResponseDto>, { customerId: string; params?: SaleQueryParams }>({
       queryFn: async ({ customerId, params = {} }) => {
         try {
@@ -149,7 +144,7 @@ export const saleApi = createApi({
       ]
     }),
 
-    // 獲取今日銷售
+    // 今日銷售（由後端 /sales/today 提供）
     getTodaySales: builder.query<PaginatedResponse<SaleResponseDto>, SaleQueryParams | void>({
       queryFn: async (params = {}) => {
         try {
@@ -162,7 +157,7 @@ export const saleApi = createApi({
       providesTags: [{ type: 'Sale', id: 'TODAY' }, { type: 'Sale', id: 'LIST' }]
     }),
 
-    // 獲取月度銷售
+    // 月度銷售
     getMonthlySales: builder.query<PaginatedResponse<SaleResponseDto>, { year: number; month: number; params?: SaleQueryParams }>({
       queryFn: async ({ year, month, params = {} }) => {
         try {
@@ -178,7 +173,7 @@ export const saleApi = createApi({
       ]
     }),
 
-    // 處理退款
+    // 退款
     processRefund: builder.mutation<SaleRefundResponseDto, SaleRefundRequestDto>({
       queryFn: async (refundData) => {
         try {
@@ -212,5 +207,5 @@ export const {
   useProcessRefundMutation
 } = saleApi;
 
-// 導出 API
 export default saleApi;
+

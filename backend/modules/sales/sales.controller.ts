@@ -56,6 +56,37 @@ export const getAllSales = async (req: Request, res: Response) => {
   }
 };
 
+// @route   GET api/sales/today
+// @desc    Get today's sales (server local timezone)
+// @access  Public
+export const getTodaySales = async (_req: Request, res: Response) => {
+  try {
+    const sales = await salesService.findTodaySales();
+
+    const response: ApiResponse<any[]> = {
+      success: true,
+      message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
+      data: sales.map((sale: any) => ({
+        ...(sale.toObject ? sale.toObject() : sale),
+        _id: sale._id.toString(),
+        createdAt: sale.createdAt,
+        updatedAt: sale.updatedAt
+      })),
+      timestamp: new Date()
+    };
+
+    res.json(response);
+  } catch (err: unknown) {
+    logger.error(`取得今日銷售錯誤: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(500).json(errorResponse);
+  }
+};
+
 // @route   GET api/sales/:id
 // @desc    Get sale by ID
 // @access  Public

@@ -1,19 +1,14 @@
 /**
  * @file 銷售列表頁面邏輯
- * @description 提供銷售列表搜尋、刪除、導覽等狀態與方法（整合 RTK Query）
- */
+ * @description 提供搜尋、刪除、瀏覽與導覽邏輯（整合 RTK Query） */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Sale, SnackbarState, ApiResponse } from '../types/list';
+import { Sale, SnackbarState } from '../types/list';
 import TestModeConfig from '@/testMode/config/TestModeConfig';
-import testModeDataService from '@/testMode/services/TestModeDataService';
 import { useGetSalesQuery, useDeleteSaleMutation } from '../api/saleApi';
 
-/**
- * 銷售列表頁面 hook
- */
+// 銷售列表頁面 hook
 export const useSalesList = () => {
   const navigate = useNavigate();
   const [isTestMode, setIsTestMode] = useState<boolean>(false);
@@ -30,7 +25,7 @@ export const useSalesList = () => {
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
 
-  // 初始化測試模式
+  // 測試模式旗標
   useEffect(() => {
     setIsTestMode(TestModeConfig.isEnabled());
   }, []);
@@ -38,17 +33,14 @@ export const useSalesList = () => {
   // 查詢參數（RTK Query）
   const [queryParams, setQueryParams] = useState<{ search?: string; wildcardSearch?: string }>({});
 
-  // 生產模式：RTK Query 取得清單
-  const { data: listData, error: listError, isFetching, refetch } = useGetSalesQuery(queryParams, {
-    skip: isTestMode,
-  });
+  // 取得清單
+  const { data: listData, error: listError, isFetching, refetch } = useGetSalesQuery(queryParams);
 
   useEffect(() => {
-    if (isTestMode) return;
     setLoading(isFetching);
     if (listError) {
       const anyErr: any = listError;
-      const message = typeof anyErr?.data === 'string' ? anyErr.data : anyErr?.data?.message || '取得銷售資料失敗';
+      const message = typeof anyErr?.data === 'string' ? anyErr.data : anyErr?.data?.message || '載入銷售資料失敗';
       setError(message);
     } else {
       setError(null);
@@ -56,31 +48,7 @@ export const useSalesList = () => {
     if (listData && Array.isArray(listData.data)) {
       setSales(listData.data as unknown as Sale[]);
     }
-  }, [isTestMode, listData, listError, isFetching]);
-
-  // 測試模式：以 axios 嘗試抓取，失敗則使用測試資料
-  useEffect(() => {
-    const run = async () => {
-      if (!isTestMode) return;
-      setLoading(true);
-      try {
-        await new Promise(r => setTimeout(r, 300));
-        const params: Record<string, string> = {};
-        if (queryParams?.wildcardSearch) params.wildcardSearch = queryParams.wildcardSearch;
-        else if (queryParams?.search) params.search = queryParams.search;
-        const response = await axios.get<ApiResponse<Sale[]>>('/api/sales', { params });
-        const actualSales = response.data.data ?? [];
-        const testSales = testModeDataService.getSales(actualSales, null);
-        setSales(testSales);
-      } catch (err) {
-        const testSales = testModeDataService.getSales(null, 'fetch_failed');
-        setSales(testSales);
-      } finally {
-        setLoading(false);
-      }
-    };
-    run();
-  }, [isTestMode, queryParams]);
+  }, [listData, listError, isFetching]);
 
   // 搜尋輸入變更
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -116,7 +84,7 @@ export const useSalesList = () => {
   const filteredSales = useMemo(() => sales, [sales]);
   const totalAmount = useMemo(() => filteredSales.reduce((sum, sale) => sum + (sale.totalAmount || 0), 0), [filteredSales]);
 
-  // 刪除（測試/生產）
+  // 刪除
   const [deleteSale] = useDeleteSaleMutation();
   const handleTestModeDelete = useCallback((id: string): void => {
     setSales(prev => prev.filter(s => s._id !== id));
@@ -141,7 +109,7 @@ export const useSalesList = () => {
     await handleProductionDelete(id);
   }, [isTestMode, handleTestModeDelete, handleProductionDelete]);
 
-  // 關閉確定刪除對話框
+  // 關閉刪除確認對話框
   const handleCloseConfirmDialog = useCallback((): void => {
     setConfirmDeleteId(null);
   }, []);
@@ -152,8 +120,9 @@ export const useSalesList = () => {
   }, []);
 
   // 預覽
-  const handlePreviewClick = useCallback((event: React.MouseEvent<HTMLButtonElement>, sale: Sale): void => {
-    setPreviewAnchorEl(event.currentTarget);
+  const handlePreviewClick = useCallback((event: React.MouseEvent<HTMLButtonElement> | { currentTarget: any }, sale: Sale): void => {
+    const anchor = (event as React.MouseEvent<HTMLButtonElement>).currentTarget ?? null;
+    setPreviewAnchorEl(anchor);
     setSelectedSale(sale);
     setPreviewLoading(false);
     setPreviewError(null);
@@ -165,7 +134,7 @@ export const useSalesList = () => {
   }, []);
 
   // 導航
-  const handleAddNewSale = useCallback((): void => { navigate('/sales/new2'); }, [navigate]);
+  const handleAddNewSale = useCallback((): void => { navigate('/sales/new'); }, [navigate]);
   const handleEditSale = useCallback((saleId: string): void => { navigate(`/sales/edit/${saleId}`); }, [navigate]);
   const handleViewSale = useCallback((saleId: string): void => { navigate(`/sales/${saleId}`); }, [navigate]);
   const handleBackToHome = useCallback((): void => { navigate('/'); }, [navigate]);
@@ -174,7 +143,6 @@ export const useSalesList = () => {
   const previewId = isPreviewOpen ? 'sales-preview-popover' : undefined;
 
   return {
-    // 狀態
     isTestMode,
     sales: filteredSales,
     loading,
@@ -191,7 +159,7 @@ export const useSalesList = () => {
     previewId,
     totalAmount,
 
-    // 方法
+    // handlers
     handleSearchChange,
     handleWildcardModeChange,
     handleDeleteSale,

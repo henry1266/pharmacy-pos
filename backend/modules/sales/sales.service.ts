@@ -26,6 +26,21 @@ export async function findSaleById(id: string): Promise<SaleDocument | null> {
     .populate('cashier');
 }
 
+// 取得今日銷售（以伺服器當地時區為基準）
+export async function findTodaySales(): Promise<SaleDocument[]> {
+  const now = new Date();
+  const start = new Date(now);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(now);
+  end.setHours(23, 59, 59, 999);
+
+  return await Sale.find({ date: { $gte: start, $lte: end } })
+    .populate('customer')
+    .populate('items.product')
+    .populate('cashier')
+    .sort({ saleNumber: -1 });
+}
+
 // 創建銷售記錄
 export async function createSaleRecord(requestBody: SaleCreationRequest): Promise<SaleDocument> {
   // 生成銷貨單號（如果未提供）
