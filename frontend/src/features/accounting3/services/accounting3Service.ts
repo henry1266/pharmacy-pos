@@ -17,7 +17,6 @@ import {
 
 // 導入遷移適配器（僅在遷移期間使用）
 import { 
-  legacyAdapter,
   OrganizationHierarchyBuilder,
   TransactionDataProcessor,
   LEGACY_API_PATHS,

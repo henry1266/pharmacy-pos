@@ -15,7 +15,7 @@ import { format } from 'date-fns';
 import { productServiceV2 } from '@/services/productServiceV2';
 
 // 引入進貨單項目類型
-import { PurchaseOrder as PurchaseOrderType, PurchaseOrderItem } from '@/features/purchase-order/types/list';
+import { PurchaseOrder as PurchaseOrderType } from '@/features/purchase-order/types/list';
 import { Product } from '@pharmacy-pos/shared';
 
 // 定義進貨單的介面，擴展自 PurchaseOrderType

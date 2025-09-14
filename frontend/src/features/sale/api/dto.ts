@@ -2,7 +2,7 @@
  * Sale API DTO (Data Transfer Objects)
  * 定義 Request/Response 型別
  */
-import { Sale, SaleItem, Customer, Product } from '@pharmacy-pos/shared/types/entities';
+import { Sale, Customer, Product } from '@pharmacy-pos/shared/types/entities';
 
 /**
  * 通用分頁響應介面

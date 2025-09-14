@@ -21,14 +21,12 @@ import {
 } from '@mui/material';
 import {
   Search as SearchIcon,
-  Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
   Link as LinkIcon,
   TrendingUp as TrendingUpIcon,
   Close as CloseIcon,
   ContentCopy as ContentCopyIcon,
-  Update as UpdateIcon,
   FindReplace as FindReplaceIcon
 } from '@mui/icons-material';
 import axios from 'axios';

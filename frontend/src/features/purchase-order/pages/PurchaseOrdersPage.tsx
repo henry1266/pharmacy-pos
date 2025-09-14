@@ -23,7 +23,6 @@ import {
   CloudUpload as CloudUploadIcon,
   Search as SearchIcon,
   Clear as ClearIcon,
-  ShoppingBag as ShoppingBagIcon,
   Receipt as ReceiptIcon,
   ArrowBack as ArrowBackIcon
 } from '@mui/icons-material';
@@ -63,16 +62,10 @@ const PurchaseOrdersPage: FC<PurchaseOrdersPageProps> = ({ initialSupplierId = n
     error,
     searchParams,
     selectedSuppliers,
-    showFilters,
     deleteDialogOpen,
     purchaseOrderToDelete,
     snackbar,
-    previewOpen,
-    previewAnchorEl,
     previewPurchaseOrder,
-    previewLoading,
-    previewError,
-    paginationModel,
     totalAmount,
 
     // 處理函數

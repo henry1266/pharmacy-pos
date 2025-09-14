@@ -5,8 +5,6 @@ import MenuIcon from '@mui/icons-material/Menu';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
-import SellIcon from '@mui/icons-material/Sell';
-import SellOutlinedIcon from '@mui/icons-material/SellOutlined';
 import LocalMallIcon from '@mui/icons-material/LocalMall';
 import LocalMallOutlinedIcon from '@mui/icons-material/LocalMallOutlined';
 import FactoryIcon from '@mui/icons-material/Factory';

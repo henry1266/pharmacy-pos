@@ -15,8 +15,7 @@ import {
   Button,
   Snackbar,
   Alert,
-  CircularProgress,
-  Link as MuiLink
+  CircularProgress
 } from '@mui/material';
 import {
   Receipt as ReceiptIcon,

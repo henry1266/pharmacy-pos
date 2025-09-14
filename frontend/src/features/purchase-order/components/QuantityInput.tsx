@@ -3,8 +3,7 @@ import {
   TextField,
   Box,
   Typography,
-  Chip,
-  Grid
+  Chip
 } from '@mui/material';
 import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
 import { Product } from '@pharmacy-pos/shared/types/entities';

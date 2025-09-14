@@ -1,12 +1,11 @@
 import React, { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography } from '@mui/material';
+import { Box } from '@mui/material';
 import {
   // 共用組件
   ContentSection,
   StatusDisplay,
   PageHeader,
-  InfoCard,
   // 業務邏輯組件
   MonthList,
   YearSelector,
@@ -22,7 +21,6 @@ import {
   SECTION_WIDTHS,
   // 類型
   MonthlyData,
-  DailyData,
   LocalAccountingRecord
 } from '../shared';
 
