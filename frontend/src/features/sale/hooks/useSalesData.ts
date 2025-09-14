@@ -1,12 +1,10 @@
-import { useState, useEffect } from 'react';
-import { productServiceV2 } from '@/services/productServiceV2';
-import { getAllCustomers } from '@/services/customerServiceV2';
+import { useEffect, useState } from 'react';
 import { Product, Customer } from '@pharmacy-pos/shared/types/entities';
+import { useGetProductsQuery } from '@/features/product/api/productApi';
+import { useGetCustomersQuery } from '@/features/customer/api/customerApi';
 
 /**
- * Custom Hook to fetch data required for the Sales Page (products and customers).
- * 
- * @returns {Object} - Contains products, customers, loading state, and error state.
+ * 使用 RTK Query 聚合銷售頁面需要的商品與顧客資料
  */
 const useSalesData = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -14,33 +12,25 @@ const useSalesData = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        // Fetch products and customers concurrently
-        const [productsData, customersData] = await Promise.all([
-          productServiceV2.getAllProducts(), // Using V2 service
-          getAllCustomers() // Using V2 service
-        ]);
-        
-        // 直接設置資料，假設 API 已經返回正確的陣列
-        setProducts(Array.isArray(productsData) ? productsData : []);
-        setCustomers(Array.isArray(customersData) ? customersData : []);
-        
-      } catch (err: any) {
-        console.error('Failed to fetch sales data:', err);
-        setError('無法載入銷售頁面所需資料，請稍後再試。'); // User-friendly error message
-      } finally {
-        setLoading(false);
-      }
-    };
+  const { data: productsData, isFetching: productsFetching, error: productsError } = useGetProductsQuery({});
+  const { data: customersData, isFetching: customersFetching, error: customersError } = useGetCustomersQuery({});
 
-    fetchData();
-  }, []); // Empty dependency array means this runs once on mount
+  useEffect(() => {
+    setProducts(Array.isArray(productsData) ? (productsData as any) : []);
+  }, [productsData]);
+
+  useEffect(() => {
+    setCustomers(Array.isArray(customersData) ? (customersData as any) : []);
+  }, [customersData]);
+
+  useEffect(() => {
+    setLoading(Boolean(productsFetching || customersFetching));
+    const err = (productsError as any)?.data?.message || (productsError as any)?.message || (customersError as any)?.data?.message || (customersError as any)?.message || null;
+    setError(err);
+  }, [productsFetching, customersFetching, productsError, customersError]);
 
   return { products, customers, loading, error };
 };
 
 export default useSalesData;
+

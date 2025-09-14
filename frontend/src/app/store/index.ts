@@ -26,6 +26,7 @@ import {
 import { saleApi } from '../../features/sale/api/saleApi';
 import { supplierApi } from '../../features/supplier/api/supplierApi';
 import { customerApi } from '../../features/customer/api/customerApi';
+import { productApi } from '../../features/product/api/productApi';
 import saleReducer from '../../features/sale/model/saleSlice';
 
 /**
@@ -57,6 +58,7 @@ export const store = configureStore({
     [saleApi.reducerPath]: saleApi.reducer,
     [supplierApi.reducerPath]: supplierApi.reducer,
     [customerApi.reducerPath]: customerApi.reducer,
+    [productApi.reducerPath]: productApi.reducer,
     sale: saleReducer,
   },
   middleware: (getDefaultMiddleware) =>
@@ -69,7 +71,8 @@ export const store = configureStore({
     // 添加 RTK Query middleware
     .concat(saleApi.middleware)
     .concat(supplierApi.middleware)
-    .concat(customerApi.middleware),
+    .concat(customerApi.middleware)
+    .concat(productApi.middleware),
   devTools: process.env.NODE_ENV !== 'production',
 });
 
