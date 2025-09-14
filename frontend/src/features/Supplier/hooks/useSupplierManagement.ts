@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { SupplierData, SupplierFormState } from '../types/supplier.types';
 import useSupplierData from './useSupplierData';
-import testModeDataService from '../../../testMode/services/TestModeDataService';
+import testModeDataService from '@/testMode/services/TestModeDataService';
 
 export const useSupplierManagement = () => {
   const [isTestMode, setIsTestMode] = useState<boolean>(false);

@@ -1,9 +1,9 @@
 import React, { useEffect, FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box } from '@mui/material';
-import TitleWithCount from '../../../components/common/TitleWithCount';
+import TitleWithCount from '@/components/common/TitleWithCount';
 // 全域模板
-import CommonListPageLayout from '../../../components/common/CommonListPageLayout';
+import CommonListPageLayout from '@/components/common/CommonListPageLayout';
 // 導入新的 hooks 和組件
 import { useSupplierManagement } from '../hooks/useSupplierManagement';
 import { useSupplierForm } from '../hooks/useSupplierForm';
