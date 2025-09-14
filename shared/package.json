@@ -47,6 +47,7 @@
   "homepage": "https://github.com/your-org/pharmacy-pos#readme",
   "dependencies": {
     "@material/material-color-utilities": "^0.3.0",
-    "date-fns": "^2.30.0"
+    "date-fns": "^2.30.0",
+    "zod": "^3.23.8"
   }
 }
