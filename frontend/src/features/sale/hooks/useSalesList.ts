@@ -1,6 +1,6 @@
 /**
- * @file 銷售列表頁面鉤子
- * @description 處理銷售列表頁面的狀態和邏輯
+ * @file 銷售列表頁面邏輯
+ * @description 提供銷售列表搜尋、刪除、導覽等狀態與方法（整合 RTK Query）
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -9,10 +9,10 @@ import { useNavigate } from 'react-router-dom';
 import { Sale, SnackbarState, ApiResponse } from '../types/list';
 import TestModeConfig from '@/testMode/config/TestModeConfig';
 import testModeDataService from '@/testMode/services/TestModeDataService';
+import { useGetSalesQuery, useDeleteSaleMutation } from '../api/saleApi';
 
 /**
- * 銷售列表頁面鉤子
- * 處理銷售列表頁面的狀態和邏輯
+ * 銷售列表頁面 hook
  */
 export const useSalesList = () => {
   const navigate = useNavigate();
@@ -23,240 +23,152 @@ export const useSalesList = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [wildcardMode, setWildcardMode] = useState<boolean>(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-  const [snackbar, setSnackbar] = useState<SnackbarState>({
-    open: false,
-    message: '',
-    severity: 'success'
-  });
-  
+  const [snackbar, setSnackbar] = useState<SnackbarState>({ open: false, message: '', severity: 'success' });
+
   const [previewAnchorEl, setPreviewAnchorEl] = useState<HTMLElement | null>(null);
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
 
-  // 初始化
+  // 初始化測試模式
   useEffect(() => {
-    const testModeActive = TestModeConfig.isEnabled();
-    setIsTestMode(testModeActive);
-    fetchSales(testModeActive);
+    setIsTestMode(TestModeConfig.isEnabled());
   }, []);
 
-  // 獲取銷售數據
-  const fetchSales = useCallback(async (testModeEnabled: boolean, searchParams?: { search?: string; wildcardSearch?: string }): Promise<void> => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      let actualSales: Sale[] | null = null;
-      let actualError: string | null = null;
-      
-      if (!testModeEnabled) {
-        // 生產模式：直接獲取實際數據
-        await fetchProductionSales(searchParams);
-        return;
-      }
-      
-      // 測試模式：嘗試獲取實際數據，失敗時使用測試數據
+  // 查詢參數（RTK Query）
+  const [queryParams, setQueryParams] = useState<{ search?: string; wildcardSearch?: string }>({});
+
+  // 生產模式：RTK Query 取得清單
+  const { data: listData, error: listError, isFetching, refetch } = useGetSalesQuery(queryParams, {
+    skip: isTestMode,
+  });
+
+  useEffect(() => {
+    if (isTestMode) return;
+    setLoading(isFetching);
+    if (listError) {
+      const anyErr: any = listError;
+      const message = typeof anyErr?.data === 'string' ? anyErr.data : anyErr?.data?.message || '取得銷售資料失敗';
+      setError(message);
+    } else {
+      setError(null);
+    }
+    if (listData && Array.isArray(listData.data)) {
+      setSales(listData.data as unknown as Sale[]);
+    }
+  }, [isTestMode, listData, listError, isFetching]);
+
+  // 測試模式：以 axios 嘗試抓取，失敗則使用測試資料
+  useEffect(() => {
+    const run = async () => {
+      if (!isTestMode) return;
+      setLoading(true);
       try {
-        // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(r => setTimeout(r, 300));
         const params: Record<string, string> = {};
-        
-        // 添加搜尋參數
-        if (searchParams?.wildcardSearch) {
-          params.wildcardSearch = searchParams.wildcardSearch;
-        } else if (searchParams?.search) {
-          params.search = searchParams.search;
-        }
-        
+        if (queryParams?.wildcardSearch) params.wildcardSearch = queryParams.wildcardSearch;
+        else if (queryParams?.search) params.search = queryParams.search;
         const response = await axios.get<ApiResponse<Sale[]>>('/api/sales', { params });
-        actualSales = response.data.data ?? [];
+        const actualSales = response.data.data ?? [];
+        const testSales = testModeDataService.getSales(actualSales, null);
+        setSales(testSales);
       } catch (err) {
-        console.warn('測試模式：獲取實際銷售數據失敗，將使用測試數據', err);
-        actualError = err instanceof Error ? err.message : '獲取數據失敗';
+        const testSales = testModeDataService.getSales(null, 'fetch_failed');
+        setSales(testSales);
+      } finally {
+        setLoading(false);
       }
-      
-      // 使用測試數據服務獲取數據
-      const testSales = testModeDataService.getSales(actualSales, actualError);
-      setSales(testSales);
-      
-    } catch (err) {
-      console.error('獲取銷售數據失敗:', err);
-      setError('獲取銷售數據失敗');
-      setSnackbar({
-        open: true,
-        message: '獲取銷售數據失敗',
-        severity: 'error'
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    };
+    run();
+  }, [isTestMode, queryParams]);
 
-  // 生產模式下獲取銷售數據
-  const fetchProductionSales = useCallback(async (searchParams?: { search?: string; wildcardSearch?: string }): Promise<void> => {
-    try {
-      const params: Record<string, string> = {};
-      
-      // 添加搜尋參數
-      if (searchParams?.wildcardSearch) {
-        params.wildcardSearch = searchParams.wildcardSearch;
-      } else if (searchParams?.search) {
-        params.search = searchParams.search;
-      }
-      
-      const response = await axios.get<ApiResponse<Sale[]>>('/api/sales', { params });
-      // 後端回傳的是 ApiResponse 格式: { success, message, data, timestamp }
-      const salesData = response.data.data ?? [];
-      if (Array.isArray(salesData)) {
-        setSales(salesData);
-      } else {
-        console.warn('API 回傳的資料格式不正確:', response.data);
-        setSales([]);
-      }
-    } catch (err) {
-      console.error('獲取銷售數據失敗:', err);
-      setError('獲取銷售數據失敗');
-      setSnackbar({
-        open: true,
-        message: '獲取銷售數據失敗',
-        severity: 'error'
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // 處理搜尋框異動
+  // 搜尋輸入變更
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>): void => {
     setSearchTerm(e.target.value);
   }, []);
 
-  // 使用 useEffect 處理搜尋的 debounce
+  // debounce 搜尋
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       handleSearch(searchTerm);
     }, 300);
-    
     return () => clearTimeout(timeoutId);
   }, [searchTerm, wildcardMode]);
 
-  // 執行搜尋
-  const handleSearch = useCallback((searchValue: string): void => {
-    if (!searchValue.trim()) {
-      // 如果搜尋條件為空，重新載入所有記錄
-      fetchSales(isTestMode);
+  // 觸發搜尋
+  const handleSearch = useCallback((value: string): void => {
+    if (!value.trim()) {
+      setQueryParams({});
       return;
     }
+    setQueryParams(wildcardMode ? { wildcardSearch: value } : { search: value });
+  }, [wildcardMode]);
 
-    const searchParams = wildcardMode
-      ? { wildcardSearch: searchValue }
-      : { search: searchValue };
-    
-    fetchSales(isTestMode, searchParams);
-  }, [fetchSales, isTestMode, wildcardMode]);
-
-  // 處理萬用字元模式切換
+  // 切換萬用字元模式
   const handleWildcardModeChange = useCallback((enabled: boolean): void => {
     setWildcardMode(enabled);
-    // 如果有搜尋條件，立即重新搜尋
     if (searchTerm.trim()) {
       handleSearch(searchTerm);
     }
   }, [handleSearch, searchTerm]);
 
-  // 為DataGrid準備行數據
-  const filteredSales = useMemo(() => {
-    return sales;
-  }, [sales]);
-
   // 計算總金額
-  const totalAmount = useMemo(() => {
-    return filteredSales.reduce((sum, sale) => sum + (sale.totalAmount || 0), 0);
-  }, [filteredSales]);
+  const filteredSales = useMemo(() => sales, [sales]);
+  const totalAmount = useMemo(() => filteredSales.reduce((sum, sale) => sum + (sale.totalAmount || 0), 0), [filteredSales]);
 
-  // 處理刪除銷售記錄
-  const handleDeleteSale = useCallback(async (id: string): Promise<void> => {
-    if (isTestMode) {
-      handleTestModeDelete(id);
-      return;
-    }
-
-    await handleProductionDelete(id);
-  }, [isTestMode]);
-
-  // 測試模式下的刪除處理
+  // 刪除（測試/生產）
+  const [deleteSale] = useDeleteSaleMutation();
   const handleTestModeDelete = useCallback((id: string): void => {
-    setSales(prevSales => prevSales.filter(sale => sale._id !== id));
-    setSnackbar({
-      open: true,
-      message: '測試模式：銷售記錄已模擬刪除',
-      severity: 'info'
-    });
+    setSales(prev => prev.filter(s => s._id !== id));
+    setSnackbar({ open: true, message: '測試模式：銷售記錄已模擬刪除', severity: 'info' });
     setConfirmDeleteId(null);
   }, []);
 
-  // 生產模式下的刪除處理
   const handleProductionDelete = useCallback(async (id: string): Promise<void> => {
     try {
-      await axios.delete(`/api/sales/${id}`);
-      fetchSales(isTestMode); // Refetch after delete
-      setSnackbar({
-        open: true,
-        message: '銷售記錄已刪除',
-        severity: 'success'
-      });
+      await deleteSale(id).unwrap();
+      await refetch();
+      setSnackbar({ open: true, message: '銷售記錄已刪除', severity: 'success' });
     } catch (err) {
       console.error('刪除銷售記錄失敗:', err);
-      setSnackbar({
-        open: true,
-        message: '刪除銷售記錄失敗',
-        severity: 'error'
-      });
+      setSnackbar({ open: true, message: '刪除銷售記錄失敗', severity: 'error' });
     }
     setConfirmDeleteId(null);
-  }, [fetchSales, isTestMode]);
+  }, [deleteSale, refetch]);
 
-  // 關閉確認對話框
+  const handleDeleteSale = useCallback(async (id: string): Promise<void> => {
+    if (isTestMode) return handleTestModeDelete(id);
+    await handleProductionDelete(id);
+  }, [isTestMode, handleTestModeDelete, handleProductionDelete]);
+
+  // 關閉確定刪除對話框
   const handleCloseConfirmDialog = useCallback((): void => {
     setConfirmDeleteId(null);
   }, []);
 
-  // 關閉提示訊息
+  // 關閉通知
   const handleCloseSnackbar = useCallback((): void => {
     setSnackbar(prev => ({ ...prev, open: false }));
   }, []);
 
-  // 處理預覽點擊
+  // 預覽
   const handlePreviewClick = useCallback((event: React.MouseEvent<HTMLButtonElement>, sale: Sale): void => {
     setPreviewAnchorEl(event.currentTarget);
     setSelectedSale(sale);
-    setPreviewLoading(false); // Reset loading/error for preview
+    setPreviewLoading(false);
     setPreviewError(null);
   }, []);
 
-  // 關閉預覽
   const handlePreviewClose = useCallback((): void => {
     setPreviewAnchorEl(null);
     setSelectedSale(null);
   }, []);
 
-  // 導航處理函數
-  const handleAddNewSale = useCallback((): void => {
-    navigate('/sales/new2');
-  }, [navigate]);
-
-  const handleEditSale = useCallback((saleId: string): void => {
-    navigate(`/sales/edit/${saleId}`);
-  }, [navigate]);
-  
-  const handleViewSale = useCallback((saleId: string): void => {
-    navigate(`/sales/${saleId}`);
-  }, [navigate]);
-
-  const handleBackToHome = useCallback((): void => {
-    navigate('/');
-  }, [navigate]);
+  // 導航
+  const handleAddNewSale = useCallback((): void => { navigate('/sales/new2'); }, [navigate]);
+  const handleEditSale = useCallback((saleId: string): void => { navigate(`/sales/edit/${saleId}`); }, [navigate]);
+  const handleViewSale = useCallback((saleId: string): void => { navigate(`/sales/${saleId}`); }, [navigate]);
+  const handleBackToHome = useCallback((): void => { navigate('/'); }, [navigate]);
 
   const isPreviewOpen = Boolean(previewAnchorEl);
   const previewId = isPreviewOpen ? 'sales-preview-popover' : undefined;
@@ -279,7 +191,7 @@ export const useSalesList = () => {
     previewId,
     totalAmount,
 
-    // 處理函數
+    // 方法
     handleSearchChange,
     handleWildcardModeChange,
     handleDeleteSale,
@@ -293,3 +205,4 @@ export const useSalesList = () => {
     handleBackToHome
   };
 };
+
