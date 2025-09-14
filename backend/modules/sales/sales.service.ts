@@ -12,7 +12,8 @@ export async function findAllSales(): Promise<SaleDocument[]> {
     .populate('customer')
     .populate('items.product')
     .populate('cashier')
-    .sort({ saleNumber: -1 });
+    .sort({ saleNumber: -1 })
+    .lean();
 }
 
 // 根據ID獲取銷售記錄
@@ -38,7 +39,8 @@ export async function findTodaySales(): Promise<SaleDocument[]> {
     .populate('customer')
     .populate('items.product')
     .populate('cashier')
-    .sort({ saleNumber: -1 });
+    .sort({ saleNumber: -1 })
+    .lean();
 }
 
 // 創建銷售記錄

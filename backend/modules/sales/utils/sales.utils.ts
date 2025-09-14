@@ -2,6 +2,32 @@ import Sale from '../../../models/Sale';
 import logger from '../../../utils/logger';
 import { SaleFieldsInput } from '../sales.types';
 
+// SSOT helpers: map API <-> Model item fields
+export function mapApiItemsToModelItems(items: any[] = []): any[] {
+  return (items || []).map((item: any) => {
+    const { notes, ...rest } = item || {};
+    return notes !== undefined ? { ...rest, note: notes } : { ...rest };
+  });
+}
+
+export function mapModelItemsToApiItems(items: any[] = []): any[] {
+  return (items || []).map((item: any) => {
+    const { note, ...rest } = item || {};
+    return note !== undefined ? { ...rest, notes: note } : { ...rest };
+  });
+}
+
+export function normalizePaymentMethod(method?: string): string | undefined {
+  if (!method) return method;
+  // Align to shared/enums PaymentMethod while keeping backward compatibility
+  switch (method) {
+    case 'card':
+      return 'credit_card';
+    default:
+      return method;
+  }
+}
+
 // 生成銷貨單號
 export async function generateSaleNumber(saleNumber?: string): Promise<string> {
   // 如果前端提供了銷貨單號，記錄但不使用它
@@ -122,13 +148,14 @@ export function buildSaleFields(saleData: SaleFieldsInput): Record<string, any> 
   
   const saleFields: Record<string, any> = {
     saleNumber: saleData.saleNumber,
-    items: saleData.items,
+    // Map API items (notes) to model items (note)
+    items: mapApiItemsToModelItems(saleData.items as any),
     totalAmount: saleData.totalAmount,
   };
   
   if (saleData.customer) saleFields.customer = saleData.customer;
   if (saleData.discount) saleFields.discount = saleData.discount;
-  if (saleData.paymentMethod) saleFields.paymentMethod = saleData.paymentMethod as any;
+  if (saleData.paymentMethod) saleFields.paymentMethod = normalizePaymentMethod(saleData.paymentMethod) as any;
   if (saleData.paymentStatus) saleFields.paymentStatus = saleData.paymentStatus as any;
   if (saleData.notes) saleFields.notes = saleData.notes;
   if (saleData.cashier) saleFields.cashier = saleData.cashier;

@@ -8,6 +8,7 @@ import * as salesService from './sales.service';
 import * as searchService from './services/search.service';
 import { isValidObjectId } from './services/validation.service';
 import { handleInventoryForDeletedSale } from './services/inventory.service';
+import { mapModelItemsToApiItems } from './utils/sales.utils';
 
 // @route   GET api/sales
 // @desc    Get all sales with optional wildcard search
@@ -35,12 +36,16 @@ export const getAllSales = async (req: Request, res: Response) => {
     const response: ApiResponse<any[]> = {
       success: true,
       message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
-      data: sales.map(sale => ({
-        ...sale.toObject ? sale.toObject() : sale,
-        _id: sale._id.toString(),
-        createdAt: sale.createdAt,
-        updatedAt: sale.updatedAt
-      })),
+      data: sales.map(sale => {
+        const obj = sale.toObject ? sale.toObject() : sale;
+        return {
+          ...obj,
+          items: mapModelItemsToApiItems(obj.items),
+          _id: sale._id.toString(),
+          createdAt: sale.createdAt,
+          updatedAt: sale.updatedAt
+        };
+      }),
       timestamp: new Date()
     };
     
@@ -66,12 +71,16 @@ export const getTodaySales = async (_req: Request, res: Response) => {
     const response: ApiResponse<any[]> = {
       success: true,
       message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
-      data: sales.map((sale: any) => ({
-        ...(sale.toObject ? sale.toObject() : sale),
-        _id: sale._id.toString(),
-        createdAt: sale.createdAt,
-        updatedAt: sale.updatedAt
-      })),
+      data: sales.map((sale: any) => {
+        const obj = sale.toObject ? sale.toObject() : sale;
+        return {
+          ...obj,
+          items: mapModelItemsToApiItems(obj.items),
+          _id: sale._id.toString(),
+          createdAt: sale.createdAt,
+          updatedAt: sale.updatedAt
+        };
+      }),
       timestamp: new Date()
     };
 
@@ -132,6 +141,7 @@ export const getSaleById = async (req: Request, res: Response) => {
       message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
       data: {
         ...sale.toObject(),
+        items: mapModelItemsToApiItems((sale as any).items),
         _id: (sale._id as any).toString(),
         createdAt: sale.createdAt,
         updatedAt: sale.updatedAt
@@ -187,6 +197,7 @@ export const createSale = async (req: Request, res: Response) => {
       message: SUCCESS_MESSAGES.GENERIC.CREATED,
       data: {
         ...sale.toObject(),
+        items: mapModelItemsToApiItems((sale as any).items),
         _id: (sale._id as any).toString(),
         createdAt: sale.createdAt,
         updatedAt: sale.updatedAt
@@ -266,6 +277,7 @@ export const updateSale = async (req: Request, res: Response) => {
       message: SUCCESS_MESSAGES.GENERIC.UPDATED,
       data: {
         ...populatedSale.toObject(),
+        items: mapModelItemsToApiItems((populatedSale as any).items),
         _id: (populatedSale._id as any).toString(),
         createdAt: populatedSale.createdAt,
         updatedAt: populatedSale.updatedAt
