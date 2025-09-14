@@ -25,6 +25,7 @@ import {
 // 導入 RTK Query API 和 Slice
 import { saleApi } from '../../features/sale/api/saleApi';
 import { supplierApi } from '../../features/supplier/api/supplierApi';
+import { customerApi } from '../../features/customer/api/customerApi';
 import saleReducer from '../../features/sale/model/saleSlice';
 
 /**
@@ -55,6 +56,7 @@ export const store = configureStore({
     // 添加 RTK Query API 和 Slice
     [saleApi.reducerPath]: saleApi.reducer,
     [supplierApi.reducerPath]: supplierApi.reducer,
+    [customerApi.reducerPath]: customerApi.reducer,
     sale: saleReducer,
   },
   middleware: (getDefaultMiddleware) =>
@@ -66,7 +68,8 @@ export const store = configureStore({
     })
     // 添加 RTK Query middleware
     .concat(saleApi.middleware)
-    .concat(supplierApi.middleware),
+    .concat(supplierApi.middleware)
+    .concat(customerApi.middleware),
   devTools: process.env.NODE_ENV !== 'production',
 });
 

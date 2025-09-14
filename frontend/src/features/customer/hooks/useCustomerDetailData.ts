@@ -1,47 +1,18 @@
-import { useState, useEffect, useCallback } from 'react';
-import { getCustomerById } from '../../../services/customerServiceV2';
-import { Customer } from '@pharmacy-pos/shared/types/entities';
+import { useMemo } from 'react';
+import { useGetCustomerByIdQuery } from '../api/customerApi';
 
-/**
- * Custom hook for managing customer detail page data.
- * @param {string} customerId - The ID of the customer.
- */
 const useCustomerDetailData = (customerId: string | undefined) => {
-  const [customer, setCustomer] = useState<Customer | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchData = useCallback(async () => {
-    if (!customerId) {
-      setLoading(false);
-      setError('未提供客戶 ID');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-      const customerData = await getCustomerById(customerId);
-      setCustomer(customerData);
-    } catch (err: any) {
-      console.error('獲取客戶詳情失敗 (hook):', err);
-      setError(err.message ?? '獲取客戶詳情失敗');
-      setCustomer(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [customerId]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  const { data, isLoading, error, refetch } = useGetCustomerByIdQuery(customerId as string, { skip: !customerId });
+  const customer = useMemo(() => (data ? data : null), [data]);
+  const errorMsg = error ? ((error as any).data?.message || (error as any).message || '載入客戶詳情失敗') : null;
 
   return {
     customer,
-    loading,
-    error,
-    refetchData: fetchData // Expose refetch function if needed
+    loading: isLoading,
+    error: errorMsg,
+    refetchData: refetch
   };
 };
 
 export default useCustomerDetailData;
+

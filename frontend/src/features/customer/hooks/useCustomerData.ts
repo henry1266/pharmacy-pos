@@ -1,17 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getAllCustomers, createCustomer, updateCustomer as updateCustomerService, deleteCustomer as deleteCustomerService } from '../../../services/customerServiceV2';
-import { Customer } from '@pharmacy-pos/shared/types/entities';
+import {
+  useGetCustomersQuery,
+  useCreateCustomerMutation,
+  useUpdateCustomerMutation,
+  useDeleteCustomerMutation
+} from '../api/customerApi';
 
-// 擴展 Customer 類型以包含前端需要的額外屬性
-export interface ExtendedCustomer extends Omit<Customer, '_id' | 'membershipLevel' | 'birthdate'> {
-  _id: string;
-  code?: string;
-  idCardNumber?: string;
-  birthdate?: string | null;
-  membershipLevel?: string;
-}
-
-// 定義客戶資料介面（用於前端顯示）
+// 顯示用型別（維持原用法）
 export interface CustomerDisplay {
   id: string;
   code: string;
@@ -26,10 +21,8 @@ export interface CustomerDisplay {
   membershipLevel: string;
 }
 
-// 定義客戶資料欄位排除類型
 export type CustomerDisplayOmitFields = 'id' | 'code' | 'level';
 
-// 定義 Hook 返回值介面
 export interface UseCustomerDataReturn {
   customers: CustomerDisplay[];
   loading: boolean;
@@ -41,64 +34,60 @@ export interface UseCustomerDataReturn {
   mapMembershipLevel: (level: string) => string;
 }
 
-// Helper function to map membership level (can be moved to utils if used elsewhere)
 const mapMembershipLevel = (level: string): string => {
   const levelMap: Record<string, string> = {
-    'regular': '一般會員',
-    'gold': '金卡會員',
-    'platinum': '白金會員'
+    regular: '一般會員',
+    gold: '金卡會員',
+    platinum: '白金會員'
   };
   return levelMap[level] || '一般會員';
 };
 
-/**
- * Custom hook for managing customer data.
- * Handles fetching, adding, updating, and deleting customers.
- */
 const useCustomerData = (): UseCustomerDataReturn => {
   const [customers, setCustomers] = useState<CustomerDisplay[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch customers data
-  const fetchCustomers = useCallback(async (): Promise<void> => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await getAllCustomers();
-      const formattedCustomers: CustomerDisplay[] = data.map((customer: Customer) => ({
-        id: customer._id,
-        code: customer.code ?? '',
-        name: customer.name,
-        phone: customer.phone ?? '',
-        email: customer.email ?? '',
-        address: customer.address ?? '',
-        idCardNumber: customer.idCardNumber ?? '',
-        birthdate: customer.birthdate ? String(customer.birthdate) : null,
-        notes: customer.notes ?? '',
-        level: mapMembershipLevel(customer.membershipLevel ?? 'regular'),
-        membershipLevel: customer.membershipLevel ?? 'regular'
-      }));
-      setCustomers(formattedCustomers);
-    } catch (err: any) {
-      console.error('獲取會員數據失敗 (hook):', err);
-      setError('獲取會員數據失敗');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const { data, isFetching, error: listError, refetch } = useGetCustomersQuery({});
+  const fetchCustomers = useCallback(async (): Promise<void> => { await refetch(); }, [refetch]);
 
+  useEffect(() => { fetchCustomers(); }, [fetchCustomers]);
   useEffect(() => {
-    fetchCustomers();
-  }, [fetchCustomers]);
+    setLoading(isFetching);
+    if (listError) {
+      const anyErr: any = listError;
+      const message = typeof anyErr?.data === 'string' ? anyErr.data : anyErr?.data?.message || '載入會員資料失敗';
+      setError(message);
+    } else {
+      setError(null);
+    }
+    if (Array.isArray(data)) {
+      const formatted: CustomerDisplay[] = data.map((c: any) => ({
+        id: c._id || c.id,
+        code: c.code ?? '',
+        name: c.name,
+        phone: c.phone ?? '',
+        email: c.email ?? '',
+        address: c.address ?? '',
+        idCardNumber: c.idCardNumber ?? '',
+        birthdate: c.birthdate ? String(c.birthdate) : null,
+        notes: c.notes ?? '',
+        level: mapMembershipLevel(c.membershipLevel ?? 'regular'),
+        membershipLevel: c.membershipLevel ?? 'regular'
+      }));
+      setCustomers(formatted);
+    }
+  }, [data, isFetching, listError]);
 
-  // Add a new customer
+  const [createCustomer] = useCreateCustomerMutation();
+  const [updateCustomerMut] = useUpdateCustomerMutation();
+  const [deleteCustomerMut] = useDeleteCustomerMutation();
+
   const addCustomer = useCallback(async (customerData: Omit<CustomerDisplay, 'id' | 'code' | 'level'>): Promise<void> => {
     try {
       setLoading(true);
       setError(null);
-      // 創建完整的客戶資料物件
-      const customerDataToSend = {
+      const payload = {
         name: customerData.name,
         phone: customerData.phone,
         email: customerData.email,
@@ -108,26 +97,20 @@ const useCustomerData = (): UseCustomerDataReturn => {
         birthdate: customerData.birthdate,
         membershipLevel: customerData.membershipLevel
       };
-      
-      await createCustomer(customerDataToSend as any);
-      await fetchCustomers(); // Refresh the list after adding
+      await createCustomer(payload as any).unwrap();
+      await fetchCustomers();
     } catch (err: any) {
-      console.error('添加會員失敗 (hook):', err);
-      const errorMsg = `添加會員失敗: ${err.response?.data?.message ?? err.message}`;
-      setError(errorMsg);
-      throw new Error(errorMsg); // Re-throw to be caught in the component for alerts
-    } finally {
-      setLoading(false);
-    }
-  }, [fetchCustomers]);
+      const msg = `添加會員失敗: ${err?.data?.message ?? err.message}`;
+      setError(msg);
+      throw new Error(msg);
+    } finally { setLoading(false); }
+  }, [createCustomer, fetchCustomers]);
 
-  // Update an existing customer
   const updateCustomer = useCallback(async (id: string, customerData: Omit<CustomerDisplay, 'id' | 'code' | 'level'>): Promise<void> => {
     try {
       setLoading(true);
       setError(null);
-      // 創建完整的客戶資料物件
-      const customerDataToSend = {
+      const payload = {
         name: customerData.name,
         phone: customerData.phone,
         email: customerData.email,
@@ -137,48 +120,39 @@ const useCustomerData = (): UseCustomerDataReturn => {
         birthdate: customerData.birthdate,
         membershipLevel: customerData.membershipLevel
       };
-      
-      await updateCustomerService(id, customerDataToSend as any);
-      await fetchCustomers(); // Refresh the list after updating
+      await updateCustomerMut({ id, data: payload as any }).unwrap();
+      await fetchCustomers();
     } catch (err: any) {
-      console.error('更新會員失敗 (hook):', err);
-      const errorMsg = `更新會員失敗: ${err.response?.data?.message ?? err.message}`;
-      setError(errorMsg);
-      throw new Error(errorMsg); // Re-throw for alerts
-    } finally {
-      setLoading(false);
-    }
-  }, [fetchCustomers]);
+      const msg = `更新會員失敗: ${err?.data?.message ?? err.message}`;
+      setError(msg);
+      throw new Error(msg);
+    } finally { setLoading(false); }
+  }, [updateCustomerMut, fetchCustomers]);
 
-  // Delete a customer
   const deleteCustomer = useCallback(async (id: string): Promise<void> => {
     try {
       setLoading(true);
       setError(null);
-      await deleteCustomerService(id);
-      // Optimistic update or refetch
-      // setCustomers(prevCustomers => prevCustomers.filter(customer => customer.id !== id));
-      await fetchCustomers(); // Refresh the list after deleting
+      await deleteCustomerMut(id).unwrap();
+      await fetchCustomers();
     } catch (err: any) {
-      console.error('刪除會員失敗 (hook):', err);
-      const errorMsg = `刪除會員失敗: ${err.response?.data?.message ?? err.message}`;
-      setError(errorMsg);
-      throw new Error(errorMsg); // Re-throw for alerts
-    } finally {
-      setLoading(false);
-    }
-  }, [fetchCustomers]);
+      const msg = `刪除會員失敗: ${err?.data?.message ?? err.message}`;
+      setError(msg);
+      throw new Error(msg);
+    } finally { setLoading(false); }
+  }, [deleteCustomerMut, fetchCustomers]);
 
   return {
     customers,
     loading,
     error,
-    fetchCustomers, // Expose refetch if needed
+    fetchCustomers,
     addCustomer,
     updateCustomer,
     deleteCustomer,
-    mapMembershipLevel // Expose mapping function if needed by UI components
+    mapMembershipLevel
   };
 };
 
 export default useCustomerData;
+
