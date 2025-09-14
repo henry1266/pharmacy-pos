@@ -4,7 +4,7 @@
  * 注意：避免把 server state 塞進 Redux，而是用 selector 封裝讀取
  */
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { RootState } from '../../../app/store';
+import { RootState } from '@/app/store';
 import { SaleQueryParams } from '../api/dto';
 
 /**

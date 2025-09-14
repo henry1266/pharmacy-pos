@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { format } from 'date-fns';
-import testModeDataService from '../../../testMode/services/TestModeDataService';
-import { getTestSales, type ExtendedSale } from '../../../testMode/data/TestModeData';
+import testModeDataService from '@/testMode/services/TestModeDataService';
+import { getTestSales, type ExtendedSale } from '@/testMode/data/TestModeData';
+import { useGetSalesQuery, useGetTodaySalesQuery } from '../api/saleApi';
 
-// API 回應型別定義
+// API 響應型別定義
 interface ApiResponse<T> {
   success: boolean;
   message: string;
@@ -41,162 +42,128 @@ interface Customer {
 interface Sale extends ExtendedSale {}
 
 /**
- * 過濾銷售記錄：只顯示當天且前八碼相符的記錄
- * @param sales 銷售記錄陣列
- * @returns 過濾後的銷售記錄
+ * 測試模式用：過濾今日且銷貨單號前綴符合今日
  */
 const filterTodaySalesWithMatchingPrefix = (sales: Sale[]): Sale[] => {
   const today = format(new Date(), 'yyyy-MM-dd');
-  
   return sales.filter(sale => {
-    // 檢查日期是否為當天
     if (!sale.date) return false;
-    
     const saleDate = format(new Date(sale.date), 'yyyy-MM-dd');
     const isToday = saleDate === today;
-    
-    // 檢查銷售編號前八碼是否與當天日期相符
     if (!sale.saleNumber) return isToday;
-    
-    // 提取前八碼 (格式通常為 YYYYMMDD)
     const saleDatePrefix = sale.saleNumber.substring(0, 8);
     const todayPrefix = format(new Date(), 'yyyyMMdd');
-    const isPrefixMatch = saleDatePrefix === todayPrefix;
-    
-    return isToday && isPrefixMatch;
+    return isToday && saleDatePrefix === todayPrefix;
   });
 };
 
 /**
- * Custom Hook to manage sales list data with refresh capability
+ * 提供今日銷售清單（預設）與搜尋（全部）能力，改用 RTK Query 取得資料。
  */
 const useSalesListData = () => {
   const [sales, setSales] = useState<Sale[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isTestMode, setIsTestMode] = useState<boolean>(false);
-  const [lastFetchTime, setLastFetchTime] = useState<number>(0);
+  const [searchParams, setSearchParams] = useState<{ search?: string; wildcardSearch?: string } | undefined>(undefined);
 
-  // 防重複請求的最小間隔（毫秒）
-  const FETCH_DEBOUNCE_TIME = 1000;
-
+  // 初始化測試模式
   useEffect(() => {
     const testModeActive = localStorage.getItem('isTestMode') === 'true';
     setIsTestMode(testModeActive);
   }, []);
 
-  // 檢查是否可以發起新的請求
-  const canFetch = useCallback((): boolean => {
-    const now = Date.now();
-    const timeSinceLastFetch = now - lastFetchTime;
-    return timeSinceLastFetch >= FETCH_DEBOUNCE_TIME;
-  }, [lastFetchTime]);
+  // RTK Query hooks：有搜尋用 getSales，無搜尋顯示今日用 getTodaySales
+  const hasSearch = Boolean(searchParams?.search || searchParams?.wildcardSearch);
+  const mergedSearch = searchParams?.wildcardSearch ?? searchParams?.search;
 
-  // 獲取銷售數據（帶防重複機制）
-  const fetchSales = useCallback(async (searchParams?: { search?: string; wildcardSearch?: string }): Promise<void> => {
-    // 防重複請求檢查
-    if (!canFetch()) {
-      console.log('🚫 銷售數據請求過於頻繁，已跳過');
-      return;
-    }
+  const todayQuery = useGetTodaySalesQuery({}, { skip: isTestMode || hasSearch });
+  const listQuery = useGetSalesQuery(
+    mergedSearch ? ({ search: mergedSearch } as any) : ({} as any),
+    { skip: isTestMode || !hasSearch }
+  );
 
-    setLoading(true);
-    setError(null);
-    setLastFetchTime(Date.now());
-    
-    if (isTestMode) {
-      await fetchTestModeSales();
-    } else {
-      await fetchProductionSales(searchParams);
-    }
-  }, [isTestMode, canFetch]);
-
-  // 測試模式下獲取銷售數據
-  const fetchTestModeSales = async (): Promise<void> => {
+  // 測試模式下取得銷售數據
+  const fetchTestModeSales = useCallback(async (): Promise<void> => {
     try {
-      // Simulate API call delay
+      // 模擬 API 延遲
       await new Promise(resolve => setTimeout(resolve, 500));
       const response = await axios.get<ApiResponse<Sale[]>>('/api/sales');
       const salesData = response.data.data ?? [];
-      
+
       if (Array.isArray(salesData) && salesData.length > 0) {
-        // 過濾當天且前八碼相符的記錄
         const filteredSales = filterTodaySalesWithMatchingPrefix(salesData);
         setSales(filteredSales);
       } else {
-        console.log("Test Mode: No actual sales data, using mock data.");
-        // 使用統一的測試模式數據服務
+        // 使用測試模式內建資料
         const testSalesData = testModeDataService.getSales(null, null);
         const filteredMockSales = filterTodaySalesWithMatchingPrefix(testSalesData);
         setSales(filteredMockSales);
       }
     } catch (err) {
-      console.warn('Test Mode: Failed to fetch actual sales, using mock data.', err);
-      // 使用統一的測試模式數據服務
+      // 取得實際資料失敗則改用模擬資料
       const testSalesData = testModeDataService.getSales(null, null);
       const filteredMockSales = filterTodaySalesWithMatchingPrefix(testSalesData);
       setSales(filteredMockSales);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  // 生產模式下獲取銷售數據
-  const fetchProductionSales = async (searchParams?: { search?: string; wildcardSearch?: string }): Promise<void> => {
-    try {
-      const params: Record<string, string> = {};
-      
-      // 添加搜尋參數
-      if (searchParams?.wildcardSearch) {
-        params.wildcardSearch = searchParams.wildcardSearch;
-      } else if (searchParams?.search) {
-        params.search = searchParams.search;
-      }
-      
-      const response = await axios.get<ApiResponse<Sale[]>>('/api/sales', { params });
-      const salesData = response.data.data ?? [];
-      if (Array.isArray(salesData)) {
-        // 如果有搜尋參數，不進行日期過濾，讓後端處理
-        const filteredSales = (searchParams?.search || searchParams?.wildcardSearch)
-          ? salesData
-          : filterTodaySalesWithMatchingPrefix(salesData);
-        setSales(filteredSales);
-      } else {
-        console.warn('API 回傳的資料格式不正確:', response.data);
-        setSales([]);
-      }
-    } catch (err) {
-      console.error('獲取銷售數據失敗:', err);
-      setError('獲取銷售數據失敗');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 初始載入
+  // 生產模式：由 RTK Query 推動資料更新
   useEffect(() => {
-    fetchSales();
-  }, [fetchSales]);
+    if (isTestMode) return;
 
-  // 刷新銷售清單
+    const activeData = hasSearch ? listQuery.data : todayQuery.data;
+    const activeError: any = hasSearch ? listQuery.error : todayQuery.error;
+    const activeFetching = hasSearch ? listQuery.isFetching : todayQuery.isFetching;
+
+    setLoading(activeFetching);
+
+    if (activeError) {
+      const message = typeof activeError?.data === 'string'
+        ? activeError.data
+        : activeError?.data?.message || '取得銷售資料失敗';
+      setError(message);
+    } else {
+      setError(null);
+    }
+
+    if (activeData && Array.isArray(activeData.data)) {
+      setSales(activeData.data as unknown as Sale[]);
+    }
+  }, [isTestMode, hasSearch, listQuery.data, listQuery.error, listQuery.isFetching, todayQuery.data, todayQuery.error, todayQuery.isFetching]);
+
+  // 首次載入
+  useEffect(() => {
+    if (isTestMode) {
+      setLoading(true);
+      fetchTestModeSales();
+    }
+  }, [isTestMode, fetchTestModeSales]);
+
+  // 重新整理清單
   const refreshSales = useCallback(() => {
-    fetchSales();
-  }, [fetchSales]);
-
-  // 搜尋銷售記錄
-  const searchSales = useCallback((searchTerm: string, wildcardMode: boolean = false) => {
-    if (!searchTerm.trim()) {
-      // 如果搜尋條件為空，重新載入所有記錄
-      fetchSales();
+    if (isTestMode) {
+      setLoading(true);
+      fetchTestModeSales();
       return;
     }
+    if (hasSearch) {
+      listQuery.refetch();
+    } else {
+      todayQuery.refetch();
+    }
+  }, [isTestMode, hasSearch, listQuery.refetch, todayQuery.refetch, fetchTestModeSales]);
 
-    const searchParams = wildcardMode
-      ? { wildcardSearch: searchTerm }
-      : { search: searchTerm };
-    
-    fetchSales(searchParams);
-  }, [fetchSales]);
+  // 查詢銷售記錄
+  const searchSales = useCallback((searchTerm: string, wildcardMode: boolean = false) => {
+    if (!searchTerm.trim()) {
+      setSearchParams(undefined);
+      return;
+    }
+    setSearchParams(wildcardMode ? { wildcardSearch: searchTerm } : { search: searchTerm });
+  }, []);
 
   return {
     sales,
@@ -210,3 +177,4 @@ const useSalesListData = () => {
 
 export default useSalesListData;
 export type { Sale, SaleItem, User, Customer };
+

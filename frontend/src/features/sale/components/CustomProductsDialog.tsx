@@ -17,7 +17,7 @@ import {
   Search as SearchIcon,
   Close as CloseIcon
 } from '@mui/icons-material';
-import useInventoryData from '../../../hooks/useInventoryData';
+import useInventoryData from '@/hooks/useInventoryData';
 import { Product } from '@pharmacy-pos/shared/types/entities';
 import { Package } from '@pharmacy-pos/shared/types/package';
 

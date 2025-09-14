@@ -1,5 +1,5 @@
 import React from 'react';
-import ItemPreview from '../../../components/common/preview/ItemPreview';
+import ItemPreview from '@/components/common/preview/ItemPreview';
 import { Customer } from '@pharmacy-pos/shared/types/entities';
 
 // 定義銷售項目的型別

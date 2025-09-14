@@ -22,7 +22,7 @@ import {
   Add as AddIcon,
   FlashOn as FlashOnIcon
 } from '@mui/icons-material';
-import useUserSettings, { type UserShortcut } from '../../../hooks/useUserSettings';
+import useUserSettings, { type UserShortcut } from '@/hooks/useUserSettings';
 import { Package } from '@pharmacy-pos/shared/types/package';
 import EditShortcutItemsDialog from './EditShortcutItemsDialog';
 

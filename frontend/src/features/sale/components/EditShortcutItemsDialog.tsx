@@ -26,7 +26,7 @@ import {
   KeyboardArrowUp as ArrowUpIcon,
   KeyboardArrowDown as ArrowDownIcon
 } from '@mui/icons-material';
-import { type UserShortcut } from '../../../hooks/useUserSettings';
+import { type UserShortcut } from '@/hooks/useUserSettings';
 import { Package } from '@pharmacy-pos/shared/types/package';
 
 // 定義產品的型別

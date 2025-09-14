@@ -35,8 +35,8 @@ import {
 } from '@mui/material';
 import MDEditor from '@uiw/react-md-editor';
 import axios from 'axios';
-import { prepareMarkdownForDisplay, prepareMarkdownForDisplaySync } from '../../../utils/markdownUtils';
-import '../../../styles/force-light-theme.css';
+import { prepareMarkdownForDisplay, prepareMarkdownForDisplaySync } from '@/utils/markdownUtils';
+import '@/styles/force-light-theme.css';
 
 // 定義銷售項目的型別
 interface SalesItem {

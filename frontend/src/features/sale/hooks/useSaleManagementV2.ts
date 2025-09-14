@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, ChangeEvent, useRef } from 'react';
-import { createSale } from '../../../services/salesServiceV2';
+import { createSale } from '@/services/salesServiceV2';
 import { Product } from '@pharmacy-pos/shared/types/entities';
 import { Package } from '@pharmacy-pos/shared/types/package';
 

@@ -13,7 +13,7 @@ import {
   Add as AddIcon,
   StickyNote2 as NoteIcon
 } from '@mui/icons-material';
-import ProductNotePopover from '../../product/components/ProductNotePopover';
+import ProductNotePopover from '@/features/product/components/ProductNotePopover';
 import { Package } from '@pharmacy-pos/shared/types/package';
 import { Product, Medicine } from '@pharmacy-pos/shared/types/entities';
 

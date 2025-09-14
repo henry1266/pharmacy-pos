@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getSaleById } from '../../../services/salesServiceV2';
-import { productServiceV2 } from '../../../services/productServiceV2';
-import { getAllCustomers } from '../../../services/customerServiceV2';
+import { getSaleById } from '@/services/salesServiceV2';
+import { productServiceV2 } from '@/services/productServiceV2';
+import { getAllCustomers } from '@/services/customerServiceV2';
 import { Product, Customer } from '@pharmacy-pos/shared/types/entities';
 import { SaleData } from '../types/edit';
 import { formatSaleData } from '../utils/editUtils';
