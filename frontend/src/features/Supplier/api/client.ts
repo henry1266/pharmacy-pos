@@ -19,9 +19,9 @@ export enum ApiErrorType {
 // API 錯誤介面
 export interface ApiError {
   type: ApiErrorType;
-  status?: number;
+  status?: number | undefined;
   message: string;
-  originalError?: any;
+  originalError?: any | undefined;
 }
 
 const createApiError = (type: ApiErrorType, message: string, status?: number, originalError?: any): ApiError => ({
@@ -87,4 +87,3 @@ export const createSupplierApiClient = (baseURL = '/api'): AxiosInstance => {
 
 export const supplierApiClient = createSupplierApiClient();
 export default supplierApiClient;
-
