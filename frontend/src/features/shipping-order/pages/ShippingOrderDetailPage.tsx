@@ -122,7 +122,7 @@ interface RootState {
 const ShippingOrderDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { data: currentShippingOrder, isLoading: orderLoading, error: orderErrorObj } = useGetShippingOrderByIdQuery(id as string, { skip: !id });
+  const { data: currentShippingOrder, isLoading: orderLoading, error: orderErrorObj, refetch } = useGetShippingOrderByIdQuery(id as string, { skip: !id });
   const orderError = orderErrorObj ? ((orderErrorObj as any).data?.message || (orderErrorObj as any).message || '載入出貨單失敗') : null;
   
   // 由 RTK Query 取得 currentShippingOrder / orderLoading / orderError
@@ -381,8 +381,8 @@ const ShippingOrderDetailPage: React.FC = () => {
       });
       
       if (response.ok) {
-        // 重新載入出貨單資料
-        dispatch(fetchShippingOrder(id));
+        // 重新載入出貨單資料（由 RTK Query 提供）
+        await refetch();
         showSnackbar('出貨單已解鎖並改為待處理狀態', 'success');
       } else {
         const errorData = await response.json();
@@ -393,7 +393,7 @@ const ShippingOrderDetailPage: React.FC = () => {
       const errorMessage = error.response?.data?.message || error.message || '未知錯誤';
       showSnackbar(`解鎖失敗: ${errorMessage}`, 'error');
     }
-  }, [id, dispatch]);
+  }, [id, refetch]);
   
   // 使用 ShippingOrderActions hook 生成操作按鈕
   const additionalActions = useShippingOrderActions({
@@ -408,10 +408,11 @@ const ShippingOrderDetailPage: React.FC = () => {
 
   useEffect(() => {
     if (id) {
-      dispatch(fetchShippingOrder(id));
+      // RTK Query 會自動依據 id 載入；可選擇性強制 refetch
+      refetch();
       fetchFifoData();
     }
-  }, [dispatch, id, fetchFifoData]);
+  }, [id, refetch, fetchFifoData]);
   
   
   // 合併載入狀態
@@ -678,7 +679,7 @@ const ShippingOrderDetailPage: React.FC = () => {
   // 為DataGrid準備行數據
   const rows = currentShippingOrder?.items?.map((item, index) => {
     // 確保 packageQuantity 是從資料庫中正確獲取的
-    const packageQuantity = Number(item.packageQuantity || 0);
+    const packageQuantity = Number(((item as any).packageQuantity || 0));
     
     // 計算 boxQuantity 的值為 總數量/packageQuantity
     let boxQuantity = 0;
