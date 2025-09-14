@@ -44,7 +44,7 @@ import TitleWithCount from '@/components/common/TitleWithCount';
 import ShippingOrderDetailPanel from '@/features/shipping-order/components/ShippingOrderDetailPanel';
 import StatusChip from '@/components/common/StatusChip';
 import PaymentStatusChip from '@/components/common/PaymentStatusChip';
-import { ActionButtons } from '@/features/purchase-order/shared/components';
+import { ActionButtons } from '@/components/common/ActionButtons';
 
 // 使用通用類型定義
 interface ShippingOrder {

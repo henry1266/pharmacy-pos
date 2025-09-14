@@ -18,7 +18,7 @@ import useSalesDashboard from '../hooks/useSalesDashboard';
 // Import Components
 import DashboardCalendar from '../components/DashboardCalendar';
 import DailySchedulePanel from '../components/DailySchedulePanel';
-import DailySalesPanel from '../components/DailySalesPanel';
+import DailySalesPanel from '@/components/common/DailySalesPanel';
 import AccountingPanel from '../components/AccountingPanel';
 import AccountingEditDialog from '../components/AccountingEditDialog';
 

@@ -18,52 +18,53 @@ import {
   getPaymentStatusInfo,
   convertToStandardItems,
   DAILY_PANEL_STYLES
-} from '.';
+} from './daily-panel';
 
-// 支援兩種不同的 Sale 型別
-type SaleFromHook = import('@/features/sale/hooks/useSalesListData').Sale;
-type SaleFromShared = import('@pharmacy-pos/shared/types/entities').Sale;
-
-// 創建一個聯合型別來支援兩種 Sale 型別
-export type Sale = SaleFromHook | SaleFromShared;
+// 最小化型別以相容 shared 與 hooks 兩種 Sale 來源
+export type SaleLike = {
+  _id: string;
+  saleNumber?: string;
+  totalAmount?: number;
+  date?: string | Date;
+  paymentMethod?: string;
+  paymentStatus?: string;
+  customer?: any;
+  items?: any[];
+};
 
 export interface DailySalesPanelProps {
-  sales: Sale[];
+  sales: SaleLike[];
   loading: boolean;
   error: string | null;
-  targetDate: string; // 目標日期，用於過濾
+  targetDate: string;
   searchTerm: string;
   onSearchChange: (value: string) => void;
-  onSaleClick?: (sale: Sale) => void;
-  // 新增萬用字元搜尋相關屬性
+  onSaleClick?: (sale: SaleLike) => void;
   wildcardMode?: boolean;
   onWildcardModeChange?: (enabled: boolean) => void;
 }
 
-// 配置銷售面板
-const createSalesConfig = (onSaleClick?: (sale: Sale) => void): DailyPanelConfig<Sale> => ({
-  title: '當日銷售',
+const createSalesConfig = (onSaleClick?: (sale: SaleLike) => void): DailyPanelConfig<SaleLike> => ({
+  title: '今日銷售',
   icon: <ReceiptIcon />,
   iconColor: 'primary.main',
-  loadingText: '載入銷售記錄中...',
-  emptyText: '銷售記錄',
-  searchPlaceholder: '搜索銷售記錄...',
+  loadingText: '載入銷售紀錄中...',
+  emptyText: '銷售紀錄',
+  searchPlaceholder: '搜尋銷售紀錄...',
   
-  // 資料處理函數
-  filterItemsForDate: createSalesDateFilter<Sale>(),
-  getSearchableFields: createSearchFieldsExtractor<Sale>([
+  filterItemsForDate: createSalesDateFilter<SaleLike>(),
+  getSearchableFields: createSearchFieldsExtractor<SaleLike>([
     (sale) => getCustomerName(sale.customer),
-    (sale) => sale.items.map(item => getProductName(item.product)).join(' '),
+    (sale) => (sale.items || []).map((item: any) => getProductName(item.product)).join(' '),
     (sale) => String(sale._id ?? ''),
     (sale) => String(sale.saleNumber ?? ''),
     (sale) => formatDate(sale.date, 'yyyy-MM-dd')
   ]),
-  calculateTotalAmount: createTotalAmountCalculator<Sale>(
+  calculateTotalAmount: createTotalAmountCalculator<SaleLike>(
     (sale) => sale.totalAmount || 0
   ),
   
-  // 渲染函數
-  renderItemSummary: (sale: Sale) => (
+  renderItemSummary: (sale: SaleLike, _isExpanded: boolean, _onToggle: () => void) => (
     <ItemSummary
       orderNumber={sale.saleNumber || ''}
       amount={sale.totalAmount || 0}
@@ -84,23 +85,22 @@ const createSalesConfig = (onSaleClick?: (sale: Sale) => void): DailyPanelConfig
     />
   ),
   
-  renderItemDetails: (sale: Sale) => (
+  renderItemDetails: (sale: SaleLike) => (
     <>
-      {/* 客戶和付款資訊 */}
       <ItemDetailHeader
         icon={<PersonIcon />}
         text={getCustomerName(sale.customer)}
         rightContent={
           <>
             <Chip
-              label={getPaymentMethodText(sale.paymentMethod)}
+              label={getPaymentMethodText(sale.paymentMethod || '')}
               size="small"
               variant="outlined"
               sx={DAILY_PANEL_STYLES.chip.small}
             />
             <Chip
-              label={getPaymentStatusInfo(sale.paymentStatus || 'pending').text}
-              color={getPaymentStatusInfo(sale.paymentStatus || 'pending').color}
+              label={getPaymentStatusInfo((sale.paymentStatus || 'pending') as string).text}
+              color={getPaymentStatusInfo((sale.paymentStatus || 'pending') as string).color}
               size="small"
               sx={DAILY_PANEL_STYLES.chip.small}
             />
@@ -108,13 +108,11 @@ const createSalesConfig = (onSaleClick?: (sale: Sale) => void): DailyPanelConfig
         }
       />
       
-      {/* 商品明細 */}
       <ItemList
-        title="商品明細"
-        items={convertToStandardItems(sale.items)}
+        title="明細"
+        items={convertToStandardItems(sale.items || [])}
       />
 
-      {/* 詳情連結 */}
       <DetailLink
         href={`/sales/${sale._id}`}
         onClick={(e) => {
@@ -128,10 +126,6 @@ const createSalesConfig = (onSaleClick?: (sale: Sale) => void): DailyPanelConfig
   )
 });
 
-/**
- * 當日銷售面板
- * 顯示當日的銷售記錄
- */
 const DailySalesPanel: React.FC<DailySalesPanelProps> = ({
   sales,
   loading,
@@ -161,5 +155,4 @@ const DailySalesPanel: React.FC<DailySalesPanelProps> = ({
   );
 };
 
-export { DailySalesPanel };
 export default DailySalesPanel;

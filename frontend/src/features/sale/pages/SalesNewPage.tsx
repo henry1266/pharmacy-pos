@@ -28,7 +28,7 @@ import usePackageData from '@/hooks/usePackageData';
 
 // Import sub-components
 import CustomProductsDialog from '../components/CustomProductsDialog';
-import DailySalesPanel from '@/features/dashboard/components/DailySalesPanel';
+import DailySalesPanel from '@/components/common/DailySalesPanel';
 import CheckoutSuccessEffect from '../components/CheckoutSuccessEffect';
 
 // Import module components
