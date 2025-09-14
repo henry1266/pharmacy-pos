@@ -709,11 +709,15 @@ const ShippingOrderDetailPage: React.FC = () => {
         profit = fifoItem.fifoProfit.totalProfit;
       } else if (fifoItem.fifoProfit.totalCost !== undefined && fifoItem.fifoProfit.totalCost !== null) {
         // 否則，自行計算毛利 = 小計 - 成本
-        const subtotal = item.dprice ? (item.dprice * (item.dquantity || 0)) : (item.totalPrice || 0);
+        const unitPriceVal = (item as any).dprice ?? (item as any).unitPrice ?? (item as any).price ?? 0;
+        const qtyVal = (item as any).dquantity ?? (item as any).quantity ?? 0;
+        const subtotal = (item as any).totalPrice ?? (unitPriceVal * qtyVal);
         profit = subtotal - fifoItem.fifoProfit.totalCost;
-      } else if (fifoItem.fifoProfit.profitMargin && (item.dprice || item.totalPrice)) {
+      } else if (fifoItem.fifoProfit.profitMargin && (((item as any).dprice ?? (item as any).price) || (item as any).totalPrice)) {
         // 如果有毛利率和總金額，可以反推計算毛利
-        const totalAmount = item.dprice ? (item.dprice * (item.dquantity || 0)) : (item.totalPrice || 0);
+        const unitPriceVal2 = (item as any).dprice ?? (item as any).unitPrice ?? (item as any).price ?? 0;
+        const qtyVal2 = (item as any).dquantity ?? (item as any).quantity ?? 0;
+        const totalAmount = (item as any).totalPrice ?? (unitPriceVal2 * qtyVal2);
         const profitMarginDecimal = fifoItem.fifoProfit.profitMargin / 100;
         profit = totalAmount * profitMarginDecimal;
       }
@@ -727,10 +731,10 @@ const ShippingOrderDetailPage: React.FC = () => {
       did: item.did || '',
       dname: item.dname || '',
       healthInsuranceCode: (productDetails[item.did || ''] as any)?.healthInsuranceCode || 'N/A',
-      dquantity: item.dquantity || 0,
-      unitPrice: item.unitPrice || item.dprice || 0,
+      dquantity: ((item as any).dquantity || (item as any).quantity || 0),
+      unitPrice: (((item as any).unitPrice || (item as any).dprice || (item as any).price || 0)),
       dtotalCost: cost,
-      batchNumber: item.batchNumber || '',
+      batchNumber: ((item as any).batchNumber || ''),
       packageQuantity: packageQuantity,
       boxQuantity: boxQuantity,
       profit: profit1,
