@@ -47,6 +47,8 @@ import PaymentStatusChip from '@/components/common/PaymentStatusChip';
 import TitleWithCount from '@/components/common/TitleWithCount';
 import GenericConfirmDialog from '@/components/common/GenericConfirmDialog';
 import { useShippingOrderFifo } from '@/features/shipping-order/hooks/useShippingOrderFifo';
+import { useAppDispatch } from '@/hooks/redux';
+import { fetchShippingOrder } from '@/redux/actions';
 // 擴展 ShippingOrder 類型以包含實際使用的欄位
 interface ExtendedShippingOrder {
   _id?: string;
@@ -123,6 +125,7 @@ const ShippingOrderDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { data: currentShippingOrder, isLoading: orderLoading, error: orderErrorObj, refetch } = useGetShippingOrderByIdQuery(id as string, { skip: !id });
+  const dispatch = useAppDispatch();
   const orderError = orderErrorObj ? ((orderErrorObj as any).data?.message || (orderErrorObj as any).message || '載入出貨單失敗') : null;
   
   // 由 RTK Query 取得 currentShippingOrder / orderLoading / orderError
@@ -169,18 +172,20 @@ const ShippingOrderDetailPage: React.FC = () => {
 
   // 根據出貨單的 organizationId 設置當前機構
   useEffect(() => {
-    if (currentShippingOrder?.organizationId && organizations.length > 0) {
-      const foundOrganization = organizations.find(org => org._id === currentShippingOrder.organizationId);
+    const orgId = (currentShippingOrder as any)?.organizationId as string | undefined;
+    if (orgId && organizations.length > 0) {
+      const foundOrganization = organizations.find(org => org._id === orgId);
       setCurrentOrganization(foundOrganization || null);
     } else {
       setCurrentOrganization(null);
     }
-  }, [currentShippingOrder?.organizationId, organizations]);
+  }, [currentShippingOrder, organizations]);
 
   // 獲取關聯的分錄資訊
   useEffect(() => {
     const fetchTransactionInfo = async () => {
-      if (!currentShippingOrder?.relatedTransactionGroupId) {
+      const groupId = (currentShippingOrder as any)?.relatedTransactionGroupId as string | undefined;
+      if (!groupId) {
         setTransactionGroupId(null);
         return;
       }
@@ -188,7 +193,7 @@ const ShippingOrderDetailPage: React.FC = () => {
       setTransactionLoading(true);
       try {
         // 設置交易群組ID
-        setTransactionGroupId(currentShippingOrder.relatedTransactionGroupId.toString());
+        setTransactionGroupId(String(groupId));
       } catch (error) {
         console.error('獲取分錄資訊時發生錯誤:', error);
         setTransactionGroupId(null);
@@ -198,7 +203,7 @@ const ShippingOrderDetailPage: React.FC = () => {
     };
 
     fetchTransactionInfo();
-  }, [currentShippingOrder?.relatedTransactionGroupId]);
+  }, [currentShippingOrder]);
 
   // 獲取產品詳情
   useEffect(() => {

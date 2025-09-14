@@ -8,7 +8,6 @@ import {
   TextField
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
-import { Product } from '@pharmacy-pos/shared/types/entities';
 import PropTypes from 'prop-types';
 
 // 導入自定義組件

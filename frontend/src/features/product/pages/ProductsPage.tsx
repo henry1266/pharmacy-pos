@@ -74,8 +74,6 @@ const ProductsPage: React.FC = () => {
   // 使用自定義Hook獲取數據和操作函數
   const { 
     allProducts,
-    products, 
-    medicines, 
     suppliers, 
     categories,
     loading, 
