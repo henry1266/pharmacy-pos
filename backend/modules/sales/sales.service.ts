@@ -68,7 +68,7 @@ export async function createSaleRecord(requestBody: SaleCreationRequest): Promis
   };
   
   const saleFields = buildSaleFields({
-    saleNumber: saleData.saleNumber,
+    saleNumber: saleData.saleNumber as string,
     customer: saleData.customer || '',
     items: saleData.items,
     totalAmount: saleData.totalAmount,
@@ -100,7 +100,7 @@ export async function updateSaleRecord(saleId: string, requestBody: SaleCreation
   };
   
   const saleFields = buildSaleFields({
-    saleNumber: saleData.saleNumber,
+    saleNumber: saleData.saleNumber as string,
     customer: saleData.customer || '',
     items: saleData.items,
     totalAmount: saleData.totalAmount,

@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { SaleCreateRequest } from '@pharmacy-pos/shared/types/api';
+import { ISaleDocument } from '../../src/types/models';
 
 // 使用 shared 的 SaleCreateRequest，並擴展本地需要的欄位
 export interface SaleCreationRequest extends SaleCreateRequest {
@@ -10,7 +11,7 @@ export interface SaleCreationRequest extends SaleCreateRequest {
 
 // 定義更具體的型別
 // 使用 Record<string, any> 來避免 _id 型別衝突
-export type SaleDocument = mongoose.Document & Record<string, any>;
+export type SaleDocument = ISaleDocument;
 
 export interface ValidationResult {
   success: boolean;

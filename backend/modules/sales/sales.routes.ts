@@ -135,7 +135,10 @@ const router: express.Router = express.Router();
 router.get('/', salesController.getAllSales);
 // 今日銷售
 router.get('/today', salesController.getTodaySales);
-
+// @route   POST api/sales
+// @desc    Create a sale
+// @access  Public
+router.post('/', validateSale('create'), salesController.createSale);
 /**
  * @swagger
  * /api/sales/{id}:

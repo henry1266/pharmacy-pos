@@ -102,7 +102,7 @@ export interface ISale {
   items: ISaleItem[];
   totalAmount: number;
   discount: number;
-  paymentMethod: 'cash' | 'credit_card' | 'debit_card' | 'mobile_payment' | 'other';
+  paymentMethod: 'cash' | 'credit_card' | 'debit_card' | 'mobile_payment' | 'other' | 'transfer' | 'card';
   paymentStatus: 'paid' | 'pending' | 'partial' | 'cancelled';
   notes?: string;
   cashier?: Types.ObjectId;
