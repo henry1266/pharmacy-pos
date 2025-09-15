@@ -12,8 +12,15 @@ export function mapApiItemsToModelItems(items: any[] = []): any[] {
 
 export function mapModelItemsToApiItems(items: any[] = []): any[] {
   return (items || []).map((item: any) => {
-    const { note, ...rest } = item || {};
-    return note !== undefined ? { ...rest, notes: note } : { ...rest };
+    // Normalize potential mongoose subdocs to plain objects
+    const src = item && typeof item.toObject === 'function' ? item.toObject() : (item || {});
+    const productPlain = src.product && typeof src.product?.toObject === 'function'
+      ? src.product.toObject()
+      : src.product;
+    // Extract note and reassign as notes, keep product explicitly
+    const { note, product, ...rest } = src;
+    const base = { ...rest, product: productPlain ?? product };
+    return note !== undefined ? { ...base, notes: note } : base;
   });
 }
 
