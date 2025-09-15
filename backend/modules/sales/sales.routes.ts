@@ -1,6 +1,7 @@
 import express from 'express';
 import { check } from 'express-validator';
 import * as salesController from './sales.controller';
+import { validateSale } from './middlewares/validateSale';
 
 const router: express.Router = express.Router();
 
@@ -297,6 +298,7 @@ router.post(
     check('items', '至少需要一個銷售項目').isArray({ min: 1 }),
     check('totalAmount', '總金額為必填項').isNumeric()
   ],
+  validateSale('create'),
   salesController.createSale
 );
 
@@ -403,7 +405,7 @@ router.post(
 // @route   PUT api/sales/:id
 // @desc    Update a sale
 // @access  Public
-router.put('/:id', salesController.updateSale);
+router.put('/:id', validateSale('update'), salesController.updateSale);
 
 /**
  * @swagger

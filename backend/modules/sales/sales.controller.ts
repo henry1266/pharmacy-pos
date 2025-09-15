@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { validationResult } from 'express-validator';
 import Sale from '../../models/Sale';
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@pharmacy-pos/shared/constants';
@@ -10,24 +9,7 @@ import { isValidObjectId } from './services/validation.service';
 import { handleInventoryForDeletedSale } from './services/inventory.service';
 import { mapModelItemsToApiItems } from './utils/sales.utils';
 // Dynamically import shared zod schemas from ESM in a CJS environment
-async function validateSaleWithZod(data: any, mode: 'create' | 'update') {
-  try {
-    const modulePath = require.resolve('@pharmacy-pos/shared/dist/schemas/zod/sale.js');
-    const mod = await import(modulePath);
-    const schema = mode === 'create' ? mod.createSaleSchema : mod.updateSaleSchema;
-    const result = schema.safeParse(data);
-    if (!result.success) {
-      return {
-        success: false,
-        errors: result.error.errors?.map((e: any) => ({ path: e.path?.join('.') ?? '', message: e.message })) ?? []
-      };
-    }
-    return { success: true };
-  } catch (err) {
-    logger.warn(`Zod schema load/validate skipped: ${err instanceof Error ? err.message : String(err)}`);
-    return { success: true };
-  }
-}
+
 
 // @route   GET api/sales
 // @desc    Get all sales with optional wildcard search
@@ -194,32 +176,9 @@ export const getSaleById = async (req: Request, res: Response) => {
 // @desc    Create a sale
 // @access  Public
 export const createSale = async (req: Request, res: Response) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
-      error: JSON.stringify(errors.array()),
-      timestamp: new Date()
-    };
-    res.status(400).json(errorResponse);
-    return;
-  }
-  
   try {
     // 處理銷售創建的完整流程
-    {
-      const z = await validateSaleWithZod(req.body, 'create');
-      if (!z.success) {
-        const errorResponse: ErrorResponse = {
-          success: false,
-          message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
-          errors: z.errors?.map((e: any) => ({ msg: e.message, param: e.path }))
-        } as any;
-        res.status(400).json(errorResponse);
-        return;
-      }
-    }
+    // Body validated by zod middleware
     const sale = await salesService.processSaleCreation(req.body);
     
     // 使用型別斷言解決型別不匹配問題
@@ -288,18 +247,7 @@ export const updateSale = async (req: Request, res: Response) => {
     }
 
     // 處理銷售更新的完整流程
-    {
-      const z = await validateSaleWithZod(req.body, 'update');
-      if (!z.success) {
-        const errorResponse: ErrorResponse = {
-          success: false,
-          message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
-          errors: z.errors?.map((e: any) => ({ msg: e.message, param: e.path }))
-        } as any;
-        res.status(400).json(errorResponse);
-        return;
-      }
-    }
+    // Body validated by zod middleware
     const updatedSale = await salesService.processSaleUpdate(req.params.id, req.body, existingSale);
 
     // 重新填充關聯資料
