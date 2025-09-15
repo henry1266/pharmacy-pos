@@ -5,7 +5,7 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import {
   SaleResponseDto,
-  SaleRequestDto,
+  SaleCreateRequest,
   SaleQueryParams,
   PaginatedResponse,
   SaleStatsResponseDto,
@@ -69,7 +69,7 @@ export const saleApi = createApi({
     }),
 
     // 新增銷售
-    createSale: builder.mutation<SaleResponseDto, SaleRequestDto>({
+    createSale: builder.mutation<SaleResponseDto, SaleCreateRequest>({
       queryFn: async (saleData) => {
         try {
           const response = await saleApiClient.post('/sales', saleData);
@@ -82,7 +82,7 @@ export const saleApi = createApi({
     }),
 
     // 更新銷售
-    updateSale: builder.mutation<SaleResponseDto, { id: string; data: SaleRequestDto }>({
+    updateSale: builder.mutation<SaleResponseDto, { id: string; data: SaleCreateRequest }>({
       queryFn: async ({ id, data }) => {
         try {
           const response = await saleApiClient.put(`/sales/${id}`, data);

@@ -3,6 +3,7 @@
  * 定義 Request/Response 型別
  */
 import { Sale, Customer, Product } from '@pharmacy-pos/shared/types/entities';
+import type { z } from 'zod';
 
 /**
  * 通用分頁響應介面
@@ -30,14 +31,9 @@ export interface ApiResponse<T> {
  * 銷售項目 DTO
  * 用於請求和響應的銷售項目格式
  */
-export interface SaleItemDto {
-  product: string;
-  quantity: number;
-  price: number;
-  discount?: number | undefined;
-  subtotal: number;
-  notes?: string | undefined;
-}
+export type SaleItemDto = z.infer<
+  typeof import('@pharmacy-pos/shared/dist/schemas/zod/sale').saleItemSchema
+>;
 
 /**
  * 前端使用的銷售項目 DTO
@@ -53,16 +49,9 @@ export interface SaleItemWithDetailsDto extends SaleItemDto {
 /**
  * 創建/更新銷售請求 DTO
  */
-export interface SaleRequestDto {
-  customer?: string | undefined;
-  items: SaleItemDto[];
-  totalAmount: number;
-  discount?: number | undefined;
-  paymentMethod: 'cash' | 'card' | 'transfer' | 'other' | 'credit_card' | 'debit_card' | 'mobile_payment';
-  paymentStatus?: 'paid' | 'pending' | 'partial' | 'cancelled' | undefined;
-  status?: 'completed' | 'pending' | 'cancelled' | undefined;
-  notes?: string | undefined;
-}
+export type SaleCreateRequest = z.infer<
+  typeof import('@pharmacy-pos/shared/dist/schemas/zod/sale').createSaleSchema
+>;
 
 /**
  * 銷售響應 DTO
@@ -202,7 +191,7 @@ export const mapSaleResponseToSaleData = (sale: SaleResponseDto): SaleDataDto =>
 /**
  * 將 SaleDataDto 轉換為 SaleRequestDto
  */
-export const mapSaleDataToSaleRequest = (saleData: SaleDataDto): SaleRequestDto => {
+export const mapSaleDataToSaleRequest = (saleData: SaleDataDto): SaleCreateRequest => {
   return {
     customer: saleData.customer || undefined,
     items: saleData.items.map(item => ({
