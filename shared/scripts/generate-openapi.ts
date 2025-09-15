@@ -59,6 +59,16 @@ async function main() {
     }
   } as const;
 
+  // Optionally merge path descriptors (LLM-friendly static JSON objects)
+  try {
+    const salesPathsModPath = path.resolve(__dirname, '../api/paths/sales');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const salesPaths = require(salesPathsModPath).default as Record<string, any>;
+    (document as any).paths = { ...(document as any).paths, ...salesPaths };
+  } catch (_err) {
+    // no-op if descriptor not present
+  }
+
   const outDir = path.resolve(__dirname, '../../openapi');
   const outFile = path.join(outDir, 'openapi.json');
   fs.mkdirSync(outDir, { recursive: true });
