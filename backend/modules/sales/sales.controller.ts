@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { validationResult } from 'express-validator';
 import Sale from '../../models/Sale';
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@pharmacy-pos/shared/constants';
@@ -7,9 +8,6 @@ import * as salesService from './sales.service';
 import * as searchService from './services/search.service';
 import { isValidObjectId } from './services/validation.service';
 import { handleInventoryForDeletedSale } from './services/inventory.service';
-import { mapModelItemsToApiItems } from './utils/sales.utils';
-// Dynamically import shared zod schemas from ESM in a CJS environment
-
 
 // @route   GET api/sales
 // @desc    Get all sales with optional wildcard search
@@ -37,16 +35,12 @@ export const getAllSales = async (req: Request, res: Response) => {
     const response: ApiResponse<any[]> = {
       success: true,
       message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
-      data: sales.map(sale => {
-        const obj = sale.toObject ? sale.toObject() : sale;
-        return {
-          ...obj,
-          items: mapModelItemsToApiItems(obj.items),
-          _id: sale._id.toString(),
-          createdAt: sale.createdAt,
-          updatedAt: sale.updatedAt
-        };
-      }),
+      data: sales.map(sale => ({
+        ...sale.toObject ? sale.toObject() : sale,
+        _id: sale._id.toString(),
+        createdAt: sale.createdAt,
+        updatedAt: sale.updatedAt
+      })),
       timestamp: new Date()
     };
     
@@ -72,16 +66,12 @@ export const getTodaySales = async (_req: Request, res: Response) => {
     const response: ApiResponse<any[]> = {
       success: true,
       message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
-      data: sales.map((sale: any) => {
-        const obj = sale.toObject ? sale.toObject() : sale;
-        return {
-          ...obj,
-          items: mapModelItemsToApiItems(obj.items),
-          _id: sale._id.toString(),
-          createdAt: sale.createdAt,
-          updatedAt: sale.updatedAt
-        };
-      }),
+      data: sales.map((sale: any) => ({
+        ...(sale.toObject ? sale.toObject() : sale),
+        _id: sale._id.toString(),
+        createdAt: sale.createdAt,
+        updatedAt: sale.updatedAt
+      })),
       timestamp: new Date()
     };
 
@@ -142,7 +132,6 @@ export const getSaleById = async (req: Request, res: Response) => {
       message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
       data: {
         ...sale.toObject(),
-        items: mapModelItemsToApiItems((sale as any).items),
         _id: (sale._id as any).toString(),
         createdAt: sale.createdAt,
         updatedAt: sale.updatedAt
@@ -176,9 +165,20 @@ export const getSaleById = async (req: Request, res: Response) => {
 // @desc    Create a sale
 // @access  Public
 export const createSale = async (req: Request, res: Response) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
+      error: JSON.stringify(errors.array()),
+      timestamp: new Date()
+    };
+    res.status(400).json(errorResponse);
+    return;
+  }
+  
   try {
     // 處理銷售創建的完整流程
-    // Body validated by zod middleware
     const sale = await salesService.processSaleCreation(req.body);
     
     // 使用型別斷言解決型別不匹配問題
@@ -187,7 +187,6 @@ export const createSale = async (req: Request, res: Response) => {
       message: SUCCESS_MESSAGES.GENERIC.CREATED,
       data: {
         ...sale.toObject(),
-        items: mapModelItemsToApiItems((sale as any).items),
         _id: (sale._id as any).toString(),
         createdAt: sale.createdAt,
         updatedAt: sale.updatedAt
@@ -247,7 +246,6 @@ export const updateSale = async (req: Request, res: Response) => {
     }
 
     // 處理銷售更新的完整流程
-    // Body validated by zod middleware
     const updatedSale = await salesService.processSaleUpdate(req.params.id, req.body, existingSale);
 
     // 重新填充關聯資料
@@ -268,7 +266,6 @@ export const updateSale = async (req: Request, res: Response) => {
       message: SUCCESS_MESSAGES.GENERIC.UPDATED,
       data: {
         ...populatedSale.toObject(),
-        items: mapModelItemsToApiItems((populatedSale as any).items),
         _id: (populatedSale._id as any).toString(),
         createdAt: populatedSale.createdAt,
         updatedAt: populatedSale.updatedAt

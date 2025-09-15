@@ -30,8 +30,7 @@ const SaleSchema = new Schema<ISaleDocument>({
         required: true
       },
       note: {
-        type: String,
-        alias: 'notes'
+        type: String
       }
     }
   ],
@@ -45,7 +44,7 @@ const SaleSchema = new Schema<ISaleDocument>({
   },
   paymentMethod: {
     type: String,
-    enum: ['cash', 'credit_card', 'debit_card', 'mobile_payment', 'other', 'transfer', 'card'],
+    enum: ['cash', 'credit_card', 'debit_card', 'mobile_payment', 'other'],
     default: 'cash'
   },
   paymentStatus: {
