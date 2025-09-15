@@ -198,6 +198,31 @@ export function createApp(): Application {
     console.log('未找到保存的OpenAPI規範文件，使用動態生成的規範');
   }
   
+  // 合併生成的 OpenAPI (Sales) 與內建 spec（其他模組）
+  try {
+    const openapiContent2 = fs.readFileSync(openapiPath, 'utf8');
+    const generated = JSON.parse(openapiContent2);
+    apiSpec = {
+      ...(swaggerSpec as any),
+      openapi: generated.openapi || (swaggerSpec as any).openapi || '3.0.3',
+      info: { ...(swaggerSpec as any).info, ...(generated as any).info },
+      servers: generated.servers || (swaggerSpec as any).servers || [],
+      tags: [ ...((swaggerSpec as any).tags || []), ...((generated as any).tags || []) ],
+      paths: { ...((swaggerSpec as any).paths || {}), ...((generated as any).paths || {}) },
+      components: {
+        ...((swaggerSpec as any).components || {}),
+        ...((generated as any).components || {}),
+        schemas: {
+          ...(((swaggerSpec as any).components || {}).schemas || {}),
+          ...(((generated as any).components || {}).schemas || {})
+        }
+      }
+    };
+    console.log('Merged generated OpenAPI (Sales) with legacy spec');
+  } catch (_err) {
+    // ignore if openapi.json not present
+  }
+  
   // 設置Swagger UI
   app.use(
     "/api-docs",
