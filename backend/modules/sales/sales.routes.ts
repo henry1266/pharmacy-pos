@@ -296,17 +296,19 @@ router.get('/:id', validateObjectId(), salesController.getSaleById);
 // @route   POST api/sales
 // @desc    Create a sale
 // @access  Public
-router.post(
-  '/',
-  /*
+// Duplicate removed: commented out legacy POST route
+// router.post(
+//   '/',
+/*
   [
     check('items', '至少需要一個銷售項目').isArray({ min: 1 }),
     check('totalAmount', '總金額為必填項').isNumeric()
   ],
-  */
-  validateSale('create'),
-  salesController.createSale
-);
+*/
+//   validateSale('create'),
+//   salesController.createSale
+// );
+
 
 /**
  * @swagger

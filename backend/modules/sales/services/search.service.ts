@@ -79,7 +79,8 @@ export async function performWildcardSearch(wildcardSearch: string): Promise<any
         $match: {
           $or: [
             { saleNumber: searchRegex },
-            { note: searchRegex },
+            { notes: searchRegex },
+            { 'items.note': searchRegex },
             { 'customerData.name': searchRegex },
             { 'productData.name': searchRegex }
           ]
@@ -216,7 +217,8 @@ export async function performRegularSearch(searchTerm: string): Promise<any[]> {
         $match: {
           $or: [
             { saleNumber: searchRegex },
-            { note: searchRegex },
+            { notes: searchRegex },
+            { 'items.note': searchRegex },
             { 'customerData.name': searchRegex },
             { 'productData.name': searchRegex }
           ]
