@@ -2,6 +2,7 @@ import express from 'express';
 import * as salesController from './sales.controller';
 import { validateSale } from './middlewares/validateSale';
 import { validateObjectId } from './middlewares/validateObjectId';
+import { validateSaleQuery } from './middlewares/validateSaleQuery';
 
 const router: express.Router = express.Router();
 
@@ -132,7 +133,7 @@ const router: express.Router = express.Router();
 // @route   GET api/sales
 // @desc    Get all sales with optional wildcard search
 // @access  Public
-router.get('/', salesController.getAllSales);
+router.get('/', validateSaleQuery(), salesController.getAllSales);
 // 今日銷售
 router.get('/today', salesController.getTodaySales);
 // @route   POST api/sales

@@ -10882,3 +10882,4 @@
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 67f1482121b3099037eb95ca 創建新庫存記錄，進貨單號: 20250912003, 數量: 6, 總金額: 41100\u001b[39m","timestamp":"2025-09-13 12:28:36:2836"}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":0,"timestamp":"2025-09-14 07:57:34:5734","totalCount":50,"unpaidCount":50}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":0,"timestamp":"2025-09-14 08:28:04:284","totalCount":50,"unpaidCount":50}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":0,"timestamp":"2025-09-15 08:19:58:1958","totalCount":50,"unpaidCount":50}
