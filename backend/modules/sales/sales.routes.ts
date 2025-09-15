@@ -1,7 +1,7 @@
 import express from 'express';
-import { check } from 'express-validator';
 import * as salesController from './sales.controller';
 import { validateSale } from './middlewares/validateSale';
+import { validateObjectId } from './middlewares/validateObjectId';
 
 const router: express.Router = express.Router();
 
@@ -185,7 +185,7 @@ router.get('/today', salesController.getTodaySales);
 // @route   GET api/sales/:id
 // @desc    Get sale by ID
 // @access  Public
-router.get('/:id', salesController.getSaleById);
+router.get('/:id', validateObjectId(), salesController.getSaleById);
 
 /**
  * @swagger
@@ -294,10 +294,12 @@ router.get('/:id', salesController.getSaleById);
 // @access  Public
 router.post(
   '/',
+  /*
   [
     check('items', '至少需要一個銷售項目').isArray({ min: 1 }),
     check('totalAmount', '總金額為必填項').isNumeric()
   ],
+  */
   validateSale('create'),
   salesController.createSale
 );
@@ -405,7 +407,7 @@ router.post(
 // @route   PUT api/sales/:id
 // @desc    Update a sale
 // @access  Public
-router.put('/:id', validateSale('update'), salesController.updateSale);
+router.put('/:id', validateObjectId(), validateSale('update'), salesController.updateSale);
 
 /**
  * @swagger
@@ -460,6 +462,6 @@ router.put('/:id', validateSale('update'), salesController.updateSale);
 // @route   DELETE api/sales/:id
 // @desc    Delete a sale
 // @access  Public
-router.delete('/:id', salesController.deleteSale);
+router.delete('/:id', validateObjectId(), salesController.deleteSale);
 
 export default router;
