@@ -14,8 +14,31 @@ const SalesPaths = {
         { in: "query", name: "wildcardSearch", schema: { type: "string" } }
       ],
       responses: {
-        "200": { description: "OK" },
-        "500": { description: "Server error" }
+        "200": {
+          description: "OK",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ApiResponse" },
+              examples: {
+                success: {
+                  summary: "Sales list",
+                  value: {
+                    success: true,
+                    message: "OK",
+                    data: [
+                      { _id: "64f0a1b2c3d4e5f678901234", saleNumber: "20250101001", totalAmount: 1234.56 }
+                    ],
+                    timestamp: "2025-01-01T00:00:00.000Z"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "500": {
+          description: "Server error",
+          content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } }
+        }
       }
     },
     post: {
@@ -31,9 +54,33 @@ const SalesPaths = {
         }
       },
       responses: {
-        "200": { description: "Created" },
-        "400": { description: "Validation error" },
-        "500": { description: "Server error" }
+        "200": {
+          description: "Created",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ApiResponse" },
+              examples: {
+                created: {
+                  summary: "Created",
+                  value: {
+                    success: true,
+                    message: "Created",
+                    data: { _id: "64f0a1b2c3d4e5f678901234", saleNumber: "20250101001", totalAmount: 100 },
+                    timestamp: "2025-01-01T00:00:00.000Z"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          description: "Validation error",
+          content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } }
+        },
+        "500": {
+          description: "Server error",
+          content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } }
+        }
       }
     }
   },
@@ -46,9 +93,33 @@ const SalesPaths = {
         { in: "path", name: "id", required: true, schema: { type: "string" } }
       ],
       responses: {
-        "200": { description: "OK" },
-        "404": { description: "Not found" },
-        "500": { description: "Server error" }
+        "200": {
+          description: "OK",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ApiResponse" },
+              examples: {
+                success: {
+                  summary: "Single sale",
+                  value: {
+                    success: true,
+                    message: "OK",
+                    data: { _id: "64f0a1b2c3d4e5f678901234", saleNumber: "20250101001", totalAmount: 123.45 },
+                    timestamp: "2025-01-01T00:00:00.000Z"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "404": {
+          description: "Not found",
+          content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } }
+        },
+        "500": {
+          description: "Server error",
+          content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } }
+        }
       }
     },
     put: {
@@ -67,10 +138,28 @@ const SalesPaths = {
         }
       },
       responses: {
-        "200": { description: "Updated" },
-        "400": { description: "Validation error" },
-        "404": { description: "Not found" },
-        "500": { description: "Server error" }
+        "200": {
+          description: "Updated",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ApiResponse" },
+              examples: {
+                updated: {
+                  summary: "Updated",
+                  value: {
+                    success: true,
+                    message: "Updated",
+                    data: { _id: "64f0a1b2c3d4e5f678901234", saleNumber: "20250101001" },
+                    timestamp: "2025-01-01T00:00:00.000Z"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+        "404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+        "500": { description: "Server error", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
       }
     },
     delete: {
@@ -81,9 +170,22 @@ const SalesPaths = {
         { in: "path", name: "id", required: true, schema: { type: "string" } }
       ],
       responses: {
-        "200": { description: "Deleted" },
-        "404": { description: "Not found" },
-        "500": { description: "Server error" }
+        "200": {
+          description: "Deleted",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ApiResponse" },
+              examples: {
+                deleted: {
+                  summary: "Deleted",
+                  value: { success: true, message: "Deleted", data: { id: "64f0a1b2c3d4e5f678901234" }, timestamp: "2025-01-01T00:00:00.000Z" }
+                }
+              }
+            }
+          }
+        },
+        "404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+        "500": { description: "Server error", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
       }
     }
   }
