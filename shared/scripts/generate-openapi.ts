@@ -52,6 +52,41 @@ async function main() {
     paths: {},
     components: {
       schemas: {
+        // Common envelopes
+        ApiResponse: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            data: {},
+            timestamp: { type: 'string', format: 'date-time' }
+          },
+          required: ['success']
+        },
+        ErrorResponse: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', enum: [false] },
+            message: { type: 'string' },
+            error: { type: 'string' },
+            errors: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  msg: { type: 'string' },
+                  param: { type: 'string' },
+                  location: { type: 'string' }
+                },
+                required: ['msg']
+              }
+            },
+            details: { type: 'object', additionalProperties: true },
+            statusCode: { type: 'number' },
+            timestamp: { type: 'string', format: 'date-time' }
+          },
+          required: ['success', 'message']
+        },
         SaleItem: sSaleItem,
         SaleCreateRequest: sCreate,
         SaleUpdateRequest: sUpdate,
