@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, ChangeEvent, useRef } from 'react';
 import { createSale } from '@/services/salesServiceV2';
 import { Product } from '@pharmacy-pos/shared/types/entities';
+import type { Sale } from '@pharmacy-pos/shared';
 import { Package } from '@pharmacy-pos/shared/types/package';
 
 /**
@@ -338,22 +339,26 @@ const useSaleManagementV2 = (
   }, [showSnackbar]);
 
   // 準備銷售數據
-  const prepareSaleData = useCallback((finalSaleNumber: string) => {
-    return {
+  const prepareSaleData = useCallback((finalSaleNumber: string): Partial<Sale> => {
+    const data: Partial<Sale> = {
       saleNumber: finalSaleNumber,
-      customer: currentSale.customer || '',
       items: currentSale.items.map(item => ({
         product: item.product,
         quantity: item.quantity,
         price: item.price,
         subtotal: item.subtotal
-      })),
+      })) as any, // align with shared type (product can be string | Product)
       totalAmount: currentSale.totalAmount,
       discount: currentSale.discount,
-      paymentMethod: currentSale.paymentMethod,
-      paymentStatus: currentSale.paymentStatus,
-      notes: currentSale.notes || '',
+      paymentMethod: currentSale.paymentMethod as any,
+      paymentStatus: currentSale.paymentStatus as any,
+      notes: currentSale.notes || ''
     };
+    // Only include customer when present to satisfy exactOptionalPropertyTypes
+    if (currentSale.customer) {
+      (data as any).customer = currentSale.customer;
+    }
+    return data;
   }, [currentSale]);
 
   // 重置表單
