@@ -10883,3 +10883,9 @@
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":0,"timestamp":"2025-09-14 07:57:34:5734","totalCount":50,"unpaidCount":50}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":0,"timestamp":"2025-09-14 08:28:04:284","totalCount":50,"unpaidCount":50}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":0,"timestamp":"2025-09-15 08:19:58:1958","totalCount":50,"unpaidCount":50}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m檢查產品ID: 68b65179b97a22612d8a43a6, 名稱: 部分負擔\u001b[39m","timestamp":"2025-09-15 09:52:20:5220"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m產品 部分負擔 設定為不扣庫存，跳過庫存檢查\u001b[39m","timestamp":"2025-09-15 09:52:20:5220"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m生成銷貨單號: 20250915004\u001b[39m","timestamp":"2025-09-15 09:52:20:5220"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m為不扣庫存產品 部分負擔 創建毛利記錄，數量: 1, 售價: 1, 進價: 0, 毛利: 1\u001b[39m","timestamp":"2025-09-15 09:52:20:5220"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已刪除 1 個與銷售 20250915004 相關的庫存記錄\u001b[39m","timestamp":"2025-09-15 09:52:31:5231"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m恢復產品 68b65179b97a22612d8a43a6 的庫存，數量: +1\u001b[39m","timestamp":"2025-09-15 09:52:31:5231"}

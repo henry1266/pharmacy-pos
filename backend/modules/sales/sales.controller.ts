@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
+import { mapModelItemsToApiItems } from './utils/sales.utils';
 import Sale from '../../models/Sale';
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@pharmacy-pos/shared/constants';
@@ -35,12 +36,16 @@ export const getAllSales = async (req: Request, res: Response) => {
     const response: ApiResponse<any[]> = {
       success: true,
       message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
-      data: sales.map(sale => ({
-        ...sale.toObject ? sale.toObject() : sale,
-        _id: sale._id.toString(),
-        createdAt: sale.createdAt,
-        updatedAt: sale.updatedAt
-      })),
+      data: sales.map(sale => {
+        const plain = (sale as any)?.toObject ? (sale as any).toObject() : sale;
+        return {
+          ...plain,
+          items: mapModelItemsToApiItems((plain as any).items),
+          _id: sale._id.toString(),
+          createdAt: sale.createdAt,
+          updatedAt: sale.updatedAt
+        };
+      }),
       timestamp: new Date()
     };
     
@@ -66,12 +71,16 @@ export const getTodaySales = async (_req: Request, res: Response) => {
     const response: ApiResponse<any[]> = {
       success: true,
       message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
-      data: sales.map((sale: any) => ({
-        ...(sale.toObject ? sale.toObject() : sale),
-        _id: sale._id.toString(),
-        createdAt: sale.createdAt,
-        updatedAt: sale.updatedAt
-      })),
+      data: sales.map((sale: any) => {
+        const plain = sale?.toObject ? sale.toObject() : sale;
+        return {
+          ...plain,
+          items: mapModelItemsToApiItems(plain.items),
+          _id: sale._id.toString(),
+          createdAt: sale.createdAt,
+          updatedAt: sale.updatedAt
+        };
+      }),
       timestamp: new Date()
     };
 
@@ -127,11 +136,13 @@ export const getSaleById = async (req: Request, res: Response) => {
     }
     
     // 使用型別斷言解決型別不匹配問題
+    const salePlain = sale.toObject();
     const response: ApiResponse<any> = {
       success: true,
       message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
       data: {
-        ...sale.toObject(),
+        ...salePlain,
+        items: mapModelItemsToApiItems((salePlain as any).items),
         _id: (sale._id as any).toString(),
         createdAt: sale.createdAt,
         updatedAt: sale.updatedAt
@@ -261,11 +272,13 @@ export const updateSale = async (req: Request, res: Response) => {
       return;
     }
 
+    const populatedPlain = populatedSale.toObject();
     const response: ApiResponse<any> = {
       success: true,
       message: SUCCESS_MESSAGES.GENERIC.UPDATED,
       data: {
-        ...populatedSale.toObject(),
+        ...populatedPlain,
+        items: mapModelItemsToApiItems((populatedPlain as any).items),
         _id: (populatedSale._id as any).toString(),
         createdAt: populatedSale.createdAt,
         updatedAt: populatedSale.updatedAt
