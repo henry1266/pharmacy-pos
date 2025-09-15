@@ -371,6 +371,13 @@ async function validateAndSaveOpenAPISpec() {
     // 先保存規範為臨時JSON檔案
     const tempPath = path.join(openapiDir, 'temp-openapi.json');
     fs.writeFileSync(tempPath, JSON.stringify(swaggerSpec, null, 2));
+    // If a generated openapi.json from shared exists, keep it as SSOT and skip overwriting
+    const preferredPath = path.join(openapiDir, 'openapi.json');
+    if (fs.existsSync(preferredPath)) {
+      try { fs.unlinkSync(tempPath); } catch {}
+      console.log('Detected generated openapi.json; skip writing swagger-generated spec.');
+      return swaggerSpec;
+    }
     
     // 驗證OpenAPI規範
     const validatedSpec = await SwaggerParser.validate(tempPath) as OpenAPISpec;

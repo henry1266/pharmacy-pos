@@ -48,6 +48,7 @@ async function main() {
       version: '1.0.0'
     },
     servers: [{ url: '/api' }],
+    tags: [ { name: 'Sales', description: 'Sales endpoints' } ],
     paths: {},
     components: {
       schemas: {
