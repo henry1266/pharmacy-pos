@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { validationResult } from 'express-validator';
+// express-validator no longer used; using Zod middlewares
 import { mapModelItemsToApiItems } from './utils/sales.utils';
 import Sale from '../../models/Sale';
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
@@ -176,18 +176,6 @@ export const getSaleById = async (req: Request, res: Response) => {
 // @desc    Create a sale
 // @access  Public
 export const createSale = async (req: Request, res: Response) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
-      error: JSON.stringify(errors.array()),
-      timestamp: new Date()
-    };
-    res.status(400).json(errorResponse);
-    return;
-  }
-  
   try {
     // 處理銷售創建的完整流程
     const sale = await salesService.processSaleCreation(req.body);
@@ -198,6 +186,7 @@ export const createSale = async (req: Request, res: Response) => {
       message: SUCCESS_MESSAGES.GENERIC.CREATED,
       data: {
         ...sale.toObject(),
+        items: mapModelItemsToApiItems((sale as any).items),
         _id: (sale._id as any).toString(),
         createdAt: sale.createdAt,
         updatedAt: sale.updatedAt
