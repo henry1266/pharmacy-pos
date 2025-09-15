@@ -27,9 +27,11 @@
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
     "eslint": "^8.0.0",
-    "zod-to-openapi": "^0.2.1",
     "rimraf": "^3.0.0",
-    "typescript": "^4.9.0"
+    "typescript": "^4.9.0",
+    "zod-openapi": "5.4.1",
+    "zod-to-json-schema": "3.22.5",
+    "zod-to-openapi": "^0.2.1"
   },
   "peerDependencies": {
     "mongoose": "^6.0.0 || ^7.0.0"
@@ -50,6 +52,6 @@
   "dependencies": {
     "@material/material-color-utilities": "^0.3.0",
     "date-fns": "^2.30.0",
-    "zod": "^3.23.8"
+    "zod": "^3.25.76"
   }
 }

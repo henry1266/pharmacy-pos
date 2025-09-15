@@ -6,7 +6,7 @@
 import fs from 'fs';
 import path from 'path';
 import { z } from 'zod';
-import { SchemaRegistry, OpenAPIGenerator } from 'zod-to-openapi';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 function loadSaleZodModule(): any {
   const candidates = [
@@ -23,7 +23,7 @@ function loadSaleZodModule(): any {
 }
 
 async function main() {
-  const registry = new SchemaRegistry();
+  // Using createSchema per-schema (no registry needed for now)
 
   const saleMod = loadSaleZodModule();
   const saleItemSchema = saleMod.saleItemSchema as z.ZodTypeAny | undefined;
@@ -36,28 +36,31 @@ async function main() {
   }
 
   // Register schemas
-  registry.register('SaleItem', saleItemSchema);
-  registry.register('SaleCreateRequest', createSaleSchema);
-  registry.register('SaleUpdateRequest', updateSaleSchema);
-  registry.register('SaleSearchQuery', saleSearchSchema);
+  const sSaleItem = zodToJsonSchema(saleItemSchema as any, { name: 'SaleItem' }).definitions?.SaleItem || zodToJsonSchema(saleItemSchema as any);
+  const sCreate = zodToJsonSchema(createSaleSchema as any, { name: 'SaleCreateRequest' }).definitions?.SaleCreateRequest || zodToJsonSchema(createSaleSchema as any);
+  const sUpdate = zodToJsonSchema(updateSaleSchema as any, { name: 'SaleUpdateRequest' }).definitions?.SaleUpdateRequest || zodToJsonSchema(updateSaleSchema as any);
+  const sSearch = zodToJsonSchema(saleSearchSchema as any, { name: 'SaleSearchQuery' }).definitions?.SaleSearchQuery || zodToJsonSchema(saleSearchSchema as any);
 
-  const generator = new OpenAPIGenerator(registry.schemas);
-  const schemas = generator.generate();
   const document = {
     openapi: '3.0.3',
     info: {
       title: 'Pharmacy POS Sales API',
       version: '1.0.0'
     },
-    servers: [
-      { url: '/api' }
-    ],
+    servers: [{ url: '/api' }],
     paths: {},
-    components: { schemas }
+    components: {
+      schemas: {
+        SaleItem: sSaleItem,
+        SaleCreateRequest: sCreate,
+        SaleUpdateRequest: sUpdate,
+        SaleSearchQuery: sSearch
+      }
+    }
   } as const;
 
   const outDir = path.resolve(__dirname, '../../openapi');
-  const outFile = path.join(outDir, 'sales.openapi.json');
+  const outFile = path.join(outDir, 'openapi.json');
   fs.mkdirSync(outDir, { recursive: true });
   fs.writeFileSync(outFile, JSON.stringify(document, null, 2), 'utf-8');
   // eslint-disable-next-line no-console
