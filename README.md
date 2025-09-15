@@ -25,24 +25,23 @@ pnpm --filter shared build
 2. 在 `backend/config` 目錄中創建或編輯 `default.json` 文件
 3. 設置 MongoDB 連接字符串
 
-#### 6. 啟動開發環境
-pnpm run dev
+#### 開發指南（Developer Guide）
 
-### 快速啟動腳本
-系統提供了便捷的安裝和啟動腳本：
+1) 安裝依賴：在專案根目錄執行 `pnpm install`
 
-#### Windows 用戶
-```batch
-setup.bat  # 首次安裝依賴
-start.bat  # 啟動系統
-```
+2) 準備環境變數：依 `.env.example` 建立 `.env`（設定 MongoDB、埠號等）
 
-#### Linux/Mac 用戶
-```bash
-chmod +x setup.sh  # 設置執行權限
-./setup.sh         # 首次安裝依賴
-```
-## 開發團隊
+3) 啟動資料庫：於本機或遠端提供 MongoDB 服務
 
-- Henry Chen - 項目負責人
-- 藥局POS開發團隊
+4) 產生 OpenAPI（建議）：`pnpm --filter shared generate:openapi`
+   - 提醒：`predev` 與 `build` 已自動生成，手動僅作為必要時的輔助
+
+5) 啟動開發伺服器：`pnpm dev`
+   - Backend API：http://localhost:5000/api
+   - Frontend：http://localhost:3000
+   - API Docs：http://localhost:5000/api-docs
+   - 單獨啟動：後端 `pnpm --filter backend dev`、前端 `pnpm --filter frontend start`
+
+6) 建置與部署：
+   - 一次建置三個套件：`pnpm build`（順序：shared build → 生成 OpenAPI → backend build → frontend build）
+   - Production 啟動後端：`pnpm --filter backend start`
