@@ -1,17 +1,39 @@
-import React, { useState } from 'react';
-import { Container, Alert, Snackbar, Box } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { 
+  Box, 
+  Typography, 
+  TextField, 
+  InputAdornment, 
+  IconButton, 
+  Button, 
+  Alert, 
+  Snackbar, 
+  Chip,
+  CircularProgress,
+  Paper
+} from '@mui/material';
+import { 
+  Add as AddIcon,
+  Search as SearchIcon,
+  Clear as ClearIcon,
+  FilterAlt as FilterAltIcon
+} from '@mui/icons-material';
 import { useAppSelector } from '../../../../hooks/redux';
 
 // 導入自定義 hook
 import { useTransactionPage } from '../hooks/useTransactionPage';
 
 // 導入子組件
-import PageHeader from '../components/PageHeader';
 import FilterPanel from '../components/FilterPanel';
-import TransactionList from '../components/TransactionList';
+import { TransactionDetailPanel } from '../components';
+import CommonListPageLayout from '@/components/common/CommonListPageLayout';
+import TitleWithCount from '@/components/common/TitleWithCount';
+import WildcardSearchHelp from '@/components/common/WildcardSearchHelp';
 
 // 導入類型
 import { FilterOptions } from '../../payments/types';
+import { TransactionGroupWithEntries3 } from '@pharmacy-pos/shared/types/accounting3';
+import { FUNDING_TYPES_3, TRANSACTION_STATUS_3 } from '@pharmacy-pos/shared/types/accounting3';
 
 /**
  * 會計系統交易列表頁面
@@ -58,6 +80,10 @@ export const TransactionPage: React.FC = () => {
     category: ''
   });
 
+  // 詳細面板顯示與資料
+  const [showDetailPanel, setShowDetailPanel] = useState<boolean>(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<TransactionGroupWithEntries3 | null>(null);
+
   // 處理過濾器變更
   const handleFilterChange = (name: keyof FilterOptions, value: any) => {
     setFilters(prev => ({ ...prev, [name]: value }));
@@ -95,49 +121,232 @@ export const TransactionPage: React.FC = () => {
     console.log('每頁行數變更:', parseInt(event.target.value, 10));
   };
 
+  // 處理行點擊
+  const handleRowClick = (params: any) => {
+    const transaction = transactionGroups.find(t => t._id === params.row._id);
+    if (transaction) {
+      setSelectedTransaction(transaction as TransactionGroupWithEntries3);
+      setShowDetailPanel(true);
+    }
+  };
+
+  // 計算總金額
+  const totalAmount = transactionGroups.reduce((sum, transaction) => {
+    return sum + (transaction.totalAmount || 0);
+  }, 0);
+
+  // 獲取交易狀態標籤顏色
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'draft': return 'default';
+      case 'confirmed': return 'primary';
+      case 'cancelled': return 'error';
+      default: return 'default';
+    }
+  };
+
+  // 獲取交易狀態中文名稱
+  const getStatusLabel = (status: string) => {
+    const statusItem = TRANSACTION_STATUS_3.find(item => item.value === status);
+    return statusItem ? statusItem.label : status;
+  };
+
+  // 獲取資金類型中文名稱
+  const getFundingTypeLabel = (type: string) => {
+    const typeItem = FUNDING_TYPES_3.find(item => item.value === type);
+    return typeItem ? typeItem.label : type;
+  };
+
+  // 定義表格欄位
+  const columns = [
+    { field: 'groupNumber', headerName: '交易單號', flex: 1.5 },
+    {
+      field: 'transactionDate',
+      headerName: '日期',
+      flex: 1.3,
+      valueFormatter: (params: any) => {
+        if (!params.value) return '';
+        try {
+          const date = new Date(params.value);
+          return date.toLocaleString('zh-TW', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+        } catch (error) {
+          console.error('日期格式錯誤', error);
+          return params.value;
+        }
+      }
+    },
+    { field: 'fundingTypeText', headerName: '資金類型', flex: 1.5 },
+    {
+      field: 'totalAmount',
+      headerName: '總金額',
+      flex: 1.3,
+      valueFormatter: (params: any) => (params.value ? params.value.toLocaleString() : ''),
+    },
+    {
+      field: 'status',
+      headerName: '狀態',
+      flex: 1.1,
+      renderCell: (params: any) => (
+        <Chip 
+          label={getStatusLabel(params.value)} 
+          color={getStatusColor(params.value) as any} 
+          size="small" 
+        />
+      )
+    },
+    {
+      field: 'actions',
+      headerName: '操作',
+      flex: 2,
+      renderCell: (params: any) => (
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <IconButton size="small" onClick={() => handleView(params.row._id)} title="檢視">
+            <SearchIcon fontSize="small" />
+          </IconButton>
+          <IconButton size="small" onClick={() => handleEdit(params.row._id)} title="編輯">
+            <AddIcon fontSize="small" />
+          </IconButton>
+          <IconButton size="small" onClick={() => handleDelete(params.row._id)} title="刪除" color="error">
+            <ClearIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      )
+    }
+  ];
+
+  // DataGrid 資料列
+  const rows = transactionGroups.map((transaction) => {
+    const {
+      _id,
+      groupNumber,
+      transactionDate,
+      fundingType,
+      totalAmount,
+      status,
+      description,
+      invoiceNo,
+      entries
+    } = transaction;
+
+    return {
+      id: _id,
+      _id,
+      groupNumber: groupNumber ?? '未指定',
+      transactionDate,
+      fundingType,
+      fundingTypeText: getFundingTypeLabel(fundingType),
+      totalAmount: totalAmount ?? 0,
+      status,
+      description,
+      invoiceNo,
+      entries
+    };
+  });
+
+  // 操作區塊
+  const actionButtons = (
+    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, alignItems: { xs: 'stretch', sm: 'center' } }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <TextField
+          placeholder="搜尋交易記錄（單號、日期、描述）"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          size="small"
+          sx={{ minWidth: { xs: '100%', sm: '300px' } }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon color="action" />
+              </InputAdornment>
+            ),
+            endAdornment: searchTerm && (
+              <InputAdornment position="end">
+                <IconButton size="small" onClick={() => setSearchTerm('')} edge="end">
+                  <ClearIcon />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
+        <IconButton
+          onClick={() => setShowFilters(!showFilters)}
+          size="small"
+          color={showFilters ? 'primary' : 'default'}
+          title={showFilters ? '關閉過濾器' : '開啟過濾器'}
+        >
+          <FilterAltIcon />
+        </IconButton>
+        <WildcardSearchHelp />
+      </Box>
+      <Box sx={{ display: 'flex', gap: 1, flexShrink: 0 }}>
+        <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={handleCreateNew}>
+          新增交易
+        </Button>
+      </Box>
+    </Box>
+  );
+
+  // 詳細面板
+  const detailPanel = (
+    <TransactionDetailPanel selectedTransaction={selectedTransaction} />
+  );
+
   return (
-    <Container maxWidth="xl" sx={{ py: 0, px: 0 }}>
-      {/* 頁面標題 */}
-      <PageHeader
-        mode="list"
-        showFilters={showFilters}
-        searchTerm={searchTerm}
-        pagination={pagination ? { total: pagination.total } : { total: 0 }}
-        onSearchChange={setSearchTerm}
-        onToggleFilters={() => setShowFilters(!showFilters)}
-        onNavigateToNew={handleCreateNew}
-        onNavigateToList={() => {}}
-      />
-
+    <Box sx={{ width: '95%', mx: 'auto' }}>
       {/* 過濾器面板 */}
-      <FilterPanel
-        show={showFilters}
-        filters={filters}
-        onFilterChange={handleFilterChange}
-        onResetFilters={handleResetFilters}
-        onApplyFilters={handleApplyFilters}
-      />
-
-      {/* 錯誤提示 */}
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
+      {showFilters && (
+        <FilterPanel
+          show={showFilters}
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          onResetFilters={handleResetFilters}
+          onApplyFilters={handleApplyFilters}
+        />
       )}
 
-      {/* 交易列表 */}
-      <TransactionList
-        transactions={transactionGroups}
+      <CommonListPageLayout
+        title={
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <TitleWithCount title="交易管理" count={transactionGroups.length} />
+            {/* 總額顯示 */}
+            <Box sx={{ display: 'flex', alignItems: 'center', backgroundColor: 'primary.main', color: 'primary.contrastText', px: 2, py: 0.5, borderRadius: 2, minWidth: 'fit-content' }}>
+              <Typography variant="caption" sx={{ fontSize: '0.8rem', mr: 1 }}>
+                總額
+              </Typography>
+              <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
+                ${totalAmount.toLocaleString()}
+              </Typography>
+            </Box>
+          </Box>
+        }
+        actionButtons={actionButtons}
+        columns={columns}
+        rows={rows}
         loading={loading}
-        pagination={pagination}
-        onPageChange={handlePageChange}
-        onRowsPerPageChange={handleRowsPerPageChange}
-        onEdit={handleEdit}
-        onView={handleView}
-        onCopy={handleCopy}
-        onDelete={handleDelete}
-        onConfirm={handleConfirm}
-        onUnlock={handleUnlock}
+        {...(error && { error })}
+        onRowClick={handleRowClick}
+        detailPanel={detailPanel}
+        tableGridWidth={9}
+        detailGridWidth={3}
+        dataTableProps={{
+          rowsPerPageOptions: [25, 50, 100],
+          disablePagination: false,
+          pageSize: 25,
+          initialState: {
+            pagination: { pageSize: 25 },
+            sorting: {
+              sortModel: [{ field: 'groupNumber', sort: 'desc' }],
+            },
+          },
+          getRowId: (row: any) => row.id,
+          sx: {}
+        }}
       />
 
       {/* 通知 Snackbar */}
@@ -155,7 +364,7 @@ export const TransactionPage: React.FC = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </Container>
+    </Box>
   );
 };
 
