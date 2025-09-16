@@ -23,7 +23,7 @@ import { AccountHierarchyManager, AccountTransactionList } from '../components';
 // 導入 accounting3 科目表單組件
 import { AccountForm } from '../components';
 // 導入美化的麵包屑導航組件
-import { BreadcrumbNavigation } from '../../components/ui';
+import { BreadcrumbNavigation } from '../../components';
 
 // 導入共享類型
 import { Account3, Account3FormData } from '@pharmacy-pos/shared/types/accounting3';

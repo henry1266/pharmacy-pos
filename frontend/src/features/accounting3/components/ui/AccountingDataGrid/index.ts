@@ -12,10 +12,10 @@ export * from './utils/formatters';
 export * from './utils/calculations';
 
 // 導出 UI 子組件
-export { default as StatusChip } from './components/StatusChip';
-export { default as TransactionFlow } from './components/TransactionFlow';
-export { default as FundingStatus } from './components/FundingStatus';
-export { default as LoadingSkeleton } from './components/LoadingSkeleton';
+export { default as StatusChip } from './StatusChip';
+export { default as TransactionFlow } from '../../TransactionFlow';
+export { default as FundingStatus } from './FundingStatus';
+export { default as LoadingSkeleton } from './LoadingSkeleton';
 
 // 導出配置
 export { createColumns } from './config/columns';

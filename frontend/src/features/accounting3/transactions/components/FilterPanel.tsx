@@ -16,7 +16,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { zhTW } from 'date-fns/locale';
-import { FilterOptions } from '../../pages/TransactionPage/types';
+import { FilterOptions } from '../../payments/types';
 
 interface FilterPanelProps {
   show: boolean;

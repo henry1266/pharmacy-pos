@@ -11,7 +11,7 @@ import {
   TransactionGroupWithEntriesFormData,
   SnackbarState,
   TransactionUpdateData
-} from '../../pages/TransactionPage/types';
+} from '../../payments/types';
 import { safeDateConvert } from '../utils/dateUtils';
 
 /**

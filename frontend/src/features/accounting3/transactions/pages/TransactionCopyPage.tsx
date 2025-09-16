@@ -7,7 +7,7 @@ import { useTransactionCopyPage } from '../hooks/useTransactionCopyPage';
 
 // 導入子組件
 import PageHeader from '../components/PageHeader';
-import TransactionPageForm from '../../pages/TransactionPage/components/TransactionPageForm';
+import TransactionPageForm from '../components/TransactionPageForm';
 
 /**
  * 會計系統交易複製頁面

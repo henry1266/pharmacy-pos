@@ -26,10 +26,9 @@ import AccountTypeSettingsPage from './pages/settings/AccountTypeSettingsPage';
 // 會計管理頁面元件
   import OrganizationPage from './features/accounting3/organizations/pages/OrganizationPage';
   import OrganizationFormPage from './features/accounting3/organizations/pages/OrganizationFormPage';
-  import PaymentManagementPage from './features/accounting3/pages/PaymentManagementPage';
-  import Accounting3TransactionPage from './features/accounting3/pages/TransactionPage';
+  import PaymentManagementPage from './features/accounting3/payments/pages/PaymentManagementPage';
   import { AccountsManagementPage, Accounting3DashboardPage, AccountDetailPage } from './features/accounting3/accounts/pages';
-  import { TransactionNewPage, TransactionCopyPage, TransactionEditPage, TransactionDetailPage } from './features/accounting3/transactions/pages';
+  import { TransactionPage, TransactionNewPage, TransactionCopyPage, TransactionEditPage, TransactionDetailPage } from './features/accounting3/transactions/pages';
 
 // AppRouter now only contains routes accessible *after* login
 const AppRouter: React.FC = () => {
@@ -74,7 +73,7 @@ const AppRouter: React.FC = () => {
 
       {/* Accounting3 routes - 內嵌分錄記帳系統 */}
       <Route path="/accounting3" element={<Accounting3DashboardPage />} />
-      <Route path="/accounting3/transaction" element={<Accounting3TransactionPage />} />
+      <Route path="/accounting3/transaction" element={<TransactionPage />} />
       <Route path="/accounting3/transaction/new" element={<TransactionNewPage />} />
       <Route path="/accounting3/transaction/:transactionId" element={<TransactionDetailPage />} />
       <Route path="/accounting3/transaction/:transactionId/edit" element={<TransactionEditPage />} />

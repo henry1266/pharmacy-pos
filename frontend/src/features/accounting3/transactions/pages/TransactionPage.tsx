@@ -8,10 +8,10 @@ import { useTransactionPage } from '../hooks/useTransactionPage';
 // 導入子組件
 import PageHeader from '../components/PageHeader';
 import FilterPanel from '../components/FilterPanel';
-import TransactionList from '../../pages/TransactionPage/components/TransactionList';
+import TransactionList from '../components/TransactionList';
 
 // 導入類型
-import { FilterOptions } from '../../pages/TransactionPage/types';
+import { FilterOptions } from '../../payments/types';
 
 /**
  * 會計系統交易列表頁面

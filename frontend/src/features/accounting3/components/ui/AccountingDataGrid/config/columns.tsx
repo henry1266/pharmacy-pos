@@ -13,9 +13,9 @@ import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 
 import { ExtendedTransactionGroupWithEntries } from '../types';
 import { formatCurrency, formatDate } from '../utils/formatters';
-import StatusChip from '../components/StatusChip';
-import TransactionFlow from '../components/TransactionFlow';
-import FundingStatus from '../components/FundingStatus';
+import StatusChip from '../StatusChip';
+import TransactionFlow from '../../../TransactionFlow';
+import FundingStatus from '../FundingStatus';
 
 /**
  * 創建 DataGrid 列定義

@@ -17,7 +17,7 @@ import {
   AccountTree as AccountTreeIcon,
   Home as HomeIcon,
 } from '@mui/icons-material';
-import { BreadcrumbNavigation } from '../../components/ui/BreadcrumbNavigation';
+import { BreadcrumbNavigation } from '../../components/BreadcrumbNavigation';
 import { useAppSelector, useAppDispatch } from '../../../../hooks/redux';
 
 // 導入相關組件

@@ -31,7 +31,7 @@ import { useDebounce } from './hooks/useDebounce';
 import { isBalanced } from './utils/calculations';
 
 // 導入 UI 組件
-import { LoadingSkeleton } from './components/LoadingSkeleton';
+import { LoadingSkeleton } from './LoadingSkeleton';
 
 // 導入列配置
 import { createColumns } from './config/columns';

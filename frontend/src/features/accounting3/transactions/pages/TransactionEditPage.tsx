@@ -7,7 +7,7 @@ import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import { useTransactionEditPage } from '../hooks/useTransactionEditPage';
 
 // 導入子組件
-import TransactionPageForm from '../../pages/TransactionPage/components/TransactionPageForm';
+import TransactionPageForm from '../components/TransactionPageForm';
 
 /**
  * 會計系統交易編輯頁面

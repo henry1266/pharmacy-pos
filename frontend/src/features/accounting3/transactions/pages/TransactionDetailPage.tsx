@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Container, Alert } from '@mui/material';
 
 // 導入交易詳細檢視組件
-import { TransactionDetailView } from '../../features/transactions/TransactionDetailView';
+import { TransactionDetailView } from '../components/TransactionDetailView';
 
 /**
  * 交易詳細頁面

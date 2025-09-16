@@ -8,7 +8,7 @@ import {
   Receipt as ReceiptIcon,
   Home as HomeIcon,
 } from '@mui/icons-material';
-import { BreadcrumbNavigation } from '../../components/ui/BreadcrumbNavigation';
+import { BreadcrumbNavigation } from '../../components/BreadcrumbNavigation';
 
 interface PageHeaderProps {
   mode: 'list' | 'new';
