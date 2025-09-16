@@ -94,7 +94,7 @@ flowchart LR
 ```bash
 git clone https://github.com/henry1266/pharmacy-pos.git
 cd pharmacy-pos
-pnpm install -w
+pnpm install
 ```
 
 ### 3) 設定環境變數
