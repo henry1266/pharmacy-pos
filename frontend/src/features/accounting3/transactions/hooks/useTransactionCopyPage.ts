@@ -1,55 +1,55 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { useAppSelector, useAppDispatch } from '../../../../../hooks/redux';
+import { useAppSelector, useAppDispatch } from '../../../../hooks/redux';
 import {
-  updateTransactionGroupWithEntries,
+  createTransactionGroupWithEntries,
   fetchAccounts2,
   fetchOrganizations2
-} from '../../../../../redux/actions';
+} from '../../../../redux/actions';
 import { 
-  TransactionGroupWithEntries, 
+  TransactionGroupWithEntries,
   TransactionGroupWithEntriesFormData,
   SnackbarState,
-  TransactionUpdateData
-} from '../types';
-import { safeDateConvert } from '../../../transactions/utils/dateUtils';
+  TransactionApiData
+} from '../../pages/TransactionPage/types';
+import { safeDateConvert } from '../utils/dateUtils';
 
 /**
- * 交易編輯頁面的主要 Hook
+ * 交易複製頁面的主要 Hook
  *
- * 處理交易編輯頁面的狀態管理、數據加載和事件處理。
- * 此 Hook 負責從 Redux store 或 API 獲取交易資料，處理表單提交，
+ * 處理交易複製頁面的狀態管理、數據加載和事件處理。
+ * 此 Hook 負責從 Redux store 或 API 獲取原始交易資料，處理複製表單提交，
  * 並管理頁面的各種狀態（載入中、錯誤、通知等）。
  *
  * 功能：
- * - 從 Redux store 或 API 載入交易資料
- * - 處理表單提交和資料驗證
+ * - 從 Redux store 或 API 載入原始交易資料
+ * - 處理複製表單提交和資料驗證
  * - 管理頁面狀態（載入中、錯誤、通知等）
- * - 處理交易更新操作
- * - 提供取消編輯的功能
+ * - 處理交易複製和建立操作
+ * - 提供取消複製的功能
  *
  * @returns {object} 包含頁面狀態和事件處理函數的物件
- * @returns {TransactionGroupWithEntries | null} return.editingTransaction - 正在編輯的交易資料
+ * @returns {TransactionGroupWithEntries | null} return.copyingTransaction - 正在複製的交易資料
  * @returns {boolean} return.loading - 載入狀態
  * @returns {string | null} return.error - 錯誤訊息
  * @returns {object} return.snackbar - 通知狀態
- * @returns {string | undefined} return.transactionId - 交易 ID
+ * @returns {string | undefined} return.transactionId - 原始交易 ID
  * @returns {function} return.handleFormSubmit - 處理表單提交的函數
- * @returns {function} return.handleCancel - 處理取消編輯的函數
+ * @returns {function} return.handleCancel - 處理取消複製的函數
  * @returns {function} return.handleCloseSnackbar - 處理關閉通知的函數
  * @returns {function} return.safeDateConvert - 安全的日期轉換函數
  * @returns {function} return.convertFormDataToApiData - 轉換表單資料為 API 資料的函數
  * @returns {object} return.navigate - React Router 的 navigate 函數
  *
  * @example
- * // 在交易編輯頁面中使用
+ * // 在交易複製頁面中使用
  * const {
- *   editingTransaction,
+ *   copyingTransaction,
  *   loading,
  *   error,
  *   handleFormSubmit,
  *   handleCancel
- * } = useTransactionEditPage();
+ * } = useTransactionCopyPage();
  *
  * if (loading) {
  *   return <LoadingIndicator />;
@@ -57,17 +57,17 @@ import { safeDateConvert } from '../../../transactions/utils/dateUtils';
  *
  * return (
  *   <TransactionForm
- *     initialData={editingTransaction}
+ *     initialData={copyingTransaction}
  *     onSubmit={handleFormSubmit}
  *     onCancel={handleCancel}
  *   />
  * );
  */
-export const useTransactionEditPage = () => {
+export const useTransactionCopyPage = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const { transactionId } = useParams<{ transactionId: string }>();
+  const [searchParams] = useSearchParams();
   
   // URL 查詢參數
   
@@ -75,32 +75,12 @@ export const useTransactionEditPage = () => {
   const { transactionGroups, loading, error } = useAppSelector(state => state.transactionGroupWithEntries);
   
   // 本地狀態
-  const [editingTransaction, setEditingTransaction] = useState<TransactionGroupWithEntries | null>(null);
+  const [copyingTransaction, setCopyingTransaction] = useState<TransactionGroupWithEntries | null>(null);
   const [snackbar, setSnackbar] = useState<SnackbarState>({
     open: false,
     message: '',
     severity: 'success'
   });
-
-  /**
-   * 載入初始資料
-   *
-   * 並行載入交易編輯頁面所需的基礎資料，包括科目和組織資料。
-   * 使用 Promise.all 優化載入效能。
-   *
-   * @returns {Promise<void>}
-   */
-  const loadInitialData = useCallback(async () => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔄 Accounting3TransactionEditPage 初始化載入資料');
-    }
-    
-    // 使用 Promise.all 並行加載數據
-    await Promise.all([
-      dispatch(fetchAccounts2() as any),
-      dispatch(fetchOrganizations2() as any)
-    ]);
-  }, [dispatch]);
 
   /**
    * 直接透過 API 獲取單一交易
@@ -131,7 +111,7 @@ export const useTransactionEditPage = () => {
             console.log('✅ 直接 API 獲取內嵌分錄交易成功:', transaction);
           }
           
-          setEditingTransaction(transaction);
+          setCopyingTransaction(transaction);
         } else {
           console.error('❌ API 回應格式錯誤:', result);
           showSnackbar('找不到指定的交易', 'error');
@@ -145,6 +125,26 @@ export const useTransactionEditPage = () => {
       showSnackbar('載入交易失敗', 'error');
     }
   };
+
+  /**
+   * 載入初始資料
+   *
+   * 並行載入交易複製頁面所需的基礎資料，包括科目和組織資料。
+   * 使用 Promise.all 優化載入效能。
+   *
+   * @returns {Promise<void>}
+   */
+  const loadInitialData = useCallback(async () => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔄 Accounting3TransactionCopyPage 初始化載入資料');
+    }
+    
+    // 使用 Promise.all 並行加載數據
+    await Promise.all([
+      dispatch(fetchAccounts2() as any),
+      dispatch(fetchOrganizations2() as any)
+    ]);
+  }, [dispatch]);
 
   /**
    * 顯示通知訊息
@@ -170,9 +170,9 @@ export const useTransactionEditPage = () => {
   };
 
   /**
-   * 處理取消編輯操作
+   * 處理取消複製操作
    *
-   * 導航回交易列表頁面，放棄當前的編輯操作。
+   * 導航回交易列表頁面，放棄當前的複製操作。
    * 不會提示用戶確認，直接執行導航。
    */
   const handleCancel = () => {
@@ -184,22 +184,24 @@ export const useTransactionEditPage = () => {
    *
    * 將表單收集的資料轉換為符合 API 要求的格式。
    * 處理資料清理、格式轉換和預設值設定。
+   * 在複製模式下，特別設定狀態為草稿。
    *
    * @param {TransactionGroupWithEntriesFormData} data - 表單收集的原始資料
-   * @returns {TransactionUpdateData} 轉換後符合 API 格式的資料
+   * @returns {TransactionApiData} 轉換後符合 API 格式的資料
    */
-  const convertFormDataToApiData = (data: TransactionGroupWithEntriesFormData): TransactionUpdateData => {
+  const convertFormDataToApiData = (data: TransactionGroupWithEntriesFormData): TransactionApiData => {
     const converted = {
       description: data.description?.trim() || '',
       transactionDate: data.transactionDate,
-      organizationId: data.organizationId?.trim() || '',
+      organizationId: data.organizationId?.trim() || null,
       receiptUrl: data.receiptUrl?.trim() || '',
       invoiceNo: data.invoiceNo?.trim() || '',
       entries: data.entries || [],
       linkedTransactionIds: data.linkedTransactionIds || [],
-      sourceTransactionId: data.sourceTransactionId || '',
-      fundingType: data.fundingType || 'original'
-    } as TransactionUpdateData;
+      sourceTransactionId: data.sourceTransactionId,
+      fundingType: data.fundingType || 'original',
+      status: 'draft' // 複製模式下設為草稿
+    } as TransactionApiData;
     
     if (process.env.NODE_ENV === 'development') {
       console.log('📊 [Accounting3] 轉換後的 API 資料:', {
@@ -219,7 +221,7 @@ export const useTransactionEditPage = () => {
   /**
    * 處理表單提交
    *
-   * 驗證表單資料，轉換為 API 格式，並提交更新請求。
+   * 驗證表單資料，轉換為 API 格式，並提交建立請求。
    * 處理成功和失敗的情況，顯示適當的通知訊息。
    * 成功時延遲導航回列表頁面，讓用戶看到成功訊息。
    *
@@ -233,14 +235,9 @@ export const useTransactionEditPage = () => {
    */
   const handleFormSubmit = async (formData: TransactionGroupWithEntriesFormData) => {
     try {
-      if (!transactionId) {
-        throw new Error('交易 ID 不存在');
-      }
-
       if (process.env.NODE_ENV === 'development') {
         console.log('🚀 [Accounting3] handleFormSubmit 開始:', {
-          mode: 'edit',
-          transactionId,
+          mode: 'copy',
           formDataSummary: {
             description: formData.description,
             organizationId: formData.organizationId,
@@ -270,15 +267,15 @@ export const useTransactionEditPage = () => {
       const apiData = convertFormDataToApiData(formData);
       
       if (process.env.NODE_ENV === 'development') {
-        console.log('🔧 [Accounting3] 執行更新操作:', transactionId);
+        console.log('🆕 [Accounting3] 執行建立操作（複製模式）');
       }
       
-      const updatedResult = await dispatch(updateTransactionGroupWithEntries(transactionId, apiData) as any);
+      const createResult = await dispatch(createTransactionGroupWithEntries(apiData) as any);
       if (process.env.NODE_ENV === 'development') {
-        console.log('✅ [Accounting3] 更新操作完成:', updatedResult);
+        console.log('✅ [Accounting3] 建立操作完成:', createResult);
       }
       
-      showSnackbar('交易已成功更新', 'success');
+      showSnackbar('交易已成功複製並建立', 'success');
       
       // 延遲導航，讓用戶看到成功消息
       setTimeout(() => {
@@ -299,7 +296,7 @@ export const useTransactionEditPage = () => {
       }
       
       // 根據錯誤類型顯示更具體的錯誤訊息
-      let errorMessage = '更新交易失敗';
+      let errorMessage = '複製交易失敗';
       if (error instanceof Error) {
         if (error.message.includes('建立交易群組失敗')) {
           errorMessage = error.message;
@@ -327,13 +324,13 @@ export const useTransactionEditPage = () => {
 
   useEffect(() => {
     if (transactionId) {
-      const transactionToEdit = transactionGroups.find(t => t._id === transactionId);
+      const transactionToCopy = transactionGroups.find(t => t._id === transactionId);
       
-      if (transactionToEdit) {
+      if (transactionToCopy) {
         if (process.env.NODE_ENV === 'development') {
-          console.log('🔧 從 Redux store 獲取編輯交易:', transactionToEdit);
+          console.log('🔧 從 Redux store 獲取複製交易:', transactionToCopy);
         }
-        setEditingTransaction(transactionToEdit);
+        setCopyingTransaction(transactionToCopy);
       } else {
         if (process.env.NODE_ENV === 'development') {
           console.log('🔍 Redux store 中找不到交易，透過 API 直接獲取:', transactionId);
@@ -345,7 +342,7 @@ export const useTransactionEditPage = () => {
 
   return {
     // 狀態
-    editingTransaction,
+    copyingTransaction,
     loading,
     error,
     snackbar,
@@ -367,4 +364,4 @@ export const useTransactionEditPage = () => {
   };
 };
 
-export default useTransactionEditPage;
+export default useTransactionCopyPage;

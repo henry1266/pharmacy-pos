@@ -28,10 +28,8 @@ import AccountTypeSettingsPage from './pages/settings/AccountTypeSettingsPage';
   import OrganizationFormPage from './features/accounting3/organizations/pages/OrganizationFormPage';
   import PaymentManagementPage from './features/accounting3/pages/PaymentManagementPage';
   import Accounting3TransactionPage from './features/accounting3/pages/TransactionPage';
-  import TransactionEditPage from './features/accounting3/transactions/pages/TransactionEditPage';
-  import TransactionCopyPage from './features/accounting3/transactions/pages/TransactionCopyPage';
   import { AccountsManagementPage, Accounting3DashboardPage, AccountDetailPage } from './features/accounting3/accounts/pages';
-  import TransactionDetailPage from './features/accounting3/transactions/pages/TransactionDetailPage';
+  import { TransactionNewPage, TransactionCopyPage, TransactionEditPage, TransactionDetailPage } from './features/accounting3/transactions/pages';
 
 // AppRouter now only contains routes accessible *after* login
 const AppRouter: React.FC = () => {
@@ -77,10 +75,10 @@ const AppRouter: React.FC = () => {
       {/* Accounting3 routes - 內嵌分錄記帳系統 */}
       <Route path="/accounting3" element={<Accounting3DashboardPage />} />
       <Route path="/accounting3/transaction" element={<Accounting3TransactionPage />} />
-      <Route path="/accounting3/transaction/new" element={<Accounting3TransactionPage />} />
+      <Route path="/accounting3/transaction/new" element={<TransactionNewPage />} />
       <Route path="/accounting3/transaction/:transactionId" element={<TransactionDetailPage />} />
       <Route path="/accounting3/transaction/:transactionId/edit" element={<TransactionEditPage />} />
-      <Route path="/accounting3/transaction/:transactionId/copy" element={<Accounting3TransactionPage />} />
+      <Route path="/accounting3/transaction/:transactionId/copy" element={<TransactionCopyPage />} />
       {/* Accounting3 科目管理路由 */}
       <Route path="/accounting3/accounts" element={<AccountsManagementPage />} />
       <Route path="/accounting3/accounts/:accountId" element={<AccountDetailPage />} />

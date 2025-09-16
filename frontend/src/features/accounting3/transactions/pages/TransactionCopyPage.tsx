@@ -3,7 +3,7 @@ import { Container, Alert, Box, Snackbar } from '@mui/material';
 import { useAppSelector } from '../../../../hooks/redux';
 
 // 導入自定義 hook
-import { useTransactionCopyPage } from '../../pages/TransactionPage/hooks/useTransactionCopyPage';
+import { useTransactionCopyPage } from '../hooks/useTransactionCopyPage';
 
 // 導入子組件
 import PageHeader from '../components/PageHeader';

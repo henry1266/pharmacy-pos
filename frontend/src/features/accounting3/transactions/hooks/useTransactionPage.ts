@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { useAppSelector, useAppDispatch } from '../../../../../hooks/redux';
+import { useAppSelector, useAppDispatch } from '../../../../hooks/redux';
 import {
   fetchTransactionGroupsWithEntries,
   deleteTransactionGroupWithEntries,
@@ -8,12 +8,12 @@ import {
   unlockTransactionGroupWithEntries,
   fetchAccounts2,
   fetchOrganizations2
-} from '../../../../../redux/actions';
+} from '../../../../redux/actions';
 import { 
   TransactionGroupWithEntries, 
   SnackbarState
-} from '../types';
-import { safeDateConvert } from '../../../transactions/utils/dateUtils';
+} from '../../pages/TransactionPage/types';
+import { safeDateConvert } from '../utils/dateUtils';
 
 /**
  * 交易頁面的主要 Hook
