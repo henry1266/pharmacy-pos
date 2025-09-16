@@ -381,7 +381,7 @@ async function validateAndSaveOpenAPISpec() {
     
     // 驗證OpenAPI規範
     const validatedSpec = await SwaggerParser.validate(tempPath) as OpenAPISpec;
-    console.log('OpenAPI 3.1規範驗證成功');
+    //console.log('OpenAPI 3.1規範驗證成功');
     
     // 保存為正式JSON檔案
     const outputPath = path.join(openapiDir, 'openapi.json');
