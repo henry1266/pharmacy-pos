@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { keyframes } from '@emotion/react';
 import { 
   Box, 
   Typography, 
@@ -10,13 +11,17 @@ import {
   Snackbar, 
   Chip,
   CircularProgress,
-  Paper
+  Paper,
+  Card,
+  CardContent
 } from '@mui/material';
 import { 
   Add as AddIcon,
   Search as SearchIcon,
   Clear as ClearIcon,
-  FilterAlt as FilterAltIcon
+  FilterAlt as FilterAltIcon,
+  ArrowBack as ArrowBackIcon,
+  AccountBalance as AccountBalanceIcon
 } from '@mui/icons-material';
 import { useAppSelector } from '../../../../hooks/redux';
 
@@ -34,6 +39,16 @@ import WildcardSearchHelp from '@/components/common/WildcardSearchHelp';
 import { FilterOptions } from '../../payments/types';
 import { TransactionGroupWithEntries3 } from '@pharmacy-pos/shared/types/accounting3';
 import { FUNDING_TYPES_3, TRANSACTION_STATUS_3 } from '@pharmacy-pos/shared/types/accounting3';
+
+// 箭頭動畫
+const arrowBounce = keyframes`
+  0%, 100% {
+    transform: translateX(-5px);
+  }
+  50% {
+    transform: translateX(-15px);
+  }
+`;
 
 /**
  * 會計系統交易列表頁面
@@ -293,8 +308,27 @@ export const TransactionPage: React.FC = () => {
   );
 
   // 詳細面板
-  const detailPanel = (
+  const detailPanel = showDetailPanel ? (
     <TransactionDetailPanel selectedTransaction={selectedTransaction} />
+  ) : (
+    <Card elevation={2} className="transaction-card" sx={{ borderRadius: '0.5rem', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.3s ease', '&:hover': { boxShadow: 6 }, '&:hover .arrow-icon': { animation: `${arrowBounce} 0.8s infinite`, color: 'primary.dark' } }}>
+      <CardContent sx={{ textAlign: 'center', py: 3, width: '100%' }}>
+        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
+          <AccountBalanceIcon color="primary" sx={{ fontSize: '4rem', mb: 1, transition: 'all 0.3s ease', '&:hover': { transform: 'scale(1.1)', color: 'primary.dark' } }} />
+        </Box>
+        <Box sx={{ width: '100%' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, justifyContent: 'center' }}>
+            <ArrowBackIcon color="primary" className="arrow-icon" sx={{ fontSize: '2rem', mr: 1, transform: 'translateX(-10px)', transition: 'color 0.3s ease' }} />
+            <Typography variant="body1" color="primary.main" sx={{ fontWeight: 500 }}>
+              從左側列表選擇
+            </Typography>
+          </Box>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
+            點選任一交易以查看詳情
+          </Typography>
+        </Box>
+      </CardContent>
+    </Card>
   );
 
   return (
