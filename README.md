@@ -2,10 +2,10 @@
 
 > 現代化藥局 POS 生態系：**React 18 + TypeScript**（MUI v5, RTK/RTK Query, React Router v6）前端；**Node.js 20 + Express 5** 後端；以 **Zod Schemas + OpenAPI** 作為單一事實來源（SSOT），並使用 **pnpm workspace** 維運。
 
-[![Node.js](https://img.shields.io/badge/node-20.x-339933?logo=node.js\&logoColor=white)](#)
-[![pnpm](https://img.shields.io/badge/pnpm-9%2B-F69220?logo=pnpm\&logoColor=white)](#)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript\&logoColor=white)](#)
-[![License](https://img.shields.io/badge/license-MIT-blue)](#license)
+[![Node.js](https://img.shields.io/badge/node-20.x-339933?logo=node.js\&logoColor=white)](https://nodejs.org/)
+[![pnpm](https://img.shields.io/badge/pnpm-9%2B-F69220?logo=pnpm\&logoColor=white)](https://pnpm.io/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript\&logoColor=white)](https://www.typescriptlang.org/)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 ---
 
@@ -16,8 +16,6 @@
 * [架構總覽](#架構總覽)
 * [資料夾結構](#資料夾結構)
 * [快速開始](#快速開始)
-* [環境變數](#環境變數)
-* [工作區腳本（pnpm）](#工作區腳本pnpm)
 * [API 契約與 SSOT 流程](#api-契約與-ssot-流程)
 * [品質保證與規範](#品質保證與規範)
 * [Agents 與治理](#agents-與治理)
@@ -90,7 +88,6 @@ flowchart LR
 * Node.js **20.x**
 * pnpm **9+**
 * MongoDB **6+**（本機或 Docker）
-* （可選）Redis / 其他相依服務依專案實況
 
 ### 2) 取得原始碼與安裝套件
 
@@ -207,7 +204,6 @@ agent_task:
 * [ ] 庫存批號/效期與安全庫存警示
 * [ ] 使用者/權限（RBAC、稽核軌跡）
 * [ ] 前端可觀測性（錯誤上報、使用情境追蹤）
-* [ ] 部署腳本與雲端環境（Docker/Compose 或 K8s）
 
 ## 授權
 
@@ -217,7 +213,7 @@ agent_task:
 
 ## 附錄：開發小抄
 
-**常用指令**
+常用指令
 
 ```bash
 # 安裝依賴（workspaces）
