@@ -47,22 +47,25 @@ pharmacy-pos 是一套以 Monorepo 方式管理的藥局 POS 生態系，強調*
 ```mermaid
 flowchart LR
   subgraph FE[frontend]
-    R[React 18 + TS]\nMUI v5\nRTK/RTK Query\nRRD v6
-  end
-  subgraph BE[backend]
-    E[Express 5]\nRoutes/Controllers\nService (Orchestration)\nDomain Services\nModels
-  end
-  subgraph SH[shared]
-    Z[Zod Schemas]\nTypes Utils
-  end
-  subgraph OA[openapi]
-    OAS[API Spec]\nGenerators
+    R["React 18 + TS<br/>MUI v5<br/>RTK / RTK Query<br/>RRD v6"]
   end
 
-  SH-- 同步/映射 -->OA
-  OA-- 生成型別/SDK -->FE
-  OA-- 契約對齊 -->BE
-  FE-- API 呼叫/表單驗證 -->BE
+  subgraph BE[backend]
+    E["Express 5<br/>Routes / Controllers<br/>Service (Orchestration)<br/>Domain Services<br/>Models"]
+  end
+
+  subgraph SH[shared]
+    Z["Zod Schemas<br/>Types & Utils"]
+  end
+
+  subgraph OA[openapi]
+    OAS["API Spec<br/>Generators"]
+  end
+
+  Z -- 同步／映射 --> OAS
+  OAS -- 生成型別／SDK --> R
+  OAS -- 契約對齊 --> E
+  R -- API 呼叫／表單驗證 --> E
 ```
 
 ## 資料夾結構
@@ -103,8 +106,10 @@ pnpm install
 
 ### 5) 啟動開發模式
 
+```bash
 pnpm run build
 pnpm run dev
+```
 
 > **安全提示**：請勿提交任何憑證與個資；使用環境變數與密鑰管理。
 
