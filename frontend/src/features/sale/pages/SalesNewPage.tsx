@@ -403,14 +403,14 @@ const SalesNewPage: FC = () => {
                 xs: '1.5rem',      // 小手機
                 sm: '1.4rem',      // 平板：縮小
                 md: '1.5rem',      // 平板橫向：縮小
-                lg: '2rem',        // 桌面
-                xl: '2rem'     // 大桌面
+                lg: '1.5rem',        // 桌面
+                xl: '1.5rem'     // 大桌面
               },
               fontWeight: 500,
               lineHeight: 1.1     // 縮小行高
             }}
           >
-            銷售作業 v2 {isTestMode && (
+            銷售作業 {isTestMode && (
               <Typography
                 component="span"
                 sx={{
@@ -468,16 +468,21 @@ const SalesNewPage: FC = () => {
           </Box>
         </Box>
         
-        {/* Shortcut Buttons Row - 使用抽離的組件 */}
-        <ShortcutButtonSection
-          allProducts={products ?? []}
-          allPackages={packages ?? []}
-          isTestMode={isTestMode}
-          isSmallMobile={isSmallMobile}
-          isTablet={isTablet}
-          onShortcutSelect={handleShortcutSelect}
-        />
-      </Box>
+        {/* Shortcut Buttons Row - 使用抽離的組件，與 Right Panel 等寬 */}
+                <Box sx={{
+                  width: isMobile ? '100%' : `calc(100% - ${panelWidth} - ${theme.spacing(isMobile ? 1 : isTablet ? 2 : 3)})`,
+                  ml: isMobile ? 0 : 'auto',
+                }}>
+                  <ShortcutButtonSection
+                    allProducts={products ?? []}
+                    allPackages={packages ?? []}
+                    isTestMode={isTestMode}
+                    isSmallMobile={isSmallMobile}
+                    isTablet={isTablet}
+                    onShortcutSelect={handleShortcutSelect}
+                  />
+                </Box>
+              </Box>
 
       {/* Main Content - 使用剩餘空間 */}
       <Box sx={{
@@ -496,6 +501,8 @@ const SalesNewPage: FC = () => {
             maxWidth: '360px',
             height: '100%',
             flexShrink: 0,
+            mt: -10, // 向上偏移，使其與頂部對齊
+            
           }}>
             <DailySalesPanel
               sales={sales}
