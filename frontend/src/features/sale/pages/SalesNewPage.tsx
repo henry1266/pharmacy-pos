@@ -493,16 +493,14 @@ const SalesNewPage: FC = () => {
         overflow: 'visible', // 改為 visible 讓按鈕可以超出主容器邊界
         minHeight: 0 // 重要：讓 flex 子元素能正確縮小
       }}>
-        {/* Left Panel - Sales List - 只在非手機版顯示 */}
+        {/* Left Panel - Sales List - 只在非手機版顯示，占據整個左半邊 */}
         {!isMobile && (
           <Box sx={{
-            width: panelWidth,
+            width: panelWidth, // 占據左半邊
             minWidth: '280px',
-            maxWidth: '360px',
-            height: '100%',
+            height: 'calc(118%)', // 增加高度
             flexShrink: 0,
-            mt: -10, // 向上偏移，使其與頂部對齊
-            
+            mt: -13, // 向上偏移，使其與頂部對齊
           }}>
             <DailySalesPanel
               sales={sales}
