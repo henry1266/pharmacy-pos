@@ -1,4 +1,4 @@
-/**
+﻿/**
  * OpenAPI path descriptors for Customer endpoints
  * Keep minimal and reference Zod-derived components via $ref
  */
@@ -89,7 +89,30 @@ const CustomersPaths = {
         required: true,
         content: {
           "application/json": {
-            schema: { $ref: "#/components/schemas/CustomerQuickCreateRequest" }
+            schema: { $ref: "#/components/schemas/CustomerQuickCreateRequest" },
+            examples: {
+              example: {
+                summary: "Quick create payload",
+                value: {
+                  name: "陳明枝",
+                  birthdate: "19450529",
+                  idCardNumber: "H201627336",
+                  notes: "測試備註"
+                }
+              }
+            }
+          },
+          "application/x-www-form-urlencoded": {
+            schema: {
+              type: "object",
+              required: ["name", "birthdate", "idCardNumber"],
+              properties: {
+                name: { type: "string", description: "客戶姓名", example: "陳明枝" },
+                birthdate: { type: "string", description: "生日 (YYYYMMDD)", example: "19450529" },
+                idCardNumber: { type: "string", description: "身分證字號", example: "H201627336" },
+                notes: { type: "string", description: "備註", example: "測試備註" }
+              }
+            }
           }
         }
       },
@@ -105,7 +128,7 @@ const CustomersPaths = {
                   value: {
                     success: true,
                     message: "Customer saved successfully",
-                    data: { _id: "64f0a1b2c3d4e5f678901234", name: "���p��", idCardNumber: "A123456789" },
+                    data: { _id: "64f0a1b2c3d4e5f678901234", name: "王小明", idCardNumber: "H201627336" },
                     timestamp: "2025-01-01T00:00:00.000Z"
                   }
                 }
@@ -113,8 +136,14 @@ const CustomersPaths = {
             }
           }
         },
-        "400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
-        "500": { description: "Server error", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "400": {
+          description: "Validation error",
+          content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } }
+        },
+        "500": {
+          description: "Server error",
+          content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } }
+        }
       }
     }
   },
@@ -146,8 +175,14 @@ const CustomersPaths = {
             }
           }
         },
-        "404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
-        "500": { description: "Server error", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "404": {
+          description: "Not found",
+          content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } }
+        },
+        "500": {
+          description: "Server error",
+          content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } }
+        }
       }
     },
     put: {
@@ -217,8 +252,14 @@ const CustomersPaths = {
             }
           }
         },
-        "404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
-        "500": { description: "Server error", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "404": {
+          description: "Not found",
+          content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } }
+        },
+        "500": {
+          description: "Server error",
+          content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } }
+        }
       }
     }
   }

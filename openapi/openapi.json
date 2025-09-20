@@ -486,6 +486,49 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CustomerQuickCreateRequest"
+              },
+              "examples": {
+                "example": {
+                  "summary": "Quick create payload",
+                  "value": {
+                    "name": "鄭暄瀚",
+                    "birthdate": "1911/01/01",
+                    "idCardNumber": "HXXXXXXXX",
+                    "notes": "測試備註"
+                  }
+                }
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "birthdate",
+                  "idCardNumber"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "客戶姓名",
+                    "example": "鄭暄瀚"
+                  },
+                  "birthdate": {
+                    "type": "string",
+                    "description": "生日 (YYYY/MM/DD)",
+                    "example": "1911/01/01"
+                  },
+                  "idCardNumber": {
+                    "type": "string",
+                    "description": "身分證字號",
+                    "example": "HXXXXXXXX"
+                  },
+                  "notes": {
+                    "type": "string",
+                    "description": "備註",
+                    "example": "測試備註"
+                  }
+                }
               }
             }
           }
@@ -506,8 +549,8 @@
                       "message": "Customer saved successfully",
                       "data": {
                         "_id": "64f0a1b2c3d4e5f678901234",
-                        "name": "���p��",
-                        "idCardNumber": "A123456789"
+                        "name": "王小明",
+                        "idCardNumber": "H201627336"
                       },
                       "timestamp": "2025-01-01T00:00:00.000Z"
                     }

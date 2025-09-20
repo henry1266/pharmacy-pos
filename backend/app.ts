@@ -82,6 +82,7 @@ export function createApp(): Application {
     credentials: true, // 允許發送身份憑證（cookies, authorization headers）
     maxAge: 86400 // 預檢請求的結果可以被快取多久（秒）
   }));
+  app.use(express.urlencoded({ extended: true }));
   app.use(express.json({ extended: false } as any));
 
   // 定義路由
