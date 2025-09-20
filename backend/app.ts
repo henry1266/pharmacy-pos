@@ -19,7 +19,7 @@ import purchaseOrdersRoutes from "./modules/purchaseOrders";
 import productCategoriesRoutes from "./routes/productCategories";
 import productsRoutes from "./routes/products";
 import packagesRoutes from "./routes/packages";
-import customersRoutes from "./routes/customers";
+import customersRoutes from "./modules/customers";
 import salesRoutes from "./modules/sales";
 import accountingRoutes from "./routes/accounting";
 import dashboardRoutes from "./routes/dashboard";
