@@ -1,6 +1,6 @@
 import Customer from '../../models/Customer';
 import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
-import type { CustomerCreateInput, CustomerUpdateInput, CustomerRecord, ExtendedCustomerInput } from './customers.types';
+import type { CustomerCreateInput, CustomerUpdateInput, CustomerRecord, ExtendedCustomerInput, CustomerQuickCreateInput } from './customers.types';
 import { ensureStringArray, transformCustomerToResponse } from './customers.utils';
 
 const MEMBERSHIP_LEVELS = new Set(['regular', 'silver', 'gold', 'platinum']);
@@ -60,6 +60,51 @@ export async function updateCustomer(id: string, payload: CustomerUpdateInput): 
   );
 
   return updated ? updated.toObject() : null;
+}
+
+export async function upsertCustomerByIdCard(payload: CustomerQuickCreateInput): Promise<{ customer: CustomerRecord; created: boolean }> {
+  const idCardNumber = (payload.idCardNumber ?? '').trim();
+  if (!idCardNumber) {
+    throw new CustomerServiceError(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST, 'ID card number is required');
+  }
+
+  const baseInput: ExtendedCustomerInput = {
+    ...payload,
+    idCardNumber,
+  };
+
+  const existing = await Customer.findOne({ idCardNumber });
+
+  if (existing) {
+    const updateFields = buildCustomerFields(baseInput);
+    if (updateFields.code === undefined) {
+      delete updateFields.code;
+    }
+
+    const sanitizedEntries = Object.entries(updateFields)
+      .filter(([, value]) => value !== undefined && value !== null);
+
+    if (sanitizedEntries.length === 0) {
+      return { customer: existing.toObject(), created: false };
+    }
+
+    const updated = await Customer.findByIdAndUpdate(
+      existing._id,
+      { $set: Object.fromEntries(sanitizedEntries) },
+      { new: true, runValidators: true, context: 'query' }
+    );
+
+    return { customer: (updated ?? existing).toObject(), created: false };
+  }
+
+  const customerFields = buildCustomerFields(baseInput);
+  if (!customerFields.code) {
+    customerFields.code = await generateCustomerCode();
+  }
+
+  const createdCustomer = new Customer(customerFields);
+  const saved = await createdCustomer.save();
+  return { customer: saved.toObject(), created: true };
 }
 
 export async function deleteCustomer(id: string): Promise<boolean> {

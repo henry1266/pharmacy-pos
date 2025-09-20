@@ -47,11 +47,12 @@ async function main() {
   const createCustomerSchema = customerMod.createCustomerSchema as z.ZodTypeAny | undefined;
   const updateCustomerSchema = customerMod.updateCustomerSchema as z.ZodTypeAny | undefined;
   const customerSearchSchema = customerMod.customerSearchSchema as z.ZodTypeAny | undefined;
+  const quickCreateCustomerSchema = customerMod.quickCreateCustomerSchema as z.ZodTypeAny | undefined;
 
   if (!saleItemSchema || !createSaleSchema || !updateSaleSchema || !saleSearchSchema) {
     throw new Error('Missing sale schemas from shared module.');
   }
-  if (!customerSchema || !createCustomerSchema || !updateCustomerSchema || !customerSearchSchema) {
+  if (!customerSchema || !createCustomerSchema || !updateCustomerSchema || !customerSearchSchema || !quickCreateCustomerSchema) {
     throw new Error('Missing customer schemas from shared module.');
   }
 
@@ -111,7 +112,8 @@ async function main() {
         Customer: toJsonSchema(customerSchema, 'Customer'),
         CustomerCreateRequest: toJsonSchema(createCustomerSchema, 'CustomerCreateRequest'),
         CustomerUpdateRequest: toJsonSchema(updateCustomerSchema, 'CustomerUpdateRequest'),
-        CustomerSearchQuery: toJsonSchema(customerSearchSchema, 'CustomerSearchQuery')
+        CustomerSearchQuery: toJsonSchema(customerSearchSchema, 'CustomerSearchQuery'),
+        CustomerQuickCreateRequest: toJsonSchema(quickCreateCustomerSchema, 'CustomerQuickCreateRequest')
       }
     }
   } as const;

@@ -5,14 +5,16 @@ import { ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import logger from '../../../utils/logger';
 import { buildErrorResponse } from '../customers.utils';
 
-export function validateCustomerPayload(mode: 'create' | 'update') {
+export function validateCustomerPayload(mode: 'create' | 'update' | 'quick') {
   return async function (req: Request, res: Response, next: NextFunction) {
     try {
       const modulePath = require.resolve('@pharmacy-pos/shared/dist/schemas/zod/customer.js');
       const mod = await import(modulePath);
       const schema = mode === 'create'
         ? (mod as any).createCustomerSchema
-        : (mod as any).updateCustomerSchema;
+        : mode === 'update'
+          ? (mod as any).updateCustomerSchema
+          : (mod as any).quickCreateCustomerSchema;
       const result = schema.safeParse(req.body);
       if (!result.success) {
         const errorResponse: ErrorResponse = buildErrorResponse(

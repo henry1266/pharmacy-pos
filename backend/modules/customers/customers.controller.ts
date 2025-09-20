@@ -4,7 +4,7 @@ import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
 import logger from '../../utils/logger';
 import * as customersService from './customers.service';
 import { buildSuccessResponse, buildErrorResponse, transformCustomerToResponse } from './customers.utils';
-import type { CustomerCreateInput, CustomerUpdateInput } from './customers.types';
+import type { CustomerCreateInput, CustomerUpdateInput, CustomerQuickCreateInput } from './customers.types';
 
 export const listCustomers = async (_req: Request, res: Response) => {
   try {
@@ -38,6 +38,16 @@ export const createCustomer = async (req: Request, res: Response) => {
     res.json(buildSuccessResponse('Customer created successfully', transformCustomerToResponse(customer)));
   } catch (error) {
     handleControllerError(error, res, 'Failed to create customer');
+  }
+};
+
+export const upsertCustomerQuick = async (req: Request, res: Response) => {
+  try {
+    const payload = req.body as CustomerQuickCreateInput;
+    const result = await customersService.upsertCustomerByIdCard(payload);
+    res.json(buildSuccessResponse('Customer saved successfully', transformCustomerToResponse(result.customer)));
+  } catch (error) {
+    handleControllerError(error, res, 'Failed to upsert customer');
   }
 };
 

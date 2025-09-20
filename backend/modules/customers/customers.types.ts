@@ -5,6 +5,7 @@ import {
   createCustomerSchema,
   updateCustomerSchema,
   customerSearchSchema,
+  quickCreateCustomerSchema,
 } from '@pharmacy-pos/shared/dist/schemas/zod/customer';
 
 export type CustomerRecord = Record<string, any>;
@@ -24,3 +25,5 @@ export type ExtendedCustomerInput = (CustomerCreateInput | CustomerUpdateInput) 
   /** Legacy isActive flag */
   isActive?: boolean;
 };
+
+export type CustomerQuickCreateInput = z.infer<typeof quickCreateCustomerSchema>;

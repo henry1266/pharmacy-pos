@@ -80,6 +80,44 @@ const CustomersPaths = {
       }
     }
   },
+  "/customers/quick": {
+    post: {
+      summary: "Quick create or update customer",
+      operationId: "quickCreateCustomer",
+      tags: ["Customers"],
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: { $ref: "#/components/schemas/CustomerQuickCreateRequest" }
+          }
+        }
+      },
+      responses: {
+        "200": {
+          description: "Created or updated",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ApiResponse" },
+              examples: {
+                success: {
+                  summary: "Customer upserted",
+                  value: {
+                    success: true,
+                    message: "Customer saved successfully",
+                    data: { _id: "64f0a1b2c3d4e5f678901234", name: "¤ý¤p©ú", idCardNumber: "A123456789" },
+                    timestamp: "2025-01-01T00:00:00.000Z"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+        "500": { description: "Server error", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+      }
+    }
+  },
   "/customers/{id}": {
     get: {
       summary: "Get customer by ID",

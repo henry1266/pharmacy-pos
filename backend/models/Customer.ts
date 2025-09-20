@@ -40,7 +40,9 @@ const CustomerSchema = new Schema<ICustomerDocument>({
   },
   idCardNumber: {
     type: String,
-    default: ""
+    unique: true,
+    sparse: true,
+    trim: true
   },
   membershipLevel: {
     type: String,

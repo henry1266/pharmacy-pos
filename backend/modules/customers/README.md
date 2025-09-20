@@ -29,6 +29,7 @@
 | Method | Path | 說明 | 驗證中介層 |
 | ------ | ---- | ---- | ---------- |
 | GET | `/api/customers` | 取得客戶列表 | `validateCustomerQuery()` |
+| POST | `/api/customers/quick` | 以身分證快取建立/更新客戶 | `validateCustomerPayload('quick')` |
 | GET | `/api/customers/:id` | 取得單一客戶 | `validateObjectId()` |
 | POST | `/api/customers` | 建立客戶 | `validateCustomerPayload('create')` |
 | PUT | `/api/customers/:id` | 更新客戶 | `validateObjectId()` + `validateCustomerPayload('update')` |
