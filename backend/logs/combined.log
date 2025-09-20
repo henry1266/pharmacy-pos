@@ -12228,3 +12228,228 @@
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m產品 部分負擔 設定為不扣庫存，跳過庫存檢查\u001b[39m","timestamp":"2025-09-16 15:33:21:3321"}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m生成銷貨單號: 20250916003\u001b[39m","timestamp":"2025-09-16 15:33:21:3321"}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m為不扣庫存產品 部分負擔 創建毛利記錄，數量: 1, 售價: 40, 進價: 0, 毛利: 40\u001b[39m","timestamp":"2025-09-16 15:33:21:3321"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-09-19 11:22:39:2239"}
+{"executionTime":"12ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":53,"timestamp":"2025-09-19 11:22:39:2239"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-09-19 11:22:39:2239"}
+{"executionTime":"5ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":53,"timestamp":"2025-09-19 11:22:39:2239"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-09-19 11:22:39:2239"}
+{"executionTime":"6ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":53,"timestamp":"2025-09-19 11:22:39:2239"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-09-19 11:22:39:2239"}
+{"executionTime":"6ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":53,"timestamp":"2025-09-19 11:22:39:2239"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-09-19 11:22:50:2250"}
+{"executionTime":"8ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":53,"timestamp":"2025-09-19 11:22:50:2250"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-09-19 11:22:50:2250"}
+{"executionTime":"17ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":53,"timestamp":"2025-09-19 11:22:50:2250"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-09-19 11:22:50:2250"}
+{"executionTime":"7ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":53,"timestamp":"2025-09-19 11:22:50:2250"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-09-19 11:22:50:2250"}
+{"executionTime":"6ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":53,"timestamp":"2025-09-19 11:22:50:2250"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m檢查產品ID: 67f3bbd2f362fef3033085de, 名稱: Eraflu 75MG 易剋冒膠囊 10粒\u001b[39m","timestamp":"2025-09-19 11:38:16:3816"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到 18 個庫存記錄\u001b[39m","timestamp":"2025-09-19 11:38:16:3816"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67f3d1f7f362fef30331ce87, 類型: purchase, 數量: 6\u001b[39m","timestamp":"2025-09-19 11:38:16:3816"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 6818694d3c5f45c598a1ac03, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 11:38:16:3816"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68186adf3c5f45c598a1b219, 類型: ship, 數量: -2\u001b[39m","timestamp":"2025-09-19 11:38:16:3816"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 682073374761a9e7b89769d5, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 11:38:16:3816"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 683bc8e81489ad43d1e68d84, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 11:38:16:3816"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 6843a66c1489ad43d1fc7df4, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 11:38:16:3816"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68511039b4a8d00d26c7c6c3, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 11:38:16:3816"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 685c1f2bfbf95b219eb828e1, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 11:38:16:3816"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68649ae054c5cc383fb68c17, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 11:38:16:3816"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68764045db1bd6f406fe2c74, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 11:38:16:3816"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 688335e6636a0b1321d207f9, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 11:38:16:3816"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 688f8ba950daca5a7cbf7bf3, 類型: purchase, 數量: 11\u001b[39m","timestamp":"2025-09-19 11:38:16:3816"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68a2da0a23c92d6dc9f7db0e, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 11:38:16:3816"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68c92e8e3259af67c477e883, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 11:38:16:3816"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68ca0b42a7cfe4aac6ef79e7, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 11:38:16:3816"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68ca2a81a7cfe4aac6f06a21, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 11:38:16:3816"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68cb82523259af67c47ea232, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 11:38:16:3816"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68cb82603259af67c47ec916, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 11:38:16:3816"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m產品 Eraflu 75MG 易剋冒膠囊 10粒 總庫存量: 0，銷售數量: 1\u001b[39m","timestamp":"2025-09-19 11:38:16:3816"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"\u001b[33m產品 Eraflu 75MG 易剋冒膠囊 10粒 庫存不足，當前總庫存: 0，需求: 1，將允許負庫存\u001b[39m","timestamp":"2025-09-19 11:38:16:3816"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m生成銷貨單號: 20250919012\u001b[39m","timestamp":"2025-09-19 11:38:16:3816"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m為產品 67f3bbd2f362fef3033085de 創建銷售庫存記錄，數量: -1, 總金額: 1000\u001b[39m","timestamp":"2025-09-19 11:38:16:3816"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m檢查產品ID: 67f3bbd2f362fef3033085de, 名稱: Eraflu 75MG 易剋冒膠囊 10粒\u001b[39m","timestamp":"2025-09-19 11:39:12:3912"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到 19 個庫存記錄\u001b[39m","timestamp":"2025-09-19 11:39:12:3912"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67f3d1f7f362fef30331ce87, 類型: purchase, 數量: 6\u001b[39m","timestamp":"2025-09-19 11:39:12:3912"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 6818694d3c5f45c598a1ac03, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 11:39:12:3912"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68186adf3c5f45c598a1b219, 類型: ship, 數量: -2\u001b[39m","timestamp":"2025-09-19 11:39:12:3912"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 682073374761a9e7b89769d5, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 11:39:12:3912"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 683bc8e81489ad43d1e68d84, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 11:39:12:3912"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 6843a66c1489ad43d1fc7df4, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 11:39:12:3912"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68511039b4a8d00d26c7c6c3, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 11:39:12:3912"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 685c1f2bfbf95b219eb828e1, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 11:39:12:3912"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68649ae054c5cc383fb68c17, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 11:39:12:3912"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68764045db1bd6f406fe2c74, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 11:39:12:3912"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 688335e6636a0b1321d207f9, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 11:39:12:3912"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 688f8ba950daca5a7cbf7bf3, 類型: purchase, 數量: 11\u001b[39m","timestamp":"2025-09-19 11:39:12:3912"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68a2da0a23c92d6dc9f7db0e, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 11:39:12:3912"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68c92e8e3259af67c477e883, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 11:39:12:3912"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68ca0b42a7cfe4aac6ef79e7, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 11:39:12:3912"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68ca2a81a7cfe4aac6f06a21, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 11:39:12:3912"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68cb82523259af67c47ea232, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 11:39:12:3912"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68cb82603259af67c47ec916, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 11:39:12:3912"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68ccd028ff3c2dbc4f7d1d6c, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 11:39:12:3912"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m產品 Eraflu 75MG 易剋冒膠囊 10粒 總庫存量: -1，銷售數量: 1\u001b[39m","timestamp":"2025-09-19 11:39:12:3912"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"\u001b[33m產品 Eraflu 75MG 易剋冒膠囊 10粒 庫存不足，當前總庫存: -1，需求: 1，將允許負庫存\u001b[39m","timestamp":"2025-09-19 11:39:12:3912"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m生成銷貨單號: 20250919013\u001b[39m","timestamp":"2025-09-19 11:39:12:3912"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m為產品 67f3bbd2f362fef3033085de 創建銷售庫存記錄，數量: -1, 總金額: 1000\u001b[39m","timestamp":"2025-09-19 11:39:12:3912"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m檢查產品ID: 67f3bbd2f362fef3033085de, 名稱: Eraflu 75MG 易剋冒膠囊 10粒\u001b[39m","timestamp":"2025-09-19 12:19:02:192"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到 20 個庫存記錄\u001b[39m","timestamp":"2025-09-19 12:19:02:192"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67f3d1f7f362fef30331ce87, 類型: purchase, 數量: 6\u001b[39m","timestamp":"2025-09-19 12:19:02:192"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 6818694d3c5f45c598a1ac03, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 12:19:02:192"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68186adf3c5f45c598a1b219, 類型: ship, 數量: -2\u001b[39m","timestamp":"2025-09-19 12:19:02:192"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 682073374761a9e7b89769d5, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 12:19:02:192"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 683bc8e81489ad43d1e68d84, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 12:19:02:192"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 6843a66c1489ad43d1fc7df4, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 12:19:02:192"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68511039b4a8d00d26c7c6c3, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 12:19:02:192"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 685c1f2bfbf95b219eb828e1, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 12:19:02:192"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68649ae054c5cc383fb68c17, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 12:19:02:192"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68764045db1bd6f406fe2c74, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 12:19:02:192"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 688335e6636a0b1321d207f9, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 12:19:02:192"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 688f8ba950daca5a7cbf7bf3, 類型: purchase, 數量: 11\u001b[39m","timestamp":"2025-09-19 12:19:02:192"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68a2da0a23c92d6dc9f7db0e, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 12:19:02:192"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68c92e8e3259af67c477e883, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 12:19:02:192"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68ca0b42a7cfe4aac6ef79e7, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 12:19:02:192"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68ca2a81a7cfe4aac6f06a21, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 12:19:02:192"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68cb82523259af67c47ea232, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 12:19:02:192"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68cb82603259af67c47ec916, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 12:19:02:192"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68ccd028ff3c2dbc4f7d1d6c, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 12:19:02:192"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68ccd060ff3c2dbc4f7d28ad, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 12:19:02:192"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m產品 Eraflu 75MG 易剋冒膠囊 10粒 總庫存量: -2，銷售數量: 1\u001b[39m","timestamp":"2025-09-19 12:19:02:192"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"\u001b[33m產品 Eraflu 75MG 易剋冒膠囊 10粒 庫存不足，當前總庫存: -2，需求: 1，將允許負庫存\u001b[39m","timestamp":"2025-09-19 12:19:02:192"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m生成銷貨單號: 20250919015\u001b[39m","timestamp":"2025-09-19 12:19:02:192"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m為產品 67f3bbd2f362fef3033085de 創建銷售庫存記錄，數量: -1, 總金額: 1000\u001b[39m","timestamp":"2025-09-19 12:19:02:192"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m檢查產品ID: 68b65179b97a22612d8a43a6, 名稱: 部分負擔\u001b[39m","timestamp":"2025-09-19 15:32:07:327"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m產品 部分負擔 設定為不扣庫存，跳過庫存檢查\u001b[39m","timestamp":"2025-09-19 15:32:07:327"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m生成銷貨單號: 20250919016\u001b[39m","timestamp":"2025-09-19 15:32:07:327"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m為不扣庫存產品 部分負擔 創建毛利記錄，數量: 1, 售價: 40, 進價: 0, 毛利: 40\u001b[39m","timestamp":"2025-09-19 15:32:07:327"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m檢查產品ID: 67ee2fb8c047658bac63b189, 名稱: 衛肯 維他晶亮軟糖 15顆\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m找到 61 個庫存記錄\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67f3392d45c8fe473c5639b4, 類型: purchase, 數量: 12\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67f39c13babaff09d4959793, 類型: purchase, 數量: 12\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67f3be4df362fef303310d19, 類型: purchase, 數量: 12\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67f773357b53d8f2f9c58139, 類型: purchase, 數量: 12\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fdf791c2347c64b93985f1, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fdf7edc2347c64b93986cf, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fdf9edc2347c64b939bbb4, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fdfe35c2347c64b939ddb2, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe0302c2347c64b939e0c9, 類型: sale, 數量: -5\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe0564c2347c64b939e6aa, 類型: sale, 數量: -2\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe083ac2347c64b939ebff, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe08bdc2347c64b939f59b, 類型: sale, 數量: -2\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe0993c2347c64b939f9ae, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe09b7c2347c64b939f9cb, 類型: sale, 數量: -2\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe09ecc2347c64b939f9e7, 類型: sale, 數量: -3\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe0d9ac2347c64b939fc25, 類型: sale, 數量: -3\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe13fcc2347c64b93a0961, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe1565c2347c64b93a0ec6, 類型: sale, 數量: -2\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe1743c2347c64b93a0f91, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe1af2c2347c64b93a1587, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe1b1dc2347c64b93a1922, 類型: sale, 數量: -3\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe1cb7c2347c64b93a1b87, 類型: sale, 數量: -2\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe1d01c2347c64b93a1d8e, 類型: sale, 數量: -2\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe1d16c2347c64b93a1f7d, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe1d94c2347c64b93a20e1, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe2055c2347c64b93a2726, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 67fe95648cd383dad08e4fb6, 類型: sale, 數量: -2\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68031db98521407b6f1159f4, 類型: sale, 數量: -3\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 6809df86a48f04609ed62a6e, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 682152c453ecd3eddeefcdd4, 類型: sale, 數量: -2\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 682ae0b753ecd3eddef5d7ac, 類型: sale, 數量: -2\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 682fe375bd1adb0842bca710, 類型: purchase, 數量: 12\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68352e86d1f2cb799fcf532e, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68392bda1489ad43d1bc5543, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68418aa71489ad43d1fa97ca, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 6842431a1489ad43d1fad592, 類型: sale, 數量: -2\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 6847c9d4160937f08a01b5c5, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 685620dc72394eec183d2777, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 6856267172394eec183d2f33, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 685def76a36e27b479579539, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 685f6540620934c0f5e60b8b, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 6866756087107c6d64bc9498, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 686897b40046ee0019835b99, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 687aed065d7e991f62c424f5, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 687b04775d7e991f62c4542d, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 687f46c77e3c6d26f04369e7, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 688224a99e9da050c1097e30, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 688342d99f2a9036ce100e8e, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 6888ae57d405e8d914b6b97a, 類型: purchase, 數量: 12\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 688adeb89e9da050c1150a46, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 688b525d9e9da050c11660c9, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 688d6f8c9e9da050c11911e0, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68907410a2b9045eb2dc8206, 類型: purchase, 數量: 12\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 689202510a7c530c5153327c, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 6896c7b51d6c91625dc0dc86, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68a70a83929ee5898c2f257d, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68b593832f13fc8ecf5f8833, 類型: sale, 數量: -2\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68b79a0894ccb73852e0caf1, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68b79a8294ccb73852e0eecf, 類型: sale, 數量: -4\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68bf9fbab97a22612d998f0a, 類型: sale, 數量: -3\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m庫存記錄: 68ca12f3a7cfe4aac6ef80c6, 類型: sale, 數量: -1\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m產品 衛肯 維他晶亮軟糖 15顆 總庫存量: 2，銷售數量: 2\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m生成銷貨單號: 20250919020\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m為產品 67ee2fb8c047658bac63b189 創建銷售庫存記錄，數量: -2, 總金額: 100\u001b[39m","timestamp":"2025-09-19 19:16:13:1613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67ee044d8b015c0b28783c9f"},"supplierId":"67ee044d8b015c0b28783c9f","timestamp":"2025-09-19 23:59:26:5926"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-09-19 23:59:26:5926"}
+{"0":"68a7e73494e5e83283dd616b","1":"6881ede993a4e6567f1de484","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - selectedAccountIds:\u001b[39m","timestamp":"2025-09-20 00:00:36:036"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - items:\u001b[39m","timestamp":"2025-09-20 00:00:36:036"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - processedItems:\u001b[39m","timestamp":"2025-09-20 00:00:36:036"}
+{"0":"68a7e73494e5e83283dd616b","1":"6881ede993a4e6567f1de484","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單已儲存 - selectedAccountIds:\u001b[39m","timestamp":"2025-09-20 00:00:36:036"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":2,"timestamp":"2025-09-20 00:00:39:039","totalCount":50,"unpaidCount":48}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67ee044d8b015c0b28783c9f"},"supplierId":"67ee044d8b015c0b28783c9f","timestamp":"2025-09-20 00:02:00:20"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-09-20 00:02:00:20"}
+{"0":"68a7e73494e5e83283dd616b","1":"6881ede993a4e6567f1de484","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m更新進貨單 - selectedAccountIds:\u001b[39m","timestamp":"2025-09-20 00:03:38:338"}
+{"0":"68a7e73494e5e83283dd616b","1":"6881ede993a4e6567f1de484","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單已更新 - selectedAccountIds:\u001b[39m","timestamp":"2025-09-20 00:03:38:338"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 67f7828b7b53d8f2f9c61517 創建新庫存記錄，進貨單號: 20250920001, 數量: 1000, 總金額: 1350\u001b[39m","timestamp":"2025-09-20 00:03:38:338"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 6822b2eb53ecd3eddef16993 創建新庫存記錄，進貨單號: 20250920001, 數量: 1000, 總金額: 1100\u001b[39m","timestamp":"2025-09-20 00:03:38:338"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 68cd7e71ff3c2dbc4f7d7143 創建新庫存記錄，進貨單號: 20250920001, 數量: 1000, 總金額: 1550\u001b[39m","timestamp":"2025-09-20 00:03:38:338"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m檢查進貨單自動會計分錄條件:\u001b[39m","poid":"20250920001","timestamp":"2025-09-20 00:03:38:338"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單沒有機構ID，將嘗試從會計科目獲取\u001b[39m","timestamp":"2025-09-20 00:03:38:338"}
+{"accountCount":2,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m滿足自動會計分錄條件:\u001b[39m","organizationId":"未設置","timestamp":"2025-09-20 00:03:38:338","totalAmount":4000}
+{"asset":true,"expense":false,"level":"\u001b[37mdebug\u001b[39m","liability":true,"message":"\u001b[37m科目類型分析:\u001b[39m","timestamp":"2025-09-20 00:03:38:338"}
+{"entryType":"asset-liability","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m自動推斷分錄類型:\u001b[39m","timestamp":"2025-09-20 00:03:38:338"}
+{"entryType":"asset-liability","level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已更新進貨單分錄類型:\u001b[39m","poid":"20250920001","timestamp":"2025-09-20 00:03:38:338"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m從會計科目推斷機構ID:\u001b[39m","organizationId":"68639ad3d2823bbee3a59e25","timestamp":"2025-09-20 00:03:38:338"}
+{"date":"2025-09-19","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m從進貨單號解析日期:\u001b[39m","poid":"20250920001","timestamp":"2025-09-20 00:03:38:338"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建嵌入式交易群組:\u001b[39m","organizationId":"68639ad3d2823bbee3a59e25","timestamp":"2025-09-20 00:03:38:338"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m成功創建自動會計分錄:\u001b[39m","organizationId":"68639ad3d2823bbee3a59e25","poid":"20250920001","timestamp":"2025-09-20 00:03:38:338"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m進貨單 20250920001 已關聯交易群組 68cd7edaff3c2dbc4f7d8b63\u001b[39m","timestamp":"2025-09-20 00:03:38:338"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67eb565d0f2cf9d2647e3adf"},"supplierId":"67eb565d0f2cf9d2647e3adf","timestamp":"2025-09-20 00:13:53:1353"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-09-20 00:13:53:1353"}
+{"0":"68823713f1067886ee5a3f7c","1":"6881ede993a4e6567f1de484","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - selectedAccountIds:\u001b[39m","timestamp":"2025-09-20 00:14:38:1438"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - items:\u001b[39m","timestamp":"2025-09-20 00:14:38:1438"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - processedItems:\u001b[39m","timestamp":"2025-09-20 00:14:38:1438"}
+{"0":"68823713f1067886ee5a3f7c","1":"6881ede993a4e6567f1de484","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單已儲存 - selectedAccountIds:\u001b[39m","timestamp":"2025-09-20 00:14:38:1438"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 67eb60d00f2cf9d2647e3d1a 創建新庫存記錄，進貨單號: 20250920002, 數量: 1140, 總金額: 12703\u001b[39m","timestamp":"2025-09-20 00:14:38:1438"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m檢查進貨單自動會計分錄條件:\u001b[39m","poid":"20250920002","timestamp":"2025-09-20 00:14:38:1438"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單沒有機構ID，將嘗試從會計科目獲取\u001b[39m","timestamp":"2025-09-20 00:14:38:1438"}
+{"accountCount":2,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m滿足自動會計分錄條件:\u001b[39m","organizationId":"未設置","timestamp":"2025-09-20 00:14:38:1438","totalAmount":12703}
+{"asset":true,"expense":false,"level":"\u001b[37mdebug\u001b[39m","liability":true,"message":"\u001b[37m科目類型分析:\u001b[39m","timestamp":"2025-09-20 00:14:38:1438"}
+{"entryType":"asset-liability","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m自動推斷分錄類型:\u001b[39m","timestamp":"2025-09-20 00:14:38:1438"}
+{"entryType":"asset-liability","level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已更新進貨單分錄類型:\u001b[39m","poid":"20250920002","timestamp":"2025-09-20 00:14:38:1438"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m從會計科目推斷機構ID:\u001b[39m","organizationId":"68639ad3d2823bbee3a59e25","timestamp":"2025-09-20 00:14:38:1438"}
+{"date":"2025-09-19","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m從進貨單號解析日期:\u001b[39m","poid":"20250920002","timestamp":"2025-09-20 00:14:38:1438"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建嵌入式交易群組:\u001b[39m","organizationId":"68639ad3d2823bbee3a59e25","timestamp":"2025-09-20 00:14:38:1438"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m成功創建自動會計分錄:\u001b[39m","organizationId":"68639ad3d2823bbee3a59e25","poid":"20250920002","timestamp":"2025-09-20 00:14:38:1438"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m進貨單 20250920002 已關聯交易群組 68cd816eff3c2dbc4f7d9ef0\u001b[39m","timestamp":"2025-09-20 00:14:38:1438"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":0,"timestamp":"2025-09-20 00:14:41:1441","totalCount":1,"unpaidCount":1}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e0d13d49330732e939473a"},"supplierId":"67e0d13d49330732e939473a","timestamp":"2025-09-20 00:28:02:282"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-09-20 00:28:02:282"}
+{"0":"68823849758b4baa01f52605","1":"6881ede993a4e6567f1de484","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - selectedAccountIds:\u001b[39m","timestamp":"2025-09-20 00:28:26:2826"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - items:\u001b[39m","timestamp":"2025-09-20 00:28:26:2826"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - processedItems:\u001b[39m","timestamp":"2025-09-20 00:28:26:2826"}
+{"0":"68823849758b4baa01f52605","1":"6881ede993a4e6567f1de484","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單已儲存 - selectedAccountIds:\u001b[39m","timestamp":"2025-09-20 00:28:26:2826"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 67f3bbd2f362fef3033085de 創建新庫存記錄，進貨單號: 20250920003, 數量: 11, 總金額: 6402\u001b[39m","timestamp":"2025-09-20 00:28:26:2826"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m檢查進貨單自動會計分錄條件:\u001b[39m","poid":"20250920003","timestamp":"2025-09-20 00:28:26:2826"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單沒有機構ID，將嘗試從會計科目獲取\u001b[39m","timestamp":"2025-09-20 00:28:26:2826"}
+{"accountCount":2,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m滿足自動會計分錄條件:\u001b[39m","organizationId":"未設置","timestamp":"2025-09-20 00:28:26:2826","totalAmount":6402}
+{"asset":true,"expense":false,"level":"\u001b[37mdebug\u001b[39m","liability":true,"message":"\u001b[37m科目類型分析:\u001b[39m","timestamp":"2025-09-20 00:28:26:2826"}
+{"entryType":"asset-liability","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m自動推斷分錄類型:\u001b[39m","timestamp":"2025-09-20 00:28:26:2826"}
+{"entryType":"asset-liability","level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已更新進貨單分錄類型:\u001b[39m","poid":"20250920003","timestamp":"2025-09-20 00:28:26:2826"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m從會計科目推斷機構ID:\u001b[39m","organizationId":"68639ad3d2823bbee3a59e25","timestamp":"2025-09-20 00:28:26:2826"}
+{"date":"2025-09-19","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m從進貨單號解析日期:\u001b[39m","poid":"20250920003","timestamp":"2025-09-20 00:28:26:2826"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建嵌入式交易群組:\u001b[39m","organizationId":"68639ad3d2823bbee3a59e25","timestamp":"2025-09-20 00:28:26:2826"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m成功創建自動會計分錄:\u001b[39m","organizationId":"68639ad3d2823bbee3a59e25","poid":"20250920003","timestamp":"2025-09-20 00:28:26:2826"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m進貨單 20250920003 已關聯交易群組 68cd84aaff3c2dbc4f7db281\u001b[39m","timestamp":"2025-09-20 00:28:26:2826"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":0,"timestamp":"2025-09-20 00:28:29:2829","totalCount":1,"unpaidCount":1}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":2,"timestamp":"2025-09-20 07:52:44:5244","totalCount":50,"unpaidCount":48}

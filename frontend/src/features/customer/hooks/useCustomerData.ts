@@ -3,10 +3,16 @@ import {
   useGetCustomersQuery,
   useCreateCustomerMutation,
   useUpdateCustomerMutation,
-  useDeleteCustomerMutation
+  useDeleteCustomerMutation,
 } from '../api/customerApi';
+import type {
+  CustomerCreateRequest,
+  CustomerUpdateRequest,
+  CustomerResponseDto,
+} from '../api/dto';
 
-// 顯示用型別（維持原用法）
+type MembershipLevel = NonNullable<CustomerCreateRequest['membershipLevel']>;
+
 export interface CustomerDisplay {
   id: string;
   code: string;
@@ -18,29 +24,121 @@ export interface CustomerDisplay {
   birthdate: string | null;
   notes: string;
   level: string;
-  membershipLevel: string;
+  membershipLevel: MembershipLevel;
 }
 
 export type CustomerDisplayOmitFields = 'id' | 'code' | 'level';
+
+type CustomerFormInput = Omit<CustomerDisplay, CustomerDisplayOmitFields | 'membershipLevel'> & { membershipLevel: string };
 
 export interface UseCustomerDataReturn {
   customers: CustomerDisplay[];
   loading: boolean;
   error: string | null;
   fetchCustomers: () => Promise<void>;
-  addCustomer: (customerData: Omit<CustomerDisplay, CustomerDisplayOmitFields>) => Promise<void>;
-  updateCustomer: (id: string, customerData: Omit<CustomerDisplay, CustomerDisplayOmitFields>) => Promise<void>;
+  addCustomer: (customerData: CustomerFormInput) => Promise<void>;
+  updateCustomer: (id: string, customerData: CustomerFormInput) => Promise<void>;
   deleteCustomer: (id: string) => Promise<void>;
   mapMembershipLevel: (level: string) => string;
 }
 
+const MEMBERSHIP_LABELS: Record<MembershipLevel, string> = {
+  regular: '一般會員',
+  silver: '銀卡會員',
+  gold: '金卡會員',
+  platinum: '白金會員',
+};
+
+const isMembershipLevel = (value: string): value is MembershipLevel => Object.prototype.hasOwnProperty.call(MEMBERSHIP_LABELS, value);
+
 const mapMembershipLevel = (level: string): string => {
-  const levelMap: Record<string, string> = {
-    regular: '一般會員',
-    gold: '金卡會員',
-    platinum: '白金會員'
+  const normalized = (level || 'regular').toLowerCase();
+  if (isMembershipLevel(normalized)) {
+    return MEMBERSHIP_LABELS[normalized];
+  }
+  return MEMBERSHIP_LABELS.regular;
+};
+
+const normalizeOptionalString = (value: string | null | undefined): string | undefined => {
+  if (value === null || value === undefined) {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+};
+
+const toCustomerRequest = (customerData: CustomerFormInput): CustomerCreateRequest => {
+  const membershipLevelCandidate = customerData.membershipLevel.trim().toLowerCase();
+  const membershipLevel = isMembershipLevel(membershipLevelCandidate)
+    ? membershipLevelCandidate
+    : 'regular';
+  const payload: CustomerCreateRequest = {
+    name: customerData.name.trim(),
+    phone: customerData.phone.trim(),
+    email: normalizeOptionalString(customerData.email),
+    address: normalizeOptionalString(customerData.address),
+    idCardNumber: normalizeOptionalString(customerData.idCardNumber),
+    birthdate: normalizeOptionalString(customerData.birthdate),
+    notes: normalizeOptionalString(customerData.notes),
+    membershipLevel,
   };
-  return levelMap[level] || '一般會員';
+  return payload;
+};
+
+const toCustomerDisplay = (customer: CustomerResponseDto): CustomerDisplay => {
+  const membershipLevelRaw = customer.membershipLevel ?? 'regular';
+  const membershipLevelCandidate = membershipLevelRaw.toLowerCase();
+  const membershipLevel = isMembershipLevel(membershipLevelCandidate) ? membershipLevelCandidate : 'regular';
+  const fallbackId = (customer as CustomerResponseDto & { id?: unknown }).id;
+  const id = typeof fallbackId === 'string' ? fallbackId : customer._id;
+  return {
+    id,
+    code: customer.code ?? '',
+    name: customer.name,
+    phone: customer.phone ?? '',
+    email: customer.email ?? '',
+    address: customer.address ?? '',
+    idCardNumber: customer.idCardNumber ?? '',
+    birthdate: customer.birthdate ? String(customer.birthdate) : null,
+    notes: customer.notes ?? '',
+    level: mapMembershipLevel(membershipLevel),
+    membershipLevel,
+  };
+};
+
+const extractErrorMessage = (error: unknown): string | null => {
+  if (!error) {
+    return null;
+  }
+  if (typeof error === 'string') {
+    return error;
+  }
+  if (typeof error === 'object') {
+    const errorObject = error as { message?: unknown; data?: unknown };
+    if (typeof errorObject.message === 'string' && errorObject.message.length > 0) {
+      return errorObject.message;
+    }
+    if (typeof errorObject.data === 'string' && errorObject.data.length > 0) {
+      return errorObject.data;
+    }
+    if (typeof errorObject.data === 'object' && errorObject.data !== null) {
+      const dataRecord = errorObject.data as Record<string, unknown>;
+      const messageValue = dataRecord['message'];
+      if (typeof messageValue === 'string' && messageValue.length > 0) {
+        return messageValue;
+      }
+      const errorValue = dataRecord['error'];
+      if (typeof errorValue === 'string' && errorValue.length > 0) {
+        return errorValue;
+      }
+    }
+  }
+  return null;
+};
+
+const buildActionErrorMessage = (error: unknown, action: string): string => {
+  const detail = extractErrorMessage(error);
+  return detail ? `${action}: ${detail}` : action;
 };
 
 const useCustomerData = (): UseCustomerDataReturn => {
@@ -48,85 +146,62 @@ const useCustomerData = (): UseCustomerDataReturn => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const { data, isFetching, error: listError, refetch } = useGetCustomersQuery({});
-  const fetchCustomers = useCallback(async (): Promise<void> => { await refetch(); }, [refetch]);
+  const { data: customersResponse, isFetching, error: queryError, refetch } = useGetCustomersQuery(undefined);
+  const fetchCustomers = useCallback(async (): Promise<void> => {
+    await refetch();
+  }, [refetch]);
 
-  useEffect(() => { fetchCustomers(); }, [fetchCustomers]);
+  useEffect(() => {
+    fetchCustomers();
+  }, [fetchCustomers]);
+
   useEffect(() => {
     setLoading(isFetching);
-    if (listError) {
-      const anyErr: any = listError;
-      const message = typeof anyErr?.data === 'string' ? anyErr.data : anyErr?.data?.message || '載入會員資料失敗';
-      setError(message);
+    if (queryError) {
+      setError(buildActionErrorMessage(queryError, 'Load customers failed'));
     } else {
       setError(null);
     }
-    if (Array.isArray(data)) {
-      const formatted: CustomerDisplay[] = data.map((c: any) => ({
-        id: c._id || c.id,
-        code: c.code ?? '',
-        name: c.name,
-        phone: c.phone ?? '',
-        email: c.email ?? '',
-        address: c.address ?? '',
-        idCardNumber: c.idCardNumber ?? '',
-        birthdate: c.birthdate ? String(c.birthdate) : null,
-        notes: c.notes ?? '',
-        level: mapMembershipLevel(c.membershipLevel ?? 'regular'),
-        membershipLevel: c.membershipLevel ?? 'regular'
-      }));
-      setCustomers(formatted);
+    if (customersResponse) {
+      setCustomers(customersResponse.map(toCustomerDisplay));
     }
-  }, [data, isFetching, listError]);
+  }, [customersResponse, isFetching, queryError]);
 
   const [createCustomer] = useCreateCustomerMutation();
   const [updateCustomerMut] = useUpdateCustomerMutation();
   const [deleteCustomerMut] = useDeleteCustomerMutation();
 
-  const addCustomer = useCallback(async (customerData: Omit<CustomerDisplay, 'id' | 'code' | 'level'>): Promise<void> => {
+  const addCustomer = useCallback(async (customerData: CustomerFormInput): Promise<void> => {
     try {
       setLoading(true);
       setError(null);
-      const payload = {
-        name: customerData.name,
-        phone: customerData.phone,
-        email: customerData.email,
-        address: customerData.address,
-        notes: customerData.notes,
-        idCardNumber: customerData.idCardNumber,
-        birthdate: customerData.birthdate,
-        membershipLevel: customerData.membershipLevel
-      };
-      await createCustomer(payload as any).unwrap();
+      const payload = toCustomerRequest(customerData);
+      await createCustomer(payload).unwrap();
       await fetchCustomers();
-    } catch (err: any) {
-      const msg = `添加會員失敗: ${err?.data?.message ?? err.message}`;
-      setError(msg);
-      throw new Error(msg);
-    } finally { setLoading(false); }
+    } catch (caughtError) {
+      const message = buildActionErrorMessage(caughtError, 'Create customer failed');
+      setError(message);
+      throw new Error(message);
+    } finally {
+      setLoading(false);
+    }
   }, [createCustomer, fetchCustomers]);
 
-  const updateCustomer = useCallback(async (id: string, customerData: Omit<CustomerDisplay, 'id' | 'code' | 'level'>): Promise<void> => {
+  const updateCustomer = useCallback(async (id: string, customerData: CustomerFormInput): Promise<void> => {
     try {
       setLoading(true);
       setError(null);
-      const payload = {
-        name: customerData.name,
-        phone: customerData.phone,
-        email: customerData.email,
-        address: customerData.address,
-        notes: customerData.notes,
-        idCardNumber: customerData.idCardNumber,
-        birthdate: customerData.birthdate,
-        membershipLevel: customerData.membershipLevel
-      };
-      await updateCustomerMut({ id, data: payload as any }).unwrap();
+      const payload = toCustomerRequest(customerData);
+      const updatePayload: CustomerUpdateRequest = { ...payload };
+      await updateCustomerMut({ id, data: updatePayload }).unwrap();
       await fetchCustomers();
-    } catch (err: any) {
-      const msg = `更新會員失敗: ${err?.data?.message ?? err.message}`;
-      setError(msg);
-      throw new Error(msg);
-    } finally { setLoading(false); }
+    } catch (caughtError) {
+      const message = buildActionErrorMessage(caughtError, 'Update customer failed');
+      setError(message);
+      throw new Error(message);
+    } finally {
+      setLoading(false);
+    }
   }, [updateCustomerMut, fetchCustomers]);
 
   const deleteCustomer = useCallback(async (id: string): Promise<void> => {
@@ -135,11 +210,13 @@ const useCustomerData = (): UseCustomerDataReturn => {
       setError(null);
       await deleteCustomerMut(id).unwrap();
       await fetchCustomers();
-    } catch (err: any) {
-      const msg = `刪除會員失敗: ${err?.data?.message ?? err.message}`;
-      setError(msg);
-      throw new Error(msg);
-    } finally { setLoading(false); }
+    } catch (caughtError) {
+      const message = buildActionErrorMessage(caughtError, 'Delete customer failed');
+      setError(message);
+      throw new Error(message);
+    } finally {
+      setLoading(false);
+    }
   }, [deleteCustomerMut, fetchCustomers]);
 
   return {
@@ -150,9 +227,8 @@ const useCustomerData = (): UseCustomerDataReturn => {
     addCustomer,
     updateCustomer,
     deleteCustomer,
-    mapMembershipLevel
+    mapMembershipLevel,
   };
 };
 
 export default useCustomerData;
-

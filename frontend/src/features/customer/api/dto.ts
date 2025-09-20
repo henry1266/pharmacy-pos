@@ -1,4 +1,5 @@
 import { Customer } from '@pharmacy-pos/shared/types/entities';
+import type { z } from 'zod';
 
 export interface ApiResponse<T> {
   success: boolean;
@@ -8,27 +9,25 @@ export interface ApiResponse<T> {
 
 export interface PaginatedResponse<T> {
   data: T[];
-  pagination: { page: number; limit: number; total: number; totalPages: number };
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
-export interface CustomerRequestDto {
-  name: string;
-  phone?: string;
-  email?: string;
-  address?: string;
-  notes?: string;
-  idCardNumber?: string;
-  birthdate?: string | null;
-  membershipLevel?: string;
-}
+export type CustomerCreateRequest = z.infer<
+  typeof import('@pharmacy-pos/shared/dist/schemas/zod/customer').createCustomerSchema
+>;
+
+export type CustomerUpdateRequest = z.infer<
+  typeof import('@pharmacy-pos/shared/dist/schemas/zod/customer').updateCustomerSchema
+>;
+
+export type CustomerQueryParams = z.infer<
+  typeof import('@pharmacy-pos/shared/dist/schemas/zod/customer').customerSearchSchema
+>;
 
 export type CustomerResponseDto = Customer;
-
-export interface CustomerQueryParams {
-  page?: number;
-  limit?: number;
-  search?: string;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-}
 

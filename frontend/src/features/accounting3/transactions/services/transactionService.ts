@@ -4,16 +4,21 @@
  */
 
 import axios from 'axios';
-import { 
-  Transaction, 
-  TransactionsResponse, 
-  CreateTransactionRequest, 
-  UpdateTransactionRequest,
-  TransactionFilterOptions,
-  TransactionStatistics,
-  TransactionGroup,
-  FundingFlow
-} from '../../features/transactions/types';
+import {
+  TransactionGroup3 as Transaction,
+  TransactionGroup3ListResponse as TransactionsResponse,
+  TransactionGroup3FormData as CreateTransactionRequest,
+  TransactionGroup3FormData,
+  TransactionGroup3Filter as TransactionFilterOptions,
+  ApiResponse3 as TransactionStatistics,
+  TransactionGroup3 as TransactionGroup,
+  FundingFlow3Data as FundingFlow
+} from '@pharmacy-pos/shared/types/accounting3';
+
+// 擴展 TransactionGroup3FormData 類型，添加 id 屬性
+interface UpdateTransactionRequest extends TransactionGroup3FormData {
+  _id: string;
+}
 
 const API_BASE_URL = '/api/accounting3';
 
@@ -56,7 +61,7 @@ export const createTransaction = async (data: CreateTransactionRequest): Promise
  * 更新交易
  */
 export const updateTransaction = async (data: UpdateTransactionRequest): Promise<Transaction> => {
-  const response = await axios.put(`${API_BASE_URL}/transactions/${data.id}`, data);
+  const response = await axios.put(`${API_BASE_URL}/transactions/${data._id}`, data);
   return response.data;
 };
 
