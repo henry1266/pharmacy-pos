@@ -1,4 +1,4 @@
-# AGENTS — 智能協作與治理指南（pharmacy-pos）
+# AGENTS — 智能協作與治理指南
 
 > 目的：為本專案定義一套可重複、可審計、可擴充的「AI 代理（Agents）」協作規範，確保在 **Monorepo（frontend / backend / shared / openapi）** 架構下，所有由人或 AI 產出的程式碼、文件與決策均能遵循 **單一事實來源（SSOT）**、安全與合規要求，並提升交付品質與速度。
 

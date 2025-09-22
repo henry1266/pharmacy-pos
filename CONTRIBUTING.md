@@ -7,15 +7,19 @@
 - **一律使用 UTF-8（無 BOM）** 儲存 Markdown、程式碼與設定檔，避免中文出現亂碼。
 - 建議在編輯器中將預設編碼設定為 UTF-8，並關閉自動加上 BOM 的選項。
 - Windows 環境若需檢視中文字元，請使用 `Get-Content -Encoding UTF8` 或先執行：
+
   ```powershell
   chcp 65001
   $OutputEncoding = [Console]::OutputEncoding = [Text.Encoding]::UTF8
   ```
+
 - Git 設定建議：
+
   ```bash
   git config core.autocrlf false
   git config core.eol lf
   ```
+
   保持 LF 換行可減少跨平台差異。
 
 ## 2. Markdown 文件
@@ -29,7 +33,7 @@
 1. 更新 `shared/schemas/zod` 內的 Zod schema。
 2. 執行 `pnpm --filter shared build`。
 3. 執行 `pnpm --filter shared generate:openapi` 重新產生 `openapi/openapi.json`。
-4. 相關模組（如 Customers、Sales）需同步更新 README 或說明檔，並確認中文顯示正常。
+4. 相關模組需同步更新 README 或說明檔，並確認中文顯示正常。
 
 ## 4. 程式碼與測試
 
