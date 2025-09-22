@@ -1,6 +1,12 @@
-# pharmacy-pos — Monorepo
+# pharmacy-pos
 
-> 現代化藥局 POS 生態系：**React 18 + TypeScript**（MUI v5, RTK/RTK Query, React Router v6）前端；**Node.js 20 + Express 5** 後端；以 **Zod Schemas + OpenAPI** 作為單一事實來源（SSOT），並使用 **pnpm workspace** 維運。
+現代化藥局 POS 生態系：Monorepo
+
+前端 **React 18 + TypeScript**（MUI v5, RTK/RTK Query, React Router v6）
+
+後端 **Node.js 20 + Express 5**
+
+以 **Zod Schemas + OpenAPI** 作為單一事實來源（SSOT），並使用 **pnpm workspace** 維運
 
 [![Node.js](https://img.shields.io/badge/node-20.x-339933?logo=node.js\&logoColor=white)](https://nodejs.org/)
 [![pnpm](https://img.shields.io/badge/pnpm-9%2B-F69220?logo=pnpm\&logoColor=white)](https://pnpm.io/)
