@@ -227,7 +227,7 @@ sequenceDiagram
   FE->>T: 表單驗證/端對端測試
 ```
 
-**原則**
+### 原則
 
 * 不得在路由/控制器中臨時自創驗證結構；應重用 `shared/`。
 * OpenAPI 變更需伴隨 **相容性（SemVer）** 說明與 **測試樣本（valid/invalid）**。
