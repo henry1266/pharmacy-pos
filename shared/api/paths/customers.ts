@@ -94,9 +94,9 @@ const CustomersPaths = {
               example: {
                 summary: "Quick create payload",
                 value: {
-                  name: "陳明枝",
-                  birthdate: "19450529",
-                  idCardNumber: "H201627336",
+                  name: "鄭暄瀚",
+                  birthdate: "1995/06/19",
+                  idCardNumber: "Hxxxxxxxxx",
                   notes: "測試備註"
                 }
               }
@@ -107,9 +107,9 @@ const CustomersPaths = {
               type: "object",
               required: ["name", "birthdate", "idCardNumber"],
               properties: {
-                name: { type: "string", description: "客戶姓名", example: "陳明枝" },
-                birthdate: { type: "string", description: "生日 (YYYYMMDD)", example: "19450529" },
-                idCardNumber: { type: "string", description: "身分證字號", example: "H201627336" },
+                name: { type: "string", description: "客戶姓名", example: "鄭暄瀚" },
+                birthdate: { type: "string", description: "生日 (YYYY/MM/DD)", example: "1995/06/19" },
+                idCardNumber: { type: "string", description: "身分證字號", example: "Hxxxxxxxxx" },
                 notes: { type: "string", description: "備註", example: "測試備註" }
               }
             }

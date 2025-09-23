@@ -492,8 +492,8 @@
                   "summary": "Quick create payload",
                   "value": {
                     "name": "鄭暄瀚",
-                    "birthdate": "1911/01/01",
-                    "idCardNumber": "HXXXXXXXX",
+                    "birthdate": "1995/06/19",
+                    "idCardNumber": "Hxxxxxxxxx",
                     "notes": "測試備註"
                   }
                 }
@@ -516,12 +516,12 @@
                   "birthdate": {
                     "type": "string",
                     "description": "生日 (YYYY/MM/DD)",
-                    "example": "1911/01/01"
+                    "example": "1995/06/19"
                   },
                   "idCardNumber": {
                     "type": "string",
                     "description": "身分證字號",
-                    "example": "HXXXXXXXX"
+                    "example": "Hxxxxxxxxx"
                   },
                   "notes": {
                     "type": "string",
