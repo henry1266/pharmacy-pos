@@ -146,7 +146,7 @@ const ProductDetailPage: React.FC = () => {
   
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
         <CircularProgress />
       </Box>
     );
@@ -194,7 +194,7 @@ const ProductDetailPage: React.FC = () => {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        mb: 3,
+        mb: 2,
         backgroundColor: 'background.paper',
         p: 2,
         borderRadius: 1,
@@ -223,9 +223,9 @@ const ProductDetailPage: React.FC = () => {
         </Box>
       </Box>
       
-      <Grid container spacing={3}>
+      <Grid container spacing={2}>
         {/* 左側：產品詳情卡片 */}
-        <Grid item xs={12} md={5} lg={4}>
+        <Grid item xs={12} md={5} lg={3}>
           <ProductDetailCard
             product={product}
             suppliers={suppliers}
@@ -236,13 +236,13 @@ const ProductDetailPage: React.FC = () => {
         </Grid>
 
         {/* 右側：FIFO毛利計算 */}
-        <Grid item xs={12} md={7} lg={8}>
+        <Grid item xs={12} md={7} lg={9}>
           <Card sx={{
             boxShadow: 2,
             borderRadius: 2,
             backgroundColor: 'background.paper'
           }}>
-            <CardContent sx={{ p: 2 }}>
+            <CardContent sx={{ p: 1 }}>
               <FIFOProfitCalculator productId={product.id} />
             </CardContent>
           </Card>

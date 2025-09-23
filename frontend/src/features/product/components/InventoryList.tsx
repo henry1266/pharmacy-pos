@@ -591,7 +591,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName, p
                   fontWeight="bold"
                   sx={{ color: profitLoss >= 0 ? '#00C853' : '#FF1744' }}
                 >
-                  ${profitLoss.toFixed(2)}
+                  ${profitLoss.toFixed(0)}
                 </Typography>
               </CardContent>
             </Card>

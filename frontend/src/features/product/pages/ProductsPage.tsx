@@ -184,7 +184,7 @@ const ProductsPage: React.FC = () => {
 
   return (
     <Box sx={{
-      p: { xs: 1, sm: 1, md: 1.5 },
+      p: { xs: 1, sm: 1, md: 1 },
       display: 'flex',
       flexDirection: 'column',
       overflow: 'visible',
@@ -270,7 +270,7 @@ const ProductsPage: React.FC = () => {
       
       <Grid container spacing={2}>
         {/* 左側表格區域 */}
-        <Grid item xs={12} md={8}>
+        <Grid item xs={12} md={8.5}>
           <Paper sx={{ minHeight: '500px', width: '100%' }}>
             <DataTable
               rows={displayProducts}
@@ -290,7 +290,7 @@ const ProductsPage: React.FC = () => {
         </Grid>
         
         {/* 右側詳情區域 */}
-        <Grid item xs={12} md={4} sx={{
+        <Grid item xs={12} md={3.5} sx={{
           position: 'sticky',
           top: 80,
           height: 'fit-content',
@@ -305,7 +305,7 @@ const ProductsPage: React.FC = () => {
               handleDeleteProduct={handleDeleteProduct}
             />
           ) : (
-            <Paper sx={{ p: 3, textAlign: 'center' }}>
+            <Paper sx={{ p: 2, textAlign: 'center' }}>
               <Typography variant="body1">
                 請選擇一個產品查看詳情
               </Typography>

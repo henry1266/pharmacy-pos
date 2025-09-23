@@ -89,8 +89,8 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
 
   return (
     <Card sx={{
-      boxShadow: 2,
-      borderRadius: 2,
+      boxShadow: 1,
+      borderRadius: 1,
       backgroundColor: 'background.paper'
     }}>
       <CardHeader
@@ -100,7 +100,7 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
               {product.name}
             </Typography>
             {product.subtitle && (
-              <Typography variant="subtitle2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+              <Typography variant="subtitle2" sx={{ color: 'text.secondary' }}>
                 {product.subtitle}
               </Typography>
             )}
@@ -124,7 +124,7 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
       />
       <CardContent>
         {/* 庫存清單區塊 */}
-         <Paper sx={{ p: 1.5, mb: 1.5, backgroundColor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+         <Paper sx={{ p: 1, mb: 1.5, backgroundColor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
           <InventoryList
             productId={product.id}
             productName={product.name}
@@ -133,7 +133,7 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
           />
         </Paper>
         {/* 基本資訊區塊 */}    
-         <Paper sx={{ p: 1.5, mb: 1.5, backgroundColor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+         <Paper sx={{ p: 1, mb: 1.5, backgroundColor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
               基本資訊
@@ -166,7 +166,7 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
         </Paper>
 
         {/* 價格與包裝資訊區塊 */}
-        <Paper sx={{ p: 1.5, mb: 1.5, backgroundColor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+        <Paper sx={{ p: 1, mb: 1.5, backgroundColor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
               價格資訊
@@ -176,13 +176,13 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2, flex: 1 }}>
               <Typography variant="body2">
-                <strong>進貨價:</strong> <span style={{ color: '#1976d2' }}>NT$ {parseFloat(product.purchasePrice?.toString() ?? '0').toFixed(2)}</span>
+                <strong>進貨價:</strong> <span style={{ color: '#1976d2' }}>NT$ {parseFloat(product.purchasePrice?.toString() ?? '0').toFixed(1)}</span>
               </Typography>
               <Typography variant="body2">
-                <strong>售價:</strong> <span style={{ color: '#2e7d32' }}>NT$ {parseFloat(product.sellingPrice?.toString() ?? '0').toFixed(2)}</span>
+                <strong>售價:</strong> <span style={{ color: '#2e7d32' }}>NT$ {parseFloat(product.sellingPrice?.toString() ?? '0').toFixed(1)}</span>
               </Typography>
               <Typography variant="body2">
-                <strong>健保價:</strong> <span style={{ color: '#ed6c02' }}>NT$ {parseFloat(product.healthInsurancePrice?.toString() ?? '0').toFixed(2)}</span>
+                <strong>健保價:</strong> <span style={{ color: '#ed6c02' }}>NT$ {parseFloat(product.healthInsurancePrice?.toString() ?? '0').toFixed(1)}</span>
               </Typography>
               <Typography variant="body2">
                 <strong>不扣庫存:</strong> <span style={{ color: product.excludeFromStock ? '#ff9800' : '#757575' }}>
@@ -214,7 +214,7 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
           
           {/* 當前庫存的包裝顯示 */}
           {product.packageUnits && product.packageUnits.length > 0 && product.stock !== undefined && product.stock > 0 && (
-            <Box sx={{ mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: 'divider' }}>
+            <Box sx={{ mt: 1.5, pt: 1, borderTop: '1px solid', borderColor: 'divider' }}>
               <Typography variant="body2" sx={{ mb: 1, fontWeight: 'medium' }}>
                 當前庫存包裝顯示:
               </Typography>
@@ -247,8 +247,6 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
             </Box>
           </Box>
         </Paper>
-
-
       </CardContent>
     </Card>
   );

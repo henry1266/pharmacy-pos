@@ -127,7 +127,7 @@ const SummaryItem: React.FC<SummaryItemProps> = ({ label, value, isMonetary = tr
         }
       }}
     >
-      <CardContent sx={{ p: 2 }}>
+      <CardContent sx={{ p: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
           {icon}
           <Typography variant="subtitle1" color="text.secondary" fontWeight="medium" sx={{ ml: icon ? 1 : 0 }}>
@@ -139,7 +139,7 @@ const SummaryItem: React.FC<SummaryItemProps> = ({ label, value, isMonetary = tr
           fontWeight="bold"
           color={textColor}
         >
-          {isMonetary ? `$${parseFloat(value.toString()).toFixed(2)}` : value}
+          {isMonetary ? `$${parseFloat(value.toString()).toFixed(0)}` : value}
         </Typography>
       </CardContent>
     </Card>
@@ -536,9 +536,7 @@ const FIFOProfitCalculator: React.FC<FIFOProfitCalculatorProps> = ({ productId }
   // 條件渲染處理
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
         <CircularProgress size={24} />
-      </Box>
     );
   }
 
@@ -579,12 +577,12 @@ const FIFOProfitCalculator: React.FC<FIFOProfitCalculatorProps> = ({ productId }
   const summary = fifoData.summary;
   
   return (
-    <Box sx={{ mt: 1, backgroundColor: 'action.hover', p: 1.5, borderRadius: 1 }}>
+    <Box sx={{ mt: 1, borderRadius: 1 }}>
       <Typography variant="h6" sx={{ mb: 1 }}>
         FIFO毛利計算
       </Typography>
 
-      <Box sx={{ mb: 3 }}>
+      <Box sx={{ mb: 2 }}>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={3}>
             <SummaryItem
