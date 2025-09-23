@@ -27,15 +27,15 @@ import useSalesListData from '../hooks/useSalesListData';
 import usePackageData from '@/hooks/usePackageData';
 
 // Import sub-components
-import CustomProductsDialog from '../components/CustomProductsDialog';
+import CustomProductsDialog from '../components/new/CustomProductsDialog';
 import DailySalesPanel from '@/components/common/DailySalesPanel';
-import CheckoutSuccessEffect from '../components/CheckoutSuccessEffect';
+import CheckoutSuccessEffect from '../components/new/CheckoutSuccessEffect';
 
 // Import module components
-import ShortcutButtonSection from '../components/ShortcutButtonSection';
-import MobileFabButton from '../components/MobileFabButton';
-import MobileSalesDrawer from '../components/MobileSalesDrawer';
-import SalesInputPanel from '../components/SalesInputPanel';
+import ShortcutButtonSection from '../components/new/ShortcutButtonSection';
+import MobileFabButton from '../components/new/MobileFabButton';
+import MobileSalesDrawer from '../components/new/MobileSalesDrawer';
+import SalesInputPanel from '../components/new/SalesInputPanel';
 
 // Import types and utils
 import { 

@@ -7,7 +7,7 @@ import React, { FC } from 'react';
 import { Box, Typography } from '@mui/material';
 import ShortcutButtonManager from './ShortcutButtonManager';
 import { Product } from '@pharmacy-pos/shared/types/entities';
-import { UserShortcut } from '../types';
+import { UserShortcut } from '../../types';
 
 interface ShortcutButtonSectionProps {
   /** 所有可用的產品列表 */
