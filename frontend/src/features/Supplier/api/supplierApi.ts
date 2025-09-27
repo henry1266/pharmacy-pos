@@ -3,7 +3,7 @@
  */
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { supplierApiClient } from './client';
-import type { SupplierRequestDto, SupplierResponseDto, SupplierQueryParams } from './dto';
+import type { SupplierCreateRequest, SupplierUpdateRequest, SupplierResponseDto, SupplierQueryParams } from './dto';
 
 export const supplierApi = createApi({
   reducerPath: 'supplierApi',
@@ -44,7 +44,7 @@ export const supplierApi = createApi({
     }),
 
     // 建立
-    createSupplier: builder.mutation<SupplierResponseDto, SupplierRequestDto>({
+    createSupplier: builder.mutation<SupplierResponseDto, SupplierCreateRequest>({
       queryFn: async (body) => {
         try {
           const response = await supplierApiClient.post('/suppliers', body);
@@ -58,7 +58,7 @@ export const supplierApi = createApi({
     }),
 
     // 更新
-    updateSupplier: builder.mutation<SupplierResponseDto, { id: string; data: SupplierRequestDto }>({
+    updateSupplier: builder.mutation<SupplierResponseDto, { id: string; data: SupplierUpdateRequest }>({
       queryFn: async ({ id, data }) => {
         try {
           const response = await supplierApiClient.put(`/suppliers/${id}`, data);
@@ -101,4 +101,5 @@ export const {
 } = supplierApi;
 
 export default supplierApi;
+
 

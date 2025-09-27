@@ -1,31 +1,18 @@
 import { AlertProps } from '@mui/material';
+import type { SupplierResponseDto, SupplierCreateRequest } from '../api/dto';
 
-// 定義供應商資料介面
-export interface SupplierData {
+type SupplierResponseOptional = {
+  [K in keyof SupplierResponseDto]?: SupplierResponseDto[K] | undefined;
+};
+
+export type SupplierData = SupplierResponseOptional & {
   id: string;
-  _id?: string;
-  code: string;
-  shortCode?: string;
-  name: string;
-  contactPerson?: string;
-  phone?: string;
-  taxId?: string;
-  paymentTerms?: string;
-  notes?: string;
-  [key: string]: any;
-}
+  [key: string]: unknown;
+};
 
-// 定義供應商表單狀態介面
-export interface SupplierFormState {
+export interface SupplierFormState extends SupplierCreateRequest {
   id: string | null;
-  code: string;
-  shortCode: string;
-  name: string;
-  contactPerson: string;
-  phone: string;
-  taxId: string;
-  paymentTerms: string;
-  notes: string;
+  [key: string]: unknown;
 }
 
 // 定義 Snackbar 狀態介面

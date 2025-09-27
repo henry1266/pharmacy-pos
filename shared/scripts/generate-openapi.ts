@@ -8,7 +8,7 @@ import path from 'path';
 import { z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 
-type SupportedSchemaModule = 'sale' | 'customer';
+type SupportedSchemaModule = 'sale' | 'customer' | 'supplier';
 
 function resolveZodModule(name: SupportedSchemaModule): any {
   const fileName = `${name}.js`;
@@ -37,6 +37,7 @@ function toJsonSchema(schema: z.ZodTypeAny, name: string) {
 async function main() {
   const saleMod = resolveZodModule('sale');
   const customerMod = resolveZodModule('customer');
+  const supplierMod = resolveZodModule('supplier');
 
   const saleItemSchema = saleMod.saleItemSchema as z.ZodTypeAny | undefined;
   const createSaleSchema = saleMod.createSaleSchema as z.ZodTypeAny | undefined;
@@ -49,11 +50,20 @@ async function main() {
   const customerSearchSchema = customerMod.customerSearchSchema as z.ZodTypeAny | undefined;
   const quickCreateCustomerSchema = customerMod.quickCreateCustomerSchema as z.ZodTypeAny | undefined;
 
+  const supplierSchema = supplierMod.supplierSchema as z.ZodTypeAny | undefined;
+  const createSupplierSchema = supplierMod.createSupplierSchema as z.ZodTypeAny | undefined;
+  const updateSupplierSchema = supplierMod.updateSupplierSchema as z.ZodTypeAny | undefined;
+  const supplierSearchSchema = supplierMod.supplierSearchSchema as z.ZodTypeAny | undefined;
+
   if (!saleItemSchema || !createSaleSchema || !updateSaleSchema || !saleSearchSchema) {
     throw new Error('Missing sale schemas from shared module.');
   }
   if (!customerSchema || !createCustomerSchema || !updateCustomerSchema || !customerSearchSchema || !quickCreateCustomerSchema) {
     throw new Error('Missing customer schemas from shared module.');
+  }
+
+  if (!supplierSchema || !createSupplierSchema || !updateSupplierSchema || !supplierSearchSchema) {
+    throw new Error('Missing supplier schemas from shared module.');
   }
 
   const document = {
@@ -66,7 +76,8 @@ async function main() {
     servers: [{ url: '/api' }],
     tags: [
       { name: 'Sales', description: 'Sales endpoints' },
-      { name: 'Customers', description: 'Customer management endpoints' }
+      { name: 'Customers', description: 'Customer management endpoints' },
+      { name: 'Suppliers', description: 'Supplier management endpoints' }
     ],
     paths: {},
     components: {
@@ -113,7 +124,11 @@ async function main() {
         CustomerCreateRequest: toJsonSchema(createCustomerSchema, 'CustomerCreateRequest'),
         CustomerUpdateRequest: toJsonSchema(updateCustomerSchema, 'CustomerUpdateRequest'),
         CustomerSearchQuery: toJsonSchema(customerSearchSchema, 'CustomerSearchQuery'),
-        CustomerQuickCreateRequest: toJsonSchema(quickCreateCustomerSchema, 'CustomerQuickCreateRequest')
+        CustomerQuickCreateRequest: toJsonSchema(quickCreateCustomerSchema, 'CustomerQuickCreateRequest'),
+        Supplier: toJsonSchema(supplierSchema!, 'Supplier'),
+        SupplierCreateRequest: toJsonSchema(createSupplierSchema!, 'SupplierCreateRequest'),
+        SupplierUpdateRequest: toJsonSchema(updateSupplierSchema!, 'SupplierUpdateRequest'),
+        SupplierSearchQuery: toJsonSchema(supplierSearchSchema!, 'SupplierSearchQuery')
       }
     }
   } as const;
@@ -121,7 +136,7 @@ async function main() {
   const docAny = document as any;
 
   // Merge static path descriptors (LLM-friendly)
-  for (const descriptor of ['sales', 'customers']) {
+  for (const descriptor of ['sales', 'customers', 'suppliers']) {
     try {
       const modPath = path.resolve(__dirname, `../api/paths/${descriptor}`);
       // eslint-disable-next-line @typescript-eslint/no-var-requires

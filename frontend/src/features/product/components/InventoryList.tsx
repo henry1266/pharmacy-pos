@@ -519,7 +519,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName, p
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                   <InventoryIcon color="primary" fontSize="small" />
                   <Typography variant="body2" color="text.secondary" fontWeight="medium" sx={{ ml: 1 }}>
-                    庫存數量
+                    庫存
                   </Typography>
                 </Box>
                 

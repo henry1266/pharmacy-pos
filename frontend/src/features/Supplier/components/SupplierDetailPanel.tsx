@@ -51,7 +51,6 @@ const SupplierDetailPanel: React.FC<SupplierDetailPanelProps> = ({
     return (
       <Card
         elevation={2}
-        className="supplier-card"
         sx={{
           borderRadius: '0.5rem',
           height: '100%',
@@ -114,6 +113,8 @@ const SupplierDetailPanel: React.FC<SupplierDetailPanelProps> = ({
     );
   }
 
+  const supplierId = (selectedSupplier._id as string | undefined) ?? selectedSupplier.id;
+
   return (
     <Card elevation={2} sx={{ borderRadius: '0.5rem', height: '100%' }}>
       <CardHeader
@@ -124,7 +125,7 @@ const SupplierDetailPanel: React.FC<SupplierDetailPanelProps> = ({
         }
         title={
           <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
-            {selectedSupplier.name}
+            {selectedSupplier.name ?? 'Unnamed supplier'}
           </Typography>
         }
         subheader={`簡碼: ${selectedSupplier.shortCode ?? '無'}`}
@@ -206,8 +207,8 @@ const SupplierDetailPanel: React.FC<SupplierDetailPanelProps> = ({
 
         {/* 會計科目配對顯示 */}
         <SupplierAccountMappingDisplay
-          supplierId={selectedSupplier._id || selectedSupplier.id}
-          supplierName={selectedSupplier.name}
+          supplierId={supplierId}
+          supplierName={selectedSupplier.name ?? 'Unnamed supplier'}
           onEditClick={() => onEdit(selectedSupplier)}
         />
 

@@ -1,7 +1,5 @@
-/**
- * Supplier API DTO
- */
 import { Supplier } from '@pharmacy-pos/shared/types/entities';
+import type { z } from 'zod';
 
 export interface ApiResponse<T> {
   success: boolean;
@@ -19,26 +17,16 @@ export interface PaginatedResponse<T> {
   };
 }
 
-export interface SupplierRequestDto {
-  code?: string;
-  shortCode?: string;
-  name: string;
-  contactPerson?: string;
-  phone?: string;
-  email?: string;
-  address?: string;
-  taxId?: string;
-  paymentTerms?: string;
-  notes?: string;
-}
+export type SupplierCreateRequest = z.infer<
+  typeof import('@pharmacy-pos/shared/dist/schemas/zod/supplier').createSupplierSchema
+>;
+
+export type SupplierUpdateRequest = z.infer<
+  typeof import('@pharmacy-pos/shared/dist/schemas/zod/supplier').updateSupplierSchema
+>;
+
+export type SupplierQueryParams = z.infer<
+  typeof import('@pharmacy-pos/shared/dist/schemas/zod/supplier').supplierSearchSchema
+>;
 
 export type SupplierResponseDto = Supplier;
-
-export interface SupplierQueryParams {
-  page?: number;
-  limit?: number;
-  search?: string;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-}
-
