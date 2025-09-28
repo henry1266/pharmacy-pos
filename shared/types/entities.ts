@@ -147,6 +147,7 @@ export interface Supplier {
   taxId?: string;
   paymentTerms?: string;
   notes?: string;
+  isActive?: boolean;
   date?: string | Date;
   createdAt: string | Date;
   updatedAt: string | Date;
