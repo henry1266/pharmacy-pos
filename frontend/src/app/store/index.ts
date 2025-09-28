@@ -27,6 +27,7 @@ import { saleApi } from '../../features/sale/api/saleApi';
 import { supplierApi } from '../../features/supplier/api/supplierApi';
 import { customerApi } from '../../features/customer/api/customerApi';
 import { productApi } from '../../features/product/api/productApi';
+import { purchaseOrderApi } from '../../features/purchase-order/api/purchaseOrderApi';
 import { shippingOrderApi } from '../../features/shipping-order/api/shippingOrderApi';
 import saleReducer from '../../features/sale/model/saleSlice';
 
@@ -60,6 +61,7 @@ export const store = configureStore({
     [supplierApi.reducerPath]: supplierApi.reducer,
     [customerApi.reducerPath]: customerApi.reducer,
     [productApi.reducerPath]: productApi.reducer,
+    [purchaseOrderApi.reducerPath]: purchaseOrderApi.reducer,
     [shippingOrderApi.reducerPath]: shippingOrderApi.reducer,
     sale: saleReducer,
   },
@@ -75,6 +77,7 @@ export const store = configureStore({
     .concat(supplierApi.middleware)
     .concat(customerApi.middleware)
     .concat(productApi.middleware)
+    .concat(purchaseOrderApi.middleware)
     .concat(shippingOrderApi.middleware),
   devTools: process.env.NODE_ENV !== 'production',
 });

@@ -2,6 +2,7 @@ import { Types } from 'mongoose';
 import PurchaseOrder from '../../models/PurchaseOrder';
 import OrderNumberService from '../../utils/OrderNumberService';
 import logger from '../../utils/logger';
+import { PurchaseOrderTransactionType } from '@pharmacy-pos/shared/types/purchase-order';
 import {
   IPurchaseOrderDocument,
   PurchaseOrderRequest
@@ -18,6 +19,19 @@ import {
   applyUpdatesToPurchaseOrder
 } from './services/validation.service';
 import { updateInventory } from './services/inventory.service';
+
+const VALID_TRANSACTION_TYPES: readonly PurchaseOrderTransactionType[] = ['進貨', '退貨', '支出'];
+const DEFAULT_TRANSACTION_TYPE: PurchaseOrderTransactionType = '進貨';
+
+const normalizeTransactionType = (value?: string | null): PurchaseOrderTransactionType => {
+  if (!value) {
+    return DEFAULT_TRANSACTION_TYPE;
+  }
+  const candidate = value.trim();
+  return (VALID_TRANSACTION_TYPES as readonly string[]).includes(candidate)
+    ? candidate as PurchaseOrderTransactionType
+    : DEFAULT_TRANSACTION_TYPE;
+};
 
 /**
  * 獲取所有進貨單
@@ -55,6 +69,9 @@ export async function createPurchaseOrder(
 ): Promise<{ success: boolean; purchaseOrder?: IPurchaseOrderDocument; error?: string | undefined }> {
   try {
     const { poid, pobill, pobilldate, posupplier, supplier, items, notes, status, paymentStatus, organizationId, transactionType, selectedAccountIds, accountingEntryType } = requestData;
+
+    const normalizedTransactionType = normalizeTransactionType(transactionType ?? null);
+
     
     logger.debug('創建進貨單 - selectedAccountIds:', selectedAccountIds);
     logger.debug('創建進貨單 - items:', JSON.stringify(items, null, 2));
@@ -106,17 +123,17 @@ export async function createPurchaseOrder(
       pobill: pobill ? pobill.toString() : '',
       pobilldate,
       posupplier: posupplier.toString(),
-      supplier: supplierId,
+      supplier: supplierId && Types.ObjectId.isValid(supplierId) ? new Types.ObjectId(supplierId) : undefined,
       organizationId: organizationId ? new Types.ObjectId(organizationId.toString()) : undefined,
-      transactionType: transactionType ? transactionType.toString() : undefined,
+      transactionType: normalizedTransactionType,
       selectedAccountIds: selectedAccountIds && selectedAccountIds.length > 0
         ? selectedAccountIds.filter(id => id && Types.ObjectId.isValid(id.toString())).map(id => new Types.ObjectId(id.toString()))
         : undefined,
       accountingEntryType: accountingEntryType ? accountingEntryType.toString() as 'expense-asset' | 'asset-liability' : undefined,
       items: processedItems,
       notes: notes ? notes.toString() : '',
-      status: status ? status.toString() : 'pending',
-      paymentStatus: paymentStatus ? paymentStatus.toString() : '未付'
+      status: status ?? 'pending',
+      paymentStatus: paymentStatus ?? '未付'
     });
 
     await purchaseOrder.save();

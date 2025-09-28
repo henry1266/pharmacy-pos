@@ -60,20 +60,62 @@ export async function validateAndSetProductIds(items: PurchaseOrderRequest['item
  * @param {string} supplier - 供應商ID
  * @returns {Promise<string|null>} - 供應商ID
  */
-export async function findSupplierId(posupplier: string, supplier?: string): Promise<string | null> {
-  if (supplier) {
-    return supplier.toString();
+export async function findSupplierId(posupplier: string, supplier?: PurchaseOrderRequest['supplier']): Promise<string | null> {
+  const normalizeObjectId = (value: unknown): string | undefined => {
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (trimmed && Types.ObjectId.isValid(trimmed)) {
+        return trimmed;
+      }
+    } else if (value instanceof Types.ObjectId) {
+      return value.toString();
+    }
+    return undefined;
+  };
+
+  if (typeof supplier === 'string') {
+    const candidate = normalizeObjectId(supplier);
+    if (candidate) {
+      return candidate;
+    }
+  } else if (supplier && typeof supplier === 'object') {
+    const candidate = normalizeObjectId((supplier as { _id?: unknown })._id);
+    if (candidate) {
+      return candidate;
+    }
+
+    const codeCandidate = (supplier as { code?: string }).code?.trim();
+    if (codeCandidate) {
+      const supplierByCode = await Supplier.findOne({ code: codeCandidate });
+      if (supplierByCode) {
+        return (supplierByCode._id as any).toString();
+      }
+    }
+
+    const shortCodeCandidate = (supplier as { shortCode?: string }).shortCode?.trim();
+    if (shortCodeCandidate) {
+      const supplierByShortCode = await Supplier.findOne({ shortCode: shortCodeCandidate });
+      if (supplierByShortCode) {
+        return (supplierByShortCode._id as any).toString();
+      }
+    }
+
+    if ((supplier as { name?: string }).name) {
+      posupplier = (supplier as { name?: string }).name as string;
+    }
   }
-  
-  if (posupplier) {
-    const supplierDoc = await Supplier.findOne({ name: posupplier.toString() });
+
+  const fallbackName = posupplier?.toString().trim();
+  if (fallbackName) {
+    const supplierDoc = await Supplier.findOne({ name: fallbackName });
     if (supplierDoc) {
       return (supplierDoc._id as any).toString();
     }
   }
-  
+
   return null;
 }
+
 
 /**
  * 檢查進貨單號變更並處理
@@ -235,9 +277,19 @@ export function prepareUpdateData(data: PurchaseOrderRequest, purchaseOrder: IPu
   if (pobill) updateData.pobill = pobill.toString();
   if (pobilldate) updateData.pobilldate = pobilldate;
   if (posupplier) updateData.posupplier = posupplier.toString();
-  if (supplier) updateData.supplier = new Types.ObjectId(supplier.toString());
+  if (supplier) {
+    if (typeof supplier === 'string' && Types.ObjectId.isValid(supplier)) {
+      updateData.supplier = new Types.ObjectId(supplier);
+    } else if (typeof supplier === 'object' && (supplier as { _id?: unknown })._id) {
+      const rawId = (supplier as { _id?: unknown })._id;
+      const normalizedId = typeof rawId === 'string' ? rawId : rawId instanceof Types.ObjectId ? rawId.toString() : undefined;
+      if (normalizedId && Types.ObjectId.isValid(normalizedId)) {
+        updateData.supplier = new Types.ObjectId(normalizedId);
+      }
+    }
+  }
   if (organizationId) updateData.organizationId = new Types.ObjectId(organizationId.toString());
-  if (transactionType) updateData.transactionType = transactionType.toString();
+  if (transactionType) updateData.transactionType = transactionType;
   if (selectedAccountIds !== undefined) {
     updateData.selectedAccountIds = selectedAccountIds && selectedAccountIds.length > 0
       ? selectedAccountIds.filter(id => id && Types.ObjectId.isValid(id.toString())).map(id => new Types.ObjectId(id.toString()))
@@ -263,7 +315,7 @@ export function applyUpdatesToPurchaseOrder(purchaseOrder: IPurchaseOrderDocumen
   if (updateData.posupplier) purchaseOrder.posupplier = updateData.posupplier;
   if (updateData.supplier) purchaseOrder.supplier = updateData.supplier;
   if (updateData.organizationId) purchaseOrder.organizationId = updateData.organizationId;
-  if (updateData.transactionType) purchaseOrder.transactionType = updateData.transactionType;
+  if (updateData.transactionType) purchaseOrder.transactionType = updateData.transactionType as any;
   if (updateData.selectedAccountIds !== undefined) purchaseOrder.selectedAccountIds = updateData.selectedAccountIds;
   if (updateData.accountingEntryType) purchaseOrder.accountingEntryType = updateData.accountingEntryType;
   if (updateData.notes !== undefined) purchaseOrder.notes = updateData.notes;

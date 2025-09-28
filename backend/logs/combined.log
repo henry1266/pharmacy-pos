@@ -12453,3 +12453,42 @@
 {"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m進貨單 20250920003 已關聯交易群組 68cd84aaff3c2dbc4f7db281\u001b[39m","timestamp":"2025-09-20 00:28:26:2826"}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":0,"timestamp":"2025-09-20 00:28:29:2829","totalCount":1,"unpaidCount":1}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":2,"timestamp":"2025-09-20 07:52:44:5244","totalCount":50,"unpaidCount":48}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e0d13d49330732e939473a"},"supplierId":"67e0d13d49330732e939473a","timestamp":"2025-09-28 13:57:48:5748"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-09-28 13:57:48:5748"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e0d13d49330732e939473a"},"supplierId":"67e0d13d49330732e939473a","timestamp":"2025-09-28 13:57:48:5748"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-09-28 13:57:48:5748"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"6822a7ecad65752a9f061796"},"supplierId":"6822a7ecad65752a9f061796","timestamp":"2025-09-28 13:58:05:585"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-09-28 13:58:05:585"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"6822a7ecad65752a9f061796"},"supplierId":"6822a7ecad65752a9f061796","timestamp":"2025-09-28 13:58:08:588"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-09-28 13:58:08:588"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"6822a7ecad65752a9f061796"},"supplierId":"6822a7ecad65752a9f061796","timestamp":"2025-09-28 13:58:08:588"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-09-28 13:58:08:588"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"68480dd8c6862fc2a3fd8303"},"supplierId":"68480dd8c6862fc2a3fd8303","timestamp":"2025-09-28 13:58:24:5824"}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-09-28 13:58:24:5824"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"6822a7ecad65752a9f061796"},"supplierId":"6822a7ecad65752a9f061796","timestamp":"2025-09-28 13:58:25:5825"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-09-28 13:58:25:5825"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"6822a7ecad65752a9f061796"},"supplierId":"6822a7ecad65752a9f061796","timestamp":"2025-09-28 13:59:59:5959"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-09-28 13:59:59:5959"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"6822a7ecad65752a9f061796"},"supplierId":"6822a7ecad65752a9f061796","timestamp":"2025-09-28 13:59:59:5959"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-09-28 13:59:59:5959"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67eb4d412d1b8bb06f5dfa14"},"supplierId":"67eb4d412d1b8bb06f5dfa14","timestamp":"2025-09-28 14:00:49:049"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-09-28 14:00:49:049"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67eb4d412d1b8bb06f5dfa14"},"supplierId":"67eb4d412d1b8bb06f5dfa14","timestamp":"2025-09-28 14:00:49:049"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-09-28 14:00:49:049"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e4df85a6f9d4c76b0461d4"},"supplierId":"67e4df85a6f9d4c76b0461d4","timestamp":"2025-09-28 14:00:50:050"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-09-28 14:00:50:050"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":2,"timestamp":"2025-09-28 18:32:52:3252","totalCount":50,"unpaidCount":48}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e4d52aa597229df074c486"},"supplierId":"67e4d52aa597229df074c486","timestamp":"2025-09-28 18:37:30:3730"}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-09-28 18:37:30:3730"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - selectedAccountIds:\u001b[39m","timestamp":"2025-09-28 18:39:31:3931"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - items:\u001b[39m","timestamp":"2025-09-28 18:39:31:3931"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - processedItems:\u001b[39m","timestamp":"2025-09-28 18:39:31:3931"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31m創建進貨單錯誤: purchaseorder validation failed: transactionType: `` is not a valid enum value for path `transactionType`.\u001b[39m","timestamp":"2025-09-28 18:39:31:3931"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - selectedAccountIds:\u001b[39m","timestamp":"2025-09-28 18:47:01:471"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - items:\u001b[39m","timestamp":"2025-09-28 18:47:01:471"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - processedItems:\u001b[39m","timestamp":"2025-09-28 18:47:01:471"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單已儲存 - selectedAccountIds:\u001b[39m","timestamp":"2025-09-28 18:47:01:471"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 67ee58d17d60a8f8e5a0a463 創建新庫存記錄，進貨單號: 20250928001, 數量: 1500, 總金額: 1054\u001b[39m","timestamp":"2025-09-28 18:47:01:471"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 67ee58d17d60a8f8e5a0a45a 創建新庫存記錄，進貨單號: 20250928001, 數量: 1000, 總金額: 662\u001b[39m","timestamp":"2025-09-28 18:47:01:471"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"\u001b[33m批量檢查：沒有找到相關的交易 ID\u001b[39m","timestamp":"2025-09-28 18:47:04:474"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":0,"timestamp":"2025-09-28 18:47:04:474","totalCount":1,"unpaidCount":1}

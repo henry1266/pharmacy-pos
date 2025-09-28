@@ -36,7 +36,11 @@ export * from './theme';
 export type {
   PurchaseOrderStatus,
   PaymentStatus,
-  PurchaseOrderRequest
+  PurchaseOrderRequest,
+  PurchaseOrderUpdateRequest,
+  PurchaseOrder,
+  PurchaseOrderItem,
+  PurchaseOrderSearchParams
 } from './purchase-order';
 
 // 業務邏輯型別 (避免與 api 衝突) - 使用重構後的版本

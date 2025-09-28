@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { PurchaseOrderApiClient } from '@pharmacy-pos/shared/services/purchaseOrderApiClient';
 import { PurchaseOrder } from '@pharmacy-pos/shared/types/entities';
-import { PurchaseOrderCreateRequest, PurchaseOrderUpdateRequest } from '@pharmacy-pos/shared/types/api';
+import { PurchaseOrderCreateRequest, PurchaseOrderUpdateRequest } from '@/features/purchase-order/api/dto';
 import { PurchaseOrderSearchParams, PurchaseOrderImportResponse } from '@pharmacy-pos/shared/services/purchaseOrderApiClient';
 import { getApiBaseUrl } from '../utils/apiConfig';
 

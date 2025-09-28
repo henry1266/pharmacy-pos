@@ -1,147 +1,81 @@
 /**
- * 採購訂單相關型別定義
- * 統一前後端使用的型別，避免不一致問題
+ * Purchase order domain types aligned with shared Zod schemas (SSOT)
  */
 
-// 採購訂單狀態枚舉
-export type PurchaseOrderStatus = 'pending' | 'completed' | 'cancelled';
-export type PaymentStatus = '未付' | '已下收' | '已匯款';
+import type { z } from 'zod';
+import {
+  purchaseOrderSchema,
+  purchaseOrderItemSchema,
+  createPurchaseOrderSchema,
+  updatePurchaseOrderSchema,
+  purchaseOrderSearchSchema,
+  purchaseOrderStatusValues,
+  purchaseOrderPaymentStatusValues,
+  purchaseOrderTransactionTypeValues,
+} from '../schemas/zod/purchaseOrder';
 
 /**
- * 採購訂單項目介面
- * 統一使用 dquantity 和 dtotalCost 命名
+ * Enumerations derived from Zod enums
  */
-export interface PurchaseOrderItem {
-  _id?: string;
-  product: string; // 產品ID（字符串形式，適用於前後端）
-  did: string; // 產品代碼
-  dname: string; // 產品名稱
-  dquantity: number; // 數量
-  dtotalCost: number; // 總成本
-  unitPrice?: number; // 單價（自動計算或手動設置）
-  receivedQuantity?: number; // 已收貨數量
-  batchNumber?: string; // 批號（選填）
-  packageQuantity?: number; // 大包裝數量
-  boxQuantity?: number; // 盒裝數量
-  notes?: string; // 備註
-}
+export type PurchaseOrderStatus = typeof purchaseOrderStatusValues[number];
+export type PaymentStatus = typeof purchaseOrderPaymentStatusValues[number];
+export type PurchaseOrderTransactionType = typeof purchaseOrderTransactionTypeValues[number];
 
 /**
- * 採購訂單介面
- * 統一前後端使用的完整採購訂單結構
+ * Core entity types
  */
-export interface PurchaseOrder {
-  _id: string;
-  poid: string; // 進貨單號
-  orderNumber: string; // 系統訂單號
-  pobill?: string; // 發票號碼
-  pobilldate?: string | Date; // 發票日期
-  posupplier: string; // 供應商名稱
-  supplier?: string; // 供應商ID
-  organizationId?: string; // 機構ID
-  transactionType?: string; // 交易類型
-  selectedAccountIds?: string[]; // 選中的會計科目ID
-  accountingEntryType?: 'expense-asset' | 'asset-liability'; // 會計分錄類型
-  orderDate?: string | Date; // 訂單日期（向後兼容）
-  expectedDeliveryDate?: string | Date; // 預期交貨日期
-  actualDeliveryDate?: string | Date; // 實際交貨日期
-  items: PurchaseOrderItem[]; // 採購項目
-  totalAmount: number; // 總金額
-  status: PurchaseOrderStatus; // 訂單狀態
-  paymentStatus: PaymentStatus; // 付款狀態
-  notes?: string; // 備註
-  createdBy?: string; // 創建者ID
-  createdAt: string | Date; // 創建時間
-  updatedAt: string | Date; // 更新時間
-}
+export type PurchaseOrderItem = z.infer<typeof purchaseOrderItemSchema>;
+export type PurchaseOrder = z.infer<typeof purchaseOrderSchema>;
 
 /**
- * 前端表單使用的採購訂單資料結構
- * 包含前端特有的欄位和格式
+ * API request payload types
+ */
+export type PurchaseOrderRequest = z.infer<typeof createPurchaseOrderSchema>;
+export type PurchaseOrderUpdateRequest = z.infer<typeof updatePurchaseOrderSchema>;
+
+/**
+ * Query parameters type
+ */
+export type PurchaseOrderSearchParams = z.infer<typeof purchaseOrderSearchSchema>;
+
+/**
+ * Frontend form data model
  */
 export interface PurchaseOrderFormData {
   poid: string;
-  pobill: string;
-  pobilldate: Date;
-  posupplier: string; // 供應商名稱
-  supplier: string; // 供應商ID
-  items: PurchaseOrderItem[];
-  notes: string;
-  status: string;
-  paymentStatus: string;
-  multiplierMode: string | number; // 倍率模式
-}
-
-/**
- * API 請求用的採購訂單資料
- * 用於新增和更新採購訂單
- */
-export interface PurchaseOrderRequest {
-  poid?: string;
   pobill?: string;
   pobilldate?: Date | string;
   posupplier: string;
   supplier?: string;
   organizationId?: string;
-  transactionType?: string;
-  selectedAccountIds?: string[]; // 選中的會計科目ID
-  accountingEntryType?: 'expense-asset' | 'asset-liability'; // 會計分錄類型
+  transactionType?: PurchaseOrderTransactionType;
+  selectedAccountIds?: string[];
+  accountingEntryType?: 'expense-asset' | 'asset-liability';
+  orderDate?: Date | string;
+  expectedDeliveryDate?: Date | string;
+  actualDeliveryDate?: Date | string;
   items: PurchaseOrderItem[];
   notes?: string;
   status?: PurchaseOrderStatus;
   paymentStatus?: PaymentStatus;
+  multiplierMode?: string | number;
 }
 
 /**
- * 採購訂單列表項目
- * 用於列表顯示的簡化版本
+ * Minimal list item representation
  */
-export interface PurchaseOrderListItem {
-  _id: string;
-  poid: string;
-  orderNumber: string;
-  pobill?: string;
-  pobilldate?: string | Date;
-  posupplier: string;
-  totalAmount: number;
-  status: PurchaseOrderStatus;
-  paymentStatus: PaymentStatus;
-  createdAt: string | Date;
-}
+export type PurchaseOrderListItem = Pick<
+  PurchaseOrder,
+  '_id' | 'poid' | 'orderNumber' | 'pobill' | 'pobilldate' | 'posupplier' | 'totalAmount' | 'status' | 'paymentStatus' | 'createdAt'
+>;
 
 /**
- * 採購訂單搜尋參數
+ * Type guards leveraging Zod safeParse
  */
-export interface PurchaseOrderSearchParams {
-  poid?: string;
-  pobill?: string;
-  posupplier?: string;
-  startDate?: string | Date;
-  endDate?: string | Date;
-  status?: PurchaseOrderStatus;
-  paymentStatus?: PaymentStatus;
-}
+export const isPurchaseOrder = (value: unknown): value is PurchaseOrder => {
+  return purchaseOrderSchema.safeParse(value).success;
+};
 
-/**
- * 型別守衛函數
- */
-export function isPurchaseOrder(obj: any): obj is PurchaseOrder {
-  return obj && 
-         typeof obj._id === 'string' &&
-         typeof obj.poid === 'string' &&
-         typeof obj.orderNumber === 'string' &&
-         typeof obj.posupplier === 'string' &&
-         Array.isArray(obj.items) &&
-         typeof obj.totalAmount === 'number' &&
-         typeof obj.status === 'string' &&
-         typeof obj.paymentStatus === 'string';
-}
-
-export function isPurchaseOrderItem(obj: any): obj is PurchaseOrderItem {
-  return obj &&
-         typeof obj.product === 'string' &&
-         typeof obj.did === 'string' &&
-         typeof obj.dname === 'string' &&
-         typeof obj.dquantity === 'number' &&
-         typeof obj.dtotalCost === 'number';
-}
+export const isPurchaseOrderItem = (value: unknown): value is PurchaseOrderItem => {
+  return purchaseOrderItemSchema.safeParse(value).success;
+};

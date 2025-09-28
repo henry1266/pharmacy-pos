@@ -22,6 +22,10 @@
     {
       "name": "Suppliers",
       "description": "Supplier management endpoints"
+    },
+    {
+      "name": "Purchase Orders",
+      "description": "Purchase order management endpoints"
     }
   ],
   "paths": {
@@ -1174,6 +1178,611 @@
           }
         }
       }
+    },
+    "/purchase-orders": {
+      "get": {
+        "summary": "List purchase orders",
+        "operationId": "listPurchaseOrders",
+        "tags": [
+          "Purchase Orders"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/PurchaseOrder"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "purchaseOrders": {
+                    "summary": "Purchase order list",
+                    "value": {
+                      "success": true,
+                      "message": "OK",
+                      "data": [
+                        {
+                          "_id": "64f0a1b2c3d4e5f678901234",
+                          "poid": "PO-2025-0001",
+                          "orderNumber": "PO-2025-0001",
+                          "posupplier": "Acme Pharma",
+                          "supplier": {
+                            "_id": "64f0a1b2c3d4e5f678909999",
+                            "name": "Acme Pharma"
+                          },
+                          "items": [
+                            {
+                              "_id": "64f0a1b2c3d4e5f678901999",
+                              "did": "SKU-1001",
+                              "dname": "Vitamin C 500mg",
+                              "dquantity": 10,
+                              "dtotalCost": 2500,
+                              "unitPrice": 250
+                            }
+                          ],
+                          "totalAmount": 2500,
+                          "status": "pending",
+                          "paymentStatus": "���I",
+                          "createdAt": "2025-01-01T00:00:00.000Z",
+                          "updatedAt": "2025-01-01T00:00:00.000Z"
+                        }
+                      ],
+                      "timestamp": "2025-01-01T00:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a purchase order",
+        "operationId": "createPurchaseOrder",
+        "tags": [
+          "Purchase Orders"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PurchaseOrderCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/PurchaseOrder"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "created": {
+                    "summary": "Created purchase order",
+                    "value": {
+                      "success": true,
+                      "message": "Created",
+                      "data": {
+                        "_id": "64f0a1b2c3d4e5f678901235",
+                        "poid": "PO-2025-0002",
+                        "orderNumber": "PO-2025-0002",
+                        "posupplier": "Acme Pharma",
+                        "items": [
+                          {
+                            "_id": "64f0a1b2c3d4e5f678902000",
+                            "did": "SKU-1002",
+                            "dname": "Pain Relief Tablets",
+                            "dquantity": 20,
+                            "dtotalCost": 4000,
+                            "unitPrice": 200
+                          }
+                        ],
+                        "totalAmount": 4000,
+                        "status": "pending",
+                        "paymentStatus": "���I",
+                        "createdAt": "2025-01-02T00:00:00.000Z",
+                        "updatedAt": "2025-01-02T00:00:00.000Z"
+                      },
+                      "timestamp": "2025-01-02T00:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/purchase-orders/{id}": {
+      "get": {
+        "summary": "Get purchase order by ID",
+        "operationId": "getPurchaseOrderById",
+        "tags": [
+          "Purchase Orders"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponse"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/PurchaseOrder"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "purchaseOrder": {
+                    "summary": "Purchase order",
+                    "value": {
+                      "success": true,
+                      "message": "OK",
+                      "data": {
+                        "_id": "64f0a1b2c3d4e5f678901234",
+                        "poid": "PO-2025-0001",
+                        "orderNumber": "PO-2025-0001",
+                        "posupplier": "Acme Pharma",
+                        "items": [
+                          {
+                            "_id": "64f0a1b2c3d4e5f678901999",
+                            "did": "SKU-1001",
+                            "dname": "Vitamin C 500mg",
+                            "dquantity": 10,
+                            "dtotalCost": 2500,
+                            "unitPrice": 250
+                          }
+                        ],
+                        "totalAmount": 2500,
+                        "status": "pending",
+                        "paymentStatus": "���I",
+                        "createdAt": "2025-01-01T00:00:00.000Z",
+                        "updatedAt": "2025-01-01T00:00:00.000Z"
+                      },
+                      "timestamp": "2025-01-01T00:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a purchase order",
+        "operationId": "updatePurchaseOrder",
+        "tags": [
+          "Purchase Orders"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PurchaseOrderUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponse"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/PurchaseOrder"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a purchase order",
+        "operationId": "deletePurchaseOrder",
+        "tags": [
+          "Purchase Orders"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/purchase-orders/supplier/{supplierId}": {
+      "get": {
+        "summary": "List purchase orders by supplier",
+        "operationId": "getPurchaseOrdersBySupplier",
+        "tags": [
+          "Purchase Orders"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "supplierId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponse"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/PurchaseOrder"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Supplier not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/purchase-orders/product/{productId}": {
+      "get": {
+        "summary": "List purchase orders by product",
+        "operationId": "getPurchaseOrdersByProduct",
+        "tags": [
+          "Purchase Orders"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "productId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponse"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/PurchaseOrder"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Product not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/purchase-orders/recent/list": {
+      "get": {
+        "summary": "List recent purchase orders",
+        "operationId": "getRecentPurchaseOrders",
+        "tags": [
+          "Purchase Orders"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponse"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/PurchaseOrder"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2092,6 +2701,1145 @@
           },
           "active": {
             "type": "boolean"
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "sortBy": {
+            "type": "string",
+            "maxLength": 50
+          },
+          "sortOrder": {
+            "type": "string",
+            "enum": [
+              "asc",
+              "desc"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "PurchaseOrder": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{24}$"
+          },
+          "poid": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "orderNumber": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "pobill": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "pobilldate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
+          },
+          "posupplier": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "supplier": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/PurchaseOrder/properties/_id"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "_id": {
+                    "$ref": "#/definitions/PurchaseOrder/properties/_id"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "code": {
+                    "type": "string"
+                  },
+                  "shortCode": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": true
+              }
+            ]
+          },
+          "organizationId": {
+            "$ref": "#/definitions/PurchaseOrder/properties/_id"
+          },
+          "transactionType": {
+            "type": "string",
+            "enum": [
+              "進貨",
+              "退貨",
+              "支出"
+            ]
+          },
+          "selectedAccountIds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/PurchaseOrder/properties/_id"
+            }
+          },
+          "accountingEntryType": {
+            "type": "string",
+            "enum": [
+              "expense-asset",
+              "asset-liability"
+            ]
+          },
+          "orderDate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
+          },
+          "expectedDeliveryDate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
+          },
+          "actualDeliveryDate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "_id": {
+                  "$ref": "#/definitions/PurchaseOrder/properties/_id"
+                },
+                "product": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/PurchaseOrder/properties/_id"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "_id": {
+                          "$ref": "#/definitions/PurchaseOrder/properties/_id"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "code": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": true
+                    }
+                  ]
+                },
+                "did": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 64
+                },
+                "dname": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "dquantity": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "minimum": 0,
+                  "maximum": 999999
+                },
+                "dtotalCost": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 999999.99
+                },
+                "unitPrice": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 999999.99
+                    },
+                    {
+                      "not": {}
+                    },
+                    {
+                      "type": "object"
+                    },
+                    {
+                      "type": "string",
+                      "const": ""
+                    }
+                  ]
+                },
+                "receivedQuantity": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 999999
+                    },
+                    {
+                      "not": {}
+                    },
+                    {
+                      "type": "object"
+                    },
+                    {
+                      "type": "string",
+                      "const": ""
+                    }
+                  ]
+                },
+                "batchNumber": {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                "packageQuantity": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 999999
+                    },
+                    {
+                      "not": {}
+                    },
+                    {
+                      "type": "object"
+                    },
+                    {
+                      "type": "string",
+                      "const": ""
+                    }
+                  ]
+                },
+                "boxQuantity": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 999999
+                    },
+                    {
+                      "not": {}
+                    },
+                    {
+                      "type": "object"
+                    },
+                    {
+                      "type": "string",
+                      "const": ""
+                    }
+                  ]
+                },
+                "notes": {
+                  "type": "string",
+                  "maxLength": 500
+                }
+              },
+              "required": [
+                "did",
+                "dname",
+                "dquantity",
+                "dtotalCost"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "totalAmount": {
+            "type": "number",
+            "minimum": 0
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "approved",
+              "received",
+              "completed",
+              "cancelled"
+            ]
+          },
+          "paymentStatus": {
+            "type": "string",
+            "enum": [
+              "未付",
+              "已付款",
+              "已下收",
+              "已匯款"
+            ]
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "createdBy": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/PurchaseOrder/properties/_id"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "_id": {
+                    "$ref": "#/definitions/PurchaseOrder/properties/_id"
+                  },
+                  "username": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": true
+              }
+            ]
+          },
+          "relatedTransactionGroupId": {
+            "$ref": "#/definitions/PurchaseOrder/properties/_id"
+          },
+          "createdAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
+          }
+        },
+        "required": [
+          "_id",
+          "poid",
+          "orderNumber",
+          "posupplier",
+          "items",
+          "totalAmount",
+          "status",
+          "createdAt",
+          "updatedAt"
+        ],
+        "additionalProperties": false
+      },
+      "PurchaseOrderItem": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{24}$"
+          },
+          "product": {
+            "$ref": "#/definitions/PurchaseOrderItem/properties/_id"
+          },
+          "did": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "dname": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "dquantity": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "minimum": 0,
+            "maximum": 999999
+          },
+          "dtotalCost": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 999999.99
+          },
+          "unitPrice": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 999999.99
+              },
+              {
+                "not": {}
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string",
+                "const": ""
+              }
+            ]
+          },
+          "receivedQuantity": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 999999
+              },
+              {
+                "not": {}
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string",
+                "const": ""
+              }
+            ]
+          },
+          "batchNumber": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "packageQuantity": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 999999
+              },
+              {
+                "not": {}
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string",
+                "const": ""
+              }
+            ]
+          },
+          "boxQuantity": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 999999
+              },
+              {
+                "not": {}
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string",
+                "const": ""
+              }
+            ]
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "did",
+          "dname",
+          "dquantity",
+          "dtotalCost"
+        ],
+        "additionalProperties": false
+      },
+      "PurchaseOrderCreateRequest": {
+        "type": "object",
+        "properties": {
+          "poid": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "orderNumber": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "pobill": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "pobilldate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
+          },
+          "posupplier": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "supplier": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-fA-F]{24}$"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "_id": {
+                    "$ref": "#/definitions/PurchaseOrderCreateRequest/properties/supplier/anyOf/0"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "code": {
+                    "type": "string"
+                  },
+                  "shortCode": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": true
+              }
+            ]
+          },
+          "organizationId": {
+            "$ref": "#/definitions/PurchaseOrderCreateRequest/properties/supplier/anyOf/0"
+          },
+          "transactionType": {
+            "type": "string",
+            "enum": [
+              "進貨",
+              "退貨",
+              "支出"
+            ]
+          },
+          "selectedAccountIds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/PurchaseOrderCreateRequest/properties/supplier/anyOf/0"
+            }
+          },
+          "accountingEntryType": {
+            "type": "string",
+            "enum": [
+              "expense-asset",
+              "asset-liability"
+            ]
+          },
+          "orderDate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
+          },
+          "expectedDeliveryDate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
+          },
+          "actualDeliveryDate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "_id": {
+                  "$ref": "#/definitions/PurchaseOrderCreateRequest/properties/supplier/anyOf/0"
+                },
+                "product": {
+                  "$ref": "#/definitions/PurchaseOrderCreateRequest/properties/supplier/anyOf/0"
+                },
+                "did": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 64
+                },
+                "dname": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "dquantity": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "minimum": 0,
+                  "maximum": 999999
+                },
+                "dtotalCost": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 999999.99
+                },
+                "unitPrice": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 999999.99
+                    },
+                    {
+                      "not": {}
+                    },
+                    {
+                      "type": "object"
+                    },
+                    {
+                      "type": "string",
+                      "const": ""
+                    }
+                  ]
+                },
+                "receivedQuantity": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 999999
+                    },
+                    {
+                      "not": {}
+                    },
+                    {
+                      "type": "object"
+                    },
+                    {
+                      "type": "string",
+                      "const": ""
+                    }
+                  ]
+                },
+                "batchNumber": {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                "packageQuantity": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 999999
+                    },
+                    {
+                      "not": {}
+                    },
+                    {
+                      "type": "object"
+                    },
+                    {
+                      "type": "string",
+                      "const": ""
+                    }
+                  ]
+                },
+                "boxQuantity": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 999999
+                    },
+                    {
+                      "not": {}
+                    },
+                    {
+                      "type": "object"
+                    },
+                    {
+                      "type": "string",
+                      "const": ""
+                    }
+                  ]
+                },
+                "notes": {
+                  "type": "string",
+                  "maxLength": 500
+                }
+              },
+              "required": [
+                "did",
+                "dname",
+                "dquantity",
+                "dtotalCost"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1
+          },
+          "totalAmount": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 999999.99
+              },
+              {
+                "not": {}
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string",
+                "const": ""
+              }
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "approved",
+              "received",
+              "completed",
+              "cancelled"
+            ]
+          },
+          "paymentStatus": {
+            "type": "string",
+            "enum": [
+              "未付",
+              "已付款",
+              "已下收",
+              "已匯款"
+            ]
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "poid",
+          "posupplier",
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "PurchaseOrderUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "poid": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "orderNumber": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "pobill": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "pobilldate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
+          },
+          "posupplier": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "supplier": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-fA-F]{24}$"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "_id": {
+                    "$ref": "#/definitions/PurchaseOrderUpdateRequest/properties/supplier/anyOf/0"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "code": {
+                    "type": "string"
+                  },
+                  "shortCode": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": true
+              }
+            ]
+          },
+          "organizationId": {
+            "$ref": "#/definitions/PurchaseOrderUpdateRequest/properties/supplier/anyOf/0"
+          },
+          "transactionType": {
+            "type": "string",
+            "enum": [
+              "進貨",
+              "退貨",
+              "支出"
+            ]
+          },
+          "selectedAccountIds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/PurchaseOrderUpdateRequest/properties/supplier/anyOf/0"
+            }
+          },
+          "accountingEntryType": {
+            "type": "string",
+            "enum": [
+              "expense-asset",
+              "asset-liability"
+            ]
+          },
+          "orderDate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
+          },
+          "expectedDeliveryDate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
+          },
+          "actualDeliveryDate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "_id": {
+                  "$ref": "#/definitions/PurchaseOrderUpdateRequest/properties/supplier/anyOf/0"
+                },
+                "product": {
+                  "$ref": "#/definitions/PurchaseOrderUpdateRequest/properties/supplier/anyOf/0"
+                },
+                "did": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 64
+                },
+                "dname": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "dquantity": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "minimum": 0,
+                  "maximum": 999999
+                },
+                "dtotalCost": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 999999.99
+                },
+                "unitPrice": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 999999.99
+                    },
+                    {
+                      "not": {}
+                    },
+                    {
+                      "type": "object"
+                    },
+                    {
+                      "type": "string",
+                      "const": ""
+                    }
+                  ]
+                },
+                "receivedQuantity": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 999999
+                    },
+                    {
+                      "not": {}
+                    },
+                    {
+                      "type": "object"
+                    },
+                    {
+                      "type": "string",
+                      "const": ""
+                    }
+                  ]
+                },
+                "batchNumber": {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                "packageQuantity": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 999999
+                    },
+                    {
+                      "not": {}
+                    },
+                    {
+                      "type": "object"
+                    },
+                    {
+                      "type": "string",
+                      "const": ""
+                    }
+                  ]
+                },
+                "boxQuantity": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 999999
+                    },
+                    {
+                      "not": {}
+                    },
+                    {
+                      "type": "object"
+                    },
+                    {
+                      "type": "string",
+                      "const": ""
+                    }
+                  ]
+                },
+                "notes": {
+                  "type": "string",
+                  "maxLength": 500
+                }
+              },
+              "required": [
+                "did",
+                "dname",
+                "dquantity",
+                "dtotalCost"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1
+          },
+          "totalAmount": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 999999.99
+              },
+              {
+                "not": {}
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string",
+                "const": ""
+              }
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "approved",
+              "received",
+              "completed",
+              "cancelled"
+            ]
+          },
+          "paymentStatus": {
+            "type": "string",
+            "enum": [
+              "未付",
+              "已付款",
+              "已下收",
+              "已匯款"
+            ]
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 1000
+          }
+        },
+        "additionalProperties": false
+      },
+      "PurchaseOrderSearchQuery": {
+        "type": "object",
+        "properties": {
+          "poid": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "pobill": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "posupplier": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "startDate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
+          },
+          "endDate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "approved",
+              "received",
+              "completed",
+              "cancelled"
+            ]
+          },
+          "paymentStatus": {
+            "type": "string",
+            "enum": [
+              "未付",
+              "已付款",
+              "已下收",
+              "已匯款"
+            ]
           },
           "page": {
             "type": "integer",

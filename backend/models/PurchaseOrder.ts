@@ -3,7 +3,8 @@ import {
   PurchaseOrderStatus,
   PaymentStatus,
   PurchaseOrderItem as SharedPurchaseOrderItem,
-  PurchaseOrder as SharedPurchaseOrder
+  PurchaseOrder as SharedPurchaseOrder,
+  PurchaseOrderTransactionType
 } from '@pharmacy-pos/shared/types/purchase-order';
 
 // 後端專用的 MongoDB 文檔介面
@@ -19,14 +20,15 @@ export interface IPurchaseOrderItemDocument extends IPurchaseOrderItem, Document
 }
 
 // 後端專用的進貨單介面
-export interface IPurchaseOrder extends Omit<SharedPurchaseOrder, '_id' | 'supplier' | 'organizationId' | 'selectedAccountIds' | 'items' | 'createdAt' | 'updatedAt'> {
+export interface IPurchaseOrder extends Omit<SharedPurchaseOrder, '_id' | 'supplier' | 'organizationId' | 'selectedAccountIds' | 'items' | 'createdAt' | 'updatedAt' | 'transactionType' | 'paymentStatus' | 'relatedTransactionGroupId'> {
   supplier?: mongoose.Types.ObjectId; // 後端使用 ObjectId
   organizationId?: mongoose.Types.ObjectId; // 機構 ObjectId
-  transactionType?: string; // 交易類型
+  transactionType?: PurchaseOrderTransactionType; // 交易類型
   selectedAccountIds?: mongoose.Types.ObjectId[]; // 選中的會計科目ID
   accountingEntryType?: 'expense-asset' | 'asset-liability'; // 會計分錄類型
   relatedTransactionGroupId?: mongoose.Types.ObjectId; // 關聯的會計分錄群組ID
   items: IPurchaseOrderItem[];
+  paymentStatus?: PaymentStatus;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -120,10 +122,10 @@ const PurchaseOrderSchema = new Schema<IPurchaseOrderDocument>({
     required: false
   },
   transactionType: {
-    type: String,
-    enum: ['進貨', '支出'],
-    required: false
-  },
+  type: String,
+  enum: ['進貨', '退貨', '支出'],
+  required: false
+},
   selectedAccountIds: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Account2',
@@ -146,14 +148,14 @@ const PurchaseOrderSchema = new Schema<IPurchaseOrderDocument>({
   },
   status: {
     type: String,
-    enum: ['pending', 'completed', 'cancelled'],
+    enum: ['pending', 'approved', 'received', 'completed', 'cancelled'],
     default: 'pending'
   },
   paymentStatus: {
-    type: String,
-    enum: ['未付', '已下收', '已匯款'],
-    default: '未付'
-  },
+  type: String,
+  enum: ['未付', '已付款', '已下收', '已匯款'],
+  default: '未付'
+},
   notes: {
     type: String
   },

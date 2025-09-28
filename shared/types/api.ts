@@ -3,6 +3,9 @@
  * 統一前後端的 API 介面規範
  */
 
+
+import type { PurchaseOrder as SharedPurchaseOrder, PurchaseOrderRequest as SharedPurchaseOrderCreateRequest, PurchaseOrderUpdateRequest as SharedPurchaseOrderUpdateRequest } from './purchase-order';
+
 /**
  * 基礎 API 回應型別
  */
@@ -269,69 +272,10 @@ export interface SaleResponse {
 /**
  * 採購訂單相關 API 型別
  */
-export interface PurchaseOrderCreateRequest {
-  orderNumber?: string;
-  supplier: string;
-  organizationId?: string;
-  transactionType?: string;
-  selectedAccountIds?: string[];
-  orderDate?: string;
-  expectedDeliveryDate?: string;
-  items: Array<{
-    product: string;
-    quantity: number;
-    price?: number;
-    unitPrice?: number;
-    subtotal?: number;
-    notes?: string;
-  }>;
-  totalAmount?: number;
-  status?: 'pending' | 'approved' | 'received' | 'cancelled' | 'completed';
-  paymentStatus?: '未付' | '已下收' | '已匯款';
-  notes?: string;
-}
+export type PurchaseOrderCreateRequest = SharedPurchaseOrderCreateRequest;
+export type PurchaseOrderUpdateRequest = SharedPurchaseOrderUpdateRequest;
+export type PurchaseOrderResponse = SharedPurchaseOrder;
 
-export interface PurchaseOrderResponse {
-  _id: string;
-  orderNumber: string;
-  supplier: {
-    _id: string;
-    name: string;
-  };
-  organizationId?: string;
-  items: Array<{
-    _id?: string;
-    product: {
-      _id: string;
-      name: string;
-      code?: string;
-    };
-    quantity: number;
-    price: number;
-    unitPrice?: number;
-    subtotal: number;
-    receivedQuantity?: number;
-    notes?: string;
-  }>;
-  totalAmount: number;
-  status: string;
-  orderDate: Date | string;
-  expectedDeliveryDate?: Date | string;
-  actualDeliveryDate?: Date | string;
-  createdBy?: {
-    _id: string;
-    username: string;
-  };
-  notes?: string;
-  createdAt: Date | string;
-  updatedAt: Date | string;
-}
-
-export interface PurchaseOrderUpdateRequest extends Partial<PurchaseOrderCreateRequest> {}
-
-/**
- * 出貨訂單相關 API 型別
- */
 export interface ShippingOrderCreateRequest {
   soid?: string;
   orderNumber?: string;
