@@ -13,23 +13,20 @@ jest.mock('../../middleware/auth', () => ({
   })
 }));
 
-jest.mock('../../models/AccountingCategory', () => {
-  const constructor = jest.fn();
-  constructor.find = jest.fn();
-  constructor.findById = jest.fn();
-  constructor.findOne = jest.fn();
-  return { __esModule: true, default: constructor };
-});
+jest.mock('../../models/AccountingCategory', () => ({
+  __esModule: true,
+  default: jest.fn()
+}));
 
-const AccountingCategoryMock = AccountingCategory as unknown as jest.Mock & {
-  find: jest.Mock;
-  findById: jest.Mock;
-  findOne: jest.Mock;
-};
+const AccountingCategoryMock = AccountingCategory as jest.MockedFunction<any>;
 
-const findMock = AccountingCategoryMock.find;
-const findByIdMock = AccountingCategoryMock.findById;
-const findOneMock = AccountingCategoryMock.findOne;
+AccountingCategoryMock.find = jest.fn();
+AccountingCategoryMock.findById = jest.fn();
+AccountingCategoryMock.findOne = jest.fn();
+
+const findMock = AccountingCategoryMock.find as jest.Mock;
+const findByIdMock = AccountingCategoryMock.findById as jest.Mock;
+const findOneMock = AccountingCategoryMock.findOne as jest.Mock;
 
 const createApp = () => {
   const app = express();
@@ -55,16 +52,13 @@ describe('AccountingCategories routes', () => {
 
   beforeEach(() => {
     app = createApp();
-    AccountingCategoryMock.mockReset();
-    findMock.mockReset();
-    findByIdMock.mockReset();
-    findOneMock.mockReset();
+    jest.clearAllMocks();
   });
 
   it('lists active categories', async () => {
     const categories = [buildCategoryDoc({ _id: 'cat-1' }), buildCategoryDoc({ _id: 'cat-2' })];
     const sortMock = jest.fn().mockResolvedValue(categories);
-    findMock.mockReturnValue({ sort: sortMock });
+    findMock.mockReturnValue({ sort: sortMock } as any);
 
     const response = await request(app)
       .get('/')

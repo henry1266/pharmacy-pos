@@ -161,7 +161,7 @@ describe('Category2 Model', () => {
       });
 
       // 創建子類別
-      const childCategory = await Category2.create({
+      await Category2.create({
         name: '子類別',
         type: 'income',
         parentId: parentCategory._id,
@@ -170,8 +170,8 @@ describe('Category2 Model', () => {
 
       // 查詢父類別並填充子類別
       const populatedParent = await Category2.findById(parentCategory._id).populate('children');
-      expect(populatedParent?.children).toHaveLength(1);
-      expect(populatedParent?.children?.[0].name).toBe('子類別');
+      expect((populatedParent as any)?.children).toHaveLength(1);
+      expect((populatedParent as any)?.children?.[0].name).toBe('子類別');
     });
   });
 
@@ -367,7 +367,7 @@ describe('Category2 Model', () => {
       });
 
       // 創建子類別
-      const child1 = await Category2.create({
+      await Category2.create({
         name: '工資',
         type: 'income',
         parentId: rootCategory._id,
@@ -384,7 +384,7 @@ describe('Category2 Model', () => {
       });
 
       // 創建孫類別
-      const grandchild = await Category2.create({
+      await Category2.create({
         name: '股票投資',
         type: 'income',
         parentId: child2._id,
@@ -400,8 +400,8 @@ describe('Category2 Model', () => {
         }
       });
 
-      expect(populatedRoot?.children).toHaveLength(2);
-      const investmentCategory = populatedRoot?.children?.find(c => c.name === '投資');
+      expect((populatedRoot as any)?.children).toHaveLength(2);
+      const investmentCategory = (populatedRoot as any)?.children?.find((c: ICategory2) => c.name === '投資');
       expect(investmentCategory?.children).toHaveLength(1);
       expect(investmentCategory?.children?.[0].name).toBe('股票投資');
     });

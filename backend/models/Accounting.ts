@@ -1,7 +1,15 @@
-import mongoose, { Schema } from 'mongoose';
-import { IAccountingDocument, IAccountingItem } from '../src/types/models';
+import mongoose, { Schema, Types } from 'mongoose';
+import { IAccounting, IAccountingItem } from '../../shared/types/models';
 
 // 記帳系統資料模型
+export interface IAccountingDocument extends mongoose.Document, Omit<IAccounting, '_id'> {
+  _id: Types.ObjectId;
+  calculateTotalAmount(): number;
+  addItem(item: IAccountingItem): void;
+  removeItem(index: number): void;
+  updateStatus(status: 'pending' | 'completed'): void;
+}
+
 const AccountingSchema = new Schema<IAccountingDocument>({
   date: {
     type: Date,
@@ -62,7 +70,7 @@ const AccountingSchema = new Schema<IAccountingDocument>({
 AccountingSchema.methods.calculateTotalAmount = function(
   this: IAccountingDocument
 ): number {
-  return this.items.reduce((sum, item) => sum + item.amount, 0);
+  return this.items.reduce((sum: number, item: IAccountingItem) => sum + item.amount, 0);
 };
 
 // 實例方法：添加項目

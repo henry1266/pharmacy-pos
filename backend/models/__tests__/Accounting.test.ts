@@ -1,4 +1,4 @@
-import Accounting, { IAccountingDocument } from '../Accounting';
+import Accounting, { type IAccountingDocument } from '../Accounting';
 
 describe('Accounting Model', () => {
   beforeEach(async () => {

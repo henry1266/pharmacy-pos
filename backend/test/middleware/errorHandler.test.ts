@@ -21,10 +21,10 @@ jest.mock('express-validator', () => ({
 const { validationResult } = require('express-validator');
 
 const createMockRes = () => {
-  const res: Partial<Response> = {};
+  const res: any = {};
   res.status = jest.fn().mockReturnValue(res);
   res.json = jest.fn().mockReturnValue(res);
-  return res as Response;
+  return res;
 };
 
 describe('errorHandler middleware utilities', () => {

@@ -10,6 +10,7 @@ import BaseProduct from '../models/BaseProduct';
 import MonitoredProduct from '../models/MonitoredProduct';
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
+import type { IAccountingItem } from '@pharmacy-pos/shared/types/models';
 import auth from '../middleware/auth';
 
 // 定義會計記錄狀態型別
@@ -17,13 +18,10 @@ type AccountingStatus = 'pending' | 'completed';
 type ShiftType = '早' | '中' | '晚';
 
 // 定義會計項目介面
-interface AccountingItem {
-  amount: number;
-  category: string;
-  categoryId?: Types.ObjectId | null | undefined;
-  notes?: string;
+type AccountingItem = Omit<IAccountingItem, 'categoryId'> & {
+  categoryId?: Types.ObjectId | string | null;
   isAutoLinked?: boolean;
-}
+};
 
 
 // 定義會計記錄請求介面

@@ -45,7 +45,7 @@ describe('App Integration Tests', () => {
       ];
 
       for (const route of routes) {
-        const response = await request(app)
+        await request(app)
           .get(route)
           .expect((res) => {
             // 只要路由存在並返回 HTTP 狀態碼即可
@@ -79,7 +79,7 @@ describe('App Integration Tests', () => {
     });
 
     it('應該處理不支援的 HTTP 方法', async () => {
-      const response = await request(app)
+      await request(app)
         .patch('/api/users')
         .expect((res) => {
           // 只要返回有效的 HTTP 狀態碼即可
