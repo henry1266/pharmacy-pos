@@ -1,0 +1,17 @@
+{
+  "generatedAt": "2025-09-29T17:25:31.575Z",
+  "items": [
+    {
+      "label": "coverage-summary.json",
+      "source": "D:\\pharmacy-pos\\backend\\coverage\\coverage-summary.json",
+      "destination": "D:\\pharmacy-pos\\artifacts\\release\\auto\\auto-bundle\\coverage-summary.json",
+      "type": "file"
+    },
+    {
+      "label": "lts-matrix.json",
+      "source": "D:\\pharmacy-pos\\artifacts\\release\\auto\\lts-matrix.json",
+      "destination": "D:\\pharmacy-pos\\artifacts\\release\\auto\\auto-bundle\\lts-matrix.json",
+      "type": "file"
+    }
+  ]
+}

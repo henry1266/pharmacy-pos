@@ -1,0 +1,12 @@
+[
+  {
+    "name": "regression",
+    "status": "pass",
+    "detail": "pnpm --filter backend test --coverage --coverageReporters=json-summary --coverageDirectory=coverage --passWithNoTests"
+  },
+  {
+    "name": "contract",
+    "status": "pass",
+    "detail": "pnpm run release:schema-diff"
+  }
+]

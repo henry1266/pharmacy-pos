@@ -1,0 +1,58 @@
+{
+  "baseRef": "HEAD~1",
+  "headRef": "HEAD",
+  "detectedLevel": "patch",
+  "packages": [
+    {
+      "name": "root",
+      "path": "package.json",
+      "version": "1.0.0",
+      "recommendedBump": null,
+      "nextVersion": "1.0.0",
+      "reasoning": [
+        "未偵測到相關變更"
+      ]
+    },
+    {
+      "name": "shared",
+      "path": "shared/package.json",
+      "version": "1.0.0",
+      "recommendedBump": null,
+      "nextVersion": "1.0.0",
+      "reasoning": [
+        "未偵測到相關變更"
+      ]
+    },
+    {
+      "name": "openapi",
+      "path": "openapi/package.json",
+      "version": "n/a",
+      "recommendedBump": null,
+      "nextVersion": null,
+      "reasoning": [
+        "未找到 package.json"
+      ]
+    },
+    {
+      "name": "backend",
+      "path": "backend/package.json",
+      "version": "1.0.0",
+      "recommendedBump": null,
+      "nextVersion": "1.0.0",
+      "reasoning": [
+        "未偵測到相關變更"
+      ]
+    },
+    {
+      "name": "frontend",
+      "path": "frontend/package.json",
+      "version": "0.1.0",
+      "recommendedBump": null,
+      "nextVersion": "0.1.0",
+      "reasoning": [
+        "未偵測到相關變更"
+      ]
+    }
+  ],
+  "changedPaths": []
+}
