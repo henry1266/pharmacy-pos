@@ -6,6 +6,7 @@ import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@pharmacy-pos/shared/constants';
 import logger from '../../utils/logger';
 import * as salesService from './sales.service';
+import { SaleServiceError } from './sales.service';
 import * as searchService from './services/search.service';
 import { isValidObjectId } from './services/validation.service';
 import { handleInventoryForDeletedSale } from './services/inventory.service';
@@ -197,6 +198,14 @@ export const createSale = async (req: Request, res: Response) => {
     res.json(response);
   } catch (err: unknown) {
     logger.error(`創建銷售記錄錯誤: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    if (err instanceof SaleServiceError) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: err.message,
+        timestamp: new Date()
+      };
+      return res.status(err.status).json(errorResponse);
+    }
     const errorResponse: ErrorResponse = {
       success: false,
       message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
