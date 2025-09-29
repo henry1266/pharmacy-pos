@@ -1,100 +1,116 @@
-import { Schema, model } from 'mongoose';
+﻿import { Schema, model } from 'mongoose';
 import { ISaleDocument } from '../src/types/models';
 
 const SaleSchema = new Schema<ISaleDocument>({
   saleNumber: {
     type: String,
-    unique: true
+    unique: true,
   },
   customer: {
     type: Schema.Types.ObjectId,
-    ref: 'customer'
+    ref: 'customer',
   },
   items: [
     {
       product: {
         type: Schema.Types.ObjectId,
         ref: 'baseproduct',
-        required: true
+        required: true,
       },
       quantity: {
         type: Number,
-        required: true
+        required: true,
       },
       price: {
         type: Number,
-        required: true
+        required: true,
       },
       subtotal: {
         type: Number,
-        required: true
+        required: true,
       },
       note: {
-        type: String
-      }
-    }
+        type: String,
+      },
+    },
   ],
   totalAmount: {
     type: Number,
-    required: true
+    required: true,
   },
   discount: {
     type: Number,
-    default: 0
+    default: 0,
   },
   paymentMethod: {
     type: String,
     enum: ['cash', 'credit_card', 'debit_card', 'mobile_payment', 'other'],
-    default: 'cash'
+    default: 'cash',
   },
   paymentStatus: {
     type: String,
     enum: ['paid', 'pending', 'partial', 'cancelled'],
-    default: 'paid'
+    default: 'paid',
   },
   notes: {
-    type: String
+    type: String,
+    alias: 'note',
   },
   cashier: {
     type: Schema.Types.ObjectId,
-    ref: 'user'
+    ref: 'user',
   },
   date: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 }, {
-  timestamps: true
+  timestamps: true,
 });
 
-// 實例方法
-SaleSchema.methods.calculateTotalAmount = function(): number {
+SaleSchema.methods.calculateTotalAmount = function calculateTotalAmount(): number {
   return this.items.reduce((total: number, item: any) => total + item.subtotal, 0) - (this.discount ?? 0);
 };
 
-SaleSchema.methods.validateItemSubtotals = function(): boolean {
+SaleSchema.methods.validateItemSubtotals = function validateItemSubtotals(): boolean {
   return this.items.every((item: any) => {
     const expectedSubtotal = item.quantity * item.price;
-    return Math.abs(item.subtotal - expectedSubtotal) < 0.01; // 允許小數點誤差
+    return Math.abs(item.subtotal - expectedSubtotal) < 0.01;
   });
 };
 
-// 虛擬屬性
-SaleSchema.virtual('finalAmount').get(function() {
+SaleSchema.virtual('finalAmount').get(function finalAmountAccessor() {
   return this.totalAmount - (this.discount ?? 0);
 });
 
-SaleSchema.virtual('saleDate').get(function() {
+SaleSchema.virtual('saleDate').get(function saleDateAccessor() {
   return this.date;
 });
 
-// 確保虛擬屬性在 JSON 序列化時包含
+SaleSchema.pre('validate', function saleAliasPreHook(next) {
+  const doc = this as any;
+
+  if (doc.note !== undefined && doc.notes === undefined) {
+    doc.notes = doc.note;
+  }
+
+  if (Array.isArray(doc.items)) {
+    doc.items = doc.items.map((item: any) => {
+      if (item && item.notes !== undefined && item.note === undefined) {
+        item.note = item.notes;
+      }
+      return item;
+    });
+  }
+
+  next();
+});
+
 SaleSchema.set('toJSON', { virtuals: true });
 SaleSchema.set('toObject', { virtuals: true });
 
 const Sale = model<ISaleDocument>('sale', SaleSchema);
 
-// 同時支持 ES6 和 CommonJS 導入
 export default Sale;
 module.exports = Sale;
 module.exports.default = Sale;

@@ -1,0 +1,7 @@
+[
+  {
+    "name": "contract",
+    "status": "pass",
+    "detail": "pnpm run release:schema-diff"
+  }
+]

@@ -1,9 +1,16 @@
-import Customer from '../../models/Customer';
+﻿import Customer from '../../models/Customer';
 import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
-import type { CustomerCreateInput, CustomerUpdateInput, CustomerRecord, ExtendedCustomerInput, CustomerQuickCreateInput } from './customers.types';
+import type {
+  CustomerCreateInput,
+  CustomerUpdateInput,
+  CustomerRecord,
+  ExtendedCustomerInput,
+  CustomerQuickCreateInput
+} from './customers.types';
 import { ensureStringArray, transformCustomerToResponse } from './customers.utils';
 
 const MEMBERSHIP_LEVELS = new Set(['regular', 'silver', 'gold', 'platinum']);
+const REQUIRED_CREATE_FIELDS = ['name', 'phone'];
 
 export class CustomerServiceError extends Error {
   constructor(public status: number, message: string) {
@@ -21,6 +28,8 @@ export async function findCustomerById(id: string): Promise<CustomerRecord | nul
 }
 
 export async function createCustomer(payload: CustomerCreateInput): Promise<CustomerRecord> {
+  validateCreatePayload(payload);
+
   if (payload.code && await customerCodeExists(payload.code)) {
     throw new CustomerServiceError(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST, ERROR_MESSAGES.CUSTOMER.CODE_EXISTS);
   }
@@ -137,6 +146,23 @@ async function generateCustomerCode(): Promise<string> {
   return `C${String(customerCount + 1).padStart(5, '0')}`;
 }
 
+function validateCreatePayload(payload: CustomerCreateInput): void {
+  const missing = REQUIRED_CREATE_FIELDS.filter((field) => {
+    const value = (payload as Record<string, unknown>)[field];
+    if (typeof value === 'string') {
+      return value.trim().length === 0;
+    }
+    return value === undefined || value === null;
+  });
+
+  if (missing.length > 0) {
+    throw new CustomerServiceError(
+      API_CONSTANTS.HTTP_STATUS.BAD_REQUEST,
+      ERROR_MESSAGES.GENERIC.VALIDATION_FAILED
+    );
+  }
+}
+
 function buildCustomerFields(input: ExtendedCustomerInput): Record<string, any> {
   const fields: Record<string, any> = {};
 
@@ -183,13 +209,18 @@ function assignAdditionalFields(input: ExtendedCustomerInput, target: Record<str
   if (input.medicalHistory !== undefined) target.medicalHistory = input.medicalHistory;
   if (input.allergies !== undefined) target.allergies = ensureStringArray(input.allergies);
 
-  if (input.membershipLevel) {
+  if (input.membershipLevel !== undefined && input.membershipLevel !== null) {
     const normalized = String(input.membershipLevel).toLowerCase();
-    target.membershipLevel = MEMBERSHIP_LEVELS.has(normalized) ? normalized : 'regular';
+    if (!MEMBERSHIP_LEVELS.has(normalized)) {
+      throw new CustomerServiceError(
+        API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR,
+        ERROR_MESSAGES.GENERIC.INVALID_REQUEST
+      );
+    }
+    target.membershipLevel = normalized;
   }
 
   if (input.idCardNumber !== undefined) target.idCardNumber = input.idCardNumber;
   if ((input as Record<string, unknown>).points !== undefined) target.points = (input as Record<string, unknown>).points;
   if ((input as Record<string, unknown>).isActive !== undefined) target.isActive = (input as Record<string, unknown>).isActive;
 }
-

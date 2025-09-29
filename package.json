@@ -8,7 +8,13 @@
     "dev": "concurrently \"pnpm --filter backend dev\" \"pnpm --filter frontend start\"",
     "build": "pnpm --filter shared build && pnpm --filter shared generate:openapi && pnpm --filter backend build && pnpm --filter frontend build",
     "test": "pnpm --filter backend test && pnpm --filter frontend test",
-    "type-check": "pnpm --filter shared type-check && pnpm --filter backend type-check && pnpm --filter frontend type-check"
+    "type-check": "pnpm --filter shared type-check && pnpm --filter backend type-check && pnpm --filter frontend type-check",
+    "release:schema-diff": "pnpm exec ts-node scripts/release/schema-diff.ts",
+    "release:version-bump": "pnpm exec ts-node scripts/release/version-bump.ts",
+    "release:collect-artifacts": "pnpm exec ts-node scripts/release/collect-artifacts.ts",
+    "release:verify-lts": "pnpm exec ts-node scripts/release/verify-lts.ts",
+    "release:prep": "pnpm run release:schema-diff && pnpm run release:version-bump",
+    "release:auto": "pnpm exec ts-node scripts/release/auto-release.ts"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

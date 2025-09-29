@@ -1,0 +1,17 @@
+﻿[
+  {
+    "name": "regression",
+    "status": "pass",
+    "detail": "backend: pnpm --filter backend test -- --config=jest.service.config.js"
+  },
+  {
+    "name": "contract",
+    "status": "pass",
+    "detail": "pnpm run release:schema-diff && pnpm run release:version-bump"
+  },
+  {
+    "name": "e2e",
+    "status": "pending",
+    "detail": "frontend Cypress 套件，等待排程"
+  }
+]

@@ -1,0 +1,68 @@
+{
+  "baseRef": "HEAD~1",
+  "headRef": "HEAD",
+  "detectedLevel": "minor",
+  "packages": [
+    {
+      "name": "root",
+      "path": "package.json",
+      "version": "1.0.0",
+      "recommendedBump": "patch",
+      "nextVersion": "1.0.1",
+      "reasoning": [
+        "跨模組有變更"
+      ]
+    },
+    {
+      "name": "shared",
+      "path": "shared/package.json",
+      "version": "1.0.0",
+      "recommendedBump": "minor",
+      "nextVersion": "1.1.0",
+      "reasoning": [
+        "shared 目錄有變更"
+      ]
+    },
+    {
+      "name": "openapi",
+      "path": "openapi/package.json",
+      "version": "n/a",
+      "recommendedBump": null,
+      "nextVersion": null,
+      "reasoning": [
+        "未找到 package.json"
+      ]
+    },
+    {
+      "name": "backend",
+      "path": "backend/package.json",
+      "version": "1.0.0",
+      "recommendedBump": null,
+      "nextVersion": "1.0.0",
+      "reasoning": [
+        "未偵測到相關變更"
+      ]
+    },
+    {
+      "name": "frontend",
+      "path": "frontend/package.json",
+      "version": "0.1.0",
+      "recommendedBump": null,
+      "nextVersion": "0.1.0",
+      "reasoning": [
+        "未偵測到相關變更"
+      ]
+    }
+  ],
+  "changedPaths": [
+    "openapi/openapi.json",
+    "shared/api/paths/purchaseOrders.ts",
+    "shared/constants/actionTypes.js",
+    "shared/constants/index.ts",
+    "shared/schemas/zod/purchaseOrder.ts",
+    "shared/scripts/generate-openapi.ts",
+    "shared/types/api.ts",
+    "shared/types/index.ts",
+    "shared/types/purchase-order.ts"
+  ]
+}

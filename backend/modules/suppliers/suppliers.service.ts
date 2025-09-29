@@ -1,4 +1,4 @@
-import Supplier from '../../models/Supplier';
+﻿import Supplier from '../../models/Supplier';
 import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
 import type {
   SupplierCreateInput,
@@ -65,7 +65,15 @@ export async function findSupplierById(id: string): Promise<SupplierRecord | nul
 }
 
 export async function createSupplier(payload: SupplierCreateInput): Promise<SupplierRecord> {
-  const fields = buildSupplierFields(payload);
+  const normalizedName = sanitizeString(payload?.name);
+  if (!normalizedName) {
+    throw new SupplierServiceError(
+      API_CONSTANTS.HTTP_STATUS.BAD_REQUEST,
+      ERROR_MESSAGES.GENERIC.VALIDATION_FAILED
+    );
+  }
+
+  const fields = buildSupplierFields({ ...payload, name: normalizedName });
 
   if (fields.code && await supplierCodeExists(fields.code)) {
     throw new SupplierServiceError(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST, ERROR_MESSAGES.SUPPLIER.CODE_EXISTS);
