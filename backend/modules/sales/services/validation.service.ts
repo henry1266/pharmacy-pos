@@ -134,7 +134,7 @@ export async function checkProductInventory(product: mongoose.Document, quantity
 }
 
 export async function validateSaleCreationRequest(requestBody: SaleCreationRequest): Promise<ValidationResult> {
-  const structuralValidation = validateSalePayloadStructure(requestBody);
+  const structuralValidation = validateSalePayloadStructure(requestBody, false);
   if (!structuralValidation.success) {
     return structuralValidation;
   }
@@ -167,7 +167,7 @@ export async function validateSaleCreationRequest(requestBody: SaleCreationReque
 }
 
 export async function validateSaleUpdateRequest(requestBody: SaleCreationRequest): Promise<ValidationResult> {
-  const structuralValidation = validateSalePayloadStructure(requestBody);
+  const structuralValidation = validateSalePayloadStructure(requestBody, false);
   if (!structuralValidation.success) {
     return structuralValidation;
   }
@@ -192,7 +192,7 @@ export async function validateSaleUpdateRequest(requestBody: SaleCreationRequest
   return { success: true };
 }
 
-function validateSalePayloadStructure(payload: SaleCreationRequest | undefined): ValidationResult {
+function validateSalePayloadStructure(payload: SaleCreationRequest | undefined, requirePaymentMethod = true): ValidationResult {
   if (!payload || typeof payload !== 'object') {
     return {
       success: false,
@@ -235,7 +235,15 @@ function validateSalePayloadStructure(payload: SaleCreationRequest | undefined):
     };
   }
 
-  if (!payload.paymentMethod || typeof payload.paymentMethod !== 'string') {
+  if (requirePaymentMethod) {
+    if (!payload.paymentMethod || typeof payload.paymentMethod !== 'string') {
+      return {
+        success: false,
+        statusCode: API_CONSTANTS.HTTP_STATUS.BAD_REQUEST,
+        message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
+      };
+    }
+  } else if (payload.paymentMethod !== undefined && typeof payload.paymentMethod !== 'string') {
     return {
       success: false,
       statusCode: API_CONSTANTS.HTTP_STATUS.BAD_REQUEST,
@@ -245,3 +253,6 @@ function validateSalePayloadStructure(payload: SaleCreationRequest | undefined):
 
   return { success: true };
 }
+
+
+

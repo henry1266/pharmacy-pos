@@ -1,14 +1,39 @@
+import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
 import Sale from '../../models/Sale';
-import { SaleCreationRequest, SaleDocument } from './sales.types';
-import { validateSaleCreationRequest, validateSaleUpdateRequest } from './services/validation.service';
-import { handleInventoryForNewSale, handleInventoryForUpdatedSale } from './services/inventory.service';
+import {
+  SaleCreationRequest,
+  SaleDocument,
+  SaleFieldsInput,
+} from './sales.types';
+import {
+  validateSaleCreationRequest,
+  validateSaleUpdateRequest,
+} from './services/validation.service';
+import {
+  handleInventoryForNewSale,
+  handleInventoryForUpdatedSale,
+} from './services/inventory.service';
 import { updateCustomerPoints } from './services/customer.service';
 import { generateSaleNumber, buildSaleFields } from './utils/sales.utils';
-import logger from '../../utils/logger';
 
-// 獲取所有銷售記錄
+function extractNotesFromRequest(requestBody: SaleCreationRequest): string | undefined {
+  if (typeof requestBody.notes === 'string') {
+    return requestBody.notes;
+  }
+
+  const legacyNote = (requestBody as { note?: unknown }).note;
+  return typeof legacyNote === 'string' ? legacyNote : undefined;
+}
+
+export class SaleServiceError extends Error {
+  constructor(public status: number, message: string) {
+    super(message);
+    this.name = 'SaleServiceError';
+  }
+}
+
 export async function findAllSales(): Promise<SaleDocument[]> {
-  return await Sale.find()
+  return Sale.find()
     .populate('customer')
     .populate('items.product')
     .populate('cashier')
@@ -16,14 +41,10 @@ export async function findAllSales(): Promise<SaleDocument[]> {
     .lean();
 }
 
-// 根據ID獲取銷售記錄
 export async function findSaleById(id: string): Promise<SaleDocument | null> {
-  return await Sale.findById(id)
+  return Sale.findById(id)
     .populate('customer')
-    .populate({
-      path: 'items.product',
-      model: 'baseproduct'
-    })
+    .populate({ path: 'items.product', model: 'baseproduct' })
     .populate('cashier');
 }
 
@@ -35,7 +56,7 @@ export async function findTodaySales(): Promise<SaleDocument[]> {
   const end = new Date(now);
   end.setHours(23, 59, 59, 999);
 
-  return await Sale.find({ date: { $gte: start, $lte: end } })
+  return Sale.find({ date: { $gte: start, $lte: end } })
     .populate('customer')
     .populate('items.product')
     .populate('cashier')
@@ -43,126 +64,153 @@ export async function findTodaySales(): Promise<SaleDocument[]> {
     .lean();
 }
 
-// 創建銷售記錄
 export async function createSaleRecord(requestBody: SaleCreationRequest): Promise<SaleDocument> {
-  // 生成銷貨單號（如果未提供）
   const finalSaleNumber = await generateSaleNumber(requestBody.saleNumber);
-  
-  // 確保銷貨單號不為空
   if (!finalSaleNumber) {
-    logger.error('無法生成有效的銷貨單號');
-    throw new Error('無法生成有效的銷貨單號');
+    throw new SaleServiceError(
+      API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+    );
   }
-  
-  // 建立銷售記錄
-  const saleData = {
-    saleNumber: finalSaleNumber,
-    customer: requestBody.customer,
-    items: requestBody.items,
-    totalAmount: requestBody.totalAmount || 0,
-    discount: requestBody.discount,
-    paymentMethod: requestBody.paymentMethod,
-    paymentStatus: requestBody.paymentStatus,
-    notes: requestBody.notes,
-    cashier: requestBody.cashier
-  };
-  
-  const saleFields = buildSaleFields({
-    saleNumber: saleData.saleNumber as string,
-    customer: saleData.customer || '',
-    items: saleData.items,
-    totalAmount: saleData.totalAmount,
-    discount: saleData.discount || 0,
-    paymentMethod: saleData.paymentMethod,
-    paymentStatus: saleData.paymentStatus || 'pending',
-    notes: saleData.notes || '',
-    cashier: saleData.cashier || ''
-  });
 
+  const saleFieldsInput: SaleFieldsInput = {
+    saleNumber: finalSaleNumber,
+    items: requestBody.items ?? [],
+    totalAmount: requestBody.totalAmount ?? 0,
+    paymentMethod: requestBody.paymentMethod,
+  };
+
+  if (requestBody.customer) {
+    saleFieldsInput.customer = requestBody.customer;
+  }
+
+  if (requestBody.discount !== undefined) {
+    saleFieldsInput.discount = requestBody.discount;
+  }
+
+  if (requestBody.paymentStatus) {
+    saleFieldsInput.paymentStatus = requestBody.paymentStatus;
+  }
+
+  const notes = extractNotesFromRequest(requestBody);
+  if (notes !== undefined) {
+    saleFieldsInput.notes = notes;
+  }
+
+  if (requestBody.cashier) {
+    saleFieldsInput.cashier = requestBody.cashier;
+  }
+
+  const saleFields = buildSaleFields(saleFieldsInput);
   const sale = new Sale(saleFields);
   await sale.save();
   return sale;
 }
 
-// 更新銷售記錄
-export async function updateSaleRecord(saleId: string, requestBody: SaleCreationRequest, existingSale: SaleDocument): Promise<SaleDocument> {
-  // 保持原有的銷貨單號
-  const saleData = {
-    saleNumber: existingSale.saleNumber, // 保持原有銷貨單號
-    customer: requestBody.customer,
-    items: requestBody.items,
-    totalAmount: requestBody.totalAmount || 0,
-    discount: requestBody.discount,
-    paymentMethod: requestBody.paymentMethod,
-    paymentStatus: requestBody.paymentStatus,
-    notes: requestBody.notes,
-    cashier: requestBody.cashier
+export async function updateSaleRecord(
+  saleId: string,
+  requestBody: SaleCreationRequest,
+  existingSale: SaleDocument,
+): Promise<SaleDocument> {
+  const existingSaleNumber = existingSale.saleNumber;
+  if (!existingSaleNumber) {
+    throw new SaleServiceError(
+      API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      'Existing sale is missing a sale number.',
+    );
+  }
+
+  const saleFieldsInput: SaleFieldsInput = {
+    saleNumber: existingSaleNumber,
+    items: requestBody.items ?? (existingSale.items as any),
+    totalAmount: requestBody.totalAmount ?? existingSale.totalAmount,
   };
-  
-  const saleFields = buildSaleFields({
-    saleNumber: saleData.saleNumber as string,
-    customer: saleData.customer || '',
-    items: saleData.items,
-    totalAmount: saleData.totalAmount,
-    discount: saleData.discount || 0,
-    paymentMethod: saleData.paymentMethod,
-    paymentStatus: saleData.paymentStatus || 'pending',
-    notes: saleData.notes || '',
-    cashier: saleData.cashier || ''
-  });
-  
-  // 更新銷售記錄
+
+  const customerId =
+    requestBody.customer ??
+    ((existingSale.customer as any)?.toString?.() as string | undefined);
+  if (customerId) {
+    saleFieldsInput.customer = customerId;
+  }
+
+  const discount = requestBody.discount ?? existingSale.discount;
+  if (discount !== undefined) {
+    saleFieldsInput.discount = discount;
+  }
+
+  const paymentMethod = requestBody.paymentMethod ?? existingSale.paymentMethod;
+  if (paymentMethod) {
+    saleFieldsInput.paymentMethod = paymentMethod;
+  }
+
+  const paymentStatus =
+    requestBody.paymentStatus ?? existingSale.paymentStatus;
+  if (paymentStatus) {
+    saleFieldsInput.paymentStatus = paymentStatus;
+  }
+
+  const notes = extractNotesFromRequest(requestBody);
+  if (notes !== undefined) {
+    saleFieldsInput.notes = notes;
+  }
+
+  const cashierId =
+    requestBody.cashier ??
+    ((existingSale.cashier as any)?.toString?.() as string | undefined);
+  if (cashierId) {
+    saleFieldsInput.cashier = cashierId;
+  }
+
+  const saleFields = buildSaleFields(saleFieldsInput);
   const updatedSale = await Sale.findByIdAndUpdate(
     saleId,
     { $set: saleFields },
-    { new: true, runValidators: true }
+    { new: true, runValidators: true },
   );
-  
+
   if (!updatedSale) {
-    throw new Error('更新銷售記錄失敗');
+    throw new SaleServiceError(
+      API_CONSTANTS.HTTP_STATUS.NOT_FOUND,
+      ERROR_MESSAGES.GENERIC.NOT_FOUND,
+    );
   }
-  
+
   return updatedSale;
 }
 
-// 刪除銷售記錄
 export async function deleteSaleRecord(saleId: string): Promise<void> {
   await Sale.findByIdAndDelete(saleId);
 }
 
-// 處理銷售創建的完整流程
 export async function processSaleCreation(requestBody: SaleCreationRequest): Promise<SaleDocument> {
-  // 1. 驗證請求和檢查記錄
   const validationResult = await validateSaleCreationRequest(requestBody);
   if (!validationResult.success) {
-    throw new Error(validationResult.message || '驗證失敗');
+    throw new SaleServiceError(
+      validationResult.statusCode ?? API_CONSTANTS.HTTP_STATUS.BAD_REQUEST,
+      validationResult.message ?? ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
+    );
   }
-  
-  // 2. 創建銷售記錄
+
   const sale = await createSaleRecord(requestBody);
-  
-  // 3. 處理庫存變更
   await handleInventoryForNewSale(sale);
-  
-  // 4. 處理客戶積分
   await updateCustomerPoints(sale);
-  
   return sale;
 }
 
-// 處理銷售更新的完整流程
-export async function processSaleUpdate(saleId: string, requestBody: SaleCreationRequest, existingSale: SaleDocument): Promise<SaleDocument> {
-  // 1. 驗證更新請求
+export async function processSaleUpdate(
+  saleId: string,
+  requestBody: SaleCreationRequest,
+  existingSale: SaleDocument,
+): Promise<SaleDocument> {
   const validationResult = await validateSaleUpdateRequest(requestBody);
   if (!validationResult.success) {
-    throw new Error(validationResult.message || '驗證失敗');
+    throw new SaleServiceError(
+      validationResult.statusCode ?? API_CONSTANTS.HTTP_STATUS.BAD_REQUEST,
+      validationResult.message ?? ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
+    );
   }
 
-  // 2. 更新銷售記錄
   const updatedSale = await updateSaleRecord(saleId, requestBody, existingSale);
-
-  // 3. 處理庫存變更（如果項目有變化）
   await handleInventoryForUpdatedSale(existingSale, updatedSale);
-
   return updatedSale;
 }
