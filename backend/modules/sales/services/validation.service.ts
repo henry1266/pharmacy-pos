@@ -109,10 +109,15 @@ export async function checkProductInventory(product: mongoose.Document, quantity
       return { success: true };
     }
 
-    const inventories = await Inventory.find({ product: product._id }).lean();
+    const inventoryQuery = Inventory.find({ product: product._id });
+    const inventoriesResult = typeof (inventoryQuery as any).lean === 'function'
+      ? await (inventoryQuery as any).lean()
+      : await inventoryQuery;
+
+    const inventories = Array.isArray(inventoriesResult) ? inventoriesResult : [];
     let totalQuantity = 0;
     for (const inv of inventories) {
-      totalQuantity += inv.quantity;
+      totalQuantity += inv.quantity ?? 0;
     }
 
     if (totalQuantity < quantity) {
@@ -253,6 +258,3 @@ function validateSalePayloadStructure(payload: SaleCreationRequest | undefined, 
 
   return { success: true };
 }
-
-
-
