@@ -28,7 +28,7 @@
   "include": [
     "./**/*.ts",
     "./**/*.js"
-  ],
+, "scripts/coverage-analysis.js"  ],
   "exclude": [
     "node_modules",
     "dist",
