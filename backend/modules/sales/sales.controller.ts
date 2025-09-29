@@ -5,7 +5,7 @@ import Sale from '../../models/Sale';
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@pharmacy-pos/shared/constants';
 import logger from '../../utils/logger';
-import * as salesService from './sales.service';\r\nimport { SaleServiceError } from './sales.service';
+import * as salesService from './sales.service';
 import * as searchService from './services/search.service';
 import { isValidObjectId } from './services/validation.service';
 import { handleInventoryForDeletedSale } from './services/inventory.service';
@@ -19,20 +19,20 @@ export const getAllSales = async (req: Request, res: Response) => {
     
     let sales: any[] = [];
     
-    // 憒???典???撠???
+    // 如果有萬用字元搜尋參數
     if (wildcardSearch && typeof wildcardSearch === 'string') {
       sales = await searchService.performWildcardSearch(wildcardSearch);
     }
-    // 憒????祆?撠??賂????澆捆嚗?
+    // 如果有一般搜尋參數（向後兼容）
     else if (search && typeof search === 'string') {
       sales = await searchService.performRegularSearch(search);
     }
-    // 瘝????嚗???????
+    // 沒有搜尋參數，返回所有記錄
     else {
       sales = await salesService.findAllSales();
     }
     
-    // 雿輻??瑁?閫?捱?銝??憿?
+    // 使用型別斷言解決型別不匹配問題
     const response: ApiResponse<any[]> = {
       success: true,
       message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
@@ -51,7 +51,7 @@ export const getAllSales = async (req: Request, res: Response) => {
     
     res.json(response);
   } catch (err: unknown) {
-    logger.error(`?脣??瑕閮??航炊: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    logger.error(`獲取銷售記錄錯誤: ${err instanceof Error ? err.message : 'Unknown error'}`);
     const errorResponse: ErrorResponse = {
       success: false,
       message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
@@ -86,7 +86,7 @@ export const getTodaySales = async (_req: Request, res: Response) => {
 
     res.json(response);
   } catch (err: unknown) {
-    logger.error(`??隞?瑕?航炊: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    logger.error(`取得今日銷售錯誤: ${err instanceof Error ? err.message : 'Unknown error'}`);
     const errorResponse: ErrorResponse = {
       success: false,
       message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
@@ -101,7 +101,7 @@ export const getTodaySales = async (_req: Request, res: Response) => {
 // @access  Public
 export const getSaleById = async (req: Request, res: Response) => {
   try {
-    // 撽? ID ?摮?批??澆?
+    // 驗證 ID 參數存在性和格式
     if (!req.params.id) {
       const errorResponse: ErrorResponse = {
         success: false,
@@ -112,7 +112,7 @@ export const getSaleById = async (req: Request, res: Response) => {
       return;
     }
 
-    // 撽? ID ?澆?嚗甇?NoSQL 瘜典
+    // 驗證 ID 格式，防止 NoSQL 注入
     if (!isValidObjectId(req.params.id)) {
       const errorResponse: ErrorResponse = {
         success: false,
@@ -135,7 +135,7 @@ export const getSaleById = async (req: Request, res: Response) => {
       return;
     }
     
-    // 雿輻??瑁?閫?捱?銝??憿?
+    // 使用型別斷言解決型別不匹配問題
     const salePlain = sale.toObject();
     const response: ApiResponse<any> = {
       success: true,
@@ -152,7 +152,7 @@ export const getSaleById = async (req: Request, res: Response) => {
     
     res.json(response);
   } catch (err: unknown) {
-    logger.error(`?脣??桀?株??隤? ${err instanceof Error ? err.message : 'Unknown error'}`);
+    logger.error(`獲取單個銷售記錄錯誤: ${err instanceof Error ? err.message : 'Unknown error'}`);
     if (err instanceof Error && err.name === 'CastError') {
       const errorResponse: ErrorResponse = {
         success: false,
@@ -177,10 +177,10 @@ export const getSaleById = async (req: Request, res: Response) => {
 // @access  Public
 export const createSale = async (req: Request, res: Response) => {
   try {
-    // ???瑕?萄遣???湔?蝔?
+    // 處理銷售創建的完整流程
     const sale = await salesService.processSaleCreation(req.body);
     
-    // 雿輻??瑁?閫?捱?銝??憿?
+    // 使用型別斷言解決型別不匹配問題
     const response: ApiResponse<any> = {
       success: true,
       message: SUCCESS_MESSAGES.GENERIC.CREATED,
@@ -196,7 +196,7 @@ export const createSale = async (req: Request, res: Response) => {
     
     res.json(response);
   } catch (err: unknown) {
-    logger.error(`?萄遣?瑕閮??航炊: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    logger.error(`創建銷售記錄錯誤: ${err instanceof Error ? err.message : 'Unknown error'}`);
     const errorResponse: ErrorResponse = {
       success: false,
       message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
@@ -211,7 +211,7 @@ export const createSale = async (req: Request, res: Response) => {
 // @access  Public
 export const updateSale = async (req: Request, res: Response) => {
   try {
-    // 撽? ID ?摮??
+    // 驗證 ID 參數存在性
     if (!req.params.id) {
       const errorResponse: ErrorResponse = {
         success: false,
@@ -222,7 +222,7 @@ export const updateSale = async (req: Request, res: Response) => {
       return;
     }
 
-    // 撽? ID ?澆?嚗甇?NoSQL 瘜典
+    // 驗證 ID 格式，防止 NoSQL 注入
     if (!isValidObjectId(req.params.id)) {
       const errorResponse: ErrorResponse = {
         success: false,
@@ -233,7 +233,7 @@ export const updateSale = async (req: Request, res: Response) => {
       return;
     }
 
-    // 瑼Ｘ?瑕閮??臬摮
+    // 檢查銷售記錄是否存在
     const existingSale = await Sale.findById(req.params.id);
     if (!existingSale) {
       const errorResponse: ErrorResponse = {
@@ -245,10 +245,10 @@ export const updateSale = async (req: Request, res: Response) => {
       return;
     }
 
-    // ???瑕?湔???湔?蝔?
+    // 處理銷售更新的完整流程
     const updatedSale = await salesService.processSaleUpdate(req.params.id, req.body, existingSale);
 
-    // ?憛怠??鞈?
+    // 重新填充關聯資料
     const populatedSale = await salesService.findSaleById((updatedSale._id as any).toString());
 
     if (!populatedSale) {
@@ -277,7 +277,7 @@ export const updateSale = async (req: Request, res: Response) => {
 
     res.json(response);
   } catch (err: unknown) {
-    logger.error(`?湔?瑕閮?憭望?: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    logger.error(`更新銷售記錄失敗: ${err instanceof Error ? err.message : 'Unknown error'}`);
     const errorResponse: ErrorResponse = {
       success: false,
       message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
@@ -292,7 +292,7 @@ export const updateSale = async (req: Request, res: Response) => {
 // @access  Public
 export const deleteSale = async (req: Request, res: Response) => {
   try {
-    // 撽? ID ?摮??
+    // 驗證 ID 參數存在性
     if (!req.params.id) {
       const errorResponse: ErrorResponse = {
         success: false,
@@ -303,7 +303,7 @@ export const deleteSale = async (req: Request, res: Response) => {
       return;
     }
 
-    // 撽? ID ?澆?嚗甇?NoSQL 瘜典
+    // 驗證 ID 格式，防止 NoSQL 注入
     if (!isValidObjectId(req.params.id)) {
       const errorResponse: ErrorResponse = {
         success: false,
@@ -314,7 +314,7 @@ export const deleteSale = async (req: Request, res: Response) => {
       return;
     }
 
-    // 瑼Ｘ?瑕閮??臬摮
+    // 檢查銷售記錄是否存在
     const existingSale = await Sale.findById(req.params.id);
     if (!existingSale) {
       const errorResponse: ErrorResponse = {
@@ -326,22 +326,22 @@ export const deleteSale = async (req: Request, res: Response) => {
       return;
     }
 
-    // ??摨怠??Ｗ儔嚗?日?桃??摨怠?閮?嚗敺拙澈摮?
+    // 處理庫存恢復（刪除銷售相關的庫存記錄，恢復庫存）
     await handleInventoryForDeletedSale(existingSale);
 
-    // ?芷?瑕閮?
+    // 刪除銷售記錄
     await salesService.deleteSaleRecord(req.params.id);
 
     const response: ApiResponse<{ id: string }> = {
       success: true,
-      message: SUCCESS_MESSAGES.GENERIC.DELETED || '?瑕閮?撌脣??,
+      message: SUCCESS_MESSAGES.GENERIC.DELETED || '銷售記錄已刪除',
       data: { id: req.params.id },
       timestamp: new Date()
     };
 
     res.json(response);
   } catch (err: unknown) {
-    logger.error(`?芷?瑕閮?憭望?: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    logger.error(`刪除銷售記錄失敗: ${err instanceof Error ? err.message : 'Unknown error'}`);
     const errorResponse: ErrorResponse = {
       success: false,
       message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
