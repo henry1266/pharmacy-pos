@@ -29,7 +29,7 @@ async function validateWithSharedZod(body: any, mode: 'create' | 'update'): Prom
   }
 }
 
-export function isValidObjectId(id: string): boolean {
+export function isValidObjectId(id: any): boolean {
   return mongoose.Types.ObjectId.isValid(id);
 }
 

@@ -204,7 +204,8 @@ export const createSale = async (req: Request, res: Response) => {
         message: err.message,
         timestamp: new Date()
       };
-      return res.status(err.status).json(errorResponse);
+      res.status(err.status).json(errorResponse);
+      return;
     }
     const errorResponse: ErrorResponse = {
       success: false,
