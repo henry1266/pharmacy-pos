@@ -24,7 +24,7 @@ import {
 
 // 導入 RTK Query API 和 Slice
 import { saleApi } from '../../features/sale/api/saleApi';
-import { supplierApi } from '../../features/supplier/api/supplierApi';
+import { supplierApi } from '../../features/supplier1/api/supplierApi';
 import { customerApi } from '../../features/customer/api/customerApi';
 import { productApi } from '../../features/product/api/productApi';
 import { purchaseOrderApi } from '../../features/purchase-order/api/purchaseOrderApi';
