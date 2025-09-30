@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "packageManager": "pnpm@10.12.1",
   "scripts": {
-    "check-types": "cd backend && npx ts-node ../scripts/check-type-consistency.ts",
+    "check-types": "ts-node --project ./backend/tsconfig.json ./scripts/check-type-consistency.ts",
     "predev": "pnpm --filter shared generate:openapi",
     "dev": "concurrently \"pnpm --filter backend dev\" \"pnpm --filter frontend start\"",
     "build": "pnpm --filter shared build && pnpm --filter shared generate:openapi && pnpm --filter backend build && pnpm --filter frontend build",
