@@ -46,6 +46,7 @@ export function transformCustomerToResponse(customer: CustomerRecord | CustomerR
   if (source.code !== undefined) response.code = source.code;
   if (source.phone !== undefined) response.phone = source.phone;
   if (source.email !== undefined) response.email = source.email;
+  if (source.line !== undefined) response.line = source.line;
   if (source.address !== undefined) response.address = source.address;
   if (source.idCardNumber !== undefined) response.idCardNumber = source.idCardNumber;
 

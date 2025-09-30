@@ -23,6 +23,7 @@ export interface CustomerDisplay {
   idCardNumber: string;
   birthdate: string | null;
   notes: string;
+  line: string;
   level: string;
   membershipLevel: MembershipLevel;
 }
@@ -80,6 +81,7 @@ const toCustomerRequest = (customerData: CustomerFormInput): CustomerCreateReque
     idCardNumber: normalizeOptionalString(customerData.idCardNumber),
     birthdate: normalizeOptionalString(customerData.birthdate),
     notes: normalizeOptionalString(customerData.notes),
+    line: normalizeOptionalString(customerData.line),
     membershipLevel,
   };
   return payload;
@@ -101,6 +103,7 @@ const toCustomerDisplay = (customer: CustomerResponseDto): CustomerDisplay => {
     idCardNumber: customer.idCardNumber ?? '',
     birthdate: customer.birthdate ? String(customer.birthdate) : null,
     notes: customer.notes ?? '',
+    line: customer.line ?? '',
     level: mapMembershipLevel(membershipLevel),
     membershipLevel,
   };
