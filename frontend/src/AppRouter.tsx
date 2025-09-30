@@ -5,7 +5,7 @@ import { DashboardPage, DashboardDateDetailPage } from './features/dashboard/pag
 import { SalesPage, SalesDetailPage, SalesEditPage, SalesNewPage } from './features/sale/pages';
 import { ProductsPage, ProductDetailPage, ProductEditPage, ProductsCategoryDetailPage, ProductCategoryPage } from './features/product/pages';
 import { CustomersPage, CustomerDetailPage } from './features/customer/pages';
-import { SuppliersPage, SupplierDetailPage } from './features/supplier1/pages';
+import { SuppliersPage, SupplierDetailPage } from './features/supplier/pages';
 import { ShippingOrdersPage, ShippingOrderFormPage, ShippingOrderDetailPage } from './features/shipping-order/pages';
 import { PurchaseOrdersPage, PurchaseOrderFormPage, PurchaseOrderDetailPage, PurchaseOrdersSupplierFilterPage } from './features/purchase-order/pages';
 import { JournalPage, NewEntryPage, CategoryPage, CategoryDetailPage } from './features/daily-journal/pages';
