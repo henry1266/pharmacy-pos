@@ -11,7 +11,7 @@
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
     "type-check": "tsc --noEmit",
-    "generate:openapi": "ts-node -O \"{\\\"module\\\":\\\"commonjs\\\"}\" scripts/generate-openapi.ts"
+    "generate:openapi": "ts-node --project tsconfig.json scripts/generate-openapi.ts"
   },
   "keywords": [
     "typescript",
