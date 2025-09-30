@@ -48,6 +48,7 @@ interface Customer {
   address?: string;
   idCardNumber?: string;
   birthdate?: string | null;
+  line?: string;
   notes?: string;
   membershipLevel: string;
   level?: string;
@@ -64,6 +65,7 @@ interface CustomerFormState {
   address: string;
   idCardNumber: string;
   birthdate: string | null;
+  line: string;
   notes: string;
   membershipLevel: string;
 }
@@ -138,6 +140,7 @@ const initialCustomerState: CustomerFormState = {
   email: '',
   address: '',
   idCardNumber: "",
+  line: '',
   birthdate: null,
   notes: "",
   membershipLevel: 'regular',
@@ -227,6 +230,15 @@ const CustomerFormDialog: FC<CustomerFormDialogProps> = ({
           name="address"
           label="地址"
           value={currentCustomerState.address}
+          onChange={onInputChange}
+          fullWidth
+          margin="dense"
+          size="small"
+        />
+        <TextField
+          name="line"
+          label="LINE ID"
+          value={currentCustomerState.line ?? ''}
           onChange={onInputChange}
           fullWidth
           margin="dense"
@@ -393,6 +405,7 @@ const CustomerDetailPanel: FC<CustomerDetailPanelProps> = ({ selectedCustomer, h
           <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}><Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>Email:</Typography><Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedCustomer.email ?? '無'}</Typography></ListItem>
           <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}><Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>等級:</Typography><Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedCustomer.level}</Typography></ListItem>
           <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}><Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>地址:</Typography><Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedCustomer.address ?? '無'}</Typography></ListItem>
+          <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}><Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>line:</Typography><Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedCustomer.line ?? '無'}</Typography></ListItem>
           <ListItem sx={{ py: 0.5, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}><Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>備註:</Typography><Typography variant="body2" sx={{ fontWeight: 500, whiteSpace: 'pre-wrap' }}>{selectedCustomer.notes ?? '無'}</Typography></ListItem>
         </List>
       </CardContent>
@@ -625,6 +638,7 @@ const CustomersPage: FC = () => {
       idCardNumber: customer.idCardNumber || "",
       birthdate: customer.birthdate || null,
       notes: customer.notes || "",
+      line: customer.line || "",
       membershipLevel: customer.membershipLevel || 'regular'
     });
     setEditMode(true);
@@ -662,6 +676,7 @@ const CustomersPage: FC = () => {
       idCardNumber: currentCustomerState.idCardNumber || '',
       birthdate: currentCustomerState.birthdate,
       notes: currentCustomerState.notes || '',
+      line: currentCustomerState.line || '',
       membershipLevel: currentCustomerState.membershipLevel || 'regular'
     };
 

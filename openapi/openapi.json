@@ -2300,6 +2300,9 @@
           },
           "notes": {
             "type": "string"
+          },
+          "line": {
+            "type": "string"
           }
         },
         "required": [
@@ -2375,6 +2378,9 @@
           },
           "notes": {
             "type": "string"
+          },
+          "line": {
+            "type": "string"
           }
         },
         "required": [
@@ -2449,6 +2455,9 @@
             "type": "string"
           },
           "notes": {
+            "type": "string"
+          },
+          "line": {
             "type": "string"
           }
         },

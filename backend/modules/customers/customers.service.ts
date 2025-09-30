@@ -175,13 +175,14 @@ function buildCustomerFields(input: ExtendedCustomerInput): Record<string, any> 
 }
 
 function assignBasicFields(input: ExtendedCustomerInput, target: Record<string, any>): void {
-  const { name, phone, code, email, address, gender } = input;
+  const { name, phone, code, email, address, gender, line } = input;
   if (name !== undefined) target.name = name;
   if (phone !== undefined) target.phone = phone;
   if (code !== undefined) target.code = code;
   if (email !== undefined) target.email = email;
   if (address !== undefined) target.address = address;
   if (gender !== undefined) target.gender = gender;
+  if (line !== undefined) target.line = line;
 }
 
 function assignBirthdateField(input: ExtendedCustomerInput, target: Record<string, any>): void {

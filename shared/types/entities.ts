@@ -200,6 +200,7 @@ export interface Customer {
   medicalHistory?: string;
   totalPurchases?: number;
   lastPurchaseDate?: string | Date;
+  line?: string;
   notes?: string;
   date?: string | Date;
   createdAt: string | Date;

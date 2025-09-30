@@ -32,6 +32,7 @@ export const customerSchema = z.object({
   membershipLevel: z.enum(['regular', 'silver', 'gold', 'platinum']).optional(),
   medicalHistory: z.string().optional(),
   notes: z.string().optional(),
+  line: z.string().optional(),
 });
 
 export const createCustomerSchema = customerSchema;

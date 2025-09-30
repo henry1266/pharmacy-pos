@@ -56,6 +56,9 @@ const CustomerSchema = new Schema<ICustomerDocument>({
   notes: {
     type: String
   },
+  line: {
+    type: String
+  },
   totalPurchases: {
     type: Number,
     default: 0
