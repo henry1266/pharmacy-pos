@@ -193,6 +193,8 @@ export const mapSaleResponseToSaleData = (sale: SaleResponseDto): SaleDataDto =>
  */
 export const mapSaleDataToSaleRequest = (saleData: SaleDataDto): SaleCreateRequest => {
   return {
+    saleNumber: '', // 後端生成
+    date: new Date().toISOString(), // 使用當前日期
     customer: saleData.customer || undefined,
     items: saleData.items.map(item => ({
       product: item.product,
