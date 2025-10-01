@@ -5,23 +5,23 @@
  */
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 type SupportedSchemaModule = 'sale' | 'customer' | 'supplier' | 'purchaseOrder';
 
-function resolveZodModule(name: SupportedSchemaModule): any {
+async function resolveZodModule(name: SupportedSchemaModule): Promise<any> {
   const fileName = `${name}.js`;
-  const candidates = [
-    path.resolve(__dirname, `../dist/schemas/zod/${fileName}`),
-    // fallback when script executed from repo root
-    path.resolve(__dirname, `../../shared/dist/schemas/zod/${fileName}`)
-  ];
-  for (const candidate of candidates) {
-    if (fs.existsSync(candidate)) {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      return require(candidate);
-    }
+  // When script is executed from shared/dist/scripts, the correct path is ../../dist/schemas/zod
+  const candidate = path.resolve(__dirname, `../../dist/schemas/zod/${fileName}`);
+  
+  if (fs.existsSync(candidate)) {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    return await import(`file://${candidate}`);
   }
   throw new Error(`Cannot find compiled ${name} zod module. Build shared first.`);
 }
@@ -35,15 +35,15 @@ function toJsonSchema(schema: z.ZodTypeAny, name: string) {
 }
 
 async function main() {
-  const saleMod = resolveZodModule('sale');
-  const customerMod = resolveZodModule('customer');
-  const supplierMod = resolveZodModule('supplier');
-  const purchaseOrderMod = resolveZodModule('purchaseOrder');
+  const saleMod = await resolveZodModule('sale');
+  const customerMod = await resolveZodModule('customer');
+  const supplierMod = await resolveZodModule('supplier');
+  const purchaseOrderMod = await resolveZodModule('purchaseOrder');
 
   const saleItemSchema = saleMod.saleItemSchema as z.ZodTypeAny | undefined;
   const createSaleSchema = saleMod.createSaleSchema as z.ZodTypeAny | undefined;
   const updateSaleSchema = saleMod.updateSaleSchema as z.ZodTypeAny | undefined;
-  const saleSearchSchema = saleMod.saleSearchSchema as z.ZodTypeAny | undefined;
+  const saleSearchSchema = saleMod.saleQuerySchema as z.ZodTypeAny | undefined;
 
   const customerSchema = customerMod.customerSchema as z.ZodTypeAny | undefined;
   const createCustomerSchema = customerMod.createCustomerSchema as z.ZodTypeAny | undefined;
@@ -157,7 +157,7 @@ async function main() {
     try {
       const modPath = path.resolve(__dirname, `../api/paths/${descriptor}`);
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const paths = require(modPath).default as Record<string, any>;
+      const paths = (await import(modPath)).default as Record<string, any>;
       docAny.paths = { ...docAny.paths, ...paths };
     } catch (_err) {
       // optional descriptor; ignore if missing
