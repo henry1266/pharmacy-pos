@@ -146,6 +146,20 @@
       "SaleCreateRequest": {
         "type": "object",
         "properties": {
+          "saleNumber": {
+            "type": "string"
+          },
+          "date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
+          },
           "customer": {
             "type": "string"
           },
@@ -223,14 +237,6 @@
               "paid",
               "pending",
               "partial",
-              "cancelled"
-            ]
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "completed",
-              "pending",
               "cancelled"
             ]
           },
@@ -249,6 +255,20 @@
       "SaleUpdateRequest": {
         "type": "object",
         "properties": {
+          "saleNumber": {
+            "type": "string"
+          },
+          "date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
+          },
           "customer": {
             "type": "string"
           },
@@ -329,14 +349,6 @@
               "cancelled"
             ]
           },
-          "status": {
-            "type": "string",
-            "enum": [
-              "completed",
-              "pending",
-              "cancelled"
-            ]
-          },
           "notes": {
             "type": "string",
             "maxLength": 1000
@@ -347,6 +359,12 @@
       "SaleSearchQuery": {
         "type": "object",
         "properties": {
+          "search": {
+            "type": "string"
+          },
+          "wildcardSearch": {
+            "type": "string"
+          },
           "page": {
             "type": "number",
             "minimum": 1
@@ -356,59 +374,8 @@
             "minimum": 1,
             "maximum": 100
           },
-          "startDate": {
-            "type": "string",
-            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
-          },
-          "endDate": {
-            "type": "string",
-            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
-          },
-          "customer": {
-            "type": "string",
-            "minLength": 24,
-            "maxLength": 24
-          },
-          "paymentMethod": {
-            "type": "string",
-            "enum": [
-              "cash",
-              "card",
-              "transfer",
-              "other",
-              "credit_card",
-              "debit_card",
-              "mobile_payment"
-            ]
-          },
-          "paymentStatus": {
-            "type": "string",
-            "enum": [
-              "paid",
-              "pending",
-              "partial",
-              "cancelled"
-            ]
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "completed",
-              "pending",
-              "cancelled"
-            ]
-          },
-          "minAmount": {
-            "type": "number",
-            "minimum": 0
-          },
-          "maxAmount": {
-            "type": "number",
-            "minimum": 0
-          },
           "sortBy": {
-            "type": "string",
-            "maxLength": 50
+            "type": "string"
           },
           "sortOrder": {
             "type": "string",
@@ -416,10 +383,6 @@
               "asc",
               "desc"
             ]
-          },
-          "search": {
-            "type": "string",
-            "maxLength": 200
           }
         },
         "additionalProperties": false

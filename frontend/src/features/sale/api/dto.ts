@@ -207,7 +207,6 @@ export const mapSaleDataToSaleRequest = (saleData: SaleDataDto): SaleCreateReque
     discount: saleData.discount,
     paymentMethod: saleData.paymentMethod,
     paymentStatus: saleData.paymentStatus,
-    status: saleData.paymentStatus === 'paid' ? 'completed' : saleData.paymentStatus,
     notes: saleData.notes
   };
 };
