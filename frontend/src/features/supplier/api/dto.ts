@@ -18,15 +18,15 @@ export interface PaginatedResponse<T> {
 }
 
 export type SupplierCreateRequest = z.infer<
-  typeof import('@pharmacy-pos/shared/dist/schemas/zod/supplier').createSupplierSchema
+  typeof import('@pharmacy-pos/shared/schemas/zod/supplier').createSupplierSchema
 >;
 
 export type SupplierUpdateRequest = z.infer<
-  typeof import('@pharmacy-pos/shared/dist/schemas/zod/supplier').updateSupplierSchema
+  typeof import('@pharmacy-pos/shared/schemas/zod/supplier').updateSupplierSchema
 >;
 
 export type SupplierQueryParams = z.infer<
-  typeof import('@pharmacy-pos/shared/dist/schemas/zod/supplier').supplierSearchSchema
+  typeof import('@pharmacy-pos/shared/schemas/zod/supplier').supplierSearchSchema
 >;
 
 export type SupplierResponseDto = Supplier;

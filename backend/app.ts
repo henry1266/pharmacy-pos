@@ -219,7 +219,7 @@ export function createApp(): Application {
         }
       }
     };
-    console.log('Merged generated OpenAPI (Sales) with legacy spec');
+    //console.log('Merged generated OpenAPI with legacy spec');
   } catch (_err) {
     // ignore if openapi.json not present
   }

@@ -5,7 +5,7 @@ import logger from '../../../utils/logger';
 export function validateSale(mode: 'create' | 'update') {
   return async function (req: Request, res: Response, next: NextFunction) {
     try {
-      const modulePath = require.resolve('@pharmacy-pos/shared/dist/schemas/zod/sale.js');
+      const modulePath = require.resolve('@pharmacy-pos/shared/schemas/zod/sale.js');
       const mod = await import(modulePath);
       const schema = mode === 'create' ? (mod as any).createSaleSchema : (mod as any).updateSaleSchema;
       const result = schema.safeParse(req.body);

@@ -7,7 +7,7 @@ import { buildErrorResponse } from '../suppliers.utils';
 export function validateSupplierPayload(mode: 'create' | 'update') {
   return async function (req: Request, res: Response, next: NextFunction) {
     try {
-      const modulePath = require.resolve('@pharmacy-pos/shared/dist/schemas/zod/supplier.js');
+      const modulePath = require.resolve('@pharmacy-pos/shared/schemas/zod/supplier.js');
       const mod = await import(modulePath);
       const schema = mode === 'create'
         ? (mod as any).createSupplierSchema

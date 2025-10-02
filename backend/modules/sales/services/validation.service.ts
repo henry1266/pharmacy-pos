@@ -14,7 +14,7 @@ import {
 
 async function validateWithSharedZod(body: any, mode: 'create' | 'update'): Promise<ValidationResult> {
   try {
-    const modulePath = require.resolve('@pharmacy-pos/shared/dist/schemas/zod/sale.js');
+    const modulePath = require.resolve('@pharmacy-pos/shared/schemas/zod/sale.js');
     const mod = await import(modulePath);
     const schema = mode === 'create' ? (mod as any).createSaleSchema : (mod as any).updateSaleSchema;
     const result = schema.safeParse(body);
