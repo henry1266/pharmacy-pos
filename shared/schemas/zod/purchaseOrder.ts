@@ -1,5 +1,5 @@
 ﻿import { z } from 'zod';
-import { API_CONSTANTS, BUSINESS_CONSTANTS } from '../../constants/index.js';
+import { API_CONSTANTS, BUSINESS_CONSTANTS } from '../../constants';
 
 const OBJECT_ID_REGEX = /^[0-9a-fA-F]{24}$/;
 

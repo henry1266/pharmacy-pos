@@ -2,7 +2,7 @@
  * Zod 工具函數和基礎類型定義
  */
 import { z } from 'zod';
-import { VALIDATION_CONSTANTS } from '../constants/index.js';
+import { VALIDATION_CONSTANTS } from '../constants';
 
 // 基礎 Zod 類型
 export const zodId = z.string().length(24, { message: 'ID 格式錯誤' });

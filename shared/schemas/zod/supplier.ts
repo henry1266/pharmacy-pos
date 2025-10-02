@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { VALIDATION_CONSTANTS } from '../../constants/index.js';
+import { VALIDATION_CONSTANTS } from '../../constants';
 
 const supplierNameSchema = z
   .string()

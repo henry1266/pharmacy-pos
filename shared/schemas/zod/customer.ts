@@ -1,5 +1,5 @@
 ﻿import { z } from 'zod';
-import { VALIDATION_CONSTANTS } from '../../constants/index.js';
+import { VALIDATION_CONSTANTS } from '../../constants';
 
 const nameSchema = z.string()
   .min(VALIDATION_CONSTANTS.CUSTOMER_NAME.MIN_LENGTH, { message: '客戶姓名長度需在 1-100 字之間' })
