@@ -118,15 +118,15 @@ const SalesInputPanel: FC<SalesInputPanelProps> = ({
         */}
         <Grid
           container
-          spacing={{ xs: 2, md: 3 }}
+          spacing={{ xs: 1, md: 3 }}
           sx={{
             height: '100%',
             overflow: 'visible', // 改為 visible 讓按鈕可以超出邊界
             margin: 0,
             width: '100%',
             '& > .MuiGrid-item': {
-              paddingTop: { xs: '16px', md: '24px' },
-              paddingLeft: { xs: '16px', md: '24px' }
+              paddingTop: { xs: '10px', md: '24px' },
+              paddingLeft: { xs: '10px', md: '24px' }
             }
           }}
         >
@@ -152,7 +152,7 @@ const SalesInputPanel: FC<SalesInputPanelProps> = ({
               <Box sx={{
                 flex: 1,
                 minHeight: 0,
-                pr: { sm: 0.5 }
+                pr: { sm: 0.1 }
               }}>
                 <SalesItemsTable
                   items={currentSale.items}
@@ -240,14 +240,8 @@ const SalesInputPanel: FC<SalesInputPanelProps> = ({
                   lg: 'flex-start'  // 桌面：頂部對齊
                 },
                 alignItems: 'center',
-                flex: {
-                  xs: 0,           // 小手機：不擴展
-                  sm: 1,           // 平板：佔一半空間
-                  md: 1,           // 平板橫向：佔一半空間
-                  lg: 0            // 桌面：不擴展
-                },
                 mt: {
-                  xs: 1,           // 小手機：稍微往下移
+                  xs: 0,           // 小手機：稍微往下移
                   sm: 0,           // 平板：不推到底部
                   md: 0,           // 平板橫向：不推到底部
                   lg: 5           // 桌面：稍微往下移
@@ -322,12 +316,7 @@ const SaveButton: FC<SaveButtonProps> = ({
           md: '260px',     // 平板橫向：稍微增加
           lg: '280px'      // 桌面
         },
-        px: {
-          xs: 2,           // 小手機
-          sm: 1.5,         // 平板：縮小內距
-          md: 2,           // 平板橫向：稍微增加
-          lg: 2            // 桌面
-        }
+        px: 2,
       }}
     >
       {isTablet ? '結帳' : '結帳'} {isTestMode && "(模擬)"}

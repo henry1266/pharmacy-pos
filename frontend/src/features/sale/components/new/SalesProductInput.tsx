@@ -504,7 +504,7 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
             );
           }}
           renderOption={renderOption}
-          ListboxProps={{ style: { maxHeight: 200, overflow: 'auto' } }}
+          ListboxProps={{ style: { maxHeight: 210, overflow: 'auto' } }}
           sx={{ flexGrow: 1, mr: 1 }}
         />
         <IconButton color="primary" onClick={handleBarcodeSubmit} aria-label="添加產品">

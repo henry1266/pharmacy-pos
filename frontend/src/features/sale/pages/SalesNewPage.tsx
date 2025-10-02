@@ -326,7 +326,7 @@ const SalesNewPage: FC = () => {
   return (
     <Box sx={{
       height: {
-        xs: 'calc(100vh - 100px)', // 小螢幕
+        xs: 'calc(100vh - 60px)', // 小螢幕
         sm: 'calc(100vh - 60px)',  // 平板：進一步減少預留空間
         md: 'calc(100vh - 70px)',  // 平板橫向：進一步減少預留空間
         lg: 'calc(100vh - 120px)'  // 桌面：保持原有
@@ -334,15 +334,9 @@ const SalesNewPage: FC = () => {
       display: 'flex',
       flexDirection: 'column',
       overflow: 'visible', // 改為 visible 讓按鈕可以超出最外層邊界
-      p: {
-        xs: 0.5,         // 小螢幕
-        sm: 1,           // 平板：減少 padding
-        md: 1.5,         // 平板橫向：減少 padding
-        lg: 2            // 桌面：保持原有
-      },
       px: {
-        xs: 1,           // 小螢幕
-        sm: 1,           // 平板：減少左右 padding
+        xs: 0,           // 小螢幕
+        sm: 0,           // 平板：減少左右 padding
         md: 1.5,         // 平板橫向：減少左右 padding
         lg: 3            // 桌面：保持原有
       },
@@ -369,38 +363,36 @@ const SalesNewPage: FC = () => {
         flexShrink: 0,
         mb: {
           xs: 1,           // 小手機
-          sm: 0.5,         // 平板：進一步減少
-          md: 1,           // 平板橫向：進一步減少
-          lg: 3            // 桌面：保持原有
+          sm: 1,         // 平板：進一步減少
+          md: 2,           // 平板橫向：進一步減少
+          lg: 2            // 桌面：保持原有
         },
         gap: {
-          xs: 0.5,         // 小手機
+          xs: 0,         // 小手機
           sm: 0.5,         // 平板：保持最小
           md: 0.5,         // 平板橫向：進一步減少
-          lg: 2            // 桌面：保持原有
+          lg: 1            // 桌面：保持原有
         },
         overflow: 'visible' // 允許快捷按鈕區域正常顯示
       }}>
         {/* Title and Action Buttons Row */}
         <Box sx={{
           display: 'flex',
-          flexDirection: isSmallMobile ? 'column' : 'row', // 只有真正的小手機才垂直排列
+
           justifyContent: 'space-between',
           alignItems: isSmallMobile ? 'flex-start' : 'center',
           gap: {
             xs: 1,           // 小手機
             sm: 1,           // 平板：減少間距
             md: 1.5,         // 平板橫向：減少間距
-            lg: 2            // 桌面：保持原有
+            lg: 1            // 桌面：保持原有
           }
         }}>
           <Typography
-            variant={isSmallMobile ? 'h5' : isTablet ? 'h5' : 'h4'} // 平板使用較小標題
             component="h1"
-            gutterBottom={isSmallMobile}
             sx={{
               fontSize: {
-                xs: '1.5rem',      // 小手機
+                xs: '1.2rem',      // 小手機
                 sm: '1.4rem',      // 平板：縮小
                 md: '1.5rem',      // 平板橫向：縮小
                 lg: '1.5rem',        // 桌面
@@ -414,24 +406,18 @@ const SalesNewPage: FC = () => {
               <Typography
                 component="span"
                 sx={{
-                  fontSize: { xs: '0.75em', sm: '0.75em' }, // 平板也使用小字體
+                  fontSize: { xs: '0.7em', sm: '0.7em' }, // 平板也使用小字體
                   color: 'orange',
                   fontWeight: 'bold'
                 }}
               >
-                (測試模式)
+                (測試)
               </Typography>
             )}
           </Typography>
           <Box sx={{
             display: 'flex',
-            gap: {
-              xs: 0.5,         // 小手機
-              sm: 0.5,         // 平板：減少間距
-              md: 1,           // 平板橫向：減少間距
-              lg: 1.5          // 桌面：保持原有
-            },
-            flexDirection: isSmallMobile ? 'column' : 'row', // 只有真正的小手機才垂直排列
+            gap: 1,
             width: isSmallMobile ? '100%' : 'auto',
             alignItems: 'center'
           }}>
@@ -441,29 +427,28 @@ const SalesNewPage: FC = () => {
               onClick={refreshSales}
               disabled={salesLoading}
               size={isSmallMobile ? 'small' : isTablet ? 'small' : 'medium'} // 平板使用小按鈕
-              fullWidth={isSmallMobile}
               sx={{
                 mt: isSmallMobile ? 1 : 0,
-                minWidth: isTablet ? '100px' : 'auto', // 平板縮小最小寬度
+                minWidth: isTablet ? '150px' : 'auto', // 平板縮小最小寬度
                 px: isTablet ? 1.5 : 1.5 // 平板減少內距
               }}
               title="手動刷新當天銷售記錄"
             >
-              {isTablet ? '刷新' : '刷新清單'} {/* 平板使用較短文字 */}
+              
+              {isSmallMobile || isTablet ? '刷新' : '刷新清單'} {/* 平板使用較短文字 */}
             </Button>
             <Button
               variant="outlined"
               startIcon={<ArrowBackIcon />}
               onClick={() => navigate('/sales')}
               size={isSmallMobile ? 'small' : isTablet ? 'small' : 'medium'} // 平板使用小按鈕
-              fullWidth={isSmallMobile}
               sx={{
                 mt: isSmallMobile ? 1 : 0,
                 minWidth: isTablet ? '100px' : 'auto', // 平板縮小最小寬度
                 px: isTablet ? 1.5 : 1.5 // 平板減少內距
               }}
             >
-              {isTablet ? '返回' : '返回銷售列表'} {/* 平板使用較短文字 */}
+              {isSmallMobile || isTablet ? '返回' : '返回銷售列表'} {/* 平板使用較短文字 */}
             </Button>
           </Box>
         </Box>
@@ -489,7 +474,6 @@ const SalesNewPage: FC = () => {
         flex: 1,
         display: 'flex',
         flexDirection: isMobile ? 'column' : 'row',
-        gap: { xs: 1, sm: 2, md: 3 },
         overflow: 'visible', // 改為 visible 讓按鈕可以超出主容器邊界
         minHeight: 0 // 重要：讓 flex 子元素能正確縮小
       }}>
@@ -497,7 +481,7 @@ const SalesNewPage: FC = () => {
         {!isMobile && (
           <Box sx={{
             width: panelWidth, // 占據左半邊
-            minWidth: '280px',
+            minWidth: '200px',
             height: 'calc(118%)', // 增加高度
             flexShrink: 0,
             mt: -13, // 向上偏移，使其與頂部對齊

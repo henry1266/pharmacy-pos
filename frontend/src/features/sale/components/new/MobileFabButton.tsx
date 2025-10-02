@@ -50,7 +50,6 @@ const MobileFabButton: FC<MobileFabButtonProps> = ({
           '& .MuiBadge-badge': {
             fontSize: '0.7rem',
             minWidth: '18px',
-            height: '18px',
             top: -8,
             right: -8
           }

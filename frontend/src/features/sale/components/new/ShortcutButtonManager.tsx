@@ -170,12 +170,12 @@ const ShortcutButtonManager: React.FC<ShortcutButtonManagerProps> = ({
           onClick={() => onShortcutSelect(shortcut)}
           sx={{
             textTransform: 'none',
-            height: { xs: 48, sm: 52, md: 56 },
-            minWidth: { xs: 120, sm: 140, md: 160 },
+            height: { xs: 48, sm: 52, md: 54 },
+            minWidth: { xs: 80, sm: 140, md: 140 },
             fontSize: { xs: '0.875rem', sm: '1rem', md: '1.1rem' },
             fontWeight: 500,
-            px: { xs: 2, sm: 3, md: 4 },
-            py: { xs: 1.5, sm: 2 },
+            px: { xs: 1, sm: 3, md: 4 },
+            py: { xs: 1, sm: 2 },
             borderRadius: 'var(--shape-corner-large, 16px)',
             position: 'relative',
             overflow: 'hidden',
@@ -280,8 +280,8 @@ const ShortcutButtonManager: React.FC<ShortcutButtonManagerProps> = ({
       <IconButton
         onClick={handleOpenManageDialog}
         sx={{
-          height: { xs: 48, sm: 52, md: 56 },
-          width: { xs: 48, sm: 52, md: 56 },
+          height: { xs: 40, sm: 52, md: 56 },
+          width: { xs: 40, sm: 52, md: 56 },
           borderRadius: 'var(--shape-corner-medium, 12px)',
           position: 'relative',
           overflow: 'hidden',

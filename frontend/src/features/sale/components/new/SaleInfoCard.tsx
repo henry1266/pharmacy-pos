@@ -104,13 +104,13 @@ const SaleInfoCard: React.FC<SaleInfoCardProps> = ({
         sx={{
           pb: expanded ? 1 : 2,
           px: {
-            xs: 2,           // 小手機
+            xs: 0,           // 小手機
             sm: 1.5,         // 平板：減少內距
             md: 2,           // 平板橫向：減少內距
             lg: 2.5          // 桌面
           },
           pt: {
-            xs: 2,           // 小手機
+            xs: 0,           // 小手機
             sm: 1.5,         // 平板：減少內距
             md: 2,           // 平板橫向：減少內距
             lg: 2.5          // 桌面
@@ -121,20 +121,20 @@ const SaleInfoCard: React.FC<SaleInfoCardProps> = ({
         <CardContent sx={{
           pt: 0,
           px: {
-            xs: 2,           // 小手機
+            xs: 0,           // 小手機
             sm: 1.5,         // 平板：減少內距
             md: 2,           // 平板橫向：減少內距
             lg: 2.5          // 桌面
           },
           pb: {
-            xs: 2,           // 小手機
+            xs: 0,           // 小手機
             sm: 1.5,         // 平板：減少內距
             md: 2,           // 平板橫向：減少內距
             lg: 2.5          // 桌面
           }
         }}>
           <Grid container spacing={{
-            xs: 1.5,         // 小手機
+            xs: 1,         // 小手機
             sm: 1,           // 平板：減少間距
             md: 1.5,         // 平板橫向：減少間距
             lg: 2            // 桌面

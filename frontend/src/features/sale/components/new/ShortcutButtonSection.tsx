@@ -41,7 +41,7 @@ const ShortcutButtonSection: FC<ShortcutButtonSectionProps> = ({
       display: 'flex',
       flexWrap: 'wrap',
       gap: {
-        xs: 0.75,        // 小手機：進一步減少間距
+        xs: 0.4,        // 小手機：進一步減少間距
         sm: 0.75,        // 平板：進一步減少間距
         md: 1,           // 平板橫向：減少間距
         lg: 1.5          // 桌面：減少間距
@@ -49,7 +49,7 @@ const ShortcutButtonSection: FC<ShortcutButtonSectionProps> = ({
       alignItems: 'center',
       justifyContent: 'center',
       p: {
-        xs: 0.75,        // 小手機：進一步減少內距
+        xs: 0.5,        // 小手機：進一步減少內距
         sm: 0.5,         // 平板：大幅減少內距
         md: 0.75,        // 平板橫向：大幅減少內距
         lg: 1.5          // 桌面：大幅減少內距
@@ -83,39 +83,22 @@ const ShortcutButtonSection: FC<ShortcutButtonSectionProps> = ({
           color: `rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.85)`,
           fontWeight: 600,
           fontSize: {
-            xs: isSmallMobile ? '0.9rem' : '1rem',
-            sm: isTablet ? '0.9rem' : '1rem',    // 平板：縮小字體
+            xs: '1rem',
+            sm: '1rem',   // 平板：縮小字體
             md: '1rem',      // 平板橫向：縮小字體
             lg: '1.2rem'     // 桌面：保持原有
           },
           mr: {
-            xs: isSmallMobile ? 0.5 : 1,
-            sm: isTablet ? 0.75 : 1,           // 平板：減少間距
+            xs: 0,
+            sm: 0.5,           // 平板：減少間距
             md: 1.5,         // 平板橫向：減少間距
             lg: 2            // 桌面：保持原有
           },
-          textShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
           display: 'flex',
           alignItems: 'center',
-          gap: isSmallMobile || isTablet ? 0.3 : 0.5  // 小螢幕時進一步減少圖示間距
+          gap: isSmallMobile || isTablet ? 0.1 : 0.1  // 小螢幕時進一步減少圖示間距
         }}
       >
-        <Box
-          component="span"
-          sx={{
-            fontSize: {
-              xs: isSmallMobile ? '1.1rem' : '1.2rem',
-              sm: isTablet ? '1rem' : '1.1rem',    // 平板：縮小圖示
-              md: '1.2rem',    // 平板橫向：縮小圖示
-              lg: '1.4rem'     // 桌面：保持原有
-            },
-            filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))',
-            display: isSmallMobile ? 'inline-flex' : 'inline-block'
-          }}
-        >
-          ⚡
-        </Box>
-        快捷按鈕：
       </Typography>
       <ShortcutButtonManager
         onShortcutSelect={onShortcutSelect}

@@ -160,7 +160,6 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
       height: '100%',
       display: 'flex',
       flexDirection: 'column',
-      mt: 2
     }}>
       <TableContainer
         ref={tableContainerRef}
@@ -169,7 +168,7 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
           flex: 1,
           overflow: 'auto',
           // 當內容不超出時，滾輪會自動隱藏
-          overflowY: items.length > 8 ? 'scroll' : 'auto' // 超過8個項目才強制顯示滾輪
+          overflowY: items.length > 5 ? 'scroll' : 'auto' // 超過8個項目才強制顯示滾輪
         }}
       >
         <Table
@@ -184,10 +183,10 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
         >
         <TableHead>
           <TableRow>
-            <TableCell sx={{ px: 1, width: '60px' }} align="center">序號</TableCell>
-            <TableCell sx={{ pl: isMobile ? 1 : 2, pr: isMobile ? 0 : 1 }}>產品名稱</TableCell>
+            <TableCell sx={{ width: 'auto' }} align="center">序號</TableCell>
+            <TableCell sx={{ width: 'auto' }}>產品名稱</TableCell>
             {!isMobile && <TableCell align="right" sx={{ px: 1 }}>代碼</TableCell>}
-            <TableCell align="center" sx={{ px: 1, width: isMobile ? 'auto' : '150px' }}>數量</TableCell>
+            <TableCell align="center" sx={{ px: 1, width: isMobile ? 'auto' : 'auto' }}>數量</TableCell>
             <TableCell align="right" sx={{ px: 1 }}>單價/小計</TableCell>
             <TableCell align="center" sx={{ px: 1 }}>操作</TableCell>
           </TableRow>
@@ -366,7 +365,7 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
         xs: 0.5,         // 小手機：減少上方間距
         sm: 1,        // 平板：大幅減少上方間距
         md: 1,         // 平板橫向：減少上方間距
-        lg: 1          // 桌面：減少上方間距
+        lg: 1         // 桌面：減少上方間距
       },
       p: {
         xs: 1.5,         // 小手機
@@ -383,12 +382,6 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
         justifyContent: 'space-between',
         alignItems: 'center',
         flexWrap: 'wrap',
-        gap: {
-          xs: 1,           // 小手機
-          sm: 1,           // 平板：減少間距
-          md: 1.5,         // 平板橫向：減少間距
-          lg: 1.5            // 桌面
-        }
       }}>
         <Typography
           variant="h6"
@@ -418,7 +411,7 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
               }
             }}
           >
-            ${totalAmount?.toFixed(2) ?? '0.0'}
+            ${totalAmount?.toFixed(1) ?? '0.0'}
           </Typography>
           {/* 只有在有折扣且折扣大於0時才顯示折扣信息 */}
           {discount != null && discount !== '' && Number(discount) > 0 && (
@@ -435,7 +428,7 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
                 mt: -0.5 // 減少上方間距
               }}
             >
-              (折扣: ${Number(discount).toFixed(2)})
+              (折扣: ${Number(discount).toFixed(1)})
             </Typography>
           )}
         </Box>
