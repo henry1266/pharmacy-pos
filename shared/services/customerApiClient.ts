@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 客戶 API 客戶端
  * 基於通用 BaseApiClient 實現
  */
@@ -90,3 +90,9 @@ export const createCustomerApiClient = (httpClient: HttpClient): CustomerApiClie
 
 // 重新匯出基礎類型
 export type { HttpClient } from './baseApiClient';
+
+export { createCustomersContractClient } from '../api/clients/customers';
+export type { CustomersContractClient, CustomersClientOptions } from '../api/clients/customers';
+
+
+

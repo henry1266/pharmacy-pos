@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Shared 模組主要匯出檔案
  * 統一匯出所有共享的型別、常數、工具函數等
  */
@@ -416,7 +416,9 @@ export {
   apiErrorResponseSchema,
 } from './schemas/zod/common';
 export { saleEntitySchema } from './schemas/zod/sale';
+export { customerEntitySchema } from './schemas/zod/customer';
 export { createSalesContractClient } from './api/clients/sales';
 export type { SalesContractClient, SalesClientOptions, HeaderShape } from './api/clients/sales';
+
 
 

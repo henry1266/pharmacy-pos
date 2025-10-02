@@ -1,62 +1,77 @@
-# Customers 模組說明（Zod SSOT + Swagger）
+﻿# Customers 模組（ts-rest + Zod SSOT）
 
-> 本模組負責客戶資料的建立、更新、查詢與刪除，所有欄位均以 shared 套件中的 Zod schema 作為單一事實來源（Single Source of Truth, SSOT），並同步輸出至 OpenAPI 文件。
+> 提供顧客資料的建立、查詢、更新與刪除，以及依身分證號的快速建檔。模組完全以 `shared/` 內的 Zod schema 為單一事實來源，透過 ts-rest 契約輸出型別安全的 handler、client 與 OpenAPI 契約。
 
-## 模組分層
+## 組成元件
 
-- **路由層**：`customers.routes.ts` 只負責宣告 API 路徑並掛載對應的驗證中介層與控制器。
-- **控制器層**：`customers.controller.ts` 統一處理回應格式、錯誤訊息與 HTTP 狀態碼。
-- **服務層**：`customers.service.ts` 封裝資料庫操作、會員編號檢查，以及舊欄位的相容處理。
-- **共用工具與型別**：
-  - `customers.types.ts` 直接由 Zod schema 推導請求與查詢的型別。
-  - `customers.utils.ts` 負責欄位正規化（例如 note/notes）、陣列整理（allergies）、以及回應封裝（ApiResponse / ErrorResponse）。
-- **驗證中介層**：
-  - `middlewares/validateCustomerPayload.ts` 依模式（create/update）套用 `createCustomerSchema` 或 `updateCustomerSchema`。
-  - `middlewares/validateCustomerQuery.ts` 使用 `customerSearchSchema` 驗證查詢參數。
-  - `middlewares/validateObjectId.ts` 優先呼叫 shared `zodId`，若無法載入時改用 mongoose 驗證。
+| 檔案 / 資料夾 | 說明 |
+| --- | --- |
+| `customers.routes.ts` | `@ts-rest/express` handler，直接掛載 `customersContract` |
+| `customers.service.ts` | 領域邏輯（驗證、建檔、更新、快速建檔、刪除） |
+| `services/*` | 子服務（欄位驗證、資料庫操作等） |
+| `middlewares/*` | 過往 Express 驗證；ts-rest 已內建 schema 驗證，僅在特殊場景保留 |
+| `customers.utils.ts` | API ↔ Model 欄位轉換、輸出包裝工具 |
+| `customers.types.ts` | shared schema 的型別映射（保留 legacy 支援） |
 
-## SSOT 與 OpenAPI 流程
+## 契約與流程
 
-1. 在 `shared/schemas/zod/customer.ts` 修改或新增欄位。
-2. 執行 `pnpm --filter shared build` 產生最新的 dist 檔案。
-3. 執行 `pnpm --filter shared generate:openapi`，重新輸出 `openapi/openapi.json`。
-4. 後端 Swagger 由同一份 `openapi/openapi.json` 供應，確保程式與文件一致。
+1. **Schema**：`shared/schemas/zod/customer.ts` 定義請求欄位與 `customerEntitySchema`。
+2. **Contract**：`shared/api/contracts/customers.ts` 以 ts-rest 描述 `/customers` 路由。
+3. **Client**：`shared/api/clients/customers.ts` 提供 `createCustomersContractClient`。
+4. **後端**：`customers.routes.ts` 匯入契約後，即可獲得型別安全 handler，並呼叫 `customers.service.ts`。
+5. **OpenAPI**：`pnpm --filter @pharmacy-pos/shared run generate:openapi` 會自動輸出更新的 `openapi/openapi.json`。
 
-靜態路徑描述位於 `shared/api/paths/customers.ts`，與 Zod schema 共同組成最終的 OpenAPI 定義。
+## 路由總覽
 
-## API 一覽
+| Method | Path | 契約鍵 | 說明 |
+| --- | --- | --- | --- |
+| GET | `/api/customers` | `customers.listCustomers` | 目前回傳全部顧客（預留 query 擴充） |
+| POST | `/api/customers/quick` | `customers.quickCreateCustomer` | 依身分證號快速建/更新顧客 |
+| GET | `/api/customers/:id` | `customers.getCustomerById` | 取得顧客細節 |
+| POST | `/api/customers` | `customers.createCustomer` | 建立顧客 |
+| PUT | `/api/customers/:id` | `customers.updateCustomer` | 更新顧客 |
+| DELETE | `/api/customers/:id` | `customers.deleteCustomer` | 刪除顧客 |
 
-| Method | Path | 說明 | 驗證中介層 |
-| ------ | ---- | ---- | ---------- |
-| GET | `/api/customers` | 取得客戶列表 | `validateCustomerQuery()` |
-| POST | `/api/customers/quick` | 以身分證快取建立/更新客戶 | `validateCustomerPayload('quick')` |
-| GET | `/api/customers/:id` | 取得單一客戶 | `validateObjectId()` |
-| POST | `/api/customers` | 建立客戶 | `validateCustomerPayload('create')` |
-| PUT | `/api/customers/:id` | 更新客戶 | `validateObjectId()` + `validateCustomerPayload('update')` |
-| DELETE | `/api/customers/:id` | 刪除客戶 | `validateObjectId()` |
+所有回應皆包裝成 shared 的 `createApiResponseSchema` / `apiErrorResponseSchema`，確保 `success` 欄位一致。
 
-所有回應皆使用 `ApiResponse` / `ErrorResponse` 結構（定義於 `shared/types/api`）。
+## API ↔ Model 對應
 
-## 舊欄位相容策略
+| API 欄位 | Model 欄位 | 備註 |
+| --- | --- | --- |
+| `notes` | `notes` / legacy `note` | utils 會自動對應舊欄位 |
+| `birthdate` | `birthdate` / `dateOfBirth` | 轉為 `Date` 後存入 |
+| `allergies[]` | `allergies` | 轉換為字串陣列（過濾空值） |
+| `membershipLevel` | `membershipLevel` | 轉為小寫並限制於 `regular/silver/gold/platinum` |
+| `totalPurchases` | `totalPurchases` | 預設 0 |
+| `lastPurchaseDate` | `lastPurchaseDate` | 正規化為 `Date` |
 
-- `note` 會正規化為 `notes`，`dateOfBirth` 正規化為 `birthdate`。
-- `allergies` 可接受字串或字串陣列，會自動去除空白與空值。
-- `membershipLevel` 轉為小寫並限制於 `regular | silver | gold | platinum`，預設為 `regular`。
-- `points`、`isActive` 等 legacy 欄位在資料庫文件中保留，以利兼容舊版流程。
+## 常用指令
 
-## 建議測試/檢查項目
+```bash
+# 編譯 shared 並輸出最新契約 / OpenAPI
+pnpm --filter @pharmacy-pos/shared build
+pnpm --filter @pharmacy-pos/shared run generate:openapi
 
-1. `pnpm run build`：確保 TypeScript（含 `exactOptionalPropertyTypes`）編譯通過。
-2. `pnpm --filter shared generate:openapi`：檢查 OpenAPI 是否同步更新。
-3. 啟動服務後以 `GET /api-docs` 檢視 Swagger 是否載入最新客戶 API。
-4. 若調整路由行為，可執行 `pnpm run test:route` 進行整合測試。
+# 後端型別檢查與（選擇性）測試
+pnpm --filter @pharmacy-pos/backend type-check
+pnpm --filter @pharmacy-pos/backend test -- --runTestsByPath modules/customers
+```
 
-## 常見調整流程
+## PR Checklist（Customers）
 
-- **新增欄位**：更新 shared Zod schema → 重新產生 OpenAPI → 調整 service/controller。
-- **修改驗證條件**：直接調整 Zod schema，中介層會自動套用。
-- **更新文件範例**：編輯 `shared/api/paths/customers.ts` 的 examples 區段。
-- **跨模組使用**：其他模組若需引入 Customers router，可從 `backend/routes/customers.ts` 取得（該檔案僅 re-export 模組）。
+- [ ] `shared/schemas/zod/customer.ts` 與 `customerEntitySchema` 已更新
+- [ ] `shared/api/contracts/customers.ts` / `customers.routes.ts` 已同步調整
+- [ ] `pnpm --filter @pharmacy-pos/shared run generate:openapi` 成功執行
+- [ ] 若新增欄位，`transformCustomerToResponse` 也已更新
+- [ ] 補上測試或說明無法測試的理由
+- [ ] 本 README 或 ADR 依需要更新
+
+## 疑難排除
+
+- **OpenAPI 匯出失敗**：重新執行 `pnpm --filter @pharmacy-pos/shared build` 後再跑 `generate:openapi`，確保 `dist/` 匯入已修補。
+- **Handler 型別錯誤**：確認使用 contract 推導的型別（例如 `ServerInferRequest`），並將 body cast 成共享 schema 定義。
+- **快速建檔衝突**：`CustomerServiceError` 會帶狀態碼，router 會自動轉換成相對應 HTTP 錯誤碼。
 
 ---
-若要加入搜尋條件、分頁、會員積分等大型變更，建議先撰寫 ADR，並同時更新 shared schema、OpenAPI 文件與相關測試。
+
+後續若擴充更多顧客功能（標籤、積分、併單等），請先新增 Zod schema/ts-rest 契約，再更新服務邏輯及對應文件。
