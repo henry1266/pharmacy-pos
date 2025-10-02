@@ -32,7 +32,7 @@ export interface ApiResponse<T> {
  * 用於請求和響應的銷售項目格式
  */
 export type SaleItemDto = z.infer<
-  typeof import('@pharmacy-pos/shared/dist/schemas/zod/sale').saleItemSchema
+  typeof import('@pharmacy-pos/shared/schemas/zod/sale').saleItemSchema
 >;
 
 /**
@@ -50,7 +50,7 @@ export interface SaleItemWithDetailsDto extends SaleItemDto {
  * 創建/更新銷售請求 DTO
  */
 export type SaleCreateRequest = z.infer<
-  typeof import('@pharmacy-pos/shared/dist/schemas/zod/sale').createSaleSchema
+  typeof import('@pharmacy-pos/shared/schemas/zod/sale').createSaleSchema
 >;
 
 /**

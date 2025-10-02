@@ -4,7 +4,7 @@ import {
   createSupplierSchema,
   updateSupplierSchema,
   supplierSearchSchema
-} from '@pharmacy-pos/shared/dist/schemas/zod/supplier';
+} from '@pharmacy-pos/shared/schemas/zod/supplier';
 
 export type SupplierRecord = Record<string, any>;
 export type SupplierResponse = SupplierEntity;

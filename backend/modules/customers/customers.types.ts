@@ -6,7 +6,7 @@ import {
   updateCustomerSchema,
   customerSearchSchema,
   quickCreateCustomerSchema,
-} from '@pharmacy-pos/shared/dist/schemas/zod/customer';
+} from '@pharmacy-pos/shared/schemas/zod/customer';
 
 export type CustomerRecord = Record<string, any>;
 export type CustomerResponse = CustomerEntity;
