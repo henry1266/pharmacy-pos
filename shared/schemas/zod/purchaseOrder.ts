@@ -192,9 +192,10 @@ export const purchaseOrderIdSchema = z.object({
 export const purchaseOrderStatusValues = purchaseOrderStatusEnum.options;
 export const purchaseOrderPaymentStatusValues = paymentStatusEnum.options;
 export const purchaseOrderTransactionTypeValues = transactionTypeEnum.options;
-
+export const purchaseOrderEntitySchema = purchaseOrderSchema;
 export default {
   purchaseOrderSchema,
+  purchaseOrderEntitySchema,
   createPurchaseOrderSchema,
   updatePurchaseOrderSchema,
   purchaseOrderItemSchema,
@@ -204,5 +205,6 @@ export default {
   purchaseOrderPaymentStatusValues,
   purchaseOrderTransactionTypeValues,
 };
+
 
 

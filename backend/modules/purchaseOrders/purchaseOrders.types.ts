@@ -1,5 +1,5 @@
-import { IPurchaseOrderDocument, IPurchaseOrderItemDocument, PurchaseOrderStatus as ModelPurchaseOrderStatus, PaymentStatus as ModelPaymentStatus } from '../../models/PurchaseOrder';
-import { PurchaseOrderRequest, PurchaseOrderStatus } from '@pharmacy-pos/shared/types/purchase-order';
+﻿import { IPurchaseOrderDocument, IPurchaseOrderItemDocument, PurchaseOrderStatus as ModelPurchaseOrderStatus, PaymentStatus as ModelPaymentStatus } from '../../models/PurchaseOrder';
+import { PurchaseOrderRequest, PurchaseOrderUpdateRequest, PurchaseOrderStatus } from '@pharmacy-pos/shared/types/purchase-order';
 
 // 驗證結果介面
 export interface ValidationResult {
@@ -39,5 +39,7 @@ export {
   ModelPurchaseOrderStatus,
   ModelPaymentStatus,
   PurchaseOrderRequest,
+  PurchaseOrderUpdateRequest,
   PurchaseOrderStatus
 };
+

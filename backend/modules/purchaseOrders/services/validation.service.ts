@@ -1,4 +1,4 @@
-import { Types } from 'mongoose';
+﻿import { Types } from 'mongoose';
 import BaseProduct from '../../../models/BaseProduct';
 import PurchaseOrder from '../../../models/PurchaseOrder';
 import Supplier from '../../../models/Supplier';
@@ -11,6 +11,7 @@ import {
   PurchaseOrderValidationResult,
   IPurchaseOrderDocument,
   PurchaseOrderRequest,
+  PurchaseOrderUpdateRequest,
   PurchaseOrderStatus,
   ModelPaymentStatus
 } from '../purchaseOrders.types';
@@ -230,7 +231,7 @@ export async function validateAndGetPurchaseOrder(id: string): Promise<PurchaseO
  * @param {Array} items - 藥品項目列表
  * @returns {Promise<ValidationResult>} - 處理結果
  */
-export async function processItemsUpdate(items: PurchaseOrderRequest['items']): Promise<ValidationResult> {
+export async function processItemsUpdate(items?: PurchaseOrderRequest['items']): Promise<ValidationResult> {
   if (!items || items.length === 0) {
     return { valid: true };
   }
@@ -268,7 +269,7 @@ export async function processItemsUpdate(items: PurchaseOrderRequest['items']): 
  * @param {Object} purchaseOrder - 進貨單對象
  * @returns {Object} - 更新數據
  */
-export function prepareUpdateData(data: PurchaseOrderRequest, purchaseOrder: IPurchaseOrderDocument): Partial<IPurchaseOrderDocument> {
+export function prepareUpdateData(data: PurchaseOrderUpdateRequest, purchaseOrder: IPurchaseOrderDocument): Partial<IPurchaseOrderDocument> {
   const { poid, pobill, pobilldate, posupplier, supplier, organizationId, transactionType, selectedAccountIds, accountingEntryType, notes, paymentStatus } = data;
   
   const updateData: Partial<IPurchaseOrderDocument> = {};
@@ -329,3 +330,5 @@ export function applyUpdatesToPurchaseOrder(purchaseOrder: IPurchaseOrderDocumen
     0
   );
 }
+
+

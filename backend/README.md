@@ -235,6 +235,13 @@ sequenceDiagram
 * OpenAPI 變更需伴隨 **相容性（SemVer）** 說明與 **測試樣本（valid/invalid）**。
 * 前端表單驗證以 `shared/` schema 或由其衍生的型別/守衛為準。
 
+### 進貨模組（purchase-orders）契約提醒
+
+* `PUT /purchase-orders/:id` 以 `updatePurchaseOrderSchema` 為規範，允許僅提交變動欄位，請確認驗證維持與 `shared/` 同步。
+* 後端 `modules/purchaseOrders/purchaseOrders.service.ts`、`modules/purchaseOrders/services/validation.service.ts` 皆採用 `PurchaseOrderUpdateRequest`，不得回退為完整載荷。
+* 前端或整合呼叫請引用 `shared/services/purchaseOrderApiClient.ts` 所提供的 `updatePurchaseOrder`，沿用同一型別以避免欄位漂移。
+* 契約調整後請附上最新的 OpenAPI diff、SemVer 決策與測試證據，以符合 Agents 檢核。
+
 ---
 
 ## 品質保證與規範

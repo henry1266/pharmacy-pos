@@ -1,11 +1,12 @@
-import { Types } from 'mongoose';
+﻿import { Types } from 'mongoose';
 import PurchaseOrder from '../../models/PurchaseOrder';
 import OrderNumberService from '../../utils/OrderNumberService';
 import logger from '../../utils/logger';
 import { PurchaseOrderTransactionType } from '@pharmacy-pos/shared/types/purchase-order';
 import {
   IPurchaseOrderDocument,
-  PurchaseOrderRequest
+  PurchaseOrderRequest,
+  PurchaseOrderUpdateRequest
 } from './purchaseOrders.types';
 import { 
   checkPurchaseOrderExists, 
@@ -173,7 +174,7 @@ export async function createPurchaseOrder(
  */
 export async function updatePurchaseOrder(
   id: string,
-  requestData: PurchaseOrderRequest,
+  requestData: PurchaseOrderUpdateRequest,
   userId?: string
 ): Promise<{ success: boolean; purchaseOrder?: IPurchaseOrderDocument; error?: string | undefined }> {
   try {
@@ -343,3 +344,6 @@ export async function getRecentPurchaseOrders(limit: number = 10): Promise<IPurc
     .populate('supplier', 'name code')
     .populate('items.product', 'name code');
 }
+
+
+

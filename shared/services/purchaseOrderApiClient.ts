@@ -1,4 +1,4 @@
-import { BaseApiClient } from './baseApiClient';
+﻿import { BaseApiClient } from './baseApiClient';
 import { PurchaseOrder } from '../types/entities';
 import { PurchaseOrderCreateRequest, PurchaseOrderUpdateRequest } from '../types/api';
 
@@ -323,3 +323,7 @@ export class PurchaseOrderApiClient extends BaseApiClient {
 }
 
 export default PurchaseOrderApiClient;
+
+export { createPurchaseOrdersContractClient } from '../api/clients/purchaseOrders';
+export type { PurchaseOrdersContractClient, PurchaseOrdersClientOptions } from '../api/clients/purchaseOrders';
+

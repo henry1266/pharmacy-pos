@@ -407,7 +407,7 @@ export {
 } from './utils/zodUtils';
 
 // ts-rest contracts
-export { salesContract, customersContract, suppliersContract, pharmacyContract } from './api/contracts';
+export { salesContract, customersContract, suppliersContract, purchaseOrdersContract, pharmacyContract } from './api/contracts';
 // Shared Zod schemas for API envelopes
 export {
   apiSuccessEnvelopeSchema,
@@ -418,6 +418,7 @@ export {
 export { saleEntitySchema } from './schemas/zod/sale';
 export { customerEntitySchema } from './schemas/zod/customer';
 export { supplierEntitySchema } from './schemas/zod/supplier';
+export { purchaseOrderEntitySchema } from './schemas/zod/purchaseOrder';
 
 export { createSalesContractClient } from './api/clients/sales';
 export type { SalesContractClient, SalesClientOptions, HeaderShape as SalesClientHeaderShape } from './api/clients/sales';
@@ -427,3 +428,6 @@ export type { CustomersContractClient, CustomersClientOptions, HeaderShape as Cu
 
 export { createSuppliersContractClient } from './api/clients/suppliers';
 export type { SuppliersContractClient, SuppliersClientOptions, HeaderShape as SuppliersClientHeaderShape } from './api/clients/suppliers';
+
+export { createPurchaseOrdersContractClient } from './api/clients/purchaseOrders';
+export type { PurchaseOrdersContractClient, PurchaseOrdersClientOptions, HeaderShape as PurchaseOrdersClientHeaderShape } from './api/clients/purchaseOrders';

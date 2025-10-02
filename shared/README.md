@@ -57,6 +57,13 @@ const salesContract = c.router({
 - **responses** 一律使用 `schemas/zod/common.ts` 內的 `createApiResponseSchema` / `apiErrorResponseSchema` 保持格式一致。
 - 契約在 `index.ts` 中被彙整成 `pharmacyContract`（供 OpenAPI 與 handler 使用）。
 
+### 進貨契約（purchase-orders）
+
+* `createPurchaseOrder` 仍以 `createPurchaseOrderSchema` 為主契約，確保欄位完整性。
+* `updatePurchaseOrder` 改採 `updatePurchaseOrderSchema`（所有欄位預設為選填），對應的 TypeScript 型別 `PurchaseOrderUpdateRequest` 已由 `shared/types/purchase-order` 再輸出，供 backend/frontend 共用。
+* `shared/services/purchaseOrderApiClient` 的 `updatePurchaseOrder` 也同步改用上述型別，呼叫端只需送出實際變動的欄位即可。
+* 契約更新後請執行 `pnpm --filter @pharmacy-pos/shared run generate:openapi` 重新產生 SDK 與型別並完成覆驗。
+
 ## 型別安全 client
 
 `api/clients` 內提供 `createSalesContractClient` 等 factory，內部是 `@ts-rest/core` client。基本使用：
