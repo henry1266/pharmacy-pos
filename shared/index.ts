@@ -405,3 +405,18 @@ export {
   zodPagination,
   zodQuery
 } from './utils/zodUtils';
+
+// ts-rest contracts
+export { salesContract, pharmacyContract } from './api/contracts';
+// Shared Zod schemas for API envelopes
+export {
+  apiSuccessEnvelopeSchema,
+  createApiResponseSchema,
+  createPaginatedResponseSchema,
+  apiErrorResponseSchema,
+} from './schemas/zod/common';
+export { saleEntitySchema } from './schemas/zod/sale';
+export { createSalesContractClient } from './api/clients/sales';
+export type { SalesContractClient, SalesClientOptions, HeaderShape } from './api/clients/sales';
+
+

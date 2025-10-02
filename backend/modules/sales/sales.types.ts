@@ -6,7 +6,7 @@ import { ISaleDocument } from '../../src/types/models';
 export interface SaleCreationRequest extends SaleCreateRequest {
   productName?: string; // 向後兼容
   finalAmount?: number;
-  cashier?: string;
+  cashier?: string | undefined;
 }
 
 // 定義更具體的型別
@@ -56,7 +56,7 @@ export interface SaleFieldsInput {
   paymentMethod?: string;
   paymentStatus?: string;
   notes?: string;
-  cashier?: string;
+  cashier?: string | undefined;
 }
 
 export interface SaleItem {

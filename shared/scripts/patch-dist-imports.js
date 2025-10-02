@@ -1,24 +1,34 @@
-﻿const fs = require('fs');
+const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
-const TARGETS = [
-  '../constants',
-  '../../constants',
-  '../../../constants'
-];
+const RELATIVE_IMPORT_REGEX = /(from\s+['"])(\.[^'"]*)(['"])/g;
+
+function needsExtension(specifier) {
+  return !specifier.endsWith('.js') && !specifier.endsWith('.mjs') && !specifier.endsWith('.cjs') && !specifier.endsWith('.json');
+}
+
+function normalizeSpecifier(specifier) {
+  if (!needsExtension(specifier)) {
+    return specifier;
+  }
+  if (specifier.endsWith('/index')) {
+    return `${specifier}.js`;
+  }
+  return `${specifier}.js`;
+}
 
 function applyFix(filePath) {
-  let content = fs.readFileSync(filePath, 'utf8');
-  let updated = content;
+  const original = fs.readFileSync(filePath, 'utf8');
+  const updated = original.replace(RELATIVE_IMPORT_REGEX, (_match, prefix, specifier, suffix) => {
+    if (specifier === '.' || specifier === '..') {
+      return `${prefix}${specifier}${suffix}`;
+    }
+    const normalized = normalizeSpecifier(specifier);
+    return `${prefix}${normalized}${suffix}`;
+  });
 
-  for (const target of TARGETS) {
-    const withIndex = `${target}/index.js`;
-    updated = updated.split(`'${target}'`).join(`'${withIndex}'`);
-    updated = updated.split(`"${target}"`).join(`"${withIndex}"`);
-  }
-
-  if (updated !== content) {
+  if (updated !== original) {
     fs.writeFileSync(filePath, updated, 'utf8');
   }
 }

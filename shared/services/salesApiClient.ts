@@ -126,3 +126,6 @@ export const createSalesApiClient = (httpClient: HttpClient): SalesApiClient => 
 
 // 重新匯出基礎類型
 export type { HttpClient } from './baseApiClient';
+
+export { createSalesContractClient } from '../api/clients/sales';
+export type { SalesContractClient, SalesClientOptions } from '../api/clients/sales';
