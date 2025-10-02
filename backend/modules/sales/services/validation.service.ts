@@ -14,9 +14,8 @@ import {
 
 async function validateWithSharedZod(body: any, mode: 'create' | 'update'): Promise<ValidationResult> {
   try {
-    const modulePath = require('@pharmacy-pos/shared/schemas/zod/sale');
-    const mod = await import(modulePath);
-    const schema = mode === 'create' ? (mod as any).createSaleSchema : (mod as any).updateSaleSchema;
+    const saleSchemas: any = await import('@pharmacy-pos/shared/schemas/zod/sale');
+    const schema = mode === 'create' ? saleSchemas.createSaleSchema : saleSchemas.updateSaleSchema;
     const result = schema.safeParse(body);
     if (!result.success) {
       const message = result.error.errors?.map((e: any) => e.message).join('; ') || ERROR_MESSAGES.GENERIC.VALIDATION_FAILED;

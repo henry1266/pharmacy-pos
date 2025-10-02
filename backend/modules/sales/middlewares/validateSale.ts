@@ -5,9 +5,8 @@ import logger from '../../../utils/logger';
 export function validateSale(mode: 'create' | 'update') {
   return async function (req: Request, res: Response, next: NextFunction) {
     try {
-      const modulePath = require('@pharmacy-pos/shared/schemas/zod/sale');
-      const mod = await import(modulePath);
-      const schema = mode === 'create' ? (mod as any).createSaleSchema : (mod as any).updateSaleSchema;
+      const saleSchemas: any = await import('@pharmacy-pos/shared/schemas/zod/sale');
+      const schema = mode === 'create' ? saleSchemas.createSaleSchema : saleSchemas.updateSaleSchema;
       const result = schema.safeParse(req.body);
       if (!result.success) {
         const errorResponse: ErrorResponse = {

@@ -10,9 +10,7 @@ export function validateObjectId(paramName: string = 'id') {
     const id = req.params[paramName];
 
     try {
-      const modulePath = require('@pharmacy-pos/shared/utils/zodUtils');
-      const mod = await import(modulePath);
-      const zodId = (mod as any).zodId;
+      const { zodId } = await import('@pharmacy-pos/shared/utils/zodUtils');
       const result = zodId.safeParse(id);
       if (!result.success) {
         const response: ErrorResponse = buildErrorResponse(ERROR_MESSAGES.GENERIC.NOT_FOUND) as ErrorResponse;

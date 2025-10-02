@@ -10,9 +10,8 @@ import { buildErrorResponse } from '../customers.utils';
 export function validateCustomerQuery() {
   return async function (req: Request, res: Response, next: NextFunction) {
     try {
-      const modulePath = require('@pharmacy-pos/shared/schemas/zod/customer');
-      const mod = await import(modulePath);
-      const schema = (mod as any).customerSearchSchema as z.ZodTypeAny;
+      const customerSchemas: any = await import('@pharmacy-pos/shared/schemas/zod/customer');
+      const schema = customerSchemas.customerSearchSchema as z.ZodTypeAny;
       const result = schema.safeParse(req.query);
       if (!result.success) {
         const response: ErrorResponse = buildErrorResponse(

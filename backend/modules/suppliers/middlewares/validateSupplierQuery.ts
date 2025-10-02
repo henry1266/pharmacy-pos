@@ -8,9 +8,8 @@ import { buildErrorResponse } from '../suppliers.utils';
 export function validateSupplierQuery() {
   return async function (req: Request, res: Response, next: NextFunction) {
     try {
-      const modulePath = require('@pharmacy-pos/shared/schemas/zod/supplier');
-      const mod = await import(modulePath);
-      const schema = (mod as any).supplierSearchSchema as z.ZodTypeAny;
+      const supplierSchemas: any = await import('@pharmacy-pos/shared/schemas/zod/supplier');
+      const schema = supplierSchemas.supplierSearchSchema as z.ZodTypeAny;
       const result = schema.safeParse(req.query);
       if (!result.success) {
         const response: ErrorResponse = buildErrorResponse(
