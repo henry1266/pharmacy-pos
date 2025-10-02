@@ -9,7 +9,7 @@ export function validateObjectId(paramName: string = 'id') {
     const id = req.params[paramName];
 
     try {
-      const modulePath = require.resolve('@pharmacy-pos/shared/dist/utils/zodUtils.js');
+      const modulePath = require('@pharmacy-pos/shared/utils/zodUtils');
       const mod = await import(modulePath);
       const zodId = (mod as any).zodId;
       const result = zodId.safeParse(id);

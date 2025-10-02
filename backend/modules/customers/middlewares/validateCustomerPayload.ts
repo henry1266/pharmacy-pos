@@ -8,7 +8,7 @@ import { buildErrorResponse } from '../customers.utils';
 export function validateCustomerPayload(mode: 'create' | 'update' | 'quick') {
   return async function (req: Request, res: Response, next: NextFunction) {
     try {
-      const modulePath = require.resolve('@pharmacy-pos/shared/schemas/zod/customer.js');
+      const modulePath = require('@pharmacy-pos/shared/schemas/zod/customer');
       const mod = await import(modulePath);
       const schema = mode === 'create'
         ? (mod as any).createCustomerSchema

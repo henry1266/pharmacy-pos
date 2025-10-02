@@ -6,7 +6,7 @@ export function validateSaleQuery() {
   return async function (req: Request, res: Response, next: NextFunction) {
     try {
       // Load shared sale zod schema and merge with extra fields used by this endpoint
-      const modulePath = require.resolve('@pharmacy-pos/shared/schemas/zod/sale.js');
+      const modulePath = require('@pharmacy-pos/shared/schemas/zod/sale');
       const mod = await import(modulePath);
       const base = (mod as any).saleSearchSchema as z.ZodObject<any>;
       const extra = z.object({

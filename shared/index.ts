@@ -390,3 +390,18 @@ export const SHARED_INFO: SharedModuleInfo = {
   author: 'Development Team',
   license: 'MIT'
 } as const;
+// Zod 工具函數
+export {
+  zodId,
+  zodOptionalId,
+  zodDate,
+  zodDateString,
+  zodTimestamp,
+  zodEmail,
+  zodPhone,
+  zodIdNumber,
+  zodTaxId,
+  createZodSchema,
+  zodPagination,
+  zodQuery
+} from './utils/zodUtils';
