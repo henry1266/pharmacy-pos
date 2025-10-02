@@ -1,63 +1,88 @@
-﻿# Suppliers Module README
+﻿# Suppliers 模組（ts-rest + Zod SSOT）
 
-## 模組概觀
-- **位置**：`backend/modules/suppliers`
-- **職責**：提供供應商 CRUD API，完全以 `shared/` Zod schema 與 `openapi/` 契約為單一事實來源（SSOT）。
-- **重點**：
-  - Controller 僅處理請求/回應，商業邏輯封裝在 service。
-  - Middleware 使用 shared 編譯輸出進行 Zod 驗證，確保輸入安全。
-  - Utility 將資料正規化並對應到 `SupplierResponse` 型別。
+> 提供供應商的建立、查詢、更新與刪除。所有欄位皆以 `shared/` 的 Zod schema 為單一事實來源（SSOT），並透過 ts-rest 契約輸出型別安全的 handler、client 以及 OpenAPI 契約。
 
-## 目錄結構
-- `suppliers.routes.ts`：定義 Express 路由，掛載驗證 middleware 與 controller。
-- `suppliers.controller.ts`：呼叫 service，輸出統一 ApiResponse。
-- `suppliers.service.ts`：操作 Mongoose Model，封裝商業規則（代碼唯一性、自動 shortCode、isActive 控制）。
-- `middlewares/validateSupplierPayload.ts`：依 `create`/`update` 套用對應 Zod schema。
-- `middlewares/validateSupplierQuery.ts`：驗證查詢參數（search/active/page/limit/sort）。
-- `middlewares/validateObjectId.ts`：共用 ObjectId 驗證。
-- `suppliers.types.ts`：以 shared schema 推導可用的 Request/Response 型別。
-- `suppliers.utils.ts`：封裝轉換/建構 ApiResponse 與工具。
-- `README.md`（本檔）：維護說明。
+## 組成元件
 
-## SSOT 對應
-| 項目 | 來源 | 說明 |
-| ---- | ---- | ---- |
-| Create/Update Payload | `shared/dist/schemas/zod/supplier` | Controller 前的 middleware 直接套用 safeParse |
-| Supplier 實體 | `shared/types/entities.ts` | service / utils 轉換資料至 `SupplierResponse` |
-| OpenAPI Paths | `shared/api/paths/suppliers.ts` + `shared/scripts/generate-openapi.ts` | 產生 `/suppliers` 系列 endpoints |
+| 檔案 / 資料夾 | 說明 |
+| --- | --- |
+| `suppliers.routes.ts` | ts-rest bridge：呼叫 `suppliersContract` 並直接回寫回應，避免額外的路徑再掛載 `/suppliers` |
+| `suppliers.service.ts` | 領域邏輯（驗證、建檔、更新、刪除等）|
+| `services/*` | 子服務（驗證、資料庫查詢…）|
+| `middlewares/*` | 仍保留舊有 Express 驗證，必要時可重構或移除 |
+| `suppliers.utils.ts` | API ↔ Model 欄位映射與回應包裝 |
+| `suppliers.types.ts` | shared schema 對應型別（含 legacy 支援）|
 
-## 使用流程
-1. **建立/更新供應商**：
-   - Middleware 以 Zod 驗證 payload。
-   - Service 產生/檢查 code、shortCode；存入 MongoDB。
-   - Controller 回傳 `buildSuccessResponse`。
-2. **查詢供應商**：
-   - Query middleware 正規化查詢參數。
-   - Service 支援關鍵字搜尋、isActive 過濾、排序、分頁。
-3. **刪除供應商**：
-   - 先驗證 ObjectId；若不存在回傳 404。
-4. **Swagger/OpenAPI**：`shared/scripts/generate-openapi.ts` 讀取 suppliers schema & paths；`pnpm --filter shared generate:openapi` 後 `app.ts` 會自動合併。
+## 契約與流程
 
-## 相關模型
-- `backend/models/Supplier.ts`
-  - 新增 `isActive` 欄位，預設 `true`。
-  - 提供 `updateSupplierInfo`、`getSupplierSummary` 供服務層擴充。
+1. **Schema**：`shared/schemas/zod/supplier.ts` 定義請求欄位與 `supplierEntitySchema`。
+2. **Contract**：`shared/api/contracts/suppliers.ts` 以 ts-rest 描述 `/suppliers` 路由。
+3. **Client**：`shared/api/clients/suppliers.ts` 提供 `createSuppliersContractClient`。
+4. **後端橋接**：`suppliers.routes.ts` 呼叫契約 handler，並將結果回傳 Express response。
+5. **OpenAPI**：`pnpm --filter @pharmacy-pos/shared run generate:openapi` 會自動輸出最新契約與相關 SDK。
 
-## 測試與驗證
-```bash
-pnpm --filter shared build
-pnpm --filter shared generate:openapi
-pnpm --filter backend build
+## 路由總覽
+
+| Method | Path | 契約鍵 | 說明 |
+| --- | --- | --- | --- |
+| GET | `/api/suppliers` | `suppliers.listSuppliers` | 依條件查詢供應商（搜尋、分頁、狀態）|
+| GET | `/api/suppliers/:id` | `suppliers.getSupplierById` | 取得供應商細節 |
+| POST | `/api/suppliers` | `suppliers.createSupplier` | 建立供應商資料 |
+| PUT | `/api/suppliers/:id` | `suppliers.updateSupplier` | 更新供應商資料 |
+| DELETE | `/api/suppliers/:id` | `suppliers.deleteSupplier` | 刪除供應商 |
+
+所有回應皆使用 shared 的 `createApiResponseSchema` / `apiErrorResponseSchema`，保持 `success` 欄位一致。
+
+## API ↔ Model 對應
+
+| API 欄位 | Model 欄位 | 備註 |
+| --- | --- | --- |
+| `shortCode` | `shortCode`（或由 `code/name` 推導） | util 中 `pickShortCode` 可產生預設值 |
+| `notes` | `notes` | 轉換為字串並去除空白 |
+| `isActive` | `isActive` | 預設 boolean |
+| `date` | `date` | 轉為 `Date` 物件儲存 |
+| `createdAt/updatedAt` | `createdAt/updatedAt` | 由 Mongoose 自動管理 |
+
+## 前端 Client 範例
+
+```ts
+import { createSuppliersContractClient } from '@pharmacy-pos/shared';
+
+const client = createSuppliersContractClient({ baseUrl: '/api' });
+
+const result = await client.suppliers.listSuppliers({ query: { search: 'OTC' } });
+if (result.status === 200) {
+  console.log(result.body.data);
+}
 ```
-- 若新增 service 邏輯，建議在 `backend/test` 下補上 Jest 單元測試。
-- 執行端到端測試前請確認 `.env` 中 DB 連線設定。
 
-## 延伸任務
-- **CSV 匯入/模板**：舊路由提供的匯入功能已移除；如需重新導入，建議建立 `services/importers/suppliersImporter.ts`，並撰寫對應 middleware。
-- **審計/追蹤**：可於 service 中新增日誌或事件匯流排，以符合稽核需求。
-- **快取策略**：若前端大量讀取，可加入快取層並在 service 寫入/刪除時同步失效。
+## 常用指令
 
-## 注意事項
-- 任何資料結構調整先更新 `shared/schemas/zod/supplier.ts` 與 `shared/types/entities.ts`，再執行產生器。
-- 破壞性變更需同步提供遷移腳本（請參考 Migrator 劇本）。
-- 中文內容請使用 UTF-8 編碼，避免 Swagger UI 出現亂碼。
+```bash
+# 編譯 shared 並輸出契約 / OpenAPI
+pnpm --filter @pharmacy-pos/shared build
+pnpm --filter @pharmacy-pos/shared run generate:openapi
+
+# 後端型別檢查與（選擇性）測試
+pnpm --filter @pharmacy-pos/backend type-check
+pnpm --filter @pharmacy-pos/backend test -- --runTestsByPath modules/suppliers
+```
+
+## PR Checklist（Suppliers）
+
+- [ ] `shared/schemas/zod/supplier.ts` 及 `supplierEntitySchema` 已更新
+- [ ] `shared/api/contracts/suppliers.ts` / `suppliers.routes.ts` 已同步調整
+- [ ] `pnpm --filter @pharmacy-pos/shared run generate:openapi` 執行成功
+- [ ] `transformSupplierToResponse` 已反映欄位調整
+- [ ] 補上測試或說明原因
+- [ ] README / ADR 依需求更新
+
+## 疑難排除
+
+- **OpenAPI 未更新**：重跑 `pnpm --filter @pharmacy-pos/shared build` 後再次 `generate:openapi`。
+- **型別錯誤**：確認 handler 使用 contract 推導型別 (`ServerInferRequest`)，並保留 service cast。
+- **欄位未同步**：任何新增欄位需同時更新 Zod schema、契約與 `suppliers.utils.ts`。
+
+---
+
+後續若擴充更多供應商功能（帳號對應、報價、匯入等），請以 Schema → Contract → Handler 的順序實作並更新文件。

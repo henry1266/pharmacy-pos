@@ -1,13 +1,13 @@
-/**
+﻿/**
  * 供應商 API 客戶端
- * 基於通用 BaseApiClient 實現
+ * 依賴 BaseApiClient 封裝 CRUD 操作
  */
 
 import { BaseApiClient, HttpClient } from './baseApiClient';
 import type { Supplier } from '../types/entities';
 
 /**
- * 供應商查詢參數介面
+ * 供應商查詢參數
  */
 export interface SupplierQueryParams {
   search?: string;
@@ -17,7 +17,7 @@ export interface SupplierQueryParams {
 }
 
 /**
- * 供應商 API 客戶端類
+ * 供應商 API 客戶端實作
  */
 export class SupplierApiClient extends BaseApiClient {
   constructor(httpClient: HttpClient) {
@@ -25,21 +25,21 @@ export class SupplierApiClient extends BaseApiClient {
   }
 
   /**
-   * 獲取所有供應商
+   * 取得所有供應商
    */
   async getAllSuppliers(params?: SupplierQueryParams): Promise<Supplier[]> {
     return this.getList<Supplier>('/suppliers', params);
   }
 
   /**
-   * 根據 ID 獲取供應商
+   * 依 ID 取得供應商
    */
   async getSupplierById(id: string): Promise<Supplier> {
     return this.getItem<Supplier>('/suppliers', id);
   }
 
   /**
-   * 創建新供應商
+   * 建立供應商
    */
   async createSupplier(supplierData: Partial<Supplier>): Promise<Supplier> {
     return this.createItem<Supplier>('/suppliers', supplierData);
@@ -60,14 +60,14 @@ export class SupplierApiClient extends BaseApiClient {
   }
 
   /**
-   * 搜尋供應商
+   * 模糊搜尋供應商
    */
   async searchSuppliers(query: string): Promise<Supplier[]> {
     return this.getList<Supplier>('/suppliers/search', { q: query });
   }
 
   /**
-   * 獲取活躍供應商
+   * 取得啟用中的供應商
    */
   async getActiveSuppliers(): Promise<Supplier[]> {
     return this.getList<Supplier>('/suppliers', { active: true });
@@ -75,11 +75,14 @@ export class SupplierApiClient extends BaseApiClient {
 }
 
 /**
- * 創建供應商 API 客戶端實例
+ * 工廠函式
  */
 export const createSupplierApiClient = (httpClient: HttpClient): SupplierApiClient => {
   return new SupplierApiClient(httpClient);
 };
 
-// 重新匯出基礎類型
+// re-export shared helpers
 export type { HttpClient } from './baseApiClient';
+
+export { createSuppliersContractClient } from '../api/clients/suppliers';
+export type { SuppliersContractClient, SuppliersClientOptions } from '../api/clients/suppliers';

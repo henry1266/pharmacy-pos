@@ -1,4 +1,5 @@
-import { z } from 'zod';
+﻿import { z } from 'zod';
+import { zodId } from '../../utils/zodUtils';
 import { VALIDATION_CONSTANTS } from '../../constants';
 
 const supplierNameSchema = z
@@ -40,6 +41,8 @@ const addressSchema = z.string().max(200, { message: 'Address must not exceed 20
 const paymentTermsSchema = z.string().max(200, { message: 'Payment terms must not exceed 200 characters.' });
 const notesSchema = z.string().max(500, { message: 'Notes must not exceed 500 characters.' });
 
+const timestampSchema = z.union([z.string(), z.date()]);
+
 export const supplierSchema = z.object({
   name: supplierNameSchema,
   code: supplierCodeSchema.optional(),
@@ -51,7 +54,7 @@ export const supplierSchema = z.object({
   taxId: taxIdSchema.optional(),
   paymentTerms: paymentTermsSchema.optional(),
   notes: notesSchema.optional(),
-  isActive: z.boolean().optional()
+  isActive: z.boolean().optional(),
 });
 
 export const createSupplierSchema = supplierSchema;
@@ -63,12 +66,22 @@ export const supplierSearchSchema = z.object({
   page: z.number().int().min(1).optional(),
   limit: z.number().int().min(1).max(100).optional(),
   sortBy: z.string().max(50).optional(),
-  sortOrder: z.enum(['asc', 'desc']).optional()
+  sortOrder: z.enum(['asc', 'desc']).optional(),
 });
+
+export const supplierEntitySchema = supplierSchema
+  .extend({
+    _id: zodId,
+    createdAt: timestampSchema,
+    updatedAt: timestampSchema,
+    date: timestampSchema.optional(),
+  })
+  .passthrough();
 
 export default {
   supplierSchema,
+  supplierEntitySchema,
   createSupplierSchema,
   updateSupplierSchema,
-  supplierSearchSchema
+  supplierSearchSchema,
 };

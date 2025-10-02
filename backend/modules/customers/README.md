@@ -75,3 +75,4 @@ pnpm --filter @pharmacy-pos/backend test -- --runTestsByPath modules/customers
 ---
 
 後續若擴充更多顧客功能（標籤、積分、併單等），請先新增 Zod schema/ts-rest 契約，再更新服務邏輯及對應文件。
+
