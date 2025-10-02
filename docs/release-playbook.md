@@ -99,7 +99,89 @@ pnpm run release:auto -- --coverage docs/examples/release/coverage-summary.examp
 | --collect label=path | 額外打包指定檔案或目錄 |
 | --level <major|minor|patch> | 覆寫版本建議等級 |
 
-> GitHub Actions Release Tooling workflow 已改用 elease:auto 指令，PR 任務卡請附 workflow run 連結以利審計。
+> GitHub Actions Release Tooling workflow 已改用 
+elease:auto 指令，PR 任務卡請附 workflow run 連結以利審計。
 
+```mermaid
 
+flowchart LR
+  %% ====== Business Side ======
+  subgraph Business[Business / 業務與法遵]
+    PO[產品負責人（PO）\n需求定義、優先序]
+    PM[專案經理（PM）\n計畫/里程碑/資源]
+    SME[藥局領域專家（Domain/Regulatory）\n處方/批號/效期/作業流程]
+    Acct[會計/稅務顧問\n計價/稅率/帳務/報表]
+  end
 
+  %% ====== Engineering Side ======
+  subgraph Eng[Engineering / 研發]
+    TL[技術主管（Tech Lead）\n跨域協調/技術決策]
+    Arch[架構師/SSOT 守門人\nMonorepo、Zod、ts-rest、OpenAPI]
+    BE[後端工程\nNode 20 + Express 5、Idempotency、審計事件]
+    FE[前端工程\nReact 18 + RTK Query、表單/zodResolver]
+    QA[測試工程\n單元/契約/端到端（E2E）]
+    DevOps[DevOps / SRE\nCI/CD、觀測（Logs/Traces/Metrics）、回滾]
+    Sec[資安/法遵\nOWASP/PDPA/HIPAA、稽核/權限]
+    Data[資料分析/BI\n營運指標與報表]
+  end
+
+  %% ====== Integrations ======
+  subgraph Integrations[整合／外部系統]
+    EInv[電子發票（MOF）]
+    GS1[GS1 條碼（GTIN/批號/效期）]
+    Pay[金流/票據]
+  end
+
+  %% ====== Relationships ======
+  PO -- 業務需求/優先序 --> TL
+  PM -- 計畫管理/風險/溝通 --> TL
+
+  TL --> Arch
+  TL --> BE
+  TL --> FE
+  TL --> QA
+  TL --> DevOps
+  TL --> Sec
+  TL --> Data
+
+  SME -- 法規/流程約束 --> PO
+  SME -- 批號/效期規則 --> Arch
+  SME -- POS 流程/介面建議 --> FE
+  SME -- 倉儲/盤點/調撥規則 --> BE
+
+  Acct -- 稅率/四捨五入/科目 --> Arch
+  Acct -- 計價/折扣/對帳 --> BE
+  Acct -- 憑證/報表需求 --> FE
+
+  Sec -- 安全控制/稽核規範 --> Arch
+  Sec --> BE
+  Sec --> FE
+  Sec --> DevOps
+  Sec -. 指南/例外裁決 .-> TL
+
+  Arch -- 定義 SSOT（Zod/ts-rest/OpenAPI） --> BE
+  Arch -- 前端型別/SDK 規範 --> FE
+  Arch -- 產線規範/守門 --> DevOps
+
+  BE -- 契約落地/API 與審計事件 --> FE
+  BE -- 發票/條碼/金流整合 --> EInv
+  BE -- 條碼/批號/效期解析 --> GS1
+  BE -- 金流介接 --> Pay
+
+  FE -- UI/表單驗證（zodResolver） --> QA
+  QA -- 缺陷與回饋 --> TL
+
+  DevOps -- CI/CD/部署/回滾策略 --> TL
+  DevOps -- 監控/告警/容量規劃 --> TL
+  Data -- 指標/BI 報表 --> PO
+
+  %% Style classes
+  classDef business fill:#f6f6f6,stroke:#999999,stroke-width:1px;
+  classDef eng fill:#eef6ff,stroke:#3b82f6,stroke-width:1px;
+  classDef integ fill:#fff7e6,stroke:#d97706,stroke-width:1px;
+
+  class PO,PM,SME,Acct business;
+  class TL,Arch,BE,FE,QA,DevOps,Sec,Data eng;
+  class EInv,GS1,Pay integ;
+
+```
