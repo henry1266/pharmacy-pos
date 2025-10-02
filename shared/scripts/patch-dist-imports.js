@@ -4,17 +4,24 @@ const path = require('path');
 const ROOT = path.join(__dirname, '..');
 const RELATIVE_IMPORT_REGEX = /(from\s+['"])(\.[^'"]*)(['"])/g;
 
-function needsExtension(specifier) {
-  return !specifier.endsWith('.js') && !specifier.endsWith('.mjs') && !specifier.endsWith('.cjs') && !specifier.endsWith('.json');
-}
-
-function normalizeSpecifier(specifier) {
-  if (!needsExtension(specifier)) {
+function resolveSpecifier(filePath, specifier) {
+  if (specifier.endsWith('.js') || specifier.endsWith('.mjs') || specifier.endsWith('.cjs') || specifier.endsWith('.json')) {
     return specifier;
   }
-  if (specifier.endsWith('/index')) {
-    return `${specifier}.js`;
+
+  const dir = path.dirname(filePath);
+  const candidateFile = `${specifier}.js`;
+  const asFile = path.resolve(dir, candidateFile);
+  if (fs.existsSync(asFile)) {
+    return candidateFile;
   }
+
+  const asIndex = path.resolve(dir, specifier, 'index.js');
+  if (fs.existsSync(asIndex)) {
+    const normalized = specifier.replace(/\\/g, '/');
+    return `${normalized}/index.js`;
+  }
+
   return `${specifier}.js`;
 }
 
@@ -24,7 +31,7 @@ function applyFix(filePath) {
     if (specifier === '.' || specifier === '..') {
       return `${prefix}${specifier}${suffix}`;
     }
-    const normalized = normalizeSpecifier(specifier);
+    const normalized = resolveSpecifier(filePath, specifier);
     return `${prefix}${normalized}${suffix}`;
   });
 
