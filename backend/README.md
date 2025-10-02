@@ -1,4 +1,4 @@
-# 藥局 POS 系統 — 後端服務
+﻿# 藥局 POS 系統 — 後端服務
 
 > Node.js + Express + TypeScript + MongoDB 的藥局 POS 生態系後端。提供庫存、銷售、會計、員工等核心功能，並以 **Zod + OpenAPI** 作為單一事實來源（SSOT），採 **pnpm workspaces** 維運。
 
@@ -99,7 +99,7 @@ pnpm install -w
 ### 4) 生成 / 同步 OpenAPI（若有生成腳本）
 
 ```bash
-pnpm -w run openapi:gen   # 由 openapi 契約生成前端 SDK / 後端型別
+pnpm --filter @pharmacy-pos/shared run generate:openapi   # 由 openapi 契約生成前端 SDK / 後端型別
 pnpm -w run typecheck     # 確認前後端型別一致
 ```
 
@@ -212,19 +212,21 @@ VITE_APP_NAME=Pharmacy POS
 ```mermaid
 sequenceDiagram
   autonumber
-  participant Dev as 開發/需求
+  participant Dev as 需求/任務卡
   participant SH as shared/Zod
+  participant TC as ts-rest Contract
   participant OA as openapi
   participant BE as backend
   participant FE as frontend
   participant T as tests
 
   Dev->>SH: 定義/更新 Zod Schemas（欄位/規則）
-  SH->>OA: 映射/對齊 OpenAPI 契約
-  OA->>FE: 生成前端 SDK/型別
-  OA->>BE: 對齊路由/DTO/驗證
-  BE->>T: 契約測試/整合測試
-  FE->>T: 表單驗證/端對端測試
+  SH->>TC: 產生 ts-rest router + 型別
+  TC->>BE: 匯入型別安全 handler
+  SH->>OA: 對映/輸出 OpenAPI 契約
+  OA->>FE: 產生前端 SDK/型別
+  BE->>T: 契約測試/單元測試
+  FE->>T: 表單驗證/端到端測試
 ```
 
 ### 原則
@@ -319,3 +321,4 @@ agent_task:
 ## 授權
 
 本專案採用 **MIT License**。詳見 `LICENSE`。
+

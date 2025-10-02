@@ -1,4 +1,4 @@
-# pharmacy-pos
+﻿# pharmacy-pos
 
 現代化藥局 POS 生態系：Monorepo
 
@@ -40,7 +40,7 @@ pharmacy-pos 是一套以 Monorepo 方式管理的藥局 POS 生態系，強調*
 
 ## 核心特色
 
-* **SSOT（Single Source of Truth）**：`shared/` 中的 **Zod Schemas** 與 `openapi/` 的 **OpenAPI** 契約為唯一規格來源；模型、驗證、DTO、前端型別與 SDK 皆由此推導。
+* **ts-rest 契約層**：ts-rest contract 由 shared 契約產生 @ts-rest/express handler 與 @ts-rest/core client，保持前後端型別同步。
 * **清晰分層**：`routes → controller → service（協調） → services/*（領域） → models`，提升可維護性與可測試性。
 * **型別安全前後端**：前端以 OpenAPI 生成的 client/型別串接 API；表單驗證與後端一致。
 * **可觀測與可回滾**：結構化日誌（建議 pino）、錯誤分類、交易性與冪等設計、回滾策略完善。
@@ -49,27 +49,23 @@ pharmacy-pos 是一套以 Monorepo 方式管理的藥局 POS 生態系，強調*
 ## 架構總覽
 
 ```mermaid
-flowchart LR
-  subgraph FE[frontend]
-    R["React 18 + TS<br/>MUI v5<br/>RTK / RTK Query<br/>RRD v6"]
-  end
+sequenceDiagram
+  autonumber
+  participant Dev as 需求/任務卡
+  participant SH as shared/Zod
+  participant TC as ts-rest Contract
+  participant OA as openapi
+  participant BE as backend
+  participant FE as frontend
+  participant T as tests
 
-  subgraph BE[backend]
-    E["Express 5<br/>Routes / Controllers<br/>Service (Orchestration)<br/>Domain Services<br/>Models"]
-  end
-
-  subgraph SH[shared]
-    Z["Zod Schemas<br/>Types & Utils"]
-  end
-
-  subgraph OA[openapi]
-    OAS["API Spec<br/>Generators"]
-  end
-
-  Z -- 同步／映射 --> OAS
-  OAS -- 生成型別／SDK --> R
-  OAS -- 契約對齊 --> E
-  R -- API 呼叫／表單驗證 --> E
+  Dev->>SH: 定義/更新 Zod Schemas（欄位/規則）
+  SH->>TC: 產生 ts-rest router + 型別
+  TC->>BE: 匯入型別安全 handler
+  SH->>OA: 對映/輸出 OpenAPI 契約
+  OA->>FE: 產生前端 SDK/型別
+  BE->>T: 契約測試/單元測試
+  FE->>T: 表單驗證/端到端測試
 ```
 
 ## 資料夾結構
@@ -123,19 +119,21 @@ pnpm run dev
 ```mermaid
 sequenceDiagram
   autonumber
-  participant Dev as 開發/需求
+  participant Dev as 需求/任務卡
   participant SH as shared/Zod
+  participant TC as ts-rest Contract
   participant OA as openapi
   participant BE as backend
   participant FE as frontend
   participant T as tests
 
   Dev->>SH: 定義/更新 Zod Schemas（欄位/規則）
-  SH->>OA: 映射/對齊 OpenAPI 契約
-  OA->>FE: 生成前端 SDK/型別
-  OA->>BE: 對齊路由/DTO/驗證
-  BE->>T: 契約測試/整合測試
-  FE->>T: 表單驗證/端對端測試
+  SH->>TC: 產生 ts-rest router + 型別
+  TC->>BE: 匯入型別安全 handler
+  SH->>OA: 對映/輸出 OpenAPI 契約
+  OA->>FE: 產生前端 SDK/型別
+  BE->>T: 契約測試/單元測試
+  FE->>T: 表單驗證/端到端測試
 ```
 
 原則：
@@ -229,8 +227,8 @@ pnpm install -w
 pnpm -w run dev
 
 # 產生/預覽 OpenAPI（如已配置）
-pnpm -w run openapi:gen
-pnpm -w run openapi:preview
+pnpm --filter @pharmacy-pos/shared run generate:openapi
+pnpm --filter @pharmacy-pos/shared run generate:openapi && pnpm -w run openapi:preview
 
 # 品質檢查
 pnpm -w run lint
@@ -242,3 +240,8 @@ pnpm -w run build
 pnpm --filter backend run start
 pnpm --filter frontend run preview
 ```
+
+
+
+
+

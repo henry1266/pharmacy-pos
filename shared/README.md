@@ -1,134 +1,109 @@
-# Shared 模組
+﻿# Shared 模組
 
-這個目錄包含了前後端共用的型別定義和工具函數，旨在提高程式碼重用性並確保型別一致性。
+SSOT（Single Source of Truth）所在。所有欄位定義、驗證、契約與共用工具都必須先在這裡更新，再透過自動化工具同步到前後端。
 
 ## 目錄結構
 
-```
+```text
 shared/
-├── types/           # 型別定義
-│   ├── entities.ts     # 基礎實體型別
-│   ├── api.ts          # API 相關型別
-│   ├── forms.ts        # 表單相關型別
-│   ├── accounting.ts   # 會計相關型別
-│   ├── store.ts        # Redux 狀態型別
-│   ├── business.ts     # 業務邏輯型別
-│   ├── utils.ts        # 工具函數型別
-│   └── models.ts       # 資料模型型別
-├── utils/           # 工具函數
-│   ├── calendarUtils.ts        # 日曆相關工具
-│   ├── dataTransformations.ts  # 資料轉換工具
-│   ├── overtimeDataProcessor.ts # 加班數據處理
-│   ├── roleUtils.ts            # 角色相關工具
-│   └── stringUtils.ts          # 字串處理工具
-├── index.ts         # 統一匯出檔案
-└── README.md        # 說明文件
+├── api/
+│   ├── contracts/        # ts-rest 契約（以 Zod 為核心）
+│   └── clients/          # 依契約產生的型別安全 client
+├── schemas/
+│   └── zod/              # Zod schema（欄位 SSOT）
+├── scripts/              # OpenAPI / 發布相關腳本
+├── types/                # 公用 TypeScript 型別（legacy / 未遷移片段）
+├── utils/                # 通用工具
+├── index.ts              # 封裝對外匯出
+└── package.json          # pnpm workspace 套件定義
 ```
 
-## 使用方式
+## 工作流程總覽
 
-### 在前端使用
+1. **更新 Zod schema**：在 `schemas/zod` 內新增或調整結構（範例：`sale.ts`）。
+2. **同步 ts-rest 契約**：在 `api/contracts` 內描述路由，直接引用 Zod schema 與共用錯誤包裝。
+3. **產出 OpenAPI & SDK**：
+   ```bash
+   pnpm --filter @pharmacy-pos/shared run generate:openapi
+   ```
+   會自動：
+   - 編譯 TS → `dist/`
+   - 修補相對匯入（`scripts/patch-dist-imports.js`）
+   - 以 ts-rest 契約產生 `openapi/openapi.json`
+4. **前後端導入**：
+   - 後端使用 `@ts-rest/express` handler，型別與驗證直接來自契約。
+   - 前端或其他消費者使用 `createSalesContractClient` 等 factory 獲得型別安全的呼叫介面。
 
-```typescript
-// 匯入型別定義
-import { Product, Sale, Customer } from '@pharmacy-pos/shared';
+## ts-rest 契約
 
-// 匯入工具函數
-import { formatDate, getRoleName } from '@pharmacy-pos/shared';
+契約檔會以 `initContract()` 建立 router。範例（`api/contracts/sales.ts`）：
 
-// 使用特定模組
-import { ActionType, RootState } from '@pharmacy-pos/shared/types/store';
-```
-
-### 在後端使用
-
-```typescript
-// 匯入型別定義
-import { IUser, IProduct, CodeGenerationResult } from '@pharmacy-pos/shared';
-
-// 匯入工具函數
-import { validateRole, processOvertimeData } from '@pharmacy-pos/shared';
-```
-
-## 型別定義說明
-
-### entities.ts
-包含基礎的實體型別定義，如 Product、Customer、Sale 等。
-
-### api.ts
-包含 API 請求和回應的型別定義，統一前後端的 API 介面。
-
-### forms.ts
-包含各種表單的型別定義，確保表單資料結構的一致性。
-
-### accounting.ts
-包含會計相關的型別定義，如記帳項目、會計分類等。
-
-### store.ts
-包含 Redux 狀態管理的型別定義，包括 Action 型別和 State 型別。
-
-### business.ts
-包含業務邏輯相關的型別定義，如訂單號生成、FIFO 計算等。
-
-### utils.ts
-包含工具函數相關的型別定義，如密碼驗證、檔案處理等。
-
-### models.ts
-包含資料模型的型別定義，移除了 MongoDB 依賴，適用於前後端。
-
-## 工具函數說明
-
-### calendarUtils.ts
-提供日曆相關的工具函數，如日期格式化、員工顏色生成等。
-
-### dataTransformations.ts
-提供資料轉換工具，如銷售數據轉換、趨勢分析等。
-
-### overtimeDataProcessor.ts
-提供加班數據處理工具，包含複雜的業務邏輯處理。
-
-### roleUtils.ts
-提供角色相關的工具函數，如角色名稱轉換、權限檢查等。
-
-### stringUtils.ts
-提供字串處理工具函數，如格式化、驗證等。
-
-## 設計原則
-
-1. **環境無關性**: 所有共享程式碼都不依賴特定的執行環境（如 Node.js 或瀏覽器）
-2. **型別安全**: 使用 TypeScript 提供完整的型別定義
-3. **模組化**: 按功能分類組織程式碼，便於維護和使用
-4. **一致性**: 確保前後端使用相同的型別定義和工具函數
-5. **可重用性**: 提供通用的工具函數，避免程式碼重複
-
-## 注意事項
-
-1. 避免在 shared 模組中引入特定環境的依賴（如 DOM API 或 Node.js API）
-2. 型別定義應該保持向後相容性
-3. 新增型別或工具函數時，請更新相應的匯出檔案
-4. 確保所有型別都有適當的 JSDoc 註釋
-
-## 版本管理
-
-當修改 shared 模組時，請注意：
-
-1. 破壞性變更需要更新版本號
-2. 新增功能應該保持向後相容
-3. 修改現有型別時要考慮對前後端的影響
-4. 建議使用語義化版本控制
-
-## 測試
-
-建議為工具函數編寫單元測試，確保功能的正確性和穩定性。
-
-```typescript
-// 測試範例
-import { getRoleName } from '@pharmacy-pos/shared';
-
-describe('getRoleName', () => {
-  it('should return correct role name', () => {
-    expect(getRoleName('admin')).toBe('管理員');
-    expect(getRoleName('pharmacist')).toBe('藥師');
-    expect(getRoleName('staff')).toBe('員工');
-  });
+```ts
+const salesContract = c.router({
+  listSales: {
+    method: 'GET',
+    path: '/sales',
+    query: saleQuerySchema.optional(),
+    responses: {
+      200: saleListResponseSchema,
+      500: apiErrorResponseSchema,
+    },
+  },
+  // ... 其他路由
 });
+```
+
+- **schema** 直接引用 `schemas/zod/sale.ts`。
+- **responses** 一律使用 `schemas/zod/common.ts` 內的 `createApiResponseSchema` / `apiErrorResponseSchema` 保持格式一致。
+- 契約在 `index.ts` 中被彙整成 `pharmacyContract`（供 OpenAPI 與 handler 使用）。
+
+## 型別安全 client
+
+`api/clients` 內提供 `createSalesContractClient` 等 factory，內部是 `@ts-rest/core` client。基本使用：
+
+```ts
+import { createSalesContractClient } from '@pharmacy-pos/shared';
+
+const salesClient = createSalesContractClient({
+  baseUrl: '/api',
+});
+
+const { body } = await salesClient.sales.listSales({
+  query: { search: 'OTC' },
+});
+```
+
+## 常用腳本
+
+| 指令 | 說明 |
+| --- | --- |
+| `pnpm --filter @pharmacy-pos/shared build` | 編譯 shared 套件（輸出至 `dist/`） |
+| `pnpm --filter @pharmacy-pos/shared run generate:openapi` | 重新產生 OpenAPI 契約、修補匯入 |
+| `pnpm --filter @pharmacy-pos/shared type-check` | 型別檢查 |
+
+> 建議在每次 schema/contract 調整後，依序執行 `type-check` → `build` → `generate:openapi`，避免出現漂移。
+
+## 撰寫準則
+
+1. **不得依賴環境**：shared 僅能放純 TypeScript／Zod；禁止操作 DOM、`process` 或資料庫連線。
+2. **schema 優先**：所有欄位必須先有 Zod schema，再導出對應型別或契約。
+3. **錯誤結構一致**：使用 `apiErrorResponseSchema` 維持 `success=false` 包裝。
+4. **新增契約**：
+   - 在 `schemas/zod` 建立 schema。
+   - 在 `api/contracts` 產生 router。
+   - 視需要提供 `api/clients` 對應 client。
+   - 更新 README/ADR，並附上 valid/invalid 範例。
+5. **OpenAPI 錯誤排除**：若 `generate-openapi` 失敗，先確認 `shared/dist` 內存在 `.js` 目標，或重新執行 `pnpm --filter @pharmacy-pos/shared build`。
+
+## 測試建議
+
+- 契約層建議在後端加上契約測試（`@ts-rest/express` 自帶 response validation）。
+- schema 調整後請同步更新 `tests/` 內的 valid/invalid 樣本以覆蓋邊界。
+
+---
+
+更新 shared 內容時，務必在 PR 任務卡中附上：
+- 需求來源與 schema diff
+- 各端同步策略（backend handler / frontend client）
+- `generate-openapi` 的產出紀錄或截圖
+- 風險與回滾方案（例：需要同步資料遷移）
