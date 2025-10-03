@@ -5,6 +5,8 @@
 
 
 import type { PurchaseOrder as SharedPurchaseOrder, PurchaseOrderRequest as SharedPurchaseOrderCreateRequest, PurchaseOrderUpdateRequest as SharedPurchaseOrderUpdateRequest } from './purchase-order';
+import type { ShippingOrder as SharedShippingOrder, ShippingOrderCreateRequest as SharedShippingOrderCreateRequest, ShippingOrderUpdateRequest as SharedShippingOrderUpdateRequest, ShippingOrderSearchParams as SharedShippingOrderSearchParams } from './shipping-order';
+
 
 /**
  * 基礎 API 回應型別
@@ -276,30 +278,7 @@ export type PurchaseOrderCreateRequest = SharedPurchaseOrderCreateRequest;
 export type PurchaseOrderUpdateRequest = SharedPurchaseOrderUpdateRequest;
 export type PurchaseOrderResponse = SharedPurchaseOrder;
 
-export interface ShippingOrderCreateRequest {
-  soid?: string;
-  orderNumber?: string;
-  sosupplier: string;
-  supplier?: string;
-  customer?: string;
-  customerName?: string;
-  orderDate?: string;
-  shippingDate?: string;
-  items: Array<{
-    did: string;
-    dname: string;
-    dquantity: number;
-    dtotalCost: number;
-    product?: string;
-    unitPrice?: number;
-    notes?: string;
-  }>;
-  totalAmount?: number;
-  status?: 'pending' | 'completed' | 'cancelled';
-  paymentStatus?: '未收' | '已收款' | '已開立';
-  shippingAddress?: string;
-  notes?: string;
-}
+export type ShippingOrderCreateRequest = SharedShippingOrderCreateRequest;
 
 export interface ShippingOrderResponse {
   _id: string;
@@ -332,8 +311,8 @@ export interface ShippingOrderResponse {
     notes?: string;
   }>;
   totalAmount: number;
-  status: 'pending' | 'completed' | 'cancelled';
-  paymentStatus: '未收' | '已收款' | '已開立';
+  status: SharedShippingOrder['status'];
+  paymentStatus: SharedShippingOrder['paymentStatus'];
   orderDate?: Date | string;
   shippingDate?: Date | string;
   deliveryDate?: Date | string;
@@ -348,7 +327,9 @@ export interface ShippingOrderResponse {
   updatedAt: Date | string;
 }
 
-export interface ShippingOrderUpdateRequest extends Partial<ShippingOrderCreateRequest> {}
+export type ShippingOrderUpdateRequest = SharedShippingOrderUpdateRequest;
+
+export type ShippingOrderSearchParams = SharedShippingOrderSearchParams;
 
 /**
  * 庫存相關 API 型別

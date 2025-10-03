@@ -43,6 +43,16 @@ export type {
   PurchaseOrderSearchParams
 } from './purchase-order';
 
+export type {
+  ShippingOrderStatus,
+  ShippingOrderPaymentStatus,
+  ShippingOrder,
+  ShippingOrderItem,
+  ShippingOrderCreateRequest,
+  ShippingOrderUpdateRequest,
+  ShippingOrderSearchParams
+} from './shipping-order';
+
 // 業務邏輯型別 (避免與 api 衝突) - 使用重構後的版本
 export type {
   // 基礎型別
