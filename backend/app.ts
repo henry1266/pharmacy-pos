@@ -95,7 +95,7 @@ export function createApp(): Application {
   app.use("/api/products", productsRoutes);
   app.use("/api/packages", packagesRoutes);
   app.use("/api/customers", customersRoutes);
-  app.use("/api/sales", salesRoutes);
+  app.use("/api", salesRoutes);
   app.use("/api/accounting", accountingRoutes);
   app.use("/api/dashboard", dashboardRoutes);
   app.use("/api/reports", reportsRoutes);
