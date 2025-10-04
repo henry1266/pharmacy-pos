@@ -13,7 +13,7 @@
 * **路由**: React Router DOM 6.8.2
 * **狀態管理**: Redux + Redux Thunk
 * **HTTP 客戶端**: Axios 1.3.4
-* **表單處理**: Formik 2.2.9 + Yup 1.0.2
+* **表單處理**: Formik 2.2.9 + Zod
 * **圖表**: Chart.js 4.2.1 + React-Chartjs-2 5.2.0
 * **日期處理**: Date-fns 2.29.3 + Moment 2.29.4
 * **動畫**: Framer Motion 12.9.2
