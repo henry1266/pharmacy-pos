@@ -62,12 +62,12 @@ export const updateSupplierSchema = supplierSchema.partial();
 
 export const supplierSearchSchema = z.object({
   search: z.string().optional(),
-  active: z.boolean().optional(),
-  page: z.number().int().min(1).optional(),
-  limit: z.number().int().min(1).max(100).optional(),
+  active: z.coerce.boolean().optional(),
+  page: z.coerce.number().min(1).optional(),
+  limit: z.coerce.number().min(1).max(100).optional(),
   sortBy: z.string().max(50).optional(),
   sortOrder: z.enum(['asc', 'desc']).optional(),
-});
+}).passthrough();
 
 export const supplierEntitySchema = supplierSchema
   .extend({

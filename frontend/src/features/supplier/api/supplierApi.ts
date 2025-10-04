@@ -1,95 +1,123 @@
-/**
- * Supplier API with RTK Query
- */
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { supplierApiClient } from './client';
-import type { SupplierCreateRequest, SupplierUpdateRequest, SupplierResponseDto, SupplierQueryParams } from './dto';
+import type { FetchBaseQueryError } from '@reduxjs/toolkit/query';
+import { supplierContractClient } from './client';
+import type {
+  SupplierCreateRequest,
+  SupplierUpdateRequest,
+  SupplierResponseDto,
+  SupplierQueryParams,
+} from './dto';
+
+type ListSuppliersArgs = Parameters<typeof supplierContractClient.listSuppliers>[0];
+
+const toFetchError = (status: number, body: unknown): FetchBaseQueryError => ({
+  status,
+  data: body,
+});
+
+const toUnknownFetchError = (error: unknown): FetchBaseQueryError => ({
+  status: 'FETCH_ERROR',
+  data: undefined,
+  error: error instanceof Error ? error.message : 'Unknown error',
+});
 
 export const supplierApi = createApi({
   reducerPath: 'supplierApi',
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
   tagTypes: ['Supplier'],
   endpoints: (builder) => ({
-    // 供應商清單（回傳陣列，與 service v2 對齊）
     getSuppliers: builder.query<SupplierResponseDto[], SupplierQueryParams | void>({
-      queryFn: async (params = {}) => {
+      queryFn: async (params) => {
         try {
-          const response = await supplierApiClient.get('/suppliers', { params });
-          // 後端回傳可能為陣列或包在 data 中，兩者皆處理
-          const payload = Array.isArray(response.data) ? response.data : (response.data?.data ?? []);
-          return { data: payload };
-        } catch (error: any) {
-          return { error: { status: error.status, data: error.message } };
+          const queryParams = (params ?? undefined) as ListSuppliersArgs['query'];
+          const requestArgs: ListSuppliersArgs = { query: queryParams };
+          const result = await supplierContractClient.listSuppliers(requestArgs);
+          if (result.status === 200 && result.body?.success) {
+            const payload = (result.body.data ?? []) as SupplierResponseDto[];
+            return { data: payload };
+          }
+          return { error: toFetchError(result.status, result.body) };
+        } catch (error) {
+          return { error: toUnknownFetchError(error) };
         }
       },
-      providesTags: (result) =>
-        result ? [
-          ...result.map((s) => ({ type: 'Supplier' as const, id: (s as any)._id || (s as any).id })),
-          { type: 'Supplier', id: 'LIST' }
-        ] : [{ type: 'Supplier', id: 'LIST' }]
+      providesTags: (result) => (result && result.length > 0)
+        ? [
+          ...result.map((supplier) => ({
+            type: 'Supplier' as const,
+            id: (supplier as SupplierResponseDto & { id?: string }).id ?? (supplier as any)._id,
+          })),
+          { type: 'Supplier', id: 'LIST' },
+        ]
+        : [{ type: 'Supplier', id: 'LIST' }],
     }),
-
-    // 取得單一供應商
     getSupplierById: builder.query<SupplierResponseDto, string>({
       queryFn: async (id) => {
         try {
-          const response = await supplierApiClient.get(`/suppliers/${id}`);
-          const data = response.data?.data ?? response.data;
-          return { data };
-        } catch (error: any) {
-          return { error: { status: error.status, data: error.message } };
+          const result = await supplierContractClient.getSupplierById({ params: { id } });
+          if (result.status === 200 && result.body?.success) {
+            const data = (result.body.data ?? {}) as SupplierResponseDto;
+            return { data };
+          }
+          return { error: toFetchError(result.status, result.body) };
+        } catch (error) {
+          return { error: toUnknownFetchError(error) };
         }
       },
-      providesTags: (_result, _error, id) => [{ type: 'Supplier', id }]
+      providesTags: (_result, _error, id) => [{ type: 'Supplier', id }],
     }),
-
-    // 建立
     createSupplier: builder.mutation<SupplierResponseDto, SupplierCreateRequest>({
       queryFn: async (body) => {
         try {
-          const response = await supplierApiClient.post('/suppliers', body);
-          const data = response.data?.data ?? response.data;
-          return { data };
-        } catch (error: any) {
-          return { error: { status: error.status, data: error.message } };
+          const result = await supplierContractClient.createSupplier({ body });
+          if (result.status === 200 && result.body?.success) {
+            const data = (result.body.data ?? {}) as SupplierResponseDto;
+            return { data };
+          }
+          return { error: toFetchError(result.status, result.body) };
+        } catch (error) {
+          return { error: toUnknownFetchError(error) };
         }
       },
-      invalidatesTags: [{ type: 'Supplier', id: 'LIST' }]
+      invalidatesTags: [{ type: 'Supplier', id: 'LIST' }],
     }),
-
-    // 更新
     updateSupplier: builder.mutation<SupplierResponseDto, { id: string; data: SupplierUpdateRequest }>({
       queryFn: async ({ id, data }) => {
         try {
-          const response = await supplierApiClient.put(`/suppliers/${id}`, data);
-          const payload = response.data?.data ?? response.data;
-          return { data: payload };
-        } catch (error: any) {
-          return { error: { status: error.status, data: error.message } };
+          const result = await supplierContractClient.updateSupplier({ params: { id }, body: data });
+          if (result.status === 200 && result.body?.success) {
+            const payload = (result.body.data ?? {}) as SupplierResponseDto;
+            return { data: payload };
+          }
+          return { error: toFetchError(result.status, result.body) };
+        } catch (error) {
+          return { error: toUnknownFetchError(error) };
         }
       },
       invalidatesTags: (_result, _error, { id }) => [
         { type: 'Supplier', id },
-        { type: 'Supplier', id: 'LIST' }
-      ]
+        { type: 'Supplier', id: 'LIST' },
+      ],
     }),
-
-    // 刪除
     deleteSupplier: builder.mutation<{ id: string }, string>({
       queryFn: async (id) => {
         try {
-          await supplierApiClient.delete(`/suppliers/${id}`);
-          return { data: { id } };
-        } catch (error: any) {
-          return { error: { status: error.status, data: error.message } };
+          const result = await supplierContractClient.deleteSupplier({ params: { id } });
+          if (result.status === 200 && result.body?.success) {
+            const deletedId = (result.body.data as { id?: string } | undefined)?.id ?? id;
+            return { data: { id: deletedId } };
+          }
+          return { error: toFetchError(result.status, result.body) };
+        } catch (error) {
+          return { error: toUnknownFetchError(error) };
         }
       },
       invalidatesTags: (_result, _error, id) => [
         { type: 'Supplier', id },
-        { type: 'Supplier', id: 'LIST' }
-      ]
-    })
-  })
+        { type: 'Supplier', id: 'LIST' },
+      ],
+    }),
+  }),
 });
 
 export const {
@@ -97,9 +125,7 @@ export const {
   useGetSupplierByIdQuery,
   useCreateSupplierMutation,
   useUpdateSupplierMutation,
-  useDeleteSupplierMutation
+  useDeleteSupplierMutation,
 } = supplierApi;
 
 export default supplierApi;
-
-
