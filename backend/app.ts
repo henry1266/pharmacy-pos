@@ -94,7 +94,7 @@ export function createApp(): Application {
   app.use("/api/product-categories", productCategoriesRoutes);
   app.use("/api/products", productsRoutes);
   app.use("/api/packages", packagesRoutes);
-  app.use("/api/customers", customersRoutes);
+  app.use("/api", customersRoutes);
   app.use("/api", salesRoutes);
   app.use("/api/accounting", accountingRoutes);
   app.use("/api/dashboard", dashboardRoutes);
@@ -273,3 +273,4 @@ export async function initializeDatabase() {
  */
 const app = createApp();
 export default app;
+

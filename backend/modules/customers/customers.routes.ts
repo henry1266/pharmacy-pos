@@ -1,5 +1,5 @@
-﻿import { Router } from 'express';
-import { initServer } from '@ts-rest/express';
+import { Router } from 'express';
+import { initServer, createExpressEndpoints } from '@ts-rest/express';
 import { customersContract } from '@pharmacy-pos/shared/api/contracts';
 import type { ServerInferRequest } from '@ts-rest/core';
 import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
@@ -129,35 +129,8 @@ function handleError(error: unknown, logMessage: string) {
 }
 
 const router: Router = Router();
-
-router.get('/', async (req, res) => {
-  const result = await implementation.listCustomers({ query: req.query } as ListCustomersRequest);
-  res.status(result.status).json(result.body);
-});
-
-router.post('/quick', async (req, res) => {
-  const result = await implementation.quickCreateCustomer({ body: req.body } as QuickCreateCustomerRequest);
-  res.status(result.status).json(result.body);
-});
-
-router.get('/:id', async (req, res) => {
-  const result = await implementation.getCustomerById({ params: req.params } as GetCustomerRequest);
-  res.status(result.status).json(result.body);
-});
-
-router.post('/', async (req, res) => {
-  const result = await implementation.createCustomer({ body: req.body } as CreateCustomerRequest);
-  res.status(result.status).json(result.body);
-});
-
-router.put('/:id', async (req, res) => {
-  const result = await implementation.updateCustomer({ params: req.params, body: req.body } as UpdateCustomerRequest);
-  res.status(result.status).json(result.body);
-});
-
-router.delete('/:id', async (req, res) => {
-  const result = await implementation.deleteCustomer({ params: req.params } as DeleteCustomerRequest);
-  res.status(result.status).json(result.body);
-});
+createExpressEndpoints(customersContract, implementation, router);
 
 export default router;
+
+

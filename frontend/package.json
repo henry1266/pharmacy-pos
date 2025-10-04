@@ -40,7 +40,8 @@
     "redux-thunk": "^2.4.2",
     "tsparticles": "^3.8.1",
     "web-vitals": "^2.1.4",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "@ts-rest/core": "^3.52.1"
   },
   "scripts": {
     "start": "craco start",

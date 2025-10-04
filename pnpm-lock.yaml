@@ -210,6 +210,9 @@ importers:
       '@testing-library/user-event':
         specifier: ^13.5.0
         version: 13.5.0(@testing-library/dom@8.20.1)
+      '@ts-rest/core':
+        specifier: ^3.52.1
+        version: 3.52.1(@types/node@22.15.32)(zod@3.25.76)
       '@tsparticles/engine':
         specifier: ^3.8.1
         version: 3.8.1

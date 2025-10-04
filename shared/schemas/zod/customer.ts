@@ -1,4 +1,4 @@
-﻿import { z } from 'zod';
+import { z } from 'zod';
 import { zodId } from '../../utils/zodUtils';
 import { VALIDATION_CONSTANTS } from '../../constants';
 
@@ -43,11 +43,11 @@ export const updateCustomerSchema = customerSchema.partial();
 export const customerSearchSchema = z.object({
   search: z.string().optional(),
   wildcardSearch: z.string().optional(),
-  page: z.number().min(1).optional(),
-  limit: z.number().min(1).max(100).optional(),
+  page: z.coerce.number().min(1).optional(),
+  limit: z.coerce.number().min(1).max(100).optional(),
   sortBy: z.string().optional(),
   sortOrder: z.enum(['asc', 'desc']).optional(),
-});
+}).passthrough();
 
 export const quickCreateCustomerSchema = z.object({
   name: nameSchema,
