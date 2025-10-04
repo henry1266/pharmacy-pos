@@ -1,70 +1,75 @@
-﻿# Customer Module (ts-rest x RTK Query)
+# Customer 模組（ts-rest x RTK Query）
 
-> This feature owns customer CRUD (list / detail / create / update / quick create). Every schema, validation rule, and API contract is sourced from the shared Zod schemas and ts-rest router, so front- and back-end stay in sync.
+> 本模組負責顧客資料維護（列表 / 詳細 / 建立 / 更新 / 快速建檔）。所有欄位、驗證與 API 契約皆以 `shared/` 內的 Zod schema 與 ts-rest router 為單一事實來源（SSOT），確保前後端同步。
 
-## Feature Summary
+## 功能總覽
 
-- **Customer list** – search (name, phone, etc.), filter, pagination, cache invalidation.
-- **Customer detail** – fetch single record, surface errors, preserve response validation.
-- **Customer maintenance** – create, update, delete, quick create by ID number.
-- **Quick create** – upsert by ID card and return a `created` indicator.
+- 顧客列表：支援搜尋（姓名、電話等）、篩選、分頁與快取失效管理。
+- 顧客詳情：單筆查詢、錯誤提示、回應驗證。
+- 顧客維護：建立、更新、刪除，快速建檔（身分證號雙寫並回傳 `created` 標記）。
 
-## Folder Layout
+## 目錄結構
 
 ```text
 customer/
 ├─ api/
-│  ├─ client.ts                # Contract client built with createCustomersContractClient
-│  ├─ customerApi.ts           # RTK Query slice; queryFn talks to the contract client
-│  └─ dto.ts                   # Type exports inferred from shared Zod schemas
-├─ components/…               # Module-specific UI (list, forms, dialogs)
-├─ hooks/…                    # Business hooks (e.g. useCustomerData)
-├─ model/                     # Redux slice for UI state (optional)
-├─ pages/                     # React Router entry points
-├─ services/                  # Service helpers (e.g. customerServiceV2)
-└─ README.md                  # This document
+│  ├─ client.ts                # 透過 ts-rest 契約產生的型別安全 client（自動帶入 Authorization header）
+│  ├─ customerApi.ts           # RTK Query slice；queryFn 直接呼叫 contract client
+│  └─ dto.ts                   # 由 shared Zod schema 推導出的型別 re-export
+├─ components/…               # 顧客專屬 UI 元件（列表、表單、對話框等）
+├─ hooks/…                    # 業務邏輯 hooks（如 useCustomerData）
+├─ model/                     # Redux slice（若需要額外 UI 狀態）
+├─ pages/                     # React Router 進入點
+├─ services/                  # 服務層（例如 `customerServiceV2.ts`）
+└─ README.md                  # 本文件
 ```
 
-## API & Service Responsibilities
+## API / Service 責任分工
 
-| File | Role | Notes |
+| 檔案 | 角色 | 說明 |
 | --- | --- | --- |
-| `api/client.ts` | Contract client | Wraps `createCustomersContractClient`; injects Authorization header and keeps the shared response envelope. |
-| `api/customerApi.ts` | RTK Query slice | `queryFn` calls the contract client; unwraps `body.data` on success, maps errors to `FetchBaseQueryError`, handles cache tags. |
-| `services/customerServiceV2.ts` | Service layer | Uses the contract client for CRUD + quick create; `assertSuccessBody/assertSuccessData/rethrow` keep envelope & error handling consistent for legacy hooks/components. |
+| `api/client.ts` | Contract client | 以 `createCustomersContractClient` 建立 ts-rest client，負責設定 Authorization header 並維持 shared 定義的回應包裝。 |
+| `api/customerApi.ts` | RTK Query slice | `queryFn` 直接呼叫 contract client；成功時取 `body.data`，失敗時轉成 `FetchBaseQueryError`，並以 `tagTypes` 管控快取。 |
+| `services/customerServiceV2.ts` | 服務工具層 | 使用 contract client 實作 CRUD 與快速建檔；`assertSuccessBody / assertSuccessData / rethrow` 封裝 envelope 與錯誤，讓 legacy hooks 與元件共用。 |
 
-> Prefer RTK Query for new work. If a legacy hook still needs the service layer, call service v2 so contract access stays centralized.
+> 建議新增功能優先使用 RTK Query。若暫時必須支援舊 hooks，請透過 service v2 呼叫，避免分散契約存取點。
 
-## Request Flow (list example)
+## 資料流（列表查詢範例）
 
-```
+```text
 Component → useGetCustomersQuery
           → customerContractClient.listCustomers
-          → shared/api/contracts/customers.ts (Zod validation)
+          → shared/api/contracts/customers.ts（Zod schema 驗證）
           → backend @ts-rest/express handler
 ```
 
-- Types come from shared schemas (`z.infer`).
-- Contract responses stay in the `success/message/data` envelope; only `data` propagates when the status is 200.
-- Errors become `FetchBaseQueryError` so UI components see a standard shape.
+- 型別來源：`CustomerCreateRequest` 等型別皆以 `z.infer` 從 shared schema 推導。
+- 回傳包裝：後端維持 `success / message / data` envelope；前端只在成功時回傳 `data`。
+- 錯誤處理：
+  - 契約錯誤 → `toFetchError(status, body)`。
+  - 網路 / 執行期錯誤 → `toUnknownFetchError(error)`。
 
-## Migration Checklist (Axios → ts-rest)
+## 遷移指引（Axios → ts-rest）
 
-1. **Import types** from shared schemas instead of hand-written interfaces.
-2. **Expose operations** through `customerServiceV2.ts` (contract client + helpers) or RTK Query hooks.
-3. **Reuse helpers** (`assertSuccessBody/assertSuccessData/rethrow`) to keep messages aligned.
-4. **Testing** – use the contract client for integration tests; mock the contract responses with MSW for hook tests.
+1. **型別引用**：使用 shared schema 推導的型別，避免自訂 interface。
+2. **API 呼叫**：
+   - 先在 `customerServiceV2.ts` 補上 contract 版本的服務方法。
+   - Hooks / 元件改呼叫 service v2 或 RTK Query hooks。
+3. **錯誤訊息**：統一透過 `assertSuccessBody / assertSuccessData` 取得錯誤資訊。
+4. **測試策略**：
+   - 契約 / 整合測試：直接使用 `customerContractClient` 打後端。
+   - Hooks 測試：建議搭配 MSW 模擬成功、400、404 等情境。
 
-## FAQ
+## 常見問題
 
-- **Why keep service v2?** Legacy hooks (e.g. `useCustomerData`) still depend on it. Wrapping the contract client here avoids two divergent code paths.
-- **How do cache tags work?** Mutations invalidate `{ type: 'Customer', id: 'LIST' }`, so the list refetches automatically after create/update/delete.
-- **What about extra query params?** The shared schema uses `.passthrough()`, so legacy filters still work, but please add official fields to the shared schema and OpenAPI.
+- **為何保留 service v2？** 舊版 hooks（例如 `useCustomerData`）尚未全面改用 RTK Query。透過 service v2 集中管理契約呼叫，可避免雙軌維護。
+- **快取失效怎麼處理？** RTK Query mutation 已設定 `invalidatesTags: [{ type: 'Customer', id: 'LIST' }]`，呼叫完成後列表會自動重新取得。
+- **Legacy 查詢參數？** `shared/schemas/zod/customer.ts` 使用 `.passthrough()` 允許舊參數，但正式欄位應同步更新 shared schema 與 OpenAPI。
 
 ---
 
-When raising a PR:
-- Include contract/schema diffs (`shared/`, `openapi/`).
-- Attach test evidence (unit / integration / contract).
-- Describe risk and rollback steps (especially if data migration is involved).
+提交 PR 時請附上：
 
+- 契約／schema 變動（`shared/`、`openapi/`）。
+- 測試證據（單元／整合／契約）。
+- 風險與回滾策略（若涉及資料遷移）。
