@@ -158,5 +158,5 @@ features/[module]/
 
 ## 客戶模組補充
 
-- 參考 `customer/README.md`，了解 ts-rest 契約、RTK Query 與 service v2 的共存策略。
-- 新增/調整顧客 API 時，優先更新 shared 契約與 `customerServiceV2.ts`，並透過 RTK Query `customerApi` 暴露 hooks。
+- 參考 `customer/README.md`，了解 customer 模組全數改用 ts-rest 契約與 RTK Query 的開發守則。
+- 新增或調整顧客 API 時，請先更新 shared 契約（Zod + ts-rest），同步 `customerServiceV2.ts`，再由 RTK Query `customerApi` 暴露 hooks。

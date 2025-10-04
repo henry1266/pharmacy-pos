@@ -49,16 +49,15 @@ Component → useGetCustomersQuery
   - 契約錯誤 → `toFetchError(status, body)`。
   - 網路 / 執行期錯誤 → `toUnknownFetchError(error)`。
 
-## 遷移指引（Axios → ts-rest）
+## 開發守則（ts-rest）
 
-1. **型別引用**：使用 shared schema 推導的型別，避免自訂 interface。
-2. **API 呼叫**：
-   - 先在 `customerServiceV2.ts` 補上 contract 版本的服務方法。
-   - Hooks / 元件改呼叫 service v2 或 RTK Query hooks。
-3. **錯誤訊息**：統一透過 `assertSuccessBody / assertSuccessData` 取得錯誤資訊。
-4. **測試策略**：
-   - 契約 / 整合測試：直接使用 `customerContractClient` 打後端。
-   - Hooks 測試：建議搭配 MSW 模擬成功、400、404 等情境。
+1. **契約優先**：更新欄位時請先調整 `shared/schemas/zod/customer.ts` 與 `shared/api/contracts/customers.ts`，再同步前端。
+2. **RTK Query 為主**：畫面資料流請優先使用 `customerApi` hooks；若需額外邏輯，再以 hooks 封裝。
+3. **服務層共用**：非 RTK Query 場景可呼叫 `customerServiceV2.ts`，其內已包裝 ts-rest client 與 envelope 檢查。
+4. **錯誤處理一致**：持續使用 `assertSuccessBody / assertSuccessData / rethrow` 取得成功/失敗訊息。
+5. **測試策略**：
+   - 契約／整合測試：以 `customerContractClient` 直接呼叫後端。
+   - Hooks 測試：搭配 MSW 模擬成功、400、404 等情境。
 
 ## 常見問題
 
