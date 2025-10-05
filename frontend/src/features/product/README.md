@@ -6,7 +6,7 @@
 | ----- | ----- | ----------- | ----- |
 | Phase 0 - Alignment & Scope | Done | 2025-10-05 | ADR recorded, endpoint inventory confirmed. |
 | Phase 1 - Shared SSOT Foundations | In progress | 2025-10-05 | Zod schemas and products contract drafted; awaiting SSOT review and OpenAPI sync. |
-| Phase 2 - Backend Module | In progress | 2025-10-05 | Read/write endpoints migrated into ts-rest service; envelope adapter pending. |
+| Phase 2 - Backend Module | In progress | 2025-10-05 | Read/write endpoints migrated; contract regression tests and fallback plan recorded; envelope adapter pending. |
 | Phase 3 - Frontend Integration | Not started | N/A | Work begins after backend exposes ts-rest router. |
 | Phase 4 - Migration & Cleanup | Not started | N/A | Requires production confidence and monitoring hooks. |
 | Phase 5 - Hardening & Extras | Not started | N/A | Schedule once contract adoption stabilises. |
@@ -34,7 +34,7 @@
   - [x] Update OpenAPI paths/components to match `productsContract` (generate ts-rest bindings and SDKs).
   - [x] Wire `productsContract` into `shared/api/contracts/index.ts` router once compatibility is confirmed.
   - [x] Publish valid/invalid payload fixtures for contract tests (`shared/testing/products`).
-  - [ ] Decide SemVer impact and note in release staging log.
+  - [x] Decide SemVer impact and note in release staging log (see docs/release-notes/products-contract.md).
 
 ### Phase 2 - Backend Module
 
@@ -46,8 +46,8 @@
   - [x] Port read endpoints (list + detail) into `backend/modules/products/products.service.ts` leveraging package-unit helpers.
   - [x] Wire feature flag `FEATURE_PRODUCTS_CONTRACT` to gate ts-rest router rollout (default off).
   - [x] Introduce envelope adapter to mirror legacy success/error envelopes (timestamp, statusCode, filters).
-  - [ ] Add contract tests and regression suites to cover create/update/delete flows (pending).
-  - [ ] Document fallback/feature flag strategy for rollout.
+  - [x] Add contract tests and regression suites to cover create/update/delete flows (see backend/modules/products/__tests__/products.contract.test.ts).
+  - [x] Document fallback/feature flag strategy for rollout (docs/release-notes/products-contract.md).
 
 ### Phase 3 - Frontend Integration
 
@@ -143,7 +143,7 @@
 | Backend module | `backend/modules/products` | Backend Orchestrator | In progress | Read/write flows migrated to ts-rest service; envelope adapter + rollout plan pending. |
 | Frontend integration guide | `frontend/src/features/product/README.md` | Frontend Builder | In progress | Update as canary learnings arrive. |
 | Test matrix | `shared/testing/products` | Testwright | Seeded | Valid/invalid payload fixtures published; coverage dashboard pending. |
-| Release log | `docs/release-notes/products-contract.md` (planned) | Release Manager | Not started | Capture SemVer decision + rollout instructions. |
+| Release log | `docs/release-notes/products-contract.md` | Release Manager | Drafted | Feature flag fallback and SemVer guidance captured.
 
 ## HITL Checkpoints & Escalation
 
