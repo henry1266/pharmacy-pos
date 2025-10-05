@@ -240,18 +240,3 @@ pnpm -w run build
 pnpm --filter backend run start
 pnpm --filter frontend run preview
 ```
-
-
-
-
-
-## Products Module ts-rest Migration Plan
-
-| Phase | Goals | Key Deliverables |
-| ----- | ----- | ---------------- |
-| Phase 0 · Alignment & Scope | Confirm endpoint coverage, envelope expectations, consumers, and migration criteria. | ADR outlining scope, assumptions, rollout strategy. |
-| Phase 1 · Shared SSOT Foundations | Model product DTOs/queries in Zod and expose a `productsContract`. | `shared/schemas/zod/product.ts`, `shared/api/contracts/products.ts`, generated client + exports. |
-| Phase 2 · Backend Module | Implement `backend/modules/products` using ts-rest + shared schemas while matching current behaviour. | Service + router, TypeScript build green, targeted tests. |
-| Phase 3 · Frontend Integration | Switch frontend services to the new contract without breaking envelopes. | Updated product service/client usage, resolved build/lint blockers. |
-| Phase 4 · Migration & Cleanup | Retire legacy routes once confidence is high and docs/tests reflect the change. | Traffic cutover, legacy removal/deprecation notice, doc updates. |
-| Phase 5 · Hardening & Extras | Strengthen contract tests, performance, and monitoring. | Contract/E2E suites, performance notes, changelog & release updates. |
