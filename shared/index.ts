@@ -427,6 +427,9 @@ export type { SalesContractClient, SalesClientOptions, HeaderShape as SalesClien
 export { createCustomersContractClient } from './api/clients/customers';
 export type { CustomersContractClient, CustomersClientOptions, HeaderShape as CustomersClientHeaderShape } from './api/clients/customers';
 
+export { createAccountingContractClient } from './api/clients/accounting';
+export type { AccountingContractClient, AccountingClientOptions, HeaderShape as AccountingClientHeaderShape } from './api/clients/accounting';
+
 export { createSuppliersContractClient } from './api/clients/suppliers';
 export type { SuppliersContractClient, SuppliersClientOptions, HeaderShape as SuppliersClientHeaderShape } from './api/clients/suppliers';
 

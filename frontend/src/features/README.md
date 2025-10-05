@@ -160,3 +160,8 @@ features/[module]/
 
 - 參考 `customer/README.md`，了解 customer 模組全數改用 ts-rest 契約與 RTK Query 的開發守則。
 - 新增或調整顧客 API 時，請先更新 shared 契約（Zod + ts-rest），同步 `customerServiceV2.ts`，再由 RTK Query `customerApi` 暴露 hooks。
+
+## 每日記帳模組補充
+
+- 參考 `daily-journal/README.md`，了解 accounting (daily journal) 模組如何透過 ts-rest 契約與 service v2 統一資料流程。
+- 新增／調整記帳相關 API 時，請先更新 shared accounting 契約與 `accountingServiceV2.ts`，並確保 hooks 維持透過 service 呼叫。
