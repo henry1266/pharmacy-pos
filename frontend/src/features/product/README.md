@@ -89,7 +89,7 @@
 
 | Risk | Impact | Mitigation | Owner |
 | ---- | ------ | ---------- | ----- |
-| Envelope drift between legacy responses and ts-rest contract | Medium | Add contract regression tests comparing fixtures to legacy snapshots before enabling router. | API Contract Enforcer |
+| Envelope drift between legacy responses and ts-rest contract (e.g. null package-unit effective dates) | Medium | Add contract regression tests comparing fixtures to legacy snapshots before enabling router; track null-to-undefined cleanup for package units. | API Contract Enforcer |
 | Package unit mutation semantics regress during refactor | High | Preserve existing service layer, add integration tests around `/:id/package-units`. | Backend Orchestrator |
 | Frontend feature drift due to staggered rollout | Medium | Provide typed compatibility helpers and staged feature flags per view. | Frontend Builder |
 | Forgetting SemVer + change log updates | Low | Track in Release Manager checklist prior to merge. | Release Manager |

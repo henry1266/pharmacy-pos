@@ -84,7 +84,7 @@ function normaliseDate(value: any): any {
 }
 
 function normaliseReference(reference: any): any {
-  if (!reference) return reference
+  if (!reference) return undefined
   const plain = toPlain(reference)
   if (plain && typeof plain === 'object') {
     return {

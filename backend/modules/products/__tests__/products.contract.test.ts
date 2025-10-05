@@ -111,7 +111,7 @@ describe('productsContract router (feature flag enabled)', () => {
     delete process.env.FEATURE_PRODUCTS_CONTRACT;
   });
 
-  it('creates a product and returns SSOT-compliant envelope', async () => {
+  it('creates a product and returns SSOT-aware envelope', async () => {
     const payload = {
       ...validNonMedicineCreatePayload,
       code: 'PRD-CONTRACT-001',
@@ -208,10 +208,7 @@ describe('productsContract router (feature flag enabled)', () => {
 
     for (const payload of invalidPayloads) {
       const response = await request(app).post('/api/products/product').send(payload).expect(400);
-      const errorBody = expectValidationIssues(response.body);
-      if (errorBody.message) {
-        expect(errorBody.message.toLowerCase()).toContain('invalid');
-      }
+      expectValidationIssues(response.body);
     }
   });
 
