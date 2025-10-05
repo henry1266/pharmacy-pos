@@ -1,4 +1,4 @@
-import express, { Application, Request, Response, NextFunction } from "express";
+﻿import express, { Application, Request, Response, NextFunction } from "express";
 import path from "path";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -273,4 +273,5 @@ export async function initializeDatabase() {
  */
 const app = createApp();
 export default app;
+
 

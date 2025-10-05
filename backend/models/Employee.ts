@@ -1,4 +1,4 @@
-import mongoose, { Schema } from 'mongoose';
+﻿import mongoose, { Schema } from 'mongoose';
 import { Employee as IEmployee } from '@pharmacy-pos/shared/types/entities';
 
 /**
@@ -100,6 +100,15 @@ const EmployeeSchema = new Schema<IEmployeeDocument>({
     type: Date,
     required: false
   },
+  emergencyContact: {
+    name: { type: String, required: false },
+    phone: { type: String, required: false },
+    relationship: { type: String, required: false },
+  },
+  notes: {
+    type: String,
+    required: false
+  },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'user'
@@ -125,3 +134,4 @@ export type { IEmployee, IEmployeeDocument };
  */
 module.exports = Employee;
 module.exports.default = Employee;
+

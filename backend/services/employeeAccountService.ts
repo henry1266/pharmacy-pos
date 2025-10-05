@@ -1,4 +1,4 @@
-import User from '../models/User';
+﻿import User from '../models/User';
 import { hashPassword } from '../utils/passwordUtils';
 import {
   findEmployeeById,
@@ -13,7 +13,7 @@ import {
  * 處理員工帳號的業務邏輯
  */
 
-interface AccountData {
+export interface AccountData {
   employeeId: string;
   username: string;
   email?: string;
@@ -21,11 +21,14 @@ interface AccountData {
   role: string;
 }
 
-interface UpdateData {
+export interface UpdateData {
   username?: string;
   email?: string;
   password?: string;
   role?: string;
+
+  isActive?: boolean;
+
 }
 
 /**
@@ -152,7 +155,7 @@ const updateEmail = async (user: any, newEmail?: string): Promise<void> => {
  * @returns 更新結果
  */
 const updateEmployeeAccount = async (employeeId: string, updateData: UpdateData): Promise<any> => {
-  const { username, email, password, role } = updateData;
+  const { username, email, password, role, isActive } = updateData;
 
   // 檢查員工是否存在
   const employee = await findEmployeeById(employeeId);
@@ -169,6 +172,10 @@ const updateEmployeeAccount = async (employeeId: string, updateData: UpdateData)
   // 更新角色
   if (role) {
     user.role = role;
+  }
+
+  if (isActive !== undefined) {
+    user.isActive = isActive;
   }
 
   // 更新密碼
@@ -250,3 +257,4 @@ export {
   deleteEmployeeAccount,
   unbindEmployeeAccount
 };
+
