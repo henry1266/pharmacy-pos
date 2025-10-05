@@ -10,10 +10,10 @@ import {
   listMedicines,
   getProductByCode,
   getProductById,
-  createProduct,
-  createMedicine,
-  updateProduct,
-  deleteProduct,
+  createProduct as createProductService,
+  createMedicine as createMedicineService,
+  updateProduct as updateProductService,
+  deleteProduct as deleteProductService,
   ProductServiceError,
   ProductServiceErrorStatus,
 } from './products.service'
@@ -81,7 +81,7 @@ const implementation = server.router(productsContract, {
   },
   createProduct: async ({ body }: CreateProductRequest) => {
     try {
-      const product = await createProduct(body)
+      const product = await createProductService(body)
       return successResponse(201, product, SUCCESS_MESSAGES.GENERIC.CREATED)
     } catch (error) {
       return handleError(error, 'Failed to create product', [400, 409, 500] as const) as any
@@ -89,7 +89,7 @@ const implementation = server.router(productsContract, {
   },
   createMedicine: async ({ body }: CreateMedicineRequest) => {
     try {
-      const product = await createMedicine(body)
+      const product = await createMedicineService(body)
       return successResponse(201, product, SUCCESS_MESSAGES.GENERIC.CREATED)
     } catch (error) {
       return handleError(error, 'Failed to create medicine', [400, 409, 500] as const) as any
@@ -97,60 +97,64 @@ const implementation = server.router(productsContract, {
   },
   updateProduct: async ({ params, body }: UpdateProductRequest) => {
     try {
-      const product = await updateProduct(params.id, body)
+      const product = await updateProductService(params.id, body)
       return successResponse(200, product, SUCCESS_MESSAGES.GENERIC.UPDATED)
     } catch (error) {
-      return handleError(error, 'Failed to update product', [400, 404, 500] as const) as any
+      return handleError(error, 'Failed to update product', [400, 404, 409, 500] as const) as any
     }
   },
   deleteProduct: async ({ params }: DeleteProductRequest) => {
     try {
-      const result = await deleteProduct(params.id)
-      return successResponse(200, result, SUCCESS_MESSAGES.GENERIC.DELETED)
+      const product = await deleteProductService(params.id)
+      return successResponse(200, product, SUCCESS_MESSAGES.GENERIC.DELETED)
     } catch (error) {
       return handleError(error, 'Failed to delete product', [404, 500] as const) as any
     }
   },
 })
 
-function successListResponse<TStatus extends number>(
+function createSuccessEnvelope<TStatus extends number>(
   status: TStatus,
-  result: Awaited<ReturnType<typeof listProducts>>,
   message: string,
+  data?: unknown,
+  extra?: Record<string, unknown>,
 ) {
   return {
     status,
     body: {
       success: true,
       message,
-      data: result?.data,
-      filters: result?.filters,
-      count: result?.count,
-      timestamp: new Date().toISOString(),
+      timestamp: new Date(),
+      ...(data === undefined ? {} : { data }),
+      ...(extra ?? {}),
     },
   } as const
+}
+
+function successListResponse<TStatus extends number>(
+  status: TStatus,
+  result: Awaited<ReturnType<typeof listProducts>>,
+  message: string,
+) {
+  return createSuccessEnvelope(status, message, result?.data, {
+    filters: result?.filters ?? undefined,
+    count: result?.count ?? undefined,
+  })
 }
 
 function successResponse<TStatus extends number>(status: TStatus, data: unknown, message: string) {
-  return {
-    status,
-    body: {
-      success: true,
-      message,
-      data,
-      timestamp: new Date().toISOString(),
-    },
-  } as const
+  return createSuccessEnvelope(status, message, data)
 }
 
-function errorResponse<TStatus extends KnownErrorStatus>(status: TStatus, message: string) {
+function errorResponse<TStatus extends KnownErrorStatus>(status: TStatus, message: string, error?: unknown) {
   return {
     status,
     body: {
       success: false,
       message,
       statusCode: status,
-      timestamp: new Date().toISOString(),
+      error: error instanceof Error ? error.message : undefined,
+      timestamp: new Date(),
     },
   } as const
 }
@@ -169,7 +173,7 @@ function handleError<Allowed extends KnownErrorStatus>(
   }
 
   logger.error(`${logMessage}: ${error instanceof Error ? error.message : String(error)}`)
-  return errorResponse(defaultStatus, ERROR_MESSAGES.GENERIC.SERVER_ERROR)
+  return errorResponse(defaultStatus, ERROR_MESSAGES.GENERIC.SERVER_ERROR, error)
 }
 
 const router: Router = Router()

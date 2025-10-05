@@ -44,6 +44,7 @@
   - [x] Scaffold ts-rest router and controllers under `backend/modules/products` (initial handlers return 501 until legacy logic is ported).
   - [x] Refactor legacy service to orchestrator/services split with package-unit reuse (create/update/delete migrated from legacy router).
   - [x] Port read endpoints (list + detail) into `backend/modules/products/products.service.ts` leveraging package-unit helpers.
+  - [x] Wire feature flag `FEATURE_PRODUCTS_CONTRACT` to gate ts-rest router rollout (default off).
   - [ ] Introduce envelope adapter to maintain `{ success, message, data }` shape.
   - [ ] Add contract tests and regression suites to cover create/update/delete flows.
   - [ ] Document fallback/feature flag strategy for rollout.
@@ -76,6 +77,8 @@
   - [ ] Finalise CHANGELOG, SemVer release, and monitoring alerts.
 
 ## Cross-cutting Dependencies
+
+- Runtime flag `FEATURE_PRODUCTS_CONTRACT` controls router swap; keep false until envelope adapter + tests land.
 
 - `shared/` remains the SSOT for DTOs, validators, and contract exports.
 - `openapi/paths/products.json` must be regenerated to reflect ts-rest contract; ensure SemVer notes accompany breaking fields.

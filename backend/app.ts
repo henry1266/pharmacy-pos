@@ -18,6 +18,7 @@ import inventoryRoutes from "./routes/inventory";
 import purchaseOrdersRoutes from "./modules/purchaseOrders";
 import productCategoriesRoutes from "./routes/productCategories";
 import productsRoutes from "./routes/products";
+import productsContractRoutes from "./modules/products";
 import packagesRoutes from "./routes/packages";
 import customersRoutes from "./modules/customers";
 import salesRoutes from "./modules/sales";
@@ -92,7 +93,13 @@ export function createApp(): Application {
   app.use("/api/suppliers", suppliersRoutes);
   app.use("/api/purchase-orders", purchaseOrdersRoutes);
   app.use("/api/product-categories", productCategoriesRoutes);
-  app.use("/api/products", productsRoutes);
+  const enableProductsContract = process.env.FEATURE_PRODUCTS_CONTRACT === 'true';
+
+  if (enableProductsContract) {
+    app.use('/api', productsContractRoutes);
+  } else {
+    app.use('/api/products', productsRoutes);
+  }
   app.use("/api/packages", packagesRoutes);
   app.use("/api", customersRoutes);
   app.use("/api", salesRoutes);
