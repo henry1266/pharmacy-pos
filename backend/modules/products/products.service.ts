@@ -80,6 +80,9 @@ function normaliseDate(value: any): any {
   if (value instanceof Date) {
     return value.toISOString()
   }
+  if (value === null) {
+    return null
+  }
   return value ?? undefined
 }
 
