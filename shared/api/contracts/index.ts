@@ -31,3 +31,5 @@ export type { ShippingOrdersContract } from './shippingOrders';
 export type { AccountingContract } from './accounting';
 export type { DashboardContract } from './dashboard';
 export type { EmployeesContract } from './employees';
+export { productsContract } from './products';
+export type { ProductsContract } from './products';

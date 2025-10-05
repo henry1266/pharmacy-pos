@@ -420,6 +420,7 @@ export { customerEntitySchema } from './schemas/zod/customer';
 export { supplierEntitySchema } from './schemas/zod/supplier';
 export { purchaseOrderEntitySchema } from './schemas/zod/purchaseOrder';
 export { shippingOrderEntitySchema } from './schemas/zod/shippingOrder';
+export { productSchema, productCreateSchema, productUpdateSchema, productQuerySchema, productListFiltersSchema } from './schemas/zod/product';
 
 export { createSalesContractClient } from './api/clients/sales';
 export type { SalesContractClient, SalesClientOptions, HeaderShape as SalesClientHeaderShape } from './api/clients/sales';
@@ -436,6 +437,9 @@ export type { DashboardContractClient, DashboardClientOptions, HeaderShape as Da
 export { createEmployeesContractClient } from './api/clients/employees';
 export type { EmployeesContractClient, EmployeesClientOptions, HeaderShape as EmployeesClientHeaderShape } from './api/clients/employees';
 export type { HeaderShape } from './api/clients/employees';
+
+export { createProductsContractClient } from './api/clients/products';
+export type { ProductsContractClient, ProductsClientOptions, ProductsClientHeaderShape } from './api/clients/products';
 
 export { createSuppliersContractClient } from './api/clients/suppliers';
 export type { SuppliersContractClient, SuppliersClientOptions, HeaderShape as SuppliersClientHeaderShape } from './api/clients/suppliers';

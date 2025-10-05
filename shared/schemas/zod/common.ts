@@ -1,6 +1,6 @@
-﻿import { z, type ZodTypeAny } from 'zod';
+import { z, type ZodTypeAny } from 'zod';
 
-const timestampSchema = z.union([z.string(), z.date()]);
+export const timestampSchema = z.union([z.string(), z.date()]);
 
 export const apiSuccessEnvelopeSchema = z.object({
   success: z.literal(true),
@@ -50,3 +50,4 @@ export const apiErrorResponseSchema = z.object({
 });
 
 export type ApiErrorResponse = z.infer<typeof apiErrorResponseSchema>;
+
