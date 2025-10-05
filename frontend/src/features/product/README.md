@@ -41,8 +41,9 @@
 - Exit criteria: `backend/modules/products` exposes ts-rest router mirroring legacy behaviour, envelopes remain backward compatible, automated tests pass.
 - Owners: Backend Orchestrator with API Contract Enforcer support.
 - Task checklist:
-  - [ ] Scaffold ts-rest router and controllers under `backend/modules/products`.
+  - [x] Scaffold ts-rest router and controllers under `backend/modules/products` (initial handlers return 501 until legacy logic is ported).
   - [ ] Refactor legacy service to orchestrator/services split with package-unit reuse.
+  - [x] Port read endpoints (list + detail) into `backend/modules/products/products.service.ts` leveraging package-unit helpers.
   - [ ] Introduce envelope adapter to maintain `{ success, message, data }` shape.
   - [ ] Add contract tests and regression suites to cover create/update/delete flows.
   - [ ] Document fallback/feature flag strategy for rollout.
@@ -134,7 +135,7 @@
 | Zod schemas | `shared/schemas/zod/product.ts` | Schema Steward | In review | Requires validation fixtures + parity tests. |
 | ts-rest contract | `shared/api/contracts/products.ts` | API Contract Enforcer | In review | Integrated into shared router; pending backend handler scaffolding. |
 | OpenAPI spec | `openapi/paths/products.json` | Schema Steward | Updated | Regenerated from shared contract (2025-10-05). |
-| Backend module | `backend/modules/products` | Backend Orchestrator | Not started | Create router controller skeleton + service adapters. |
+| Backend module | `backend/modules/products` | Backend Orchestrator | In progress | Read endpoints (list/detail) migrated to service layer; mutations pending. |
 | Frontend integration guide | `frontend/src/features/product/README.md` | Frontend Builder | In progress | Update as canary learnings arrive. |
 | Test matrix | `shared/testing/products` | Testwright | Seeded | Valid/invalid payload fixtures published; coverage dashboard pending. |
 | Release log | `docs/release-notes/products-contract.md` (planned) | Release Manager | Not started | Capture SemVer decision + rollout instructions. |
