@@ -1,22 +1,14 @@
-import { Product } from '@pharmacy-pos/shared/types/entities';
+import type { z } from 'zod';
+import { productQuerySchema, productSchema } from '@pharmacy-pos/shared';
 
-export interface ApiResponse<T> {
-  success: boolean;
-  data: T;
+export type ProductResponseDto = z.infer<typeof productSchema>;
+export type ProductQueryParams = z.infer<typeof productQuerySchema>;
+
+export interface ProductListEnvelope<T = ProductResponseDto[]> {
+  success: true;
+  data?: T;
   message?: string;
+  timestamp?: string;
+  filters?: unknown;
+  count?: number;
 }
-
-export interface ProductQueryParams {
-  search?: string;
-  productType?: 'product' | 'medicine';
-  category?: string;
-  supplier?: string;
-  minPrice?: number;
-  maxPrice?: number;
-  stockStatus?: 'low' | 'out' | 'normal';
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-}
-
-export type ProductResponseDto = Product;
-

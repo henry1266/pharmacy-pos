@@ -22860,24 +22860,44 @@
                                     "effectiveFrom": {
                                       "oneOf": [
                                         {
-                                          "type": "string"
+                                          "oneOf": [
+                                            {
+                                              "type": "string"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "format": "date-time"
+                                            }
+                                          ]
                                         },
                                         {
                                           "type": "string",
-                                          "format": "date-time"
+                                          "format": "null",
+                                          "nullable": true
                                         }
-                                      ]
+                                      ],
+                                      "nullable": true
                                     },
                                     "effectiveTo": {
                                       "oneOf": [
                                         {
-                                          "type": "string"
+                                          "oneOf": [
+                                            {
+                                              "type": "string"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "format": "date-time"
+                                            }
+                                          ]
                                         },
                                         {
                                           "type": "string",
-                                          "format": "date-time"
+                                          "format": "null",
+                                          "nullable": true
                                         }
-                                      ]
+                                      ],
+                                      "nullable": true
                                     },
                                     "version": {
                                       "type": "number",
@@ -23210,24 +23230,44 @@
                                 "effectiveFrom": {
                                   "oneOf": [
                                     {
-                                      "type": "string"
+                                      "oneOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "string",
+                                          "format": "date-time"
+                                        }
+                                      ]
                                     },
                                     {
                                       "type": "string",
-                                      "format": "date-time"
+                                      "format": "null",
+                                      "nullable": true
                                     }
-                                  ]
+                                  ],
+                                  "nullable": true
                                 },
                                 "effectiveTo": {
                                   "oneOf": [
                                     {
-                                      "type": "string"
+                                      "oneOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "string",
+                                          "format": "date-time"
+                                        }
+                                      ]
                                     },
                                     {
                                       "type": "string",
-                                      "format": "date-time"
+                                      "format": "null",
+                                      "nullable": true
                                     }
-                                  ]
+                                  ],
+                                  "nullable": true
                                 },
                                 "version": {
                                   "type": "number",
@@ -23579,24 +23619,44 @@
                                     "effectiveFrom": {
                                       "oneOf": [
                                         {
-                                          "type": "string"
+                                          "oneOf": [
+                                            {
+                                              "type": "string"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "format": "date-time"
+                                            }
+                                          ]
                                         },
                                         {
                                           "type": "string",
-                                          "format": "date-time"
+                                          "format": "null",
+                                          "nullable": true
                                         }
-                                      ]
+                                      ],
+                                      "nullable": true
                                     },
                                     "effectiveTo": {
                                       "oneOf": [
                                         {
-                                          "type": "string"
+                                          "oneOf": [
+                                            {
+                                              "type": "string"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "format": "date-time"
+                                            }
+                                          ]
                                         },
                                         {
                                           "type": "string",
-                                          "format": "date-time"
+                                          "format": "null",
+                                          "nullable": true
                                         }
-                                      ]
+                                      ],
+                                      "nullable": true
                                     },
                                     "version": {
                                       "type": "number",
@@ -23929,24 +23989,44 @@
                                 "effectiveFrom": {
                                   "oneOf": [
                                     {
-                                      "type": "string"
+                                      "oneOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "string",
+                                          "format": "date-time"
+                                        }
+                                      ]
                                     },
                                     {
                                       "type": "string",
-                                      "format": "date-time"
+                                      "format": "null",
+                                      "nullable": true
                                     }
-                                  ]
+                                  ],
+                                  "nullable": true
                                 },
                                 "effectiveTo": {
                                   "oneOf": [
                                     {
-                                      "type": "string"
+                                      "oneOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "string",
+                                          "format": "date-time"
+                                        }
+                                      ]
                                     },
                                     {
                                       "type": "string",
-                                      "format": "date-time"
+                                      "format": "null",
+                                      "nullable": true
                                     }
-                                  ]
+                                  ],
+                                  "nullable": true
                                 },
                                 "version": {
                                   "type": "number",
@@ -24298,24 +24378,44 @@
                                     "effectiveFrom": {
                                       "oneOf": [
                                         {
-                                          "type": "string"
+                                          "oneOf": [
+                                            {
+                                              "type": "string"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "format": "date-time"
+                                            }
+                                          ]
                                         },
                                         {
                                           "type": "string",
-                                          "format": "date-time"
+                                          "format": "null",
+                                          "nullable": true
                                         }
-                                      ]
+                                      ],
+                                      "nullable": true
                                     },
                                     "effectiveTo": {
                                       "oneOf": [
                                         {
-                                          "type": "string"
+                                          "oneOf": [
+                                            {
+                                              "type": "string"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "format": "date-time"
+                                            }
+                                          ]
                                         },
                                         {
                                           "type": "string",
-                                          "format": "date-time"
+                                          "format": "null",
+                                          "nullable": true
                                         }
-                                      ]
+                                      ],
+                                      "nullable": true
                                     },
                                     "version": {
                                       "type": "number",
@@ -24648,24 +24748,44 @@
                                 "effectiveFrom": {
                                   "oneOf": [
                                     {
-                                      "type": "string"
+                                      "oneOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "string",
+                                          "format": "date-time"
+                                        }
+                                      ]
                                     },
                                     {
                                       "type": "string",
-                                      "format": "date-time"
+                                      "format": "null",
+                                      "nullable": true
                                     }
-                                  ]
+                                  ],
+                                  "nullable": true
                                 },
                                 "effectiveTo": {
                                   "oneOf": [
                                     {
-                                      "type": "string"
+                                      "oneOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "string",
+                                          "format": "date-time"
+                                        }
+                                      ]
                                     },
                                     {
                                       "type": "string",
-                                      "format": "date-time"
+                                      "format": "null",
+                                      "nullable": true
                                     }
-                                  ]
+                                  ],
+                                  "nullable": true
                                 },
                                 "version": {
                                   "type": "number",
@@ -25024,24 +25144,44 @@
                                   "effectiveFrom": {
                                     "oneOf": [
                                       {
-                                        "type": "string"
+                                        "oneOf": [
+                                          {
+                                            "type": "string"
+                                          },
+                                          {
+                                            "type": "string",
+                                            "format": "date-time"
+                                          }
+                                        ]
                                       },
                                       {
                                         "type": "string",
-                                        "format": "date-time"
+                                        "format": "null",
+                                        "nullable": true
                                       }
-                                    ]
+                                    ],
+                                    "nullable": true
                                   },
                                   "effectiveTo": {
                                     "oneOf": [
                                       {
-                                        "type": "string"
+                                        "oneOf": [
+                                          {
+                                            "type": "string"
+                                          },
+                                          {
+                                            "type": "string",
+                                            "format": "date-time"
+                                          }
+                                        ]
                                       },
                                       {
                                         "type": "string",
-                                        "format": "date-time"
+                                        "format": "null",
+                                        "nullable": true
                                       }
-                                    ]
+                                    ],
+                                    "nullable": true
                                   },
                                   "version": {
                                     "type": "number",
@@ -25283,24 +25423,44 @@
                               "effectiveFrom": {
                                 "oneOf": [
                                   {
-                                    "type": "string"
+                                    "oneOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "string",
+                                        "format": "date-time"
+                                      }
+                                    ]
                                   },
                                   {
                                     "type": "string",
-                                    "format": "date-time"
+                                    "format": "null",
+                                    "nullable": true
                                   }
-                                ]
+                                ],
+                                "nullable": true
                               },
                               "effectiveTo": {
                                 "oneOf": [
                                   {
-                                    "type": "string"
+                                    "oneOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "string",
+                                        "format": "date-time"
+                                      }
+                                    ]
                                   },
                                   {
                                     "type": "string",
-                                    "format": "date-time"
+                                    "format": "null",
+                                    "nullable": true
                                   }
-                                ]
+                                ],
+                                "nullable": true
                               },
                               "version": {
                                 "type": "number",
@@ -25728,24 +25888,44 @@
                                   "effectiveFrom": {
                                     "oneOf": [
                                       {
-                                        "type": "string"
+                                        "oneOf": [
+                                          {
+                                            "type": "string"
+                                          },
+                                          {
+                                            "type": "string",
+                                            "format": "date-time"
+                                          }
+                                        ]
                                       },
                                       {
                                         "type": "string",
-                                        "format": "date-time"
+                                        "format": "null",
+                                        "nullable": true
                                       }
-                                    ]
+                                    ],
+                                    "nullable": true
                                   },
                                   "effectiveTo": {
                                     "oneOf": [
                                       {
-                                        "type": "string"
+                                        "oneOf": [
+                                          {
+                                            "type": "string"
+                                          },
+                                          {
+                                            "type": "string",
+                                            "format": "date-time"
+                                          }
+                                        ]
                                       },
                                       {
                                         "type": "string",
-                                        "format": "date-time"
+                                        "format": "null",
+                                        "nullable": true
                                       }
-                                    ]
+                                    ],
+                                    "nullable": true
                                   },
                                   "version": {
                                     "type": "number",
@@ -25987,24 +26167,44 @@
                               "effectiveFrom": {
                                 "oneOf": [
                                   {
-                                    "type": "string"
+                                    "oneOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "string",
+                                        "format": "date-time"
+                                      }
+                                    ]
                                   },
                                   {
                                     "type": "string",
-                                    "format": "date-time"
+                                    "format": "null",
+                                    "nullable": true
                                   }
-                                ]
+                                ],
+                                "nullable": true
                               },
                               "effectiveTo": {
                                 "oneOf": [
                                   {
-                                    "type": "string"
+                                    "oneOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "string",
+                                        "format": "date-time"
+                                      }
+                                    ]
                                   },
                                   {
                                     "type": "string",
-                                    "format": "date-time"
+                                    "format": "null",
+                                    "nullable": true
                                   }
-                                ]
+                                ],
+                                "nullable": true
                               },
                               "version": {
                                 "type": "number",
@@ -26576,24 +26776,44 @@
                                   "effectiveFrom": {
                                     "oneOf": [
                                       {
-                                        "type": "string"
+                                        "oneOf": [
+                                          {
+                                            "type": "string"
+                                          },
+                                          {
+                                            "type": "string",
+                                            "format": "date-time"
+                                          }
+                                        ]
                                       },
                                       {
                                         "type": "string",
-                                        "format": "date-time"
+                                        "format": "null",
+                                        "nullable": true
                                       }
-                                    ]
+                                    ],
+                                    "nullable": true
                                   },
                                   "effectiveTo": {
                                     "oneOf": [
                                       {
-                                        "type": "string"
+                                        "oneOf": [
+                                          {
+                                            "type": "string"
+                                          },
+                                          {
+                                            "type": "string",
+                                            "format": "date-time"
+                                          }
+                                        ]
                                       },
                                       {
                                         "type": "string",
-                                        "format": "date-time"
+                                        "format": "null",
+                                        "nullable": true
                                       }
-                                    ]
+                                    ],
+                                    "nullable": true
                                   },
                                   "version": {
                                     "type": "number",
@@ -26835,24 +27055,44 @@
                               "effectiveFrom": {
                                 "oneOf": [
                                   {
-                                    "type": "string"
+                                    "oneOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "string",
+                                        "format": "date-time"
+                                      }
+                                    ]
                                   },
                                   {
                                     "type": "string",
-                                    "format": "date-time"
+                                    "format": "null",
+                                    "nullable": true
                                   }
-                                ]
+                                ],
+                                "nullable": true
                               },
                               "effectiveTo": {
                                 "oneOf": [
                                   {
-                                    "type": "string"
+                                    "oneOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "string",
+                                        "format": "date-time"
+                                      }
+                                    ]
                                   },
                                   {
                                     "type": "string",
-                                    "format": "date-time"
+                                    "format": "null",
+                                    "nullable": true
                                   }
-                                ]
+                                ],
+                                "nullable": true
                               },
                               "version": {
                                 "type": "number",
@@ -27346,24 +27586,44 @@
                                   "effectiveFrom": {
                                     "oneOf": [
                                       {
-                                        "type": "string"
+                                        "oneOf": [
+                                          {
+                                            "type": "string"
+                                          },
+                                          {
+                                            "type": "string",
+                                            "format": "date-time"
+                                          }
+                                        ]
                                       },
                                       {
                                         "type": "string",
-                                        "format": "date-time"
+                                        "format": "null",
+                                        "nullable": true
                                       }
-                                    ]
+                                    ],
+                                    "nullable": true
                                   },
                                   "effectiveTo": {
                                     "oneOf": [
                                       {
-                                        "type": "string"
+                                        "oneOf": [
+                                          {
+                                            "type": "string"
+                                          },
+                                          {
+                                            "type": "string",
+                                            "format": "date-time"
+                                          }
+                                        ]
                                       },
                                       {
                                         "type": "string",
-                                        "format": "date-time"
+                                        "format": "null",
+                                        "nullable": true
                                       }
-                                    ]
+                                    ],
+                                    "nullable": true
                                   },
                                   "version": {
                                     "type": "number",
@@ -27605,24 +27865,44 @@
                               "effectiveFrom": {
                                 "oneOf": [
                                   {
-                                    "type": "string"
+                                    "oneOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "string",
+                                        "format": "date-time"
+                                      }
+                                    ]
                                   },
                                   {
                                     "type": "string",
-                                    "format": "date-time"
+                                    "format": "null",
+                                    "nullable": true
                                   }
-                                ]
+                                ],
+                                "nullable": true
                               },
                               "effectiveTo": {
                                 "oneOf": [
                                   {
-                                    "type": "string"
+                                    "oneOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "string",
+                                        "format": "date-time"
+                                      }
+                                    ]
                                   },
                                   {
                                     "type": "string",
-                                    "format": "date-time"
+                                    "format": "null",
+                                    "nullable": true
                                   }
-                                ]
+                                ],
+                                "nullable": true
                               },
                               "version": {
                                 "type": "number",
@@ -28189,24 +28469,44 @@
                                   "effectiveFrom": {
                                     "oneOf": [
                                       {
-                                        "type": "string"
+                                        "oneOf": [
+                                          {
+                                            "type": "string"
+                                          },
+                                          {
+                                            "type": "string",
+                                            "format": "date-time"
+                                          }
+                                        ]
                                       },
                                       {
                                         "type": "string",
-                                        "format": "date-time"
+                                        "format": "null",
+                                        "nullable": true
                                       }
-                                    ]
+                                    ],
+                                    "nullable": true
                                   },
                                   "effectiveTo": {
                                     "oneOf": [
                                       {
-                                        "type": "string"
+                                        "oneOf": [
+                                          {
+                                            "type": "string"
+                                          },
+                                          {
+                                            "type": "string",
+                                            "format": "date-time"
+                                          }
+                                        ]
                                       },
                                       {
                                         "type": "string",
-                                        "format": "date-time"
+                                        "format": "null",
+                                        "nullable": true
                                       }
-                                    ]
+                                    ],
+                                    "nullable": true
                                   },
                                   "version": {
                                     "type": "number",
@@ -28448,24 +28748,44 @@
                               "effectiveFrom": {
                                 "oneOf": [
                                   {
-                                    "type": "string"
+                                    "oneOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "string",
+                                        "format": "date-time"
+                                      }
+                                    ]
                                   },
                                   {
                                     "type": "string",
-                                    "format": "date-time"
+                                    "format": "null",
+                                    "nullable": true
                                   }
-                                ]
+                                ],
+                                "nullable": true
                               },
                               "effectiveTo": {
                                 "oneOf": [
                                   {
-                                    "type": "string"
+                                    "oneOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "string",
+                                        "format": "date-time"
+                                      }
+                                    ]
                                   },
                                   {
                                     "type": "string",
-                                    "format": "date-time"
+                                    "format": "null",
+                                    "nullable": true
                                   }
-                                ]
+                                ],
+                                "nullable": true
                               },
                               "version": {
                                 "type": "number",
@@ -29100,24 +29420,44 @@
                                   "effectiveFrom": {
                                     "oneOf": [
                                       {
-                                        "type": "string"
+                                        "oneOf": [
+                                          {
+                                            "type": "string"
+                                          },
+                                          {
+                                            "type": "string",
+                                            "format": "date-time"
+                                          }
+                                        ]
                                       },
                                       {
                                         "type": "string",
-                                        "format": "date-time"
+                                        "format": "null",
+                                        "nullable": true
                                       }
-                                    ]
+                                    ],
+                                    "nullable": true
                                   },
                                   "effectiveTo": {
                                     "oneOf": [
                                       {
-                                        "type": "string"
+                                        "oneOf": [
+                                          {
+                                            "type": "string"
+                                          },
+                                          {
+                                            "type": "string",
+                                            "format": "date-time"
+                                          }
+                                        ]
                                       },
                                       {
                                         "type": "string",
-                                        "format": "date-time"
+                                        "format": "null",
+                                        "nullable": true
                                       }
-                                    ]
+                                    ],
+                                    "nullable": true
                                   },
                                   "version": {
                                     "type": "number",
@@ -29359,24 +29699,44 @@
                               "effectiveFrom": {
                                 "oneOf": [
                                   {
-                                    "type": "string"
+                                    "oneOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "string",
+                                        "format": "date-time"
+                                      }
+                                    ]
                                   },
                                   {
                                     "type": "string",
-                                    "format": "date-time"
+                                    "format": "null",
+                                    "nullable": true
                                   }
-                                ]
+                                ],
+                                "nullable": true
                               },
                               "effectiveTo": {
                                 "oneOf": [
                                   {
-                                    "type": "string"
+                                    "oneOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "string",
+                                        "format": "date-time"
+                                      }
+                                    ]
                                   },
                                   {
                                     "type": "string",
-                                    "format": "date-time"
+                                    "format": "null",
+                                    "nullable": true
                                   }
-                                ]
+                                ],
+                                "nullable": true
                               },
                               "version": {
                                 "type": "number",

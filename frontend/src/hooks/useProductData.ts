@@ -46,7 +46,7 @@ const useProductData = () => {
         // 如果有篩選條件，使用新的篩選 API
         if (filters && Object.keys(filters).length > 0) {
           const response = await productServiceV2.getFilteredProducts(filters);
-          data = testModeDataService.getProducts(response.data, null);
+          data = testModeDataService.getProducts((response.data ?? null), null);
         } else {
           const actualData = await productServiceV2.getAllProducts();
           data = testModeDataService.getProducts(actualData, null);
