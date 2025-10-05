@@ -1,4 +1,5 @@
-﻿import { Router } from 'express';
+import mongoose from 'mongoose';
+import { Router } from 'express';
 import { initServer } from '@ts-rest/express';
 import { suppliersContract } from '@pharmacy-pos/shared/api/contracts';
 import type { ServerInferRequest } from '@ts-rest/core';
@@ -17,6 +18,11 @@ type UpdateSupplierRequest = ServerInferRequest<typeof suppliersContract['update
 type DeleteSupplierRequest = ServerInferRequest<typeof suppliersContract['deleteSupplier']>;
 
 type KnownErrorStatus = 400 | 404 | 409 | 500;
+
+function isValidObjectId(value: string): boolean {
+  return mongoose.Types.ObjectId.isValid(value);
+}
+
 
 function toApiSupplier(supplier: unknown) {
   return transformSupplierToResponse(supplier as any);
@@ -65,6 +71,10 @@ const implementation = server.router(suppliersContract, {
   },
   getSupplierById: async ({ params }: GetSupplierRequest) => {
     try {
+      if (!isValidObjectId(params.id)) {
+        return errorResponse(404, ERROR_MESSAGES.SUPPLIER.NOT_FOUND);
+      }
+
       const supplier = await suppliersService.findSupplierById(params.id);
       if (!supplier) {
         return errorResponse(404, ERROR_MESSAGES.SUPPLIER.NOT_FOUND);
@@ -84,6 +94,10 @@ const implementation = server.router(suppliersContract, {
   },
   updateSupplier: async ({ params, body }: UpdateSupplierRequest) => {
     try {
+      if (!isValidObjectId(params.id)) {
+        return errorResponse(404, ERROR_MESSAGES.SUPPLIER.NOT_FOUND);
+      }
+
       const updated = await suppliersService.updateSupplier(params.id, body);
       if (!updated) {
         return errorResponse(404, ERROR_MESSAGES.SUPPLIER.NOT_FOUND);
@@ -95,6 +109,10 @@ const implementation = server.router(suppliersContract, {
   },
   deleteSupplier: async ({ params }: DeleteSupplierRequest) => {
     try {
+      if (!isValidObjectId(params.id)) {
+        return errorResponse(404, ERROR_MESSAGES.SUPPLIER.NOT_FOUND);
+      }
+
       const deleted = await suppliersService.deleteSupplier(params.id);
       if (!deleted) {
         return errorResponse(404, ERROR_MESSAGES.SUPPLIER.NOT_FOUND);
@@ -143,3 +161,9 @@ router.delete('/:id', async (req, res) => {
 });
 
 export default router;
+
+
+
+
+
+

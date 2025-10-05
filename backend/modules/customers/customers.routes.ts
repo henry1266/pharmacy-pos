@@ -2,11 +2,12 @@ import { Router } from 'express';
 import { initServer, createExpressEndpoints } from '@ts-rest/express';
 import { customersContract } from '@pharmacy-pos/shared/api/contracts';
 import type { ServerInferRequest } from '@ts-rest/core';
-import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
+import { API_CONSTANTS, SUCCESS_MESSAGES, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
 import * as customersService from './customers.service';
 import { CustomerServiceError } from './customers.service';
 import { transformCustomerToResponse } from './customers.utils';
 import logger from '../../utils/logger';
+import { createValidationErrorHandler } from '../common/tsRest';
 
 const server = initServer();
 
@@ -48,7 +49,7 @@ function errorResponse(status: KnownErrorStatus, message: string) {
 }
 
 function mapServiceStatus(status: number): KnownErrorStatus {
-  if (status === 404) return 404;
+  if (status === 404) return 400;
   if (status === 400) return 400;
   if (status === 409) return 409;
   return 500;
@@ -68,7 +69,7 @@ const implementation = server.router(customersContract, {
     try {
       const customer = await customersService.findCustomerById(params.id);
       if (!customer) {
-        return errorResponse(404, ERROR_MESSAGES.GENERIC.NOT_FOUND);
+        return errorResponse(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST as KnownErrorStatus, ERROR_MESSAGES.GENERIC.NOT_FOUND);
       }
       return successResponse(200, toApiCustomer(customer), SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS);
     } catch (err) {
@@ -87,7 +88,7 @@ const implementation = server.router(customersContract, {
     try {
       const updated = await customersService.updateCustomer(params.id, body);
       if (!updated) {
-        return errorResponse(404, ERROR_MESSAGES.GENERIC.NOT_FOUND);
+        return errorResponse(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST as KnownErrorStatus, ERROR_MESSAGES.GENERIC.NOT_FOUND);
       }
       return successResponse(200, toApiCustomer(updated), SUCCESS_MESSAGES.GENERIC.UPDATED);
     } catch (err) {
@@ -98,7 +99,7 @@ const implementation = server.router(customersContract, {
     try {
       const deleted = await customersService.deleteCustomer(params.id);
       if (!deleted) {
-        return errorResponse(404, ERROR_MESSAGES.GENERIC.NOT_FOUND);
+        return errorResponse(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST as KnownErrorStatus, ERROR_MESSAGES.GENERIC.NOT_FOUND);
       }
       return successResponse(200, { id: params.id }, SUCCESS_MESSAGES.GENERIC.DELETED);
     } catch (err) {
@@ -125,12 +126,19 @@ function handleError(error: unknown, logMessage: string) {
   }
 
   logger.error(`${logMessage}: ${error instanceof Error ? error.message : String(error)}`);
-  return errorResponse(500, ERROR_MESSAGES.GENERIC.SERVER_ERROR);
+  return errorResponse(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST as KnownErrorStatus, ERROR_MESSAGES.GENERIC.INVALID_REQUEST);
 }
 
 const router: Router = Router();
-createExpressEndpoints(customersContract, implementation, router);
+createExpressEndpoints(customersContract, implementation, router, {
+  requestValidationErrorHandler: createValidationErrorHandler({
+    defaultStatus: API_CONSTANTS.HTTP_STATUS.BAD_REQUEST,
+    pathParamStatus: API_CONSTANTS.HTTP_STATUS.BAD_REQUEST,
+  }),
+});
 
 export default router;
+
+
 
 

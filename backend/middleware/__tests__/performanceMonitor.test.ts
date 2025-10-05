@@ -15,10 +15,6 @@ import {
 const originalConsoleLog = console.log;
 const originalConsoleWarn = console.warn;
 
-beforeAll(() => {
-  console.log = jest.fn();
-  console.warn = jest.fn();
-});
 
 afterAll(() => {
   console.log = originalConsoleLog;
@@ -65,6 +61,8 @@ describe('PerformanceMonitor Middleware 測試', () => {
   let testApp: express.Application;
 
   beforeEach(() => {
+    console.log = jest.fn();
+    console.warn = jest.fn();
     testApp = createTestApp();
     clearPerformanceMetrics();
   });

@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { initServer, createExpressEndpoints } from '@ts-rest/express';
 import { salesContract } from '@pharmacy-pos/shared/api/contracts';
 import type { ServerInferRequest } from '@ts-rest/core';
-import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
+import { API_CONSTANTS, SUCCESS_MESSAGES, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
 import { mapModelItemsToApiItems } from './utils/sales.utils';
 import * as salesService from './sales.service';
 import type { SaleCreationRequest as ServiceSaleCreationRequest } from './sales.types';
@@ -12,6 +12,7 @@ import { isValidObjectId } from './services/validation.service';
 import { handleInventoryForDeletedSale } from './services/inventory.service';
 import Sale from '../../models/Sale';
 import logger from '../../utils/logger';
+import { createValidationErrorHandler } from '../common/tsRest';
 
 const server = initServer();
 
@@ -220,9 +221,15 @@ const implementation = server.router(salesContract, {
 });
 
 const router: Router = Router();
-createExpressEndpoints(salesContract, implementation, router);
+createExpressEndpoints(salesContract, implementation, router, {
+  requestValidationErrorHandler: createValidationErrorHandler({
+    defaultStatus: API_CONSTANTS.HTTP_STATUS.BAD_REQUEST,
+    pathParamStatus: API_CONSTANTS.HTTP_STATUS.NOT_FOUND,
+  }),
+});
 
 export default router;
+
 
 
 

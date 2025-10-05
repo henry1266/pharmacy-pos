@@ -1,4 +1,4 @@
-﻿import { initContract } from '@ts-rest/core';
+import { initContract } from '@ts-rest/core';
 import { z } from 'zod';
 import {
   createCustomerSchema,
@@ -34,6 +34,7 @@ export const customersContract = c.router({
     query: customerSearchSchema.optional(),
     responses: {
       200: customerListResponseSchema,
+      400: apiErrorResponseSchema,
       500: apiErrorResponseSchema,
     },
     metadata: {
@@ -48,6 +49,7 @@ export const customersContract = c.router({
     pathParams: customerIdParamsSchema,
     responses: {
       200: customerResponseSchema,
+      400: apiErrorResponseSchema,
       404: apiErrorResponseSchema,
       500: apiErrorResponseSchema,
     },
@@ -92,6 +94,7 @@ export const customersContract = c.router({
     pathParams: customerIdParamsSchema,
     responses: {
       200: customerDeleteResponseSchema,
+      400: apiErrorResponseSchema,
       404: apiErrorResponseSchema,
       500: apiErrorResponseSchema,
     },
@@ -117,3 +120,5 @@ export const customersContract = c.router({
 });
 
 export type CustomersContract = typeof customersContract;
+
+

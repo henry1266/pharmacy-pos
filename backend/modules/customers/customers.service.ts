@@ -1,4 +1,4 @@
-﻿import Customer from '../../models/Customer';
+import Customer from '../../models/Customer';
 import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
 import type {
   CustomerCreateInput,
@@ -214,7 +214,7 @@ function assignAdditionalFields(input: ExtendedCustomerInput, target: Record<str
     const normalized = String(input.membershipLevel).toLowerCase();
     if (!MEMBERSHIP_LEVELS.has(normalized)) {
       throw new CustomerServiceError(
-        API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR,
+        API_CONSTANTS.HTTP_STATUS.BAD_REQUEST,
         ERROR_MESSAGES.GENERIC.INVALID_REQUEST
       );
     }
@@ -225,3 +225,4 @@ function assignAdditionalFields(input: ExtendedCustomerInput, target: Record<str
   if ((input as Record<string, unknown>).points !== undefined) target.points = (input as Record<string, unknown>).points;
   if ((input as Record<string, unknown>).isActive !== undefined) target.isActive = (input as Record<string, unknown>).isActive;
 }
+

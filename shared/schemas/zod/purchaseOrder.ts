@@ -48,13 +48,13 @@ const transactionTypeEnum = z.enum(['進貨', '退貨', '支出']);
 const accountingEntryTypeEnum = z.enum(['expense-asset', 'asset-liability']);
 
 const quantityLimits = {
-  min: Math.max(0, BUSINESS_CONSTANTS.QUANTITY?.MIN_QUANTITY ?? 0),
-  max: BUSINESS_CONSTANTS.QUANTITY?.MAX_QUANTITY ?? 999999,
+  min: Math.max(0, BUSINESS_CONSTANTS?.QUANTITY?.MIN_QUANTITY ?? 0),
+  max: BUSINESS_CONSTANTS?.QUANTITY?.MAX_QUANTITY ?? 999999,
 };
 
 const priceLimits = {
-  min: BUSINESS_CONSTANTS.PRICING?.MIN_PRICE ?? 0,
-  max: BUSINESS_CONSTANTS.PRICING?.MAX_PRICE ?? 9_999_999.99,
+  min: BUSINESS_CONSTANTS?.PRICING?.MIN_PRICE ?? 0,
+  max: BUSINESS_CONSTANTS?.PRICING?.MAX_PRICE ?? 9_999_999.99,
 };
 
 export const purchaseOrderItemSchema = z
