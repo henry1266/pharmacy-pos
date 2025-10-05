@@ -75,6 +75,8 @@ describe('productsContract router (feature flag enabled)', () => {
       code: 'PRD-CONTRACT-LIST',
       name: 'List Product',
       unit: 'box',
+      productType: 'product',
+      isActive: true,
     });
 
     const response = await request(app)
@@ -111,3 +113,4 @@ describe('productsContract router (feature flag enabled)', () => {
     expect(deleteResponse.body.data).toMatchObject({ isActive: false });
   });
 });
+

@@ -94,6 +94,11 @@ module.exports = {
     'json'
   ],
 
+  modulePathIgnorePatterns: [
+    "<rootDir>/dist/"
+  ],
+
+
   // 測試超時時間（毫秒）
   testTimeout: 30000,
 
