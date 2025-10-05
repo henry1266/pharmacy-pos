@@ -14,12 +14,12 @@
 ```text
 daily-journal/
 ├─ api/
-│  └─ client.ts                # ts-rest accounting contract client（自動注入 Authorization header）
-├─ components/…               # 列表、表單、篩選、資料表等 UI 元件
-├─ hooks/…                    # `useAccountingData` 等業務邏輯 hooks
-├─ pages/                     # `JournalPage`、`NewEntryPage`、`CategoryPage`…
-├─ services/                  # 透過 ts-rest 客戶端實作的 `accountingServiceV2`
-└─ README.md                  # 本文件
+│  └─ client.ts          # ts-rest accounting contract client（自動注入 Authorization header）
+├─ components/…          # 列表、表單、篩選、資料表等 UI 元件
+├─ hooks/…               # `useAccountingData` 等業務邏輯 hooks
+├─ pages/                # `JournalPage`、`NewEntryPage`、`CategoryPage`…
+├─ services/             # 透過 ts-rest 客戶端實作的 `accountingServiceV2`
+└─ README.md             # 本文件
 ```
 
 ## 資料流

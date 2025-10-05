@@ -430,6 +430,9 @@ export type { CustomersContractClient, CustomersClientOptions, HeaderShape as Cu
 export { createAccountingContractClient } from './api/clients/accounting';
 export type { AccountingContractClient, AccountingClientOptions, HeaderShape as AccountingClientHeaderShape } from './api/clients/accounting';
 
+export { createDashboardContractClient } from './api/clients/dashboard';
+export type { DashboardContractClient, DashboardClientOptions, HeaderShape as DashboardClientHeaderShape } from './api/clients/dashboard';
+
 export { createSuppliersContractClient } from './api/clients/suppliers';
 export type { SuppliersContractClient, SuppliersClientOptions, HeaderShape as SuppliersClientHeaderShape } from './api/clients/suppliers';
 

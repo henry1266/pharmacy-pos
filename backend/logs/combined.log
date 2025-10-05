@@ -17350,3 +17350,27 @@
 {"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-05 00:36:53:3653"}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e4df4aa6f9d4c76b0461d0"},"supplierId":"67e4df4aa6f9d4c76b0461d0","timestamp":"2025-10-05 00:36:53:3653"}
 {"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-05 00:36:53:3653"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 68deab7485858e96198b1051 創建新庫存記錄，出貨單號: 20251003002, 數量: -4200, 總金額: 18333, 類型: ship\u001b[39m","timestamp":"2025-10-05 09:36:37:3637"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 68dea90285858e96198aabd6 創建新庫存記錄，出貨單號: 20251003002, 數量: -300, 總金額: 1260, 類型: ship\u001b[39m","timestamp":"2025-10-05 09:36:37:3637"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 68dea95c85858e96198ab6ef 創建新庫存記錄，出貨單號: 20251003002, 數量: -300, 總金額: 435, 類型: ship\u001b[39m","timestamp":"2025-10-05 09:36:37:3637"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 685e5e10620934c0f5de95fc 創建新庫存記錄，出貨單號: 20251003002, 數量: -1960, 總金額: 3626, 類型: ship\u001b[39m","timestamp":"2025-10-05 09:36:37:3637"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 688195a79e9da050c107bb00 創建新庫存記錄，出貨單號: 20251003002, 數量: -300, 總金額: 7140, 類型: ship\u001b[39m","timestamp":"2025-10-05 09:36:37:3637"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 67eb60d00f2cf9d2647e3c96 創建新庫存記錄，出貨單號: 20251003002, 數量: -1440, 總金額: 18912, 類型: ship\u001b[39m","timestamp":"2025-10-05 09:36:37:3637"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 67eb60d00f2cf9d2647e3d1a 創建新庫存記錄，出貨單號: 20251003002, 數量: -90, 總金額: 1008, 類型: ship\u001b[39m","timestamp":"2025-10-05 09:36:37:3637"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已成功為出貨單 68df43f22ac7f61b71c7337a 創建所有ship類型庫存記錄\u001b[39m","timestamp":"2025-10-05 09:36:37:3637"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已刪除 1 個與銷售 20250823001 相關的庫存記錄\u001b[39m","timestamp":"2025-10-05 09:43:51:4351"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m恢復產品 68783939cbe43742fe31a5d5 的庫存，數量: +56\u001b[39m","timestamp":"2025-10-05 09:43:51:4351"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已刪除 10 筆與出貨單 68d656535fad22d8b0743205 相關的庫存記錄（包括 ship 和 ship-no-stock 類型）\u001b[39m","timestamp":"2025-10-05 09:45:55:4555"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":2,"timestamp":"2025-10-05 09:46:19:4619","totalCount":50,"unpaidCount":48}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e4d5c3a597229df074c4a2"},"supplierId":"67e4d5c3a597229df074c4a2","timestamp":"2025-10-05 09:47:20:4720"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-05 09:47:20:4720"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - selectedAccountIds:\u001b[39m","timestamp":"2025-10-05 09:47:37:4737"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - items:\u001b[39m","timestamp":"2025-10-05 09:47:37:4737"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - processedItems:\u001b[39m","timestamp":"2025-10-05 09:47:37:4737"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單已儲存 - selectedAccountIds:\u001b[39m","timestamp":"2025-10-05 09:47:37:4737"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 682fe189bd1adb0842bca64b 創建新庫存記錄，進貨單號: 20251005001, 數量: 35, 總金額: 0\u001b[39m","timestamp":"2025-10-05 09:47:37:4737"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 6850acfd555483ce1455741b 創建新庫存記錄，出貨單號: 20251005001, 數量: -2, 總金額: 86, 類型: ship\u001b[39m","timestamp":"2025-10-05 09:49:31:4931"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已成功為出貨單 68e1ceab5f05b9a711560f3c 創建所有ship類型庫存記錄\u001b[39m","timestamp":"2025-10-05 09:49:31:4931"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m未找到當天銷貨單號，使用起始序號1\u001b[39m","timestamp":"2025-10-05 09:53:35:5335"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m生成銷貨單號: 20251005001\u001b[39m","timestamp":"2025-10-05 09:53:35:5335"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m為產品 68783939cbe43742fe31a5d5 創建銷售庫存記錄，數量: -56, 總金額: 400\u001b[39m","timestamp":"2025-10-05 09:53:35:5335"}

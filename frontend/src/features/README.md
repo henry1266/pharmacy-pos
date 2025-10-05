@@ -165,3 +165,8 @@ features/[module]/
 
 - 參考 `daily-journal/README.md`，了解 accounting (daily journal) 模組如何透過 ts-rest 契約與 service v2 統一資料流程。
 - 新增／調整記帳相關 API 時，請先更新 shared accounting 契約與 `accountingServiceV2.ts`，並確保 hooks 維持透過 service 呼叫。
+
+## 儀表板模組補充
+
+- 參考 `dashboard/README.md`，了解 dashboard 模組如何透過 ts-rest 契約與 service 封裝取得摘要與趨勢資料。
+- 新增或調整儀表板 API 時，請先更新 shared dashboard 契約，再同步 `dashboardService.ts`。

@@ -1,148 +1,146 @@
-import axios from 'axios';
-import { ApiResponse } from '@pharmacy-pos/shared/types/api';
-import { transformSalesForTrend, transformSalesForCategory } from '../utils/dataTransformations';
-// Import the function to get all sales data
-import { getAllSales } from './salesServiceV2';
+import { createDashboardContractClientWithAuth } from '@/features/dashboard/api/client'
+import type { ApiResponse } from '@pharmacy-pos/shared/types/api'
 
-// Base URL for dashboard related APIs
-const API_URL = '/api/dashboard'; // Adjust if your base URL is different
+const dashboardClient = createDashboardContractClientWithAuth()
 
-/**
- * 低庫存警告介面
- */
+type SuccessEnvelope<T> = ApiResponse<T>
+
+type DashboardContractResult = { status: number; body: unknown }
+
 export interface LowStockWarning {
-  productId: string;
-  productCode: string;
-  productName: string;
-  currentStock: number;
-  minStock: number;
+  productId: string
+  productCode: string
+  productName: string
+  currentStock: number
+  minStock: number
 }
 
-/**
- * 熱銷產品介面
- */
 export interface TopProduct {
-  productId: string;
-  productCode: string;
-  productName: string;
-  quantity: number;
-  revenue: number;
+  productId?: string
+  productCode: string
+  productName: string
+  quantity: number
+  revenue: number
 }
 
-/**
- * 最近銷售記錄介面
- */
 export interface RecentSale {
-  id: string;
-  saleNumber?: string;
-  customerName: string;
-  totalAmount: number;
-  date: Date;
-  paymentStatus: string;
+  id: string
+  saleNumber?: string
+  customerName: string
+  totalAmount: number
+  date: string | Date
+  paymentStatus: string
 }
 
-/**
- * 銷售摘要介面
- */
 export interface SalesSummary {
-  total: number;
-  today: number;
-  month: number;
+  total: number
+  today: number
+  month: number
 }
 
-/**
- * 統計數量介面
- */
 export interface Counts {
-  products: number;
-  customers: number;
-  suppliers: number;
-  orders: number;
+  products: number
+  customers: number
+  suppliers: number
+  orders: number
 }
 
-/**
- * 儀表板摘要數據介面
- */
 export interface DashboardSummary {
-  salesSummary: SalesSummary;
-  counts: Counts;
-  lowStockWarnings: LowStockWarning[];
-  topProducts: TopProduct[];
-  recentSales: RecentSale[];
+  salesSummary: SalesSummary
+  counts: Counts
+  lowStockWarnings: LowStockWarning[]
+  topProducts: TopProduct[]
+  recentSales: RecentSale[]
 }
 
-/**
- * 銷售趨勢數據介面
- */
 export interface SalesTrend {
-  date: string;
-  totalSales: number;
+  date: string
+  totalSales: number
+  count?: number
 }
 
-/**
- * 分類銷售數據介面
- */
 export interface CategorySales {
-  category: string;
-  totalSales: number;
+  category: string
+  totalSales: number
 }
 
+const createError = (result: DashboardContractResult, fallback: string): Error => {
+  const body = result.body as Record<string, unknown> | undefined
+  const message =
+    typeof body?.message === 'string'
+      ? body.message
+      : typeof body?.msg === 'string'
+        ? body.msg
+        : fallback
+  const error = new Error(message)
+  ;(error as any).status = result.status
+  ;(error as any).body = result.body
+  return error
+}
 
-/**
- * 獲取儀表板摘要數據
- * @returns {Promise<DashboardSummary>} 摘要數據
- */
-export const getDashboardSummary = async (): Promise<DashboardSummary> => {
-  try {
-    const response = await axios.get<ApiResponse<DashboardSummary>>(`${API_URL}/summary`);
-    
-    // 檢查 API 回應格式
-    if (response.data?.success && response.data.data) {
-      return response.data.data;
-    } else {
-      throw new Error('API 回應格式不正確');
+const unwrapResponse = <T>(
+  result: DashboardContractResult,
+  fallback: string,
+  defaultValue?: T,
+): T => {
+  const { status, body } = result
+
+  if (status < 200 || status >= 300) {
+    throw createError(result, fallback)
+  }
+
+  if (body && typeof body === 'object' && 'success' in body) {
+    const envelope = body as SuccessEnvelope<T>
+    if (!envelope.success) {
+      throw createError(result, fallback)
     }
-  } catch (error: any) {
-    console.error('Error fetching dashboard summary:', error);
-    // Re-throw the error to be handled by the caller (e.g., the hook)
-    throw error;
+    return envelope.data ?? (defaultValue as T)
   }
-};
 
-/**
- * 獲取處理後的銷售數據用於儀表板
- * @returns {Promise<{salesTrend: SalesTrend[], categorySales: CategorySales[]}>} 轉換後的銷售數據
- */
+  if (body !== undefined && body !== null) {
+    return body as T
+  }
+
+  if (defaultValue !== undefined) {
+    return defaultValue
+  }
+
+  throw createError(result, fallback)
+}
+
+export const getDashboardSummary = async (): Promise<DashboardSummary> => {
+  const result = await dashboardClient.getDashboardSummary()
+  return unwrapResponse<DashboardSummary>(result, 'Failed to fetch dashboard summary')
+}
+
 export const getProcessedSalesDataForDashboard = async (): Promise<{
-  salesTrend: SalesTrend[];
-  categorySales: CategorySales[];
+  salesTrend: SalesTrend[]
+  categorySales: CategorySales[]
 }> => {
-  try {
-    // Fetch all raw sales data using the function from salesServiceV2
-    const rawSalesData = await getAllSales();
+  const result = await dashboardClient.getSalesTrend()
+  const data = unwrapResponse<{ salesTrend: Array<{ date: string; amount: number; count: number }>; categorySales: Array<{ category: string; amount: number }> }>(
+    result,
+    'Failed to fetch sales trend',
+    { salesTrend: [], categorySales: [] },
+  )
 
-    // Transform the data
-    const salesTrend = transformSalesForTrend(rawSalesData);
-    const categorySales = transformSalesForCategory(rawSalesData);
+  const salesTrend: SalesTrend[] = data.salesTrend.map((entry) => ({
+    date: entry.date,
+    totalSales: entry.amount,
+    count: entry.count,
+  }))
 
-    return { salesTrend, categorySales };
-  } catch (error: any) {
-    console.error('Error fetching or processing sales data for dashboard:', error);
-    // Re-throw the error to be handled by the caller (e.g., the hook)
-    throw error;
-  }
-};
+  const categorySales: CategorySales[] = data.categorySales.map((entry) => ({
+    category: entry.category,
+    totalSales: entry.amount,
+  }))
 
-/**
- * 儀表板服務
- */
+  return { salesTrend, categorySales }
+}
+
 const dashboardService = {
   getDashboardSummary,
-  getProcessedSalesDataForDashboard
-};
+  getProcessedSalesDataForDashboard,
+}
 
-export default dashboardService;
-
-// Note: The original getSalesTrend function which presumably called '/api/dashboard/sales-trend' 
-// is now replaced by getProcessedSalesDataForDashboard which fetches raw sales and processes them.
-// If the old endpoint is still needed elsewhere, it should be kept or renamed.
+export default dashboardService
