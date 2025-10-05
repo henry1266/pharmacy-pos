@@ -6,7 +6,7 @@
 | ----- | ----- | ----------- | ----- |
 | Phase 0 - Alignment & Scope | Done | 2025-10-05 | ADR recorded, endpoint inventory confirmed. |
 | Phase 1 - Shared SSOT Foundations | In progress | 2025-10-05 | Zod schemas and products contract drafted; awaiting SSOT review and OpenAPI sync. |
-| Phase 2 - Backend Module | Not started | N/A | Implementation blocked on Phase 1 exit criteria. |
+| Phase 2 - Backend Module | In progress | 2025-10-05 | Read/write endpoints migrated into ts-rest service; envelope adapter pending. |
 | Phase 3 - Frontend Integration | Not started | N/A | Work begins after backend exposes ts-rest router. |
 | Phase 4 - Migration & Cleanup | Not started | N/A | Requires production confidence and monitoring hooks. |
 | Phase 5 - Hardening & Extras | Not started | N/A | Schedule once contract adoption stabilises. |
@@ -42,7 +42,7 @@
 - Owners: Backend Orchestrator with API Contract Enforcer support.
 - Task checklist:
   - [x] Scaffold ts-rest router and controllers under `backend/modules/products` (initial handlers return 501 until legacy logic is ported).
-  - [ ] Refactor legacy service to orchestrator/services split with package-unit reuse.
+  - [x] Refactor legacy service to orchestrator/services split with package-unit reuse (create/update/delete migrated from legacy router).
   - [x] Port read endpoints (list + detail) into `backend/modules/products/products.service.ts` leveraging package-unit helpers.
   - [ ] Introduce envelope adapter to maintain `{ success, message, data }` shape.
   - [ ] Add contract tests and regression suites to cover create/update/delete flows.
@@ -102,6 +102,8 @@
 
 ## References
 
+- ts-rest router scaffold: `../../../../backend/modules/products/products.routes.ts`
+- Service layer port (read operations): `../../../../backend/modules/products/products.service.ts`
 - ADR: `../../../../docs/adr/2025-10-05-products-contract-migration-alignment.md`
 - Legacy router for comparison: `../../../../backend/routes/products.ts`
 - Current product service usages: `../` UI modules and `../../services/productServiceV2.ts`
@@ -112,7 +114,7 @@
 | ----- | ------------------ | -------------- | ------------- | ----- |
 | Phase 0 | Schema Steward | Codex (handover pending) | Product Lead | Completed; awaiting responses to open questions. |
 | Phase 1 | Schema Steward + API Contract Enforcer | Backend Guild | Architecture Council | Requires SSOT sign-off and OpenAPI regeneration. |
-| Phase 2 | Backend Orchestrator | Services Team | Tech Lead | Alpha rollout behind `products-contract` feature flag. |
+| Phase 2 | Backend Orchestrator | Services Team | Tech Lead | Read/write endpoints live in module; plan alpha rollout behind `products-contract` flag once envelope adapter lands. |
 | Phase 3 | Frontend Builder | Web Platform Squad | UX Lead | Coordinate canary release with POS frontline team. |
 | Phase 4 | Migrator + Release Manager | Platform Ops | CTO Delegate | Needs rollback rehearsal and comms plan. |
 | Phase 5 | Testwright + Sec & Compliance Auditor | Quality Guild | Compliance Officer | Include post-mortem review of monitoring coverage. |
@@ -135,7 +137,7 @@
 | Zod schemas | `shared/schemas/zod/product.ts` | Schema Steward | In review | Requires validation fixtures + parity tests. |
 | ts-rest contract | `shared/api/contracts/products.ts` | API Contract Enforcer | In review | Integrated into shared router; pending backend handler scaffolding. |
 | OpenAPI spec | `openapi/paths/products.json` | Schema Steward | Updated | Regenerated from shared contract (2025-10-05). |
-| Backend module | `backend/modules/products` | Backend Orchestrator | In progress | Read endpoints (list/detail) migrated to service layer; mutations pending. |
+| Backend module | `backend/modules/products` | Backend Orchestrator | In progress | Read/write flows migrated to ts-rest service; envelope adapter + rollout plan pending. |
 | Frontend integration guide | `frontend/src/features/product/README.md` | Frontend Builder | In progress | Update as canary learnings arrive. |
 | Test matrix | `shared/testing/products` | Testwright | Seeded | Valid/invalid payload fixtures published; coverage dashboard pending. |
 | Release log | `docs/release-notes/products-contract.md` (planned) | Release Manager | Not started | Capture SemVer decision + rollout instructions. |
