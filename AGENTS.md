@@ -6,7 +6,7 @@
 
 ## 1. 核心原則（Principles）
 
-1. **SSOT**：以 `shared/` 內的 **Zod Schemas** 與 `openapi/` 的 **OpenAPI 契約** 作為規格唯一來源；任何模型（Mongoose/Prisma）、驗證、DTO、API 文件必須由此推導或保持等價。
+1. **SSOT**：以 `shared/` 內的 **Zod Schemas** 作為規格唯一來源；任何模型（Mongoose/Prisma）、驗證、DTO、API 文件必須由此推導或保持等價。
 2. **小步快跑、可回滾**：所有變更走分支 → PR → CI 驗證 → Code Review → 主幹合併；禁止直接推送至主幹。必要時提供自動化 revert 計畫。
 3. **透明可追溯**：每一次 Agent 產出須在 PR 描述中附上：任務說明、輸入資料、決策依據、風險清單、測試證據（coverage/案例連結）。
 4. **安全與隱私優先**：不得輸出/上傳任何憑證與個資；敏感設定使用環境變數與密鑰管理；測試/假資料遵循去識別化。

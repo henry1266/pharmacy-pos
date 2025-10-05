@@ -1,4 +1,4 @@
-import React, { useState, useEffect, ChangeEvent, useCallback } from 'react';
+﻿import React, { useState, useEffect, ChangeEvent, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -22,61 +22,18 @@ import {
   ArrowBack as ArrowBackIcon,
   Save as SaveIcon
 } from '@mui/icons-material';
-import axios from 'axios';
 import { getProductCategories } from '../../../services/productCategoryService';
+import { productCreateSchema, productUpdateSchema } from '@pharmacy-pos/shared/schemas/zod/product';
+import type { ProductCreateInput, ProductUpdateInput } from '@pharmacy-pos/shared/schemas/zod/product';
+import type { Product, Medicine, Supplier, Category } from '@pharmacy-pos/shared/types/entities';
+import { getAllSuppliers } from '../../../services/supplierServiceV2';
+import { getProductById } from '../../../services/productServiceV2';
 import { PackageUnitsConfig } from '../../../components/package-units';
-import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
+import type { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
 import ProductNoteEditorV2 from '../components/ProductNoteEditorV2';
 import useProductData from '../../../hooks/useProductData';
 
-// 定義 API 回應格式
-interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
-  timestamp: Date;
-}
-
-// 定義產品類型
-interface Product {
-  id: string;
-  _id: string;
-  code: string;
-  name: string;
-  shortCode?: string;
-  subtitle?: string;
-  unit?: string;
-  barcode?: string;
-  healthInsuranceCode?: string;
-  healthInsurancePrice?: number;
-  supplier?: string | Supplier;
-  category?: string | Category;
-  minStock?: number;
-  purchasePrice?: number;
-  sellingPrice?: number;
-  description?: string;
-  productType: 'product' | 'medicine';
-  excludeFromStock?: boolean;
-  packageUnits?: ProductPackageUnit[];
-  [key: string]: any;
-}
-
-// 定義供應商類型
-interface Supplier {
-  _id: string;
-  name: string;
-  [key: string]: any;
-}
-
-// 定義分類類型
-interface Category {
-  _id: string;
-  name: string;
-  [key: string]: any;
-}
-
-// 定義當前產品類型
-interface CurrentProduct {
+type ProductFormState = {
   id?: string;
   code: string;
   shortCode: string;
@@ -92,15 +49,52 @@ interface CurrentProduct {
   barcode: string;
   healthInsuranceCode: string;
   healthInsurancePrice: number;
-  excludeFromStock?: boolean;
-  packageUnits?: ProductPackageUnit[];
-}
+  excludeFromStock: boolean;
+  packageUnits: ProductPackageUnit[];
+  productType?: 'product' | 'medicine';
+};
+
+const initialFormState: ProductFormState = {
+  code: '',
+  shortCode: '',
+  name: '',
+  subtitle: '',
+  category: '',
+  unit: '',
+  purchasePrice: 0,
+  sellingPrice: 0,
+  description: '',
+  supplier: '',
+  minStock: 0,
+  barcode: '',
+  healthInsuranceCode: '',
+  healthInsurancePrice: 0,
+  excludeFromStock: false,
+  packageUnits: [],
+  productType: 'product',
+};
+const extractReferenceId = (value: unknown): string => {
+  if (!value) {
+    return '';
+  }
+
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  if (typeof value === 'object' && value !== null && '_id' in (value as Record<string, unknown>)) {
+    const maybeId = (value as { _id?: string })._id;
+    return typeof maybeId === 'string' ? maybeId : '';
+  }
+
+  return '';
+};
 
 const ProductEditPage: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id?: string }>();
   
-  const [product, setProduct] = useState<Product | null>(null);
+  const [product, setProduct] = useState<(Product & Partial<Medicine>) | null>(null);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -108,110 +102,189 @@ const ProductEditPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [productType, setProductType] = useState<'product' | 'medicine'>('product');
   
-  // 表單狀態
-  const [currentProduct, setCurrentProduct] = useState<CurrentProduct>({
-    code: '',
-    shortCode: '',
-    name: '',
-    subtitle: '',
-    category: '',
-    unit: '',
-    purchasePrice: 0,
-    sellingPrice: 0,
-    description: '',
-    supplier: '',
-    minStock: 0,
-    barcode: '',
-    healthInsuranceCode: '',
-    healthInsurancePrice: 0,
-    excludeFromStock: false,
-    packageUnits: []
-  });
+  // 銵典???
+  const [currentProduct, setCurrentProduct] = useState<ProductFormState>(initialFormState);
 
-  // 使用自定義Hook獲取保存功能
+  // 雿輻?芸?蝢咆ook?脣?靽??
   const { handleSaveProduct: saveProduct } = useProductData();
   
   useEffect(() => {
     const fetchData = async (): Promise<void> => {
-      try {
-        setLoading(true);
-        
-        // 並行獲取所有需要的數據
-        const [suppliersResponse, categoriesData, productResponse] = await Promise.all([
-          axios.get<ApiResponse<Supplier[]>>('/api/suppliers'),
-          getProductCategories(),
-          (id && id !== 'new') ? axios.get<ApiResponse<Product>>(`/api/products/${id}`) : Promise.resolve(null)
-        ]);
-        
-        // 設置供應商列表
-        if (suppliersResponse.data?.success && suppliersResponse.data.data) {
-          setSuppliers(suppliersResponse.data.data);
-        } else {
-          console.warn('供應商 API 回應格式不正確，使用空陣列');
-          setSuppliers([]);
-        }
-        
-        // 設置分類列表
-        setCategories(categoriesData);
-        
-        // 如果有產品ID且不是新增模式，獲取產品詳情
-        if (productResponse && productResponse.data?.success && productResponse.data.data) {
-          const rawProductData = productResponse.data.data;
-          
-          // 轉換產品數據格式
-          const productData: Product = {
-            ...rawProductData,
-            id: rawProductData._id,
-            productType: rawProductData.productType ?? 'product'
-          };
-          
-          setProduct(productData);
-          
-          // 根據健保碼自動判斷產品類型
-          const hasHealthInsuranceCode = productData.healthInsuranceCode?.trim();
-          const autoDetectedType = hasHealthInsuranceCode ? 'medicine' : 'product';
-          setProductType(autoDetectedType);
-          
-          // 處理分類和供應商 - 如果是物件則取 _id，如果是字串則直接使用
-          const categoryId = typeof productData.category === 'object' && productData.category
-            ? (productData.category as any)._id
-            : productData.category ?? '';
-          
-          const supplierId = typeof productData.supplier === 'object' && productData.supplier
-            ? (productData.supplier as any)._id
-            : productData.supplier ?? '';
 
-          // 設置表單初始值
+      try {
+
+        setLoading(true);
+
+
+
+        const [supplierList, categoriesData, productDetail] = await Promise.all([
+
+          getAllSuppliers(),
+
+          getProductCategories(),
+
+          id && id !== 'new' ? getProductById(id) : Promise.resolve<(Product & Partial<Medicine>) | null>(null),
+
+        ]);
+
+
+
+        setSuppliers(supplierList);
+
+        setCategories(categoriesData);
+
+
+
+        if (productDetail) {
+
+
+
+          const typedProduct = productDetail as Product & Partial<Medicine>;
+
+
+
+          setProduct(typedProduct);
+
+
+
+          const nextType: 'product' | 'medicine' =
+
+
+
+            typedProduct.productType ??
+
+
+
+            (typedProduct.healthInsuranceCode?.toString().trim() ? 'medicine' : 'product');
+
+
+
+          setProductType(nextType);
+
+
+
           setCurrentProduct({
-            id: productData.id,
-            code: productData.code ?? '',
-            shortCode: productData.shortCode ?? '',
-            name: productData.name ?? '',
-            subtitle: productData.subtitle ?? '',
-            category: categoryId,
-            unit: productData.unit ?? '',
-            purchasePrice: productData.purchasePrice ?? 0,
-            sellingPrice: productData.sellingPrice ?? 0,
-            description: productData.description ?? '',
-            supplier: supplierId,
-            minStock: productData.minStock ?? 10,
-            barcode: productData.barcode ?? '',
-            healthInsuranceCode: productData.healthInsuranceCode ?? '',
-            healthInsurancePrice: productData.healthInsurancePrice ?? 0,
-            excludeFromStock: productData.excludeFromStock ?? false,
-            packageUnits: productData.packageUnits ?? []
+
+
+
+            ...initialFormState,
+
+
+
+            id: typedProduct._id,
+
+
+
+            code: typedProduct.code ?? '',
+
+
+
+            shortCode: typedProduct.shortCode ?? '',
+
+
+
+            name: typedProduct.name ?? '',
+
+
+
+            subtitle: typedProduct.subtitle ?? '',
+
+
+
+            category: extractReferenceId(typedProduct.category),
+
+
+
+            unit: typedProduct.unit ?? '',
+
+
+
+            purchasePrice: typedProduct.purchasePrice ?? 0,
+
+
+
+            sellingPrice: typedProduct.sellingPrice ?? 0,
+
+
+
+            description: typedProduct.description ?? '',
+
+
+
+            supplier: extractReferenceId(typedProduct.supplier),
+
+
+
+            minStock: typedProduct.minStock ?? 0,
+
+
+
+            barcode: typedProduct.barcode ?? '',
+
+
+
+            healthInsuranceCode: typedProduct.healthInsuranceCode ?? '',
+
+
+
+            healthInsurancePrice: typedProduct.healthInsurancePrice ?? 0,
+
+
+
+            excludeFromStock: typedProduct.excludeFromStock ?? false,
+
+
+
+            packageUnits: typedProduct.packageUnits ?? [],
+
+
+
+            productType: nextType,
+
+
+
           });
+
+
+
+        } else {
+
+          setProduct(null);
+
+          setCurrentProduct({ ...initialFormState });
+
+          setProductType('product');
+
         }
-        
+
+      } catch (err) {
+
+        console.error('載入產品資料失敗:', err);
+
+        const message = (
+
+          typeof err === 'object' && err !== null && 'message' in err &&
+
+          typeof (err as { message?: string }).message === 'string'
+
+        )
+
+          ? (err as { message: string }).message
+
+          : '載入產品資料失敗';
+
+        setError(message);
+
+      } finally {
+
         setLoading(false);
-      } catch (err: unknown) {
-        console.error('獲取數據失敗:', err);
-        const error = err as { response?: { data?: { message?: string } } };
-        setError(error.response?.data?.message || '獲取數據失敗');
-        setLoading(false);
+
       }
+
     };
-    
+
+
+
     fetchData();
   }, [id]);
   
@@ -273,84 +346,205 @@ const ProductEditPage: React.FC = () => {
   
   // 處理保存產品
   const handleSave = async (): Promise<void> => {
+
     try {
+
       setSaving(true);
+
       setError(null);
-      
-      // 驗證必填欄位
-      if (!currentProduct.name?.trim()) {
-        setError('產品名稱為必填項目');
+
+
+
+      const isEditMode = Boolean(id && id !== 'new');
+
+
+
+      const trimmedName = currentProduct.name?.trim() ?? '';
+
+      const trimmedUnit = currentProduct.unit?.trim() ?? '';
+
+
+
+      if (!trimmedName) {
+
+        setError('產品名稱為必填欄位');
+
         setSaving(false);
+
         return;
+
       }
-      
-      if (!currentProduct.unit?.trim()) {
-        setError('單位為必填項目');
+
+
+
+      if (!trimmedUnit) {
+
+        setError('產品單位為必填欄位');
+
+        setSaving(false);
+
+        return;
+
+      }
+
+
+
+      const normalizedPayload: ProductFormState = {
+
+        ...currentProduct,
+
+        name: trimmedName,
+
+        unit: trimmedUnit,
+
+        productType,
+
+        packageUnits: currentProduct.packageUnits ?? [],
+
+        code: currentProduct.code?.trim() || '',
+
+        shortCode: currentProduct.shortCode?.trim() || '',
+
+        subtitle: currentProduct.subtitle?.trim() || '',
+
+        category: currentProduct.category?.trim() || '',
+
+        description: currentProduct.description?.trim() || '',
+
+        supplier: currentProduct.supplier?.trim() || '',
+
+        barcode: currentProduct.barcode?.trim() || '',
+
+        healthInsuranceCode: currentProduct.healthInsuranceCode?.trim() || '',
+
+        healthInsurancePrice: currentProduct.healthInsurancePrice ?? 0,
+
+        purchasePrice: currentProduct.purchasePrice ?? 0,
+
+        sellingPrice: currentProduct.sellingPrice ?? 0,
+
+        minStock: currentProduct.minStock ?? 0,
+
+        excludeFromStock: currentProduct.excludeFromStock ?? false,
+
+      };
+
+
+
+
+      const packageUnitsForSchema =
+        normalizedPayload.packageUnits.length > 0
+          ? (normalizedPayload.packageUnits as unknown as NonNullable<ProductCreateInput['packageUnits']>)
+          : undefined;
+
+      const schemaPayload: Record<string, unknown> = {
+        name: trimmedName,
+        unit: trimmedUnit,
+        code: normalizedPayload.code || undefined,
+        shortCode: normalizedPayload.shortCode || undefined,
+        subtitle: normalizedPayload.subtitle || undefined,
+        category: normalizedPayload.category || undefined,
+        description: normalizedPayload.description || undefined,
+        supplier: normalizedPayload.supplier || undefined,
+        barcode: normalizedPayload.barcode || undefined,
+        healthInsuranceCode: normalizedPayload.healthInsuranceCode || undefined,
+        healthInsurancePrice:
+          productType === 'medicine'
+            ? normalizedPayload.healthInsurancePrice ?? undefined
+            : undefined,
+        purchasePrice: normalizedPayload.purchasePrice ?? undefined,
+        sellingPrice: normalizedPayload.sellingPrice ?? undefined,
+        minStock: normalizedPayload.minStock ?? undefined,
+        excludeFromStock: normalizedPayload.excludeFromStock ?? undefined,
+        packageUnits: packageUnitsForSchema,
+        productType,
+      };
+
+      const schema = isEditMode ? productUpdateSchema : productCreateSchema;
+      const validation = schema.safeParse(schemaPayload);
+
+      if (!validation.success) {
+        const messages = validation.error.errors.map((issue) => issue.message);
+        setError(messages.join('、') || '產品資料驗證失敗');
         setSaving(false);
         return;
       }
 
-      const productData: any = {
-        code: currentProduct.code?.trim() || '',
-        shortCode: currentProduct.shortCode?.trim() || '',
-        name: currentProduct.name.trim(),
-        subtitle: currentProduct.subtitle?.trim() || '',
-        category: currentProduct.category || '',
-        unit: currentProduct.unit.trim(),
-        purchasePrice: Number(currentProduct.purchasePrice) || 0,
-        sellingPrice: Number(currentProduct.sellingPrice) || 0,
-        description: currentProduct.description?.trim() || '',
-        supplier: currentProduct.supplier || '',
-        minStock: Number(currentProduct.minStock) || 0,
-        excludeFromStock: Boolean(currentProduct.excludeFromStock),
-        packageUnits: currentProduct.packageUnits || []
+      const basePayload = {
+        ...validation.data,
+        ...(packageUnitsForSchema ? { packageUnits: packageUnitsForSchema } : {}),
+        productType,
       };
-      
-      // 添加所有產品都支援的屬性
-      productData.barcode = currentProduct.barcode?.trim() || '';
-      productData.healthInsuranceCode = currentProduct.healthInsuranceCode?.trim() || '';
-      
-      // 根據產品類型添加特有屬性
-      if (productType === 'product') {
-        productData.productType = 'product';
-      } else {
-        productData.healthInsurancePrice = Number(currentProduct.healthInsurancePrice) || 0;
-        productData.productType = 'medicine';
-      }
-      
-      const isEditMode = Boolean(id && id !== 'new');
-      
-      if (isEditMode && currentProduct.id) {
-        productData.id = currentProduct.id;
-      }
-      
-      console.log('發送的產品資料:', productData); // 除錯用
-      
-      // 使用從Hook中獲取的saveProduct函數
-      const result = await saveProduct(productData, isEditMode);
-      
-      if (result) {
-        // 保存成功後的處理
-        if (window.opener) {
-          // 在新分頁中，關閉當前分頁
-          window.close();
-        } else {
-          // 在同一分頁中，導航到商品詳情頁面
-          const productId = result.id || currentProduct.id;
-          if (productId) {
-            navigate(`/products/${productId}`);
-          } else {
-            navigate('/products');
-          }
+
+      let saved: { id?: string } | null = null;
+
+      if (isEditMode) {
+        const targetId = currentProduct.id || product?._id;
+        if (!targetId) {
+          setError('找不到產品識別碼，無法更新');
+          setSaving(false);
+          return;
         }
+
+        saved = await saveProduct(
+          { ...basePayload, id: targetId } as ProductUpdateInput & { id: string },
+          true,
+        );
+      } else {
+        saved = await saveProduct(basePayload as ProductCreateInput, false);
+}
+
+
+
+
+      if (saved) {
+
+        if (window.opener) {
+
+          window.close();
+
+        } else {
+
+          const productId = saved.id || currentProduct.id;
+
+          if (productId) {
+
+            navigate(`/products/${productId}`);
+
+          } else {
+
+            navigate('/products');
+
+          }
+
+        }
+
       }
-    } catch (err: unknown) {
-      console.error('保存產品失敗:', err);
-      const error = err as { response?: { data?: { message?: string } } };
-      setError(error.response?.data?.message || '保存產品失敗');
+
+    } catch (err) {
+
+      console.error('儲存產品失敗:', err);
+
+      const message = (
+
+        typeof err === 'object' && err !== null && 'message' in err &&
+
+        typeof (err as { message?: string }).message === 'string'
+
+      )
+
+        ? (err as { message: string }).message
+
+        : '儲存產品失敗';
+
+      setError(message);
+
     } finally {
+
       setSaving(false);
+
     }
+
   };
   
   if (loading) {
@@ -549,7 +743,7 @@ const ProductEditPage: React.FC = () => {
                   <Select
                     labelId="category-label"
                     name="category"
-                    value={currentProduct.category}
+                    value={currentProduct.category || ""}
                     onChange={handleInputChange}
                     label="分類"
                     disabled={saving}
@@ -572,7 +766,7 @@ const ProductEditPage: React.FC = () => {
                   <Select
                     labelId="supplier-label"
                     name="supplier"
-                    value={currentProduct.supplier}
+                    value={currentProduct.supplier || ""}
                     onChange={handleInputChange}
                     label="供應商"
                     disabled={saving}
@@ -697,3 +891,6 @@ const ProductEditPage: React.FC = () => {
 };
 
 export default ProductEditPage;
+
+
+
