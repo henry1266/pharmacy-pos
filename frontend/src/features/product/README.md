@@ -104,3 +104,51 @@
 - ADR: `../../../../docs/adr/2025-10-05-products-contract-migration-alignment.md`
 - Legacy router for comparison: `../../../../backend/routes/products.ts`
 - Current product service usages: `../` UI modules and `../../services/productServiceV2.ts`
+
+## Workstream Ownership
+
+| Phase | Primary Agent Role | Named Owner(s) | HITL Reviewer | Notes |
+| ----- | ------------------ | -------------- | ------------- | ----- |
+| Phase 0 | Schema Steward | Codex (handover pending) | Product Lead | Completed; awaiting responses to open questions. |
+| Phase 1 | Schema Steward + API Contract Enforcer | Backend Guild | Architecture Council | Requires SSOT sign-off and OpenAPI regeneration. |
+| Phase 2 | Backend Orchestrator | Services Team | Tech Lead | Alpha rollout behind `products-contract` feature flag. |
+| Phase 3 | Frontend Builder | Web Platform Squad | UX Lead | Coordinate canary release with POS frontline team. |
+| Phase 4 | Migrator + Release Manager | Platform Ops | CTO Delegate | Needs rollback rehearsal and comms plan. |
+| Phase 5 | Testwright + Sec & Compliance Auditor | Quality Guild | Compliance Officer | Include post-mortem review of monitoring coverage. |
+
+## Upcoming Milestones
+
+| Milestone | Target Date | Blocking Dependencies | Exit Evidence |
+| --------- | ----------- | --------------------- | ------------- |
+| Resolve ADR open questions | 2025-10-07 | HITL answers for package-unit scope, pagination, client deprecation | ADR updated with decisions + reviewer approval. |
+| Publish SSOT artifacts | 2025-10-09 | OpenAPI path regeneration, schema parity tests | Versioned `openapi/paths/products.json` diff + schema test report. |
+| Backend ts-rest alpha ready | 2025-10-16 | Phase 1 exit, feature flag scaffolding, regression suite | CI passes for new module, envelope snapshot tests, rollout checklist. |
+| Frontend switch for canary POS site | 2025-10-24 | Backend alpha deployed, SDK versioned release | Canary feedback doc + UI regression report. |
+| Legacy route retirement vote | 2025-11-07 | Metrics stable, no Sev-1 incidents in 2 weeks | Change log entry, rollback plan archived, release sign-off. |
+
+## Artifact Tracker
+
+| Artifact | Location | Owner | Status | Notes |
+| -------- | -------- | ----- | ------ | ----- |
+| Migration ADR | `docs/adr/2025-10-05-products-contract-migration-alignment.md` | Schema Steward | Done | Pending updates after HITL feedback. |
+| Zod schemas | `shared/schemas/zod/product.ts` | Schema Steward | In review | Requires validation fixtures + parity tests. |
+| ts-rest contract | `shared/api/contracts/products.ts` | API Contract Enforcer | Draft | Awaiting OpenAPI alignment + router wiring. |
+| OpenAPI spec | `openapi/paths/products.json` | Schema Steward | Pending | Regenerate via ts-rest tooling. |
+| Backend module | `backend/modules/products` | Backend Orchestrator | Not started | Create router controller skeleton + service adapters. |
+| Frontend integration guide | `frontend/src/features/product/README.md` | Frontend Builder | In progress | Update as canary learnings arrive. |
+| Test matrix | `shared/testing/products` (planned) | Testwright | Not started | Needs valid/invalid payload sets + coverage dashboard link. |
+| Release log | `docs/release-notes/products-contract.md` (planned) | Release Manager | Not started | Capture SemVer decision + rollout instructions. |
+
+## HITL Checkpoints & Escalation
+
+- Phase 1 exit requires Architecture Council sign-off on SSOT parity and compatibility fixtures.
+- Phase 2 deployment must be manually approved by Tech Lead after reviewing regression and contract test evidence.
+- Phase 3 canary rollout needs UX Lead and frontline POS representative confirmation before expanding blast radius.
+- Phase 4 legacy retirement hinges on CTO Delegate approval following rollback drill results.
+
+## Communication Plan
+
+- Stand-up sync: dedicated agenda item every Tuesday until Phase 4 completes.
+- Async updates: post status snapshot deltas in `#proj-products-contract-migration` Slack channel by end of day Thursday.
+- Decision logging: append key decisions to the ADR and link from this README under References.
+- Incident handling: route Sev-2+ issues through on-call playbook, referencing this migration as the change context.
