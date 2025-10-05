@@ -31,9 +31,9 @@
 - Task checklist:
   - [x] Draft `shared/schemas/zod/product.ts` covering DTOs, queries, package units.
   - [x] Draft `shared/api/contracts/products.ts` with envelope-preserving responses.
-  - [ ] Update OpenAPI paths/components to match `productsContract` (generate ts-rest bindings and SDKs).
-  - [ ] Wire `productsContract` into `shared/api/contracts/index.ts` router once compatibility is confirmed.
-  - [ ] Publish valid/invalid payload fixtures for contract tests (`shared/testing/products`).
+  - [x] Update OpenAPI paths/components to match `productsContract` (generate ts-rest bindings and SDKs).
+  - [x] Wire `productsContract` into `shared/api/contracts/index.ts` router once compatibility is confirmed.
+  - [x] Publish valid/invalid payload fixtures for contract tests (`shared/testing/products`).
   - [ ] Decide SemVer impact and note in release staging log.
 
 ### Phase 2 - Backend Module
@@ -132,11 +132,11 @@
 | -------- | -------- | ----- | ------ | ----- |
 | Migration ADR | `docs/adr/2025-10-05-products-contract-migration-alignment.md` | Schema Steward | Done | Pending updates after HITL feedback. |
 | Zod schemas | `shared/schemas/zod/product.ts` | Schema Steward | In review | Requires validation fixtures + parity tests. |
-| ts-rest contract | `shared/api/contracts/products.ts` | API Contract Enforcer | Draft | Awaiting OpenAPI alignment + router wiring. |
-| OpenAPI spec | `openapi/paths/products.json` | Schema Steward | Pending | Regenerate via ts-rest tooling. |
+| ts-rest contract | `shared/api/contracts/products.ts` | API Contract Enforcer | In review | Integrated into shared router; pending backend handler scaffolding. |
+| OpenAPI spec | `openapi/paths/products.json` | Schema Steward | Updated | Regenerated from shared contract (2025-10-05). |
 | Backend module | `backend/modules/products` | Backend Orchestrator | Not started | Create router controller skeleton + service adapters. |
 | Frontend integration guide | `frontend/src/features/product/README.md` | Frontend Builder | In progress | Update as canary learnings arrive. |
-| Test matrix | `shared/testing/products` (planned) | Testwright | Not started | Needs valid/invalid payload sets + coverage dashboard link. |
+| Test matrix | `shared/testing/products` | Testwright | Seeded | Valid/invalid payload fixtures published; coverage dashboard pending. |
 | Release log | `docs/release-notes/products-contract.md` (planned) | Release Manager | Not started | Capture SemVer decision + rollout instructions. |
 
 ## HITL Checkpoints & Escalation

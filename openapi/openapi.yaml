@@ -1,59 +1,25 @@
 openapi: 3.1.0
 info:
-  title: 藥局POS系統 API
+  title: Pharmacy POS API
   version: 1.0.0
-  description: 藥局POS系統RESTful API文檔
-  contact:
-    name: 藥局POS開發團隊
-    email: dev@pharmacy-pos.com
-  license:
-    name: ISC
-    identifier: ISC
-
+  description: Generated from shared ts-rest contract (Zod SSOT)
 servers:
-  - url: http://192.168.68.90:5000
-    description: 開發環境
-  - url: https://api.pharmacy-pos.com
-    description: 生產環境
-
-components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-    apiKeyAuth:
-      type: apiKey
-      in: header
-      name: x-api-key
-  schemas:
-    # 通用模型
-    ApiResponse:
-      $ref: 'components/schemas/common.json#/ApiResponse'
-    ErrorResponse:
-      $ref: 'components/schemas/common.json#/ErrorResponse'
-    
-    # 產品相關模型
-    BaseProduct:
-      $ref: 'components/schemas/products.json#/BaseProduct'
-    Product:
-      $ref: 'components/schemas/products.json#/Product'
-    Medicine:
-      $ref: 'components/schemas/products.json#/Medicine'
-
-# 全局安全設定
-security:
-  - bearerAuth: []
-
-# API路徑
+  - url: /api
 paths:
-  # 產品相關API
-  /api/products:
-    $ref: 'paths/products.json#/~1api~1products'
-  /api/products/product:
-    $ref: 'paths/products.json#/~1api~1products~1product'
-
-# 標籤分組
+  /products:
+    $ref: 'paths/products.json#/~1products'
+  /products/products:
+    $ref: 'paths/products.json#/~1products~1products'
+  /products/medicines:
+    $ref: 'paths/products.json#/~1products~1medicines'
+  /products/medicine:
+    $ref: 'paths/products.json#/~1products~1medicine'
+  /products/code/{code}:
+    $ref: 'paths/products.json#/~1products~1code~1{code}'
+  /products/{id}:
+    $ref: 'paths/products.json#/~1products~1{id}'
+  /products/product:
+    $ref: 'paths/products.json#/~1products~1product'
 tags:
-  - name: Products
-    description: 產品相關API
+  - name: products
+    description: Products contract endpoints
