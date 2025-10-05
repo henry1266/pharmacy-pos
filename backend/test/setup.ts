@@ -80,14 +80,4 @@ process.on('unhandledRejection', (reason, _promise) => {
   console.warn('未處理的 Promise 拒絕:', reason);
 });
 
-// 抑制 console.log 輸出（可選）
-if (process.env.NODE_ENV === 'test') {
-  global.console = {
-    ...console,
-    log: jest.fn(),
-    debug: jest.fn(),
-    info: jest.fn(),
-    warn: console.warn, // 保留警告以便調試
-    error: console.error, // 保留錯誤以便調試
-  };
-}
+

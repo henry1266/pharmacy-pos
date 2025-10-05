@@ -45,8 +45,8 @@
   - [x] Refactor legacy service to orchestrator/services split with package-unit reuse (create/update/delete migrated from legacy router).
   - [x] Port read endpoints (list + detail) into `backend/modules/products/products.service.ts` leveraging package-unit helpers.
   - [x] Wire feature flag `FEATURE_PRODUCTS_CONTRACT` to gate ts-rest router rollout (default off).
-  - [ ] Introduce envelope adapter to maintain `{ success, message, data }` shape.
-  - [ ] Add contract tests and regression suites to cover create/update/delete flows.
+  - [x] Introduce envelope adapter to mirror legacy success/error envelopes (timestamp, statusCode, filters).
+  - [ ] Add contract tests and regression suites to cover create/update/delete flows (pending).
   - [ ] Document fallback/feature flag strategy for rollout.
 
 ### Phase 3 - Frontend Integration
