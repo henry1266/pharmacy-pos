@@ -17,6 +17,7 @@ import productsContractRoutes from "./modules/products";
 import suppliersRoutes from "./modules/suppliers";
 import purchaseOrdersRoutes from "./modules/purchaseOrders";
 import employeesRoutes from "./modules/employees";
+
 // 導入已轉換為 TypeScript 的路由
 import authRoutes from "./routes/auth";
 import usersRoutes from "./routes/users";
@@ -93,6 +94,7 @@ export function createApp(): Application {
   app.use("/api", purchaseOrdersRoutes);
   app.use("/api", employeesRoutes);
   app.use("/api", employeeSchedulesRoutes);
+  app.use("/api", employeeAccountsRoutes);
   // 定義路由
   app.use("/api/auth", authRoutes);
   app.use("/api/users", usersRoutes);
@@ -111,7 +113,6 @@ export function createApp(): Application {
   app.use("/api/accounting", accountingRoutes);
   app.use("/api/dashboard", dashboardRoutes);
   app.use("/api/reports", reportsRoutes);
-  app.use("/api/employee-accounts", employeeAccountsRoutes);
   app.use("/api/accounting-categories", accountingCategoriesRoutes);
   app.use("/api/shipping-orders", shippingOrdersRoutes);
   app.use("/api/shipping-orders", shippingOrderPdfRoutes);

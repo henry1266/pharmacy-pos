@@ -69,7 +69,7 @@ const updateAccountValidation = [
  * @desc    Create a user account for an employee
  * @access  Private/Admin
  */
-router.post('/', [auth, adminAuth, ...createAccountValidation], async (req: Request, res: Response) => {
+router.post('/employee-accounts', [auth, adminAuth, ...createAccountValidation], async (req: Request, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -116,7 +116,7 @@ router.post('/', [auth, adminAuth, ...createAccountValidation], async (req: Requ
  * @desc    Get user account info for an employee
  * @access  Private/Admin
  */
-router.get('/:employeeId', [auth, adminAuth], async (req: Request, res: Response) => {
+router.get('/employee-accounts/:employeeId', [auth, adminAuth], async (req: Request, res: Response) => {
   try {
     if (!req.params.employeeId) {
       const errorResponse: ErrorResponse = {
@@ -154,7 +154,7 @@ router.get('/:employeeId', [auth, adminAuth], async (req: Request, res: Response
  * @desc    Update user account for an employee
  * @access  Private/Admin
  */
-router.put('/:employeeId', [auth, adminAuth, ...updateAccountValidation], async (req: Request, res: Response) => {
+router.put('/employee-accounts/:employeeId', [auth, adminAuth, ...updateAccountValidation], async (req: Request, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -212,7 +212,7 @@ router.put('/:employeeId', [auth, adminAuth, ...updateAccountValidation], async 
  * @desc    Delete user account for an employee
  * @access  Private/Admin
  */
-router.delete('/:employeeId', [auth, adminAuth], async (req: Request, res: Response) => {
+router.delete('/employee-accounts/:employeeId', [auth, adminAuth], async (req: Request, res: Response) => {
   try {
     if (!req.params.employeeId) {
       const errorResponse: ErrorResponse = {
@@ -251,7 +251,7 @@ router.delete('/:employeeId', [auth, adminAuth], async (req: Request, res: Respo
  * @desc    Unbind an employee from their account (without deleting the account)
  * @access  Private/Admin
  */
-router.put('/:employeeId/unbind', [auth, adminAuth], async (req: Request, res: Response) => {
+router.put('/employee-accounts/:employeeId/unbind', [auth, adminAuth], async (req: Request, res: Response) => {
   try {
     if (!req.params.employeeId) {
       const errorResponse: ErrorResponse = {
