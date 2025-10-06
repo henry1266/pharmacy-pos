@@ -37,7 +37,7 @@ const getDefaultEndTime = (shift: string): string => {
 // @route   GET api/employee-schedules
 // @desc    Get employee schedules with date range filter
 // @access  Private
-router.get('/', [
+router.get('/employee-schedules', [
   auth,
   check('startDate').optional().isISO8601().withMessage('開始日期格式無效'),
   check('endDate').optional().isISO8601().withMessage('結束日期格式無效'),
@@ -129,7 +129,7 @@ router.get('/', [
 // @desc    Create a new employee schedule
 // @access  Private
 router.post(
-  '/',
+  '/employee-schedules',
   [
     auth,
     check('date', '日期為必填欄位').not().isEmpty(),
@@ -390,7 +390,7 @@ const handleScheduleUpdateError = (res: Response, error: any): void => {
 // @route   PUT api/employee-schedules/:id
 // @desc    Update an employee schedule
 // @access  Private
-router.put('/:id', auth, async (req: Request, res: Response) => {
+router.put('/employee-schedules/:id', auth, async (req: Request, res: Response) => {
   try {
     if (!req.params.id) {
       const errorResponse: ErrorResponse = {
@@ -468,7 +468,7 @@ router.put('/:id', auth, async (req: Request, res: Response) => {
 // @route   DELETE api/employee-schedules/:id
 // @desc    Delete an employee schedule
 // @access  Private
-router.delete('/:id', auth, async (req: Request, res: Response) => {
+router.delete('/employee-schedules/:id', auth, async (req: Request, res: Response) => {
   try {
     if (!req.params.id) {
       const errorResponse: ErrorResponse = {
@@ -527,7 +527,7 @@ router.delete('/:id', auth, async (req: Request, res: Response) => {
 // @route   GET api/employee-schedules/by-date
 // @desc    Get schedules grouped by date
 // @access  Private
-router.get('/by-date', [
+router.get('/employee-schedules/by-date', [
   auth,
   check('startDate').isISO8601().withMessage('開始日期格式無效'),
   check('endDate').isISO8601().withMessage('結束日期格式無效')

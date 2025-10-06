@@ -92,6 +92,7 @@ export function createApp(): Application {
   app.use("/api", suppliersRoutes);
   app.use("/api", purchaseOrdersRoutes);
   app.use("/api", employeesRoutes);
+  app.use("/api", employeeSchedulesRoutes);
   // 定義路由
   app.use("/api/auth", authRoutes);
   app.use("/api/users", usersRoutes);
@@ -120,7 +121,6 @@ export function createApp(): Application {
   app.use("/api/settings", settingsRoutes);
   app.use("/api/config", configRoutes);
   app.use("/api/csv-import", csvImportApiRoutes);
-  app.use("/api/employee-schedules", employeeSchedulesRoutes);
   app.use("/api/overtime-records", overtimeRecordsRoutes);
   app.use("/api/shift-time-configs", shiftTimeConfigsRoutes);
   app.use("/api/themes", themesRoutes);
