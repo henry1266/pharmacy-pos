@@ -1,4 +1,4 @@
-import express, { Application, Request, Response, NextFunction } from "express";
+﻿import express, { Application, Request, Response, NextFunction } from "express";
 import path from "path";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -90,11 +90,11 @@ export function createApp(): Application {
   app.use("/api", customersRoutes);
   app.use("/api", salesRoutes);
   app.use("/api", suppliersRoutes);
+  app.use("/api", purchaseOrdersRoutes);
   // 定義路由
   app.use("/api/auth", authRoutes);
   app.use("/api/users", usersRoutes);
   app.use("/api/inventory", inventoryRoutes);
-  app.use("/api/purchase-orders", purchaseOrdersRoutes);
   app.use("/api/product-categories", productCategoriesRoutes);
   const enableProductsContract = process.env.FEATURE_PRODUCTS_CONTRACT === 'true';
   const productsBasePath = "/api/products";

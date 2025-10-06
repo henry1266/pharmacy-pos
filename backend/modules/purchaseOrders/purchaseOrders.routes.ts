@@ -1,4 +1,4 @@
-﻿import { Router } from 'express';
+import { Router } from 'express';
 import { ServerInferRequest } from '@ts-rest/core';
 import { purchaseOrdersContract } from '@pharmacy-pos/shared/api/contracts';
 import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
@@ -84,7 +84,7 @@ function handleException(error: unknown, logMessage: string) {
   return buildErrorBody(500, ERROR_MESSAGES.GENERIC.SERVER_ERROR);
 }
 
-router.get('/', async (_req, res) => {
+router.get('/purchase-orders', async (_req, res) => {
   try {
     // TODO: add query-aware filtering in service
     const purchaseOrders = await purchaseOrdersService.getAllPurchaseOrders();
@@ -96,7 +96,7 @@ router.get('/', async (_req, res) => {
   }
 });
 
-router.get('/recent/list', async (req, res) => {
+router.get('/purchase-orders/recent/list', async (req, res) => {
   try {
     const query = (req.query ?? {}) as RecentPurchaseOrdersRequest['query'];
     const limit = query?.limit ?? 10;
@@ -109,7 +109,7 @@ router.get('/recent/list', async (req, res) => {
   }
 });
 
-router.get('/supplier/:supplierId', async (req, res) => {
+router.get('/purchase-orders/supplier/:supplierId', async (req, res) => {
   try {
     const params = req.params as SupplierPurchaseOrdersRequest['params'];
     const purchaseOrders = await purchaseOrdersService.getPurchaseOrdersBySupplier(params.supplierId);
@@ -121,7 +121,7 @@ router.get('/supplier/:supplierId', async (req, res) => {
   }
 });
 
-router.get('/product/:productId', async (req, res) => {
+router.get('/purchase-orders/product/:productId', async (req, res) => {
   try {
     const params = req.params as ProductPurchaseOrdersRequest['params'];
     const purchaseOrders = await purchaseOrdersService.getPurchaseOrdersByProduct(params.productId);
@@ -133,7 +133,7 @@ router.get('/product/:productId', async (req, res) => {
   }
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/purchase-orders/:id', async (req, res) => {
   try {
     const params = req.params as GetPurchaseOrderRequest['params'];
     const purchaseOrder = await purchaseOrdersService.getPurchaseOrderById(params.id);
@@ -148,13 +148,13 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-router.post('/', auth, async (req, res) => {
+router.post('/purchase-orders', auth, async (req, res) => {
   try {
     const body = req.body as CreatePurchaseOrderRequest['body'];
     const userId = (req as AuthenticatedRequest).user?.id;
     const result = await purchaseOrdersService.createPurchaseOrder(body, userId);
     if (!result.success || !result.purchaseOrder) {
-      const status = result.error ? (result.error.includes('?T??') ? 409 : result.error.includes('?�V?') ? 401 : 400) : 400;
+      const status = result.error ? (result.error.includes('?T??') ? 409 : result.error.includes('??V?') ? 401 : 400) : 400;
       res.status(status).json(buildErrorBody(status as KnownErrorStatus, result.error ?? ERROR_MESSAGES.GENERIC.VALIDATION_FAILED));
       return;
     }
@@ -165,7 +165,7 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
-router.put('/:id', auth, async (req, res) => {
+router.put('/purchase-orders/:id', auth, async (req, res) => {
   try {
     const params = req.params as UpdatePurchaseOrderRequest['params'];
     const body = req.body as UpdatePurchaseOrderRequest['body'];
@@ -183,7 +183,7 @@ router.put('/:id', auth, async (req, res) => {
   }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/purchase-orders/:id', async (req, res) => {
   try {
     const params = req.params as DeletePurchaseOrderRequest['params'];
     const result = await purchaseOrdersService.deletePurchaseOrder(params.id);
@@ -200,6 +200,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 export default router;
+
 
 
 
