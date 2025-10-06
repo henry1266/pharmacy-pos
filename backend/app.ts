@@ -1,4 +1,4 @@
-﻿import express, { Application, Request, Response, NextFunction } from "express";
+import express, { Application, Request, Response, NextFunction } from "express";
 import path from "path";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -10,18 +10,19 @@ import swaggerSpec from "./swagger";
 // 載入環境變數
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
+// 新路由
+import customersRoutes from "./modules/customers";
+import salesRoutes from "./modules/sales";
+import productsContractRoutes from "./modules/products";
+import suppliersRoutes from "./modules/suppliers";
+import purchaseOrdersRoutes from "./modules/purchaseOrders";
 // 導入已轉換為 TypeScript 的路由
 import authRoutes from "./routes/auth";
 import usersRoutes from "./routes/users";
-import suppliersRoutes from "./routes/suppliers";
 import inventoryRoutes from "./routes/inventory";
-import purchaseOrdersRoutes from "./modules/purchaseOrders";
 import productCategoriesRoutes from "./routes/productCategories";
 import productsRoutes from "./routes/products";
-import productsContractRoutes from "./modules/products";
 import packagesRoutes from "./routes/packages";
-import customersRoutes from "./modules/customers";
-import salesRoutes from "./modules/sales";
 import accountingRoutes from "./routes/accounting";
 import dashboardRoutes from "./routes/dashboard";
 import reportsRoutes from "./routes/reports";
@@ -88,11 +89,11 @@ export function createApp(): Application {
   // 新路由
   app.use("/api", customersRoutes);
   app.use("/api", salesRoutes);
+  app.use("/api", suppliersRoutes);
   // 定義路由
   app.use("/api/auth", authRoutes);
   app.use("/api/users", usersRoutes);
   app.use("/api/inventory", inventoryRoutes);
-  app.use("/api/suppliers", suppliersRoutes);
   app.use("/api/purchase-orders", purchaseOrdersRoutes);
   app.use("/api/product-categories", productCategoriesRoutes);
   const enableProductsContract = process.env.FEATURE_PRODUCTS_CONTRACT === 'true';

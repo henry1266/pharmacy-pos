@@ -31,7 +31,7 @@
 ### pharmacy-pos — Monorepo
 
 * 前端：React 18 + TypeScript（MUI v5、RTK/RTK Query、React Router v6）
-* 後端：Node.js 20 + Express 5
+* 後端：Node.js 20 + Express 4
 * SSOT：Zod Schemas + OpenAPI
 * 套件管理：pnpm workspaces
 
@@ -52,7 +52,7 @@
 ```text
 .
 ├─ frontend/           # React 18 + TS, MUI v5, RTK/RTK Query, React Router v6
-├─ backend/            # Node 20 + Express 5, routes/controller/service/models
+├─ backend/            # Node 20 + Express 4, routes/controller/service/models
 ├─ shared/             # Zod Schemas、共用型別與工具（SSOT）
 ├─ openapi/            # OpenAPI 規格與生成設定（前端 SDK / 伺服器型別）
 ├─ .github/            # PR 模板、CI 工作流程（可選）
@@ -65,7 +65,7 @@
 ## 技術與關聯套件
 
 * **前端**：React 18、TypeScript 5、MUI v5、Redux Toolkit（含 RTK Query）、React Router v6、Vite
-* **後端**：Node.js 20、Express 5、（ODM/ORM 依實況，例如 Mongoose）
+* **後端**：Node.js 20、Express 4、（ODM/ORM 依實況，例如 Mongoose）
 * **SSOT**：Zod（`shared/`）、OpenAPI（`openapi/`）
 * **開發體驗**：pnpm workspace、ESLint、Prettier、Husky（pre-commit）、commitlint（Conventional Commits）
 * **測試**：Vitest / Jest、Testing Library、Playwright / Cypress（E2E，依專案配置）
@@ -118,34 +118,6 @@ pnpm --filter frontend run dev
 
 ## 環境變數
 
-### 根目錄（可選
-
-```ini
-# 共用或工具腳本使用（如端口、節流等）
-NODE_ENV=development
-```
-
-### backend/.env
-
-```ini
-PORT=4000
-MONGODB_URI=mongodb://localhost:27017/pharmacy_pos
-JWT_SECRET=replace_with_strong_secret
-CORS_ORIGIN=http://localhost:5173
-LOG_LEVEL=info
-```
-
-### frontend/.env
-
-```ini
-VITE_API_BASE_URL=http://localhost:4000
-VITE_APP_NAME=Pharmacy POS
-```
-
----
-
-## 工作區腳本（pnpm）
-
 ### workspace root `package.json` 建議
 
 ```json
@@ -170,21 +142,6 @@ VITE_APP_NAME=Pharmacy POS
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/index.js",
-    "lint": "eslint .",
-    "test": "vitest run",
-    "typecheck": "tsc --noEmit"
-  }
-}
-```
-
-### frontend/package.json（示意）
-
-```json
-{
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview --port 5173",
     "lint": "eslint .",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
@@ -328,4 +285,3 @@ agent_task:
 ## 授權
 
 本專案採用 **MIT License**。詳見 `LICENSE`。
-

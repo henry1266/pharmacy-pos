@@ -17,7 +17,7 @@
 ## 2. Monorepo 與邊界（Boundaries）
 
 * **frontend/**：React 18 + TypeScript、MUI v5、Redux Toolkit、RRD v6；僅消費 `openapi/` 產出的型別與 API 客戶端；避免重複定義後端模型。
-* **backend/**：Node.js 20 + Express 5；服務協調層 `service/`、領域服務 `services/*`、模型 `models/*`；驗證以 `shared/` schemas 為基準；路由與控制器禁止內聯業務邏輯。
+* **backend/**：Node.js 20 + Express 4 、調層 `service/`、領域服務 `services/*`、模型 `models/*`；驗證以 `shared/` schemas 為基準；路由與控制器禁止內聯業務邏輯。
 * **shared/**：Zod Schemas、通用型別、工具；**唯一**結構定義來源；對應 OpenAPI 契約。
 * **openapi/**：API 規格；自動化生成前端 SDK、伺服器型別與測試樣本；變更需伴隨相容性檢查（SemVer）。
 

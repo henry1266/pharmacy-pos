@@ -1,13 +1,13 @@
-﻿import type { z } from 'zod';
-import type { Supplier as SupplierEntity } from '@pharmacy-pos/shared/types/entities';
+import type { z } from 'zod';
 import {
   createSupplierSchema,
   updateSupplierSchema,
-  supplierSearchSchema
+  supplierSearchSchema,
+  supplierEntitySchema,
 } from '@pharmacy-pos/shared/schemas/zod/supplier';
 
 export type SupplierRecord = Record<string, any>;
-export type SupplierResponse = SupplierEntity;
+export type SupplierResponse = z.infer<typeof supplierEntitySchema>;
 
 export type SupplierCreateInput = z.infer<typeof createSupplierSchema>;
 export type SupplierUpdateInput = z.infer<typeof updateSupplierSchema>;
