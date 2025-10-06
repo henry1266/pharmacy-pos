@@ -61,19 +61,7 @@ interface SnackbarState {
   severity: 'success' | 'error' | 'info' | 'warning';
 }
 
-interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
-  timestamp: Date;
-}
 
-interface EmployeeListData {
-  employees: Employee[];
-  totalCount: number;
-  page: number;
-  limit: number;
-}
 
 // 定義 EmployeeDetailPanel 屬性介面
 interface EmployeeDetailPanelProps {
@@ -267,17 +255,29 @@ const EmployeeListPage: React.FC = () => {
       // 構建 API 請求 URL，包含分頁和搜尋參數
       const url = `/api/employees?page=${page}&limit=${rowsPerPage}&search=${searchTerm}`;
       
-      const response = await axios.get<ApiResponse<EmployeeListData>>(url, config);
-      
-      // 確保 response.data.data 存在且包含 employees 陣列
-      if (response.data.success && response.data.data && Array.isArray(response.data.data.employees)) {
+      const response = await axios.get(url, config);
+      const payload = response.data;
+
+      if (payload?.success && payload.data && Array.isArray(payload.data.employees)) {
         // 過濾並驗證員工資料
-        const validEmployees = response.data.data.employees.filter(isValidEmployee);
+        const validEmployees = payload.data.employees.filter(isValidEmployee);
         setEmployees(validEmployees);
-        setTotalCount(response.data.data.totalCount ?? 0);
+        setTotalCount(payload.data.totalCount ?? 0);
+      } else if (payload?.success && Array.isArray(payload.data)) {
+        const validEmployees = payload.data.filter(isValidEmployee);
+        setEmployees(validEmployees);
+        setTotalCount(payload.data.length ?? validEmployees.length ?? 0);
+      } else if (Array.isArray(payload)) {
+        const validEmployees = payload.filter(isValidEmployee);
+        setEmployees(validEmployees);
+        setTotalCount(payload.length ?? validEmployees.length ?? 0);
+      } else if (payload && Array.isArray(payload.employees)) {
+        const validEmployees = payload.employees.filter(isValidEmployee);
+        setEmployees(validEmployees);
+        setTotalCount(payload.totalCount ?? payload.count ?? validEmployees.length ?? 0);
       } else {
-        // 如果回應結構不正確，設為空陣列
-        console.warn('API 回應結構不正確:', response.data);
+        // 如果結構不正確，設為空陣列
+        console.warn('API 回應結構不正確', payload);
         setEmployees([]);
         setTotalCount(0);
       }
@@ -555,6 +555,7 @@ const EmployeeListPage: React.FC = () => {
             onPageChange: (params: any) => handleChangePage(null, params.page),
             onPageSizeChange: (params: any) => handleChangeRowsPerPage({target: {value: params.pageSize}} as any),
             rowCount: totalCount,
+            rowsPerPageOptions: [10, 25, 50, 100],
             paginationMode: 'server',
             page: page
           }}

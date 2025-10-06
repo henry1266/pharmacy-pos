@@ -21,7 +21,7 @@ export class EmployeeServiceError extends Error {
   }
 }
 
-const ID_NUMBER_REGEX = REGEX_PATTERNS.TW_ID_NUMBER
+const ID_NUMBER_REGEX = REGEX_PATTERNS?.TW_ID_NUMBER ?? new RegExp('^[A-Z][12]\d{8}$')
 
 export async function listEmployees(filters: EmployeeSearchFilters = {} as EmployeeSearchFilters): Promise<EmployeeRecord[]> {
   const query: Record<string, unknown> = {}
