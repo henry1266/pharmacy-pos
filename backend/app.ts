@@ -85,7 +85,9 @@ export function createApp(): Application {
   }));
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json({ extended: false } as any));
-
+  // 新路由
+  app.use("/api", customersRoutes);
+  app.use("/api", salesRoutes);
   // 定義路由
   app.use("/api/auth", authRoutes);
   app.use("/api/users", usersRoutes);
@@ -94,15 +96,15 @@ export function createApp(): Application {
   app.use("/api/purchase-orders", purchaseOrdersRoutes);
   app.use("/api/product-categories", productCategoriesRoutes);
   const enableProductsContract = process.env.FEATURE_PRODUCTS_CONTRACT === 'true';
+  const productsBasePath = "/api/products";
 
   if (enableProductsContract) {
     app.use('/api', productsContractRoutes);
   } else {
-    app.use('/api/products', productsRoutes);
+    app.use(productsBasePath, productsRoutes);
   }
   app.use("/api/packages", packagesRoutes);
-  app.use("/api", customersRoutes);
-  app.use("/api", salesRoutes);
+  
   app.use("/api/accounting", accountingRoutes);
   app.use("/api/dashboard", dashboardRoutes);
   app.use("/api/reports", reportsRoutes);
@@ -122,7 +124,7 @@ export function createApp(): Application {
   app.use("/api/shift-time-configs", shiftTimeConfigsRoutes);
   app.use("/api/themes", themesRoutes);
   app.use("/api", packageUnitsRoutes);
-  app.use("/api/products", productDescriptionRoutes);
+  app.use(productsBasePath, productDescriptionRoutes);
   app.use("/api/link-references", linkReferencesRoutes);
   app.use("/api/link-global", linkGlobalUpdateRoutes);
 

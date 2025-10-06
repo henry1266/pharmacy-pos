@@ -56,7 +56,7 @@
 - 任務清單：
   - [x] 以產生的 ts-rest client 取代 `ProductApiClient`。
   - [x] 更新 RTK Query slice 與 hook，導入新的封套 helper。
-  - [ ] 表單與列表視圖改用共享驗證器（不得重複定義 Zod）。
+  - [x] 表單與列表視圖改用共享驗證器（不得重複定義 Zod）。
   - [ ] 為清單/明細/新增/更新流程補 UI 回歸測試。
 
 ### 階段 4 - 遷移與清理
