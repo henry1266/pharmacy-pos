@@ -17,6 +17,7 @@ import productsContractRoutes from "./modules/products";
 import suppliersRoutes from "./modules/suppliers";
 import purchaseOrdersRoutes from "./modules/purchaseOrders";
 import employeesRoutes from "./modules/employees";
+import overtimeRecordsRoutes from "./modules/employees/services/overtimeRecords";
 // 導入已轉換為 TypeScript 的路由
 import authRoutes from "./routes/auth";
 import usersRoutes from "./routes/users";
@@ -36,7 +37,6 @@ import monitoredProductsRoutes from "./routes/monitoredProducts";
 import settingsRoutes from "./routes/settings";
 import configRoutes from "./routes/config";
 import csvImportApiRoutes from "./routes/csvImportApi";
-import overtimeRecordsRoutes from "./routes/overtimeRecords";
 import shiftTimeConfigsRoutes from "./routes/shiftTimeConfigs";
 import themesRoutes from "./routes/themes";
 import packageUnitsRoutes from "./routes/packageUnits";
@@ -90,6 +90,7 @@ export function createApp(): Application {
   app.use("/api", suppliersRoutes);
   app.use("/api", purchaseOrdersRoutes);
   app.use("/api", employeesRoutes);
+
   // 定義路由
   app.use("/api/auth", authRoutes);
   app.use("/api/users", usersRoutes);
