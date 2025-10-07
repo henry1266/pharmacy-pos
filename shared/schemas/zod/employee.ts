@@ -1,4 +1,4 @@
-﻿import { z } from 'zod'
+import { z } from 'zod'
 import { zodId } from '../../utils/zodUtils'
 
 const timestampSchema = z.union([z.string(), z.date()])
@@ -77,10 +77,21 @@ export const employeeAccountSchema = z
   })
   .passthrough()
 
+export const employeeAccountCreateSchema = z
+  .object({
+    employeeId: zodId,
+    username: z.string().min(1),
+    email: z.string().email().optional(),
+    role: z.string().min(1),
+    password: z.string().min(6),
+    isActive: z.boolean().optional(),
+  })
+  .passthrough()
+
 export const employeeAccountUpdateSchema = z
   .object({
     username: z.string().optional(),
-    email: z.string().optional(),
+    email: z.string().email().optional(),
     role: z.string().optional(),
     isActive: z.boolean().optional(),
     password: z.string().min(6).optional(),
@@ -101,6 +112,7 @@ export default {
   employeeCreateSchema,
   employeeUpdateSchema,
   employeeAccountSchema,
+  employeeAccountCreateSchema,
   employeeAccountUpdateSchema,
   employeeSearchSchema,
 }

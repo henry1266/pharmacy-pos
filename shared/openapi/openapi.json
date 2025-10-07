@@ -8387,7 +8387,10 @@
                     {
                       "type": "object",
                       "properties": {
-                        "msg": {
+                        "success": {
+                          "type": "boolean"
+                        },
+                        "message": {
                           "type": "string"
                         }
                       },
@@ -8537,14 +8540,14 @@
         }
       }
     },
-    "/employees/{id}/account": {
+    "/employee-accounts/{employeeId}": {
       "get": {
         "tags": [
           "employees"
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "employeeId",
             "in": "path",
             "required": true,
             "schema": {
@@ -8890,7 +8893,7 @@
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "employeeId",
             "in": "path",
             "required": true,
             "schema": {
@@ -8911,7 +8914,8 @@
                     "type": "string"
                   },
                   "email": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "email"
                   },
                   "role": {
                     "type": "string"
@@ -9191,6 +9195,3787 @@
           },
           "404": {
             "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "409",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "employees"
+        ],
+        "parameters": [
+          {
+            "name": "employeeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 24,
+              "maxLength": 24
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "enum": [
+                            true
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "timestamp": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          ]
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "minLength": 24,
+                              "maxLength": 24
+                            },
+                            "success": {
+                              "type": "boolean"
+                            },
+                            "message": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": true
+                        }
+                      },
+                      "required": [
+                        "success"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "minLength": 24,
+                          "maxLength": 24
+                        },
+                        "success": {
+                          "type": "boolean"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": true
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/employee-accounts": {
+      "post": {
+        "tags": [
+          "employees"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "description": "Body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "employeeId": {
+                    "type": "string",
+                    "minLength": 24,
+                    "maxLength": 24
+                  },
+                  "username": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "role": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 6
+                  },
+                  "isActive": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "employeeId",
+                  "username",
+                  "role",
+                  "password"
+                ],
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "enum": [
+                            true
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "timestamp": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          ]
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "_id": {
+                              "type": "string",
+                              "minLength": 24,
+                              "maxLength": 24
+                            },
+                            "employeeId": {
+                              "type": "string",
+                              "minLength": 24,
+                              "maxLength": 24
+                            },
+                            "username": {
+                              "type": "string"
+                            },
+                            "email": {
+                              "type": "string"
+                            },
+                            "role": {
+                              "type": "string"
+                            },
+                            "isActive": {
+                              "type": "boolean"
+                            },
+                            "lastLogin": {
+                              "oneOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "string",
+                                  "format": "date-time"
+                                }
+                              ]
+                            },
+                            "settings": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "nullable": true
+                              }
+                            },
+                            "createdAt": {
+                              "oneOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "string",
+                                  "format": "date-time"
+                                }
+                              ]
+                            },
+                            "updatedAt": {
+                              "oneOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "string",
+                                  "format": "date-time"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "_id",
+                            "employeeId",
+                            "username",
+                            "role",
+                            "isActive",
+                            "createdAt",
+                            "updatedAt"
+                          ],
+                          "additionalProperties": true
+                        }
+                      },
+                      "required": [
+                        "success"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "_id": {
+                          "type": "string",
+                          "minLength": 24,
+                          "maxLength": 24
+                        },
+                        "employeeId": {
+                          "type": "string",
+                          "minLength": 24,
+                          "maxLength": 24
+                        },
+                        "username": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "role": {
+                          "type": "string"
+                        },
+                        "isActive": {
+                          "type": "boolean"
+                        },
+                        "lastLogin": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          ]
+                        },
+                        "settings": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        },
+                        "createdAt": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          ]
+                        },
+                        "updatedAt": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "_id",
+                        "employeeId",
+                        "username",
+                        "role",
+                        "isActive",
+                        "createdAt",
+                        "updatedAt"
+                      ],
+                      "additionalProperties": true
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "409",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/employee-accounts/{employeeId}/unbind": {
+      "put": {
+        "tags": [
+          "employees"
+        ],
+        "parameters": [
+          {
+            "name": "employeeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 24,
+              "maxLength": 24
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Body",
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "enum": [
+                            true
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "timestamp": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          ]
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "employeeId": {
+                              "type": "string",
+                              "minLength": 24,
+                              "maxLength": 24
+                            },
+                            "unbound": {
+                              "type": "boolean"
+                            },
+                            "userId": {
+                              "type": "string",
+                              "minLength": 24,
+                              "maxLength": 24
+                            }
+                          },
+                          "required": [
+                            "employeeId",
+                            "unbound"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "success"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "employeeId": {
+                          "type": "string",
+                          "minLength": 24,
+                          "maxLength": 24
+                        },
+                        "unbound": {
+                          "type": "boolean"
+                        },
+                        "userId": {
+                          "type": "string",
+                          "minLength": 24,
+                          "maxLength": 24
+                        }
+                      },
+                      "required": [
+                        "employeeId",
+                        "unbound"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/employee-schedules": {
+      "get": {
+        "tags": [
+          "employees"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "enum": [
+                            true
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "timestamp": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          ]
+                        },
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "_id": {
+                                "type": "string",
+                                "minLength": 24,
+                                "maxLength": 24
+                              },
+                              "date": {
+                                "oneOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  }
+                                ]
+                              },
+                              "shift": {
+                                "type": "string",
+                                "enum": [
+                                  "morning",
+                                  "afternoon",
+                                  "evening"
+                                ]
+                              },
+                              "startTime": {
+                                "type": "string"
+                              },
+                              "endTime": {
+                                "type": "string"
+                              },
+                              "employeeId": {
+                                "type": "string",
+                                "minLength": 24,
+                                "maxLength": 24
+                              },
+                              "employee": {
+                                "type": "object",
+                                "properties": {
+                                  "_id": {
+                                    "type": "string",
+                                    "minLength": 24,
+                                    "maxLength": 24
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "department": {
+                                    "type": "string"
+                                  },
+                                  "position": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "_id",
+                                  "name"
+                                ],
+                                "additionalProperties": true
+                              },
+                              "leaveType": {
+                                "type": "string",
+                                "enum": [
+                                  "sick",
+                                  "personal",
+                                  "overtime"
+                                ],
+                                "nullable": true
+                              },
+                              "createdBy": {
+                                "type": "string",
+                                "minLength": 24,
+                                "maxLength": 24
+                              },
+                              "createdAt": {
+                                "oneOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  }
+                                ]
+                              },
+                              "updatedAt": {
+                                "oneOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  }
+                                ]
+                              }
+                            },
+                            "required": [
+                              "_id",
+                              "date",
+                              "shift",
+                              "employeeId",
+                              "createdAt",
+                              "updatedAt"
+                            ],
+                            "additionalProperties": true
+                          }
+                        }
+                      },
+                      "required": [
+                        "success"
+                      ]
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "_id": {
+                            "type": "string",
+                            "minLength": 24,
+                            "maxLength": 24
+                          },
+                          "date": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            ]
+                          },
+                          "shift": {
+                            "type": "string",
+                            "enum": [
+                              "morning",
+                              "afternoon",
+                              "evening"
+                            ]
+                          },
+                          "startTime": {
+                            "type": "string"
+                          },
+                          "endTime": {
+                            "type": "string"
+                          },
+                          "employeeId": {
+                            "type": "string",
+                            "minLength": 24,
+                            "maxLength": 24
+                          },
+                          "employee": {
+                            "type": "object",
+                            "properties": {
+                              "_id": {
+                                "type": "string",
+                                "minLength": 24,
+                                "maxLength": 24
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "department": {
+                                "type": "string"
+                              },
+                              "position": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "_id",
+                              "name"
+                            ],
+                            "additionalProperties": true
+                          },
+                          "leaveType": {
+                            "type": "string",
+                            "enum": [
+                              "sick",
+                              "personal",
+                              "overtime"
+                            ],
+                            "nullable": true
+                          },
+                          "createdBy": {
+                            "type": "string",
+                            "minLength": 24,
+                            "maxLength": 24
+                          },
+                          "createdAt": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            ]
+                          },
+                          "updatedAt": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "_id",
+                          "date",
+                          "shift",
+                          "employeeId",
+                          "createdAt",
+                          "updatedAt"
+                        ],
+                        "additionalProperties": true
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "employees"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "description": "Body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "date": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "shift": {
+                    "type": "string",
+                    "enum": [
+                      "morning",
+                      "afternoon",
+                      "evening"
+                    ]
+                  },
+                  "employeeId": {
+                    "type": "string",
+                    "minLength": 24,
+                    "maxLength": 24
+                  },
+                  "startTime": {
+                    "type": "string"
+                  },
+                  "endTime": {
+                    "type": "string"
+                  },
+                  "leaveType": {
+                    "type": "string",
+                    "enum": [
+                      "sick",
+                      "personal",
+                      "overtime"
+                    ],
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "date",
+                  "shift",
+                  "employeeId"
+                ],
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "enum": [
+                            true
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "timestamp": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          ]
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "_id": {
+                              "type": "string",
+                              "minLength": 24,
+                              "maxLength": 24
+                            },
+                            "date": {
+                              "oneOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "string",
+                                  "format": "date-time"
+                                }
+                              ]
+                            },
+                            "shift": {
+                              "type": "string",
+                              "enum": [
+                                "morning",
+                                "afternoon",
+                                "evening"
+                              ]
+                            },
+                            "startTime": {
+                              "type": "string"
+                            },
+                            "endTime": {
+                              "type": "string"
+                            },
+                            "employeeId": {
+                              "type": "string",
+                              "minLength": 24,
+                              "maxLength": 24
+                            },
+                            "employee": {
+                              "type": "object",
+                              "properties": {
+                                "_id": {
+                                  "type": "string",
+                                  "minLength": 24,
+                                  "maxLength": 24
+                                },
+                                "name": {
+                                  "type": "string"
+                                },
+                                "department": {
+                                  "type": "string"
+                                },
+                                "position": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "_id",
+                                "name"
+                              ],
+                              "additionalProperties": true
+                            },
+                            "leaveType": {
+                              "type": "string",
+                              "enum": [
+                                "sick",
+                                "personal",
+                                "overtime"
+                              ],
+                              "nullable": true
+                            },
+                            "createdBy": {
+                              "type": "string",
+                              "minLength": 24,
+                              "maxLength": 24
+                            },
+                            "createdAt": {
+                              "oneOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "string",
+                                  "format": "date-time"
+                                }
+                              ]
+                            },
+                            "updatedAt": {
+                              "oneOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "string",
+                                  "format": "date-time"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "_id",
+                            "date",
+                            "shift",
+                            "employeeId",
+                            "createdAt",
+                            "updatedAt"
+                          ],
+                          "additionalProperties": true
+                        }
+                      },
+                      "required": [
+                        "success"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "_id": {
+                          "type": "string",
+                          "minLength": 24,
+                          "maxLength": 24
+                        },
+                        "date": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          ]
+                        },
+                        "shift": {
+                          "type": "string",
+                          "enum": [
+                            "morning",
+                            "afternoon",
+                            "evening"
+                          ]
+                        },
+                        "startTime": {
+                          "type": "string"
+                        },
+                        "endTime": {
+                          "type": "string"
+                        },
+                        "employeeId": {
+                          "type": "string",
+                          "minLength": 24,
+                          "maxLength": 24
+                        },
+                        "employee": {
+                          "type": "object",
+                          "properties": {
+                            "_id": {
+                              "type": "string",
+                              "minLength": 24,
+                              "maxLength": 24
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "department": {
+                              "type": "string"
+                            },
+                            "position": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "_id",
+                            "name"
+                          ],
+                          "additionalProperties": true
+                        },
+                        "leaveType": {
+                          "type": "string",
+                          "enum": [
+                            "sick",
+                            "personal",
+                            "overtime"
+                          ],
+                          "nullable": true
+                        },
+                        "createdBy": {
+                          "type": "string",
+                          "minLength": 24,
+                          "maxLength": 24
+                        },
+                        "createdAt": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          ]
+                        },
+                        "updatedAt": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "_id",
+                        "date",
+                        "shift",
+                        "employeeId",
+                        "createdAt",
+                        "updatedAt"
+                      ],
+                      "additionalProperties": true
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "409",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/employee-schedules/{scheduleId}": {
+      "put": {
+        "tags": [
+          "employees"
+        ],
+        "parameters": [
+          {
+            "name": "scheduleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 24,
+              "maxLength": 24
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "date": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "shift": {
+                    "type": "string",
+                    "enum": [
+                      "morning",
+                      "afternoon",
+                      "evening"
+                    ]
+                  },
+                  "employeeId": {
+                    "type": "string",
+                    "minLength": 24,
+                    "maxLength": 24
+                  },
+                  "startTime": {
+                    "type": "string"
+                  },
+                  "endTime": {
+                    "type": "string"
+                  },
+                  "leaveType": {
+                    "type": "string",
+                    "enum": [
+                      "sick",
+                      "personal",
+                      "overtime"
+                    ],
+                    "nullable": true
+                  }
+                },
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "enum": [
+                            true
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "timestamp": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          ]
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "_id": {
+                              "type": "string",
+                              "minLength": 24,
+                              "maxLength": 24
+                            },
+                            "date": {
+                              "oneOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "string",
+                                  "format": "date-time"
+                                }
+                              ]
+                            },
+                            "shift": {
+                              "type": "string",
+                              "enum": [
+                                "morning",
+                                "afternoon",
+                                "evening"
+                              ]
+                            },
+                            "startTime": {
+                              "type": "string"
+                            },
+                            "endTime": {
+                              "type": "string"
+                            },
+                            "employeeId": {
+                              "type": "string",
+                              "minLength": 24,
+                              "maxLength": 24
+                            },
+                            "employee": {
+                              "type": "object",
+                              "properties": {
+                                "_id": {
+                                  "type": "string",
+                                  "minLength": 24,
+                                  "maxLength": 24
+                                },
+                                "name": {
+                                  "type": "string"
+                                },
+                                "department": {
+                                  "type": "string"
+                                },
+                                "position": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "_id",
+                                "name"
+                              ],
+                              "additionalProperties": true
+                            },
+                            "leaveType": {
+                              "type": "string",
+                              "enum": [
+                                "sick",
+                                "personal",
+                                "overtime"
+                              ],
+                              "nullable": true
+                            },
+                            "createdBy": {
+                              "type": "string",
+                              "minLength": 24,
+                              "maxLength": 24
+                            },
+                            "createdAt": {
+                              "oneOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "string",
+                                  "format": "date-time"
+                                }
+                              ]
+                            },
+                            "updatedAt": {
+                              "oneOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "string",
+                                  "format": "date-time"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "_id",
+                            "date",
+                            "shift",
+                            "employeeId",
+                            "createdAt",
+                            "updatedAt"
+                          ],
+                          "additionalProperties": true
+                        }
+                      },
+                      "required": [
+                        "success"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "_id": {
+                          "type": "string",
+                          "minLength": 24,
+                          "maxLength": 24
+                        },
+                        "date": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          ]
+                        },
+                        "shift": {
+                          "type": "string",
+                          "enum": [
+                            "morning",
+                            "afternoon",
+                            "evening"
+                          ]
+                        },
+                        "startTime": {
+                          "type": "string"
+                        },
+                        "endTime": {
+                          "type": "string"
+                        },
+                        "employeeId": {
+                          "type": "string",
+                          "minLength": 24,
+                          "maxLength": 24
+                        },
+                        "employee": {
+                          "type": "object",
+                          "properties": {
+                            "_id": {
+                              "type": "string",
+                              "minLength": 24,
+                              "maxLength": 24
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "department": {
+                              "type": "string"
+                            },
+                            "position": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "_id",
+                            "name"
+                          ],
+                          "additionalProperties": true
+                        },
+                        "leaveType": {
+                          "type": "string",
+                          "enum": [
+                            "sick",
+                            "personal",
+                            "overtime"
+                          ],
+                          "nullable": true
+                        },
+                        "createdBy": {
+                          "type": "string",
+                          "minLength": 24,
+                          "maxLength": 24
+                        },
+                        "createdAt": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          ]
+                        },
+                        "updatedAt": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "_id",
+                        "date",
+                        "shift",
+                        "employeeId",
+                        "createdAt",
+                        "updatedAt"
+                      ],
+                      "additionalProperties": true
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "409",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "employees"
+        ],
+        "parameters": [
+          {
+            "name": "scheduleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 24,
+              "maxLength": 24
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "enum": [
+                            true
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "timestamp": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          ]
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "minLength": 24,
+                              "maxLength": 24
+                            },
+                            "success": {
+                              "type": "boolean"
+                            },
+                            "message": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": true
+                        }
+                      },
+                      "required": [
+                        "success"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "minLength": 24,
+                          "maxLength": 24
+                        },
+                        "success": {
+                          "type": "boolean"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": true
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/employee-schedules/by-date": {
+      "get": {
+        "tags": [
+          "employees"
+        ],
+        "parameters": [
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "enum": [
+                            true
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "timestamp": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          ]
+                        },
+                        "data": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                              "morning": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "_id": {
+                                      "type": "string",
+                                      "minLength": 24,
+                                      "maxLength": 24
+                                    },
+                                    "date": {
+                                      "oneOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "string",
+                                          "format": "date-time"
+                                        }
+                                      ]
+                                    },
+                                    "shift": {
+                                      "type": "string",
+                                      "enum": [
+                                        "morning",
+                                        "afternoon",
+                                        "evening"
+                                      ]
+                                    },
+                                    "startTime": {
+                                      "type": "string"
+                                    },
+                                    "endTime": {
+                                      "type": "string"
+                                    },
+                                    "employeeId": {
+                                      "type": "string",
+                                      "minLength": 24,
+                                      "maxLength": 24
+                                    },
+                                    "employee": {
+                                      "type": "object",
+                                      "properties": {
+                                        "_id": {
+                                          "type": "string",
+                                          "minLength": 24,
+                                          "maxLength": 24
+                                        },
+                                        "name": {
+                                          "type": "string"
+                                        },
+                                        "department": {
+                                          "type": "string"
+                                        },
+                                        "position": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "required": [
+                                        "_id",
+                                        "name"
+                                      ],
+                                      "additionalProperties": true
+                                    },
+                                    "leaveType": {
+                                      "type": "string",
+                                      "enum": [
+                                        "sick",
+                                        "personal",
+                                        "overtime"
+                                      ],
+                                      "nullable": true
+                                    },
+                                    "createdBy": {
+                                      "type": "string",
+                                      "minLength": 24,
+                                      "maxLength": 24
+                                    },
+                                    "createdAt": {
+                                      "oneOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "string",
+                                          "format": "date-time"
+                                        }
+                                      ]
+                                    },
+                                    "updatedAt": {
+                                      "oneOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "string",
+                                          "format": "date-time"
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "_id",
+                                    "date",
+                                    "shift",
+                                    "employeeId",
+                                    "createdAt",
+                                    "updatedAt"
+                                  ],
+                                  "additionalProperties": true
+                                }
+                              },
+                              "afternoon": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "_id": {
+                                      "type": "string",
+                                      "minLength": 24,
+                                      "maxLength": 24
+                                    },
+                                    "date": {
+                                      "oneOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "string",
+                                          "format": "date-time"
+                                        }
+                                      ]
+                                    },
+                                    "shift": {
+                                      "type": "string",
+                                      "enum": [
+                                        "morning",
+                                        "afternoon",
+                                        "evening"
+                                      ]
+                                    },
+                                    "startTime": {
+                                      "type": "string"
+                                    },
+                                    "endTime": {
+                                      "type": "string"
+                                    },
+                                    "employeeId": {
+                                      "type": "string",
+                                      "minLength": 24,
+                                      "maxLength": 24
+                                    },
+                                    "employee": {
+                                      "type": "object",
+                                      "properties": {
+                                        "_id": {
+                                          "type": "string",
+                                          "minLength": 24,
+                                          "maxLength": 24
+                                        },
+                                        "name": {
+                                          "type": "string"
+                                        },
+                                        "department": {
+                                          "type": "string"
+                                        },
+                                        "position": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "required": [
+                                        "_id",
+                                        "name"
+                                      ],
+                                      "additionalProperties": true
+                                    },
+                                    "leaveType": {
+                                      "type": "string",
+                                      "enum": [
+                                        "sick",
+                                        "personal",
+                                        "overtime"
+                                      ],
+                                      "nullable": true
+                                    },
+                                    "createdBy": {
+                                      "type": "string",
+                                      "minLength": 24,
+                                      "maxLength": 24
+                                    },
+                                    "createdAt": {
+                                      "oneOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "string",
+                                          "format": "date-time"
+                                        }
+                                      ]
+                                    },
+                                    "updatedAt": {
+                                      "oneOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "string",
+                                          "format": "date-time"
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "_id",
+                                    "date",
+                                    "shift",
+                                    "employeeId",
+                                    "createdAt",
+                                    "updatedAt"
+                                  ],
+                                  "additionalProperties": true
+                                }
+                              },
+                              "evening": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "_id": {
+                                      "type": "string",
+                                      "minLength": 24,
+                                      "maxLength": 24
+                                    },
+                                    "date": {
+                                      "oneOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "string",
+                                          "format": "date-time"
+                                        }
+                                      ]
+                                    },
+                                    "shift": {
+                                      "type": "string",
+                                      "enum": [
+                                        "morning",
+                                        "afternoon",
+                                        "evening"
+                                      ]
+                                    },
+                                    "startTime": {
+                                      "type": "string"
+                                    },
+                                    "endTime": {
+                                      "type": "string"
+                                    },
+                                    "employeeId": {
+                                      "type": "string",
+                                      "minLength": 24,
+                                      "maxLength": 24
+                                    },
+                                    "employee": {
+                                      "type": "object",
+                                      "properties": {
+                                        "_id": {
+                                          "type": "string",
+                                          "minLength": 24,
+                                          "maxLength": 24
+                                        },
+                                        "name": {
+                                          "type": "string"
+                                        },
+                                        "department": {
+                                          "type": "string"
+                                        },
+                                        "position": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "required": [
+                                        "_id",
+                                        "name"
+                                      ],
+                                      "additionalProperties": true
+                                    },
+                                    "leaveType": {
+                                      "type": "string",
+                                      "enum": [
+                                        "sick",
+                                        "personal",
+                                        "overtime"
+                                      ],
+                                      "nullable": true
+                                    },
+                                    "createdBy": {
+                                      "type": "string",
+                                      "minLength": 24,
+                                      "maxLength": 24
+                                    },
+                                    "createdAt": {
+                                      "oneOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "string",
+                                          "format": "date-time"
+                                        }
+                                      ]
+                                    },
+                                    "updatedAt": {
+                                      "oneOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "string",
+                                          "format": "date-time"
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "_id",
+                                    "date",
+                                    "shift",
+                                    "employeeId",
+                                    "createdAt",
+                                    "updatedAt"
+                                  ],
+                                  "additionalProperties": true
+                                }
+                              }
+                            },
+                            "required": [
+                              "morning",
+                              "afternoon",
+                              "evening"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "success"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "morning": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "_id": {
+                                  "type": "string",
+                                  "minLength": 24,
+                                  "maxLength": 24
+                                },
+                                "date": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "string",
+                                      "format": "date-time"
+                                    }
+                                  ]
+                                },
+                                "shift": {
+                                  "type": "string",
+                                  "enum": [
+                                    "morning",
+                                    "afternoon",
+                                    "evening"
+                                  ]
+                                },
+                                "startTime": {
+                                  "type": "string"
+                                },
+                                "endTime": {
+                                  "type": "string"
+                                },
+                                "employeeId": {
+                                  "type": "string",
+                                  "minLength": 24,
+                                  "maxLength": 24
+                                },
+                                "employee": {
+                                  "type": "object",
+                                  "properties": {
+                                    "_id": {
+                                      "type": "string",
+                                      "minLength": 24,
+                                      "maxLength": 24
+                                    },
+                                    "name": {
+                                      "type": "string"
+                                    },
+                                    "department": {
+                                      "type": "string"
+                                    },
+                                    "position": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "_id",
+                                    "name"
+                                  ],
+                                  "additionalProperties": true
+                                },
+                                "leaveType": {
+                                  "type": "string",
+                                  "enum": [
+                                    "sick",
+                                    "personal",
+                                    "overtime"
+                                  ],
+                                  "nullable": true
+                                },
+                                "createdBy": {
+                                  "type": "string",
+                                  "minLength": 24,
+                                  "maxLength": 24
+                                },
+                                "createdAt": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "string",
+                                      "format": "date-time"
+                                    }
+                                  ]
+                                },
+                                "updatedAt": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "string",
+                                      "format": "date-time"
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "_id",
+                                "date",
+                                "shift",
+                                "employeeId",
+                                "createdAt",
+                                "updatedAt"
+                              ],
+                              "additionalProperties": true
+                            }
+                          },
+                          "afternoon": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "_id": {
+                                  "type": "string",
+                                  "minLength": 24,
+                                  "maxLength": 24
+                                },
+                                "date": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "string",
+                                      "format": "date-time"
+                                    }
+                                  ]
+                                },
+                                "shift": {
+                                  "type": "string",
+                                  "enum": [
+                                    "morning",
+                                    "afternoon",
+                                    "evening"
+                                  ]
+                                },
+                                "startTime": {
+                                  "type": "string"
+                                },
+                                "endTime": {
+                                  "type": "string"
+                                },
+                                "employeeId": {
+                                  "type": "string",
+                                  "minLength": 24,
+                                  "maxLength": 24
+                                },
+                                "employee": {
+                                  "type": "object",
+                                  "properties": {
+                                    "_id": {
+                                      "type": "string",
+                                      "minLength": 24,
+                                      "maxLength": 24
+                                    },
+                                    "name": {
+                                      "type": "string"
+                                    },
+                                    "department": {
+                                      "type": "string"
+                                    },
+                                    "position": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "_id",
+                                    "name"
+                                  ],
+                                  "additionalProperties": true
+                                },
+                                "leaveType": {
+                                  "type": "string",
+                                  "enum": [
+                                    "sick",
+                                    "personal",
+                                    "overtime"
+                                  ],
+                                  "nullable": true
+                                },
+                                "createdBy": {
+                                  "type": "string",
+                                  "minLength": 24,
+                                  "maxLength": 24
+                                },
+                                "createdAt": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "string",
+                                      "format": "date-time"
+                                    }
+                                  ]
+                                },
+                                "updatedAt": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "string",
+                                      "format": "date-time"
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "_id",
+                                "date",
+                                "shift",
+                                "employeeId",
+                                "createdAt",
+                                "updatedAt"
+                              ],
+                              "additionalProperties": true
+                            }
+                          },
+                          "evening": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "_id": {
+                                  "type": "string",
+                                  "minLength": 24,
+                                  "maxLength": 24
+                                },
+                                "date": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "string",
+                                      "format": "date-time"
+                                    }
+                                  ]
+                                },
+                                "shift": {
+                                  "type": "string",
+                                  "enum": [
+                                    "morning",
+                                    "afternoon",
+                                    "evening"
+                                  ]
+                                },
+                                "startTime": {
+                                  "type": "string"
+                                },
+                                "endTime": {
+                                  "type": "string"
+                                },
+                                "employeeId": {
+                                  "type": "string",
+                                  "minLength": 24,
+                                  "maxLength": 24
+                                },
+                                "employee": {
+                                  "type": "object",
+                                  "properties": {
+                                    "_id": {
+                                      "type": "string",
+                                      "minLength": 24,
+                                      "maxLength": 24
+                                    },
+                                    "name": {
+                                      "type": "string"
+                                    },
+                                    "department": {
+                                      "type": "string"
+                                    },
+                                    "position": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "_id",
+                                    "name"
+                                  ],
+                                  "additionalProperties": true
+                                },
+                                "leaveType": {
+                                  "type": "string",
+                                  "enum": [
+                                    "sick",
+                                    "personal",
+                                    "overtime"
+                                  ],
+                                  "nullable": true
+                                },
+                                "createdBy": {
+                                  "type": "string",
+                                  "minLength": 24,
+                                  "maxLength": 24
+                                },
+                                "createdAt": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "string",
+                                      "format": "date-time"
+                                    }
+                                  ]
+                                },
+                                "updatedAt": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "string",
+                                      "format": "date-time"
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "_id",
+                                "date",
+                                "shift",
+                                "employeeId",
+                                "createdAt",
+                                "updatedAt"
+                              ],
+                              "additionalProperties": true
+                            }
+                          }
+                        },
+                        "required": [
+                          "morning",
+                          "afternoon",
+                          "evening"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
             "content": {
               "application/json": {
                 "schema": {
