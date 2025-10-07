@@ -17827,3 +17827,26 @@
 {"level":"\u001b[31m'error'\u001b[39m","message":"\u001b[31m'創建自動會計分錄時發生錯誤: 部分會計科目不存在'\u001b[39m","stack":"Error: 部分會計科目不存在\n    at Function.getAccountDetails (D:\\pharmacy-pos\\backend\\services\\AutoAccountingEntryService.ts:210:13)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at Function.handlePurchaseOrderCompletion (D:\\pharmacy-pos\\backend\\services\\AutoAccountingEntryService.ts:30:24)\n    at Object.<anonymous> (D:\\pharmacy-pos\\backend\\services\\__tests__\\AutoAccountingEntryService.test.ts:241:7)","timestamp":"2025-10-07 10:22:27:2227"}
 {"entryType":"expense-asset","level":"\u001b[33m'warn'\u001b[39m","message":"\u001b[33m'無法根據分錄格式找到合適的借貸科目:'\u001b[39m","timestamp":"2025-10-07 10:22:27:2227"}
 {"error":"Database error","level":"\u001b[31merror\u001b[39m","message":"\u001b[31m建立交易錯誤\u001b[39m","timestamp":"2025-10-07 10:22:49:2249"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":2,"timestamp":"2025-10-07 10:52:24:5224","totalCount":50,"unpaidCount":48}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67fe27f6c2347c64b93a3409"},"supplierId":"67fe27f6c2347c64b93a3409","timestamp":"2025-10-07 11:14:35:1435"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-07 11:14:35:1435"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - selectedAccountIds:\u001b[39m","timestamp":"2025-10-07 11:15:28:1528"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - items:\u001b[39m","timestamp":"2025-10-07 11:15:28:1528"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - processedItems:\u001b[39m","timestamp":"2025-10-07 11:15:28:1528"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單已儲存 - selectedAccountIds:\u001b[39m","timestamp":"2025-10-07 11:15:28:1528"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 68e26ad52ac7f61b71c95253 創建新庫存記錄，進貨單號: 20251007001, 數量: 100, 總金額: 150\u001b[39m","timestamp":"2025-10-07 11:15:28:1528"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 682fe189bd1adb0842bca64b 創建新庫存記錄，進貨單號: 20251007001, 數量: 100, 總金額: 70\u001b[39m","timestamp":"2025-10-07 11:15:28:1528"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 67eb5c400f2cf9d2647e3bf3 創建新庫存記錄，進貨單號: 20251007001, 數量: 120, 總金額: 960\u001b[39m","timestamp":"2025-10-07 11:15:28:1528"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"\u001b[33m批量檢查：沒有找到相關的交易 ID\u001b[39m","timestamp":"2025-10-07 11:15:31:1531"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":0,"timestamp":"2025-10-07 11:15:31:1531","totalCount":1,"unpaidCount":1}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e4d5c3a597229df074c4a2"},"supplierId":"67e4d5c3a597229df074c4a2","timestamp":"2025-10-07 11:28:56:2856"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-07 11:28:56:2856"}
+{"0":"686729f987107c6d64bcc6c1","1":"68d248485fad22d8b06df504","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - selectedAccountIds:\u001b[39m","timestamp":"2025-10-07 11:29:31:2931"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - items:\u001b[39m","timestamp":"2025-10-07 11:29:31:2931"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - processedItems:\u001b[39m","timestamp":"2025-10-07 11:29:31:2931"}
+{"0":"686729f987107c6d64bcc6c1","1":"68d248485fad22d8b06df504","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單已儲存 - selectedAccountIds:\u001b[39m","timestamp":"2025-10-07 11:29:31:2931"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":2,"timestamp":"2025-10-07 11:29:34:2934","totalCount":49,"unpaidCount":47}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 68d4ba7f5fad22d8b0703bbc 創建新庫存記錄，出貨單號: 20251007001, 數量: -2, 總金額: 1960, 類型: ship\u001b[39m","timestamp":"2025-10-07 11:30:29:3029"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已成功為出貨單 68e489559503026c57b66101 創建所有ship類型庫存記錄\u001b[39m","timestamp":"2025-10-07 11:30:29:3029"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已刪除 1 個與銷售 20251002008 相關的庫存記錄\u001b[39m","timestamp":"2025-10-07 11:30:41:3041"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m恢復產品 68d4ba7f5fad22d8b0703bbc 的庫存，數量: +2\u001b[39m","timestamp":"2025-10-07 11:30:41:3041"}

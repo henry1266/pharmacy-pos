@@ -23,7 +23,7 @@ import authRoutes from "./routes/auth";
 import usersRoutes from "./routes/users";
 import inventoryRoutes from "./routes/inventory";
 import productCategoriesRoutes from "./routes/productCategories";
-import productsRoutes from "./routes/products";
+import legacyProductsRoutes from "./modules/products/legacy";
 import packagesRoutes from "./routes/packages";
 import accountingRoutes from "./routes/accounting";
 import dashboardRoutes from "./routes/dashboard";
@@ -102,7 +102,7 @@ export function createApp(): Application {
   if (enableProductsContract) {
     app.use('/api', productsContractRoutes);
   } else {
-    app.use(productsBasePath, productsRoutes);
+    app.use(productsBasePath, legacyProductsRoutes);
   }
   app.use("/api/packages", packagesRoutes);
   
