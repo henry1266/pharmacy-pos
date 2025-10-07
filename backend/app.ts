@@ -22,7 +22,7 @@ import overtimeRecordsRoutes from "./modules/employees/services/overtimeRecords"
 import authRoutes from "./routes/auth";
 import usersRoutes from "./routes/users";
 import inventoryRoutes from "./routes/inventory";
-import productCategoriesRoutes from "./routes/productCategories";
+import productCategoriesRoutes from "./modules/products/productCategories";
 import legacyProductsRoutes from "./modules/products/legacy";
 import packagesRoutes from "./routes/packages";
 import accountingRoutes from "./routes/accounting";
@@ -40,7 +40,7 @@ import csvImportApiRoutes from "./routes/csvImportApi";
 import shiftTimeConfigsRoutes from "./routes/shiftTimeConfigs";
 import themesRoutes from "./routes/themes";
 import packageUnitsRoutes from "./routes/packageUnits";
-import productDescriptionRoutes from "./routes/productDescriptionRoutes";
+import productDescriptionRoutes from "./modules/products/productDescriptionRoutes";
 import linkReferencesRoutes from "./routes/linkReferences";
 import linkGlobalUpdateRoutes from "./routes/linkGlobalUpdate";
 

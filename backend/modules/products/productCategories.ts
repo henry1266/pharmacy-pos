@@ -2,8 +2,8 @@ import express, { Request, Response } from 'express';
 import { check, validationResult } from 'express-validator';
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
-import ProductCategory from '../models/ProductCategory';
-import auth from '../middleware/auth';
+import ProductCategory from '../../models/ProductCategory';
+import auth from '../../middleware/auth';
 
 const router: express.Router = express.Router();
 
