@@ -18,7 +18,7 @@ import {
   updateEmployeeAccount as persistEmployeeAccount,
   deleteEmployeeAccount as removeEmployeeAccount,
   unbindEmployeeAccount as detachEmployeeAccount,
-} from '../../services/employeeAccountService'
+} from './services/employeeAccountService'
 import {
   listSchedules,
   createSchedule,
@@ -27,7 +27,7 @@ import {
   getSchedulesByDate,
   EmployeeScheduleServiceError,
 } from './services/schedule.service'
-import type { UpdateData } from '../../services/employeeAccountService'
+import type { UpdateData } from './services/employeeAccountService'
 import logger from '../../utils/logger'
 import { createValidationErrorHandler } from '../common/tsRest'
 import { ZodError } from 'zod'
@@ -433,11 +433,11 @@ export function resolveAccountErrorStatus(message: string): KnownErrorStatus {
   const notFoundKeywords = [
     'not found',
     'not exist',
-    '\u627e\u4e0d\u5230', // §ä¤£¨ì
-    '\u4e0d\u5b58\u5728', // ¤£¦s¦b
-    '\u5c1a\u672a\u5efa\u7acb', // ©|¥¼«Ø¥ß
-    '\u6c92\u6709\u8cc7\u6599', // ¨S¦³¸ê®Æ
-    '\u6c92\u6709\u5e33\u865f', // ¨S¦³±b¸¹
+    '\u627e\u4e0d\u5230', // ï¿½ä¤£ï¿½ï¿½
+    '\u4e0d\u5b58\u5728', // ï¿½ï¿½ï¿½sï¿½b
+    '\u5c1a\u672a\u5efa\u7acb', // ï¿½|ï¿½ï¿½ï¿½Ø¥ï¿½
+    '\u6c92\u6709\u8cc7\u6599', // ï¿½Sï¿½ï¿½ï¿½ï¿½ï¿½
+    '\u6c92\u6709\u5e33\u865f', // ï¿½Sï¿½ï¿½ï¿½bï¿½ï¿½
   ]
 
   if (notFoundKeywords.some((keyword) => lower.includes(keyword))) {
@@ -449,9 +449,9 @@ export function resolveAccountErrorStatus(message: string): KnownErrorStatus {
     'already',
     'conflict',
     'already exists',
-    '\u5df2\u5b58\u5728', // ¤w¦s¦b
-    '\u5df2\u7d81\u5b9a', // ¤w¸j©w
-    '\u5df2\u88ab\u4f7f\u7528', // ¤w³Q¨Ï¥Î
+    '\u5df2\u5b58\u5728', // ï¿½wï¿½sï¿½b
+    '\u5df2\u7d81\u5b9a', // ï¿½wï¿½jï¿½w
+    '\u5df2\u88ab\u4f7f\u7528', // ï¿½wï¿½Qï¿½Ï¥ï¿½
   ]
 
   if (conflictKeywords.some((keyword) => lower.includes(keyword))) {
@@ -461,9 +461,9 @@ export function resolveAccountErrorStatus(message: string): KnownErrorStatus {
   const badRequestKeywords = [
     'invalid',
     'format',
-    '\u683c\u5f0f', // ®æ¦¡
-    '\u4e0d\u53ef', // ¤£¥i
-    '\u5df2\u4f7f\u7528', // ¤w¨Ï¥Î
+    '\u683c\u5f0f', // ï¿½æ¦¡
+    '\u4e0d\u53ef', // ï¿½ï¿½ï¿½i
+    '\u5df2\u4f7f\u7528', // ï¿½wï¿½Ï¥ï¿½
   ]
 
   if (badRequestKeywords.some((keyword) => lower.includes(keyword))) {

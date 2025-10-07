@@ -1,8 +1,8 @@
 import express, { Request, Response } from 'express';
 import { check, validationResult } from 'express-validator';
 import mongoose from 'mongoose';
-import EmployeeSchedule, { IEmployeeScheduleDocument } from '../../models/EmployeeSchedule';
-import Employee from '../../models/Employee';
+import EmployeeSchedule, { IEmployeeScheduleDocument } from './models/EmployeeSchedule';
+import Employee from './models/Employee';
 import auth from '../../middleware/auth';
 import { AuthenticatedRequest } from '../../src/types/express';
 

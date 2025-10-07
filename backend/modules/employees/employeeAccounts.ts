@@ -8,7 +8,7 @@ import {
   updateEmployeeAccount,
   deleteEmployeeAccount,
   unbindEmployeeAccount
-} from '../../services/employeeAccountService';
+} from './services/employeeAccountService';
 
 // 導入共享類型和常數
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';

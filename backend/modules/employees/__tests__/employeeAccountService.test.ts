@@ -1,24 +1,24 @@
-import {
+﻿import {
   createEmployeeAccount,
   getEmployeeAccount,
   updateEmployeeAccount,
   deleteEmployeeAccount,
   unbindEmployeeAccount
-} from '../employeeAccountService';
-import User from '../../models/User';
-import { hashPassword } from '../../utils/passwordUtils';
+} from '../services/employeeAccountService';
+import User from '../../../models/User';
+import { hashPassword } from '../../../utils/passwordUtils';
 import {
   findEmployeeById,
   isUsernameExists,
   isEmailExists,
   hasEmployeeAccount,
   getEmployeeUser
-} from '../../utils/employeeAccountValidation';
+} from '../utils/employeeAccountValidation';
 
 // Mock dependencies
-jest.mock('../../models/User');
-jest.mock('../../utils/passwordUtils');
-jest.mock('../../utils/employeeAccountValidation');
+jest.mock('../../../models/User');
+jest.mock('../../../utils/passwordUtils');
+jest.mock('../utils/employeeAccountValidation');
 
 const MockedUser = User as jest.MockedClass<typeof User>;
 const mockedHashPassword = hashPassword as jest.MockedFunction<typeof hashPassword>;

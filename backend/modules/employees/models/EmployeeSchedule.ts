@@ -1,5 +1,5 @@
 import mongoose, { Schema, Model } from 'mongoose';
-import { IEmployeeScheduleDocument } from '../src/types/models';
+import { IEmployeeScheduleDocument } from '../../../src/types/models';
 
 /**
  * @description 員工排班模型模式定義

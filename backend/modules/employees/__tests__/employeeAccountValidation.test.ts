@@ -1,4 +1,4 @@
-import {
+﻿import {
   validateEmployeeId,
   findEmployeeById,
   isUsernameExists,
@@ -8,15 +8,15 @@ import {
   validateRole,
   handleError,
   createSuccessResponse
-} from '../employeeAccountValidation';
+} from '../utils/employeeAccountValidation';
 import mongoose from 'mongoose';
-import User from '../../models/User';
-import Employee from '../../models/Employee';
+import User from '../../../models/User';
+import Employee from '../models/Employee';
 import { Response } from 'express';
 
 // Mock the models
-jest.mock('../../models/User');
-jest.mock('../../models/Employee');
+jest.mock('../../../models/User');
+jest.mock('../models/Employee');
 
 const MockedUser = User as jest.Mocked<typeof User>;
 const MockedEmployee = Employee as jest.Mocked<typeof Employee>;

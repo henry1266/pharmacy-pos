@@ -7,7 +7,7 @@ import {
   employeeUpdateSchema,
 } from '@pharmacy-pos/shared/schemas/zod/employee'
 import type { z } from 'zod'
-import Employee from '../../models/Employee'
+import Employee from './models/Employee'
 
 export type EmployeeRecord = z.infer<typeof employeeSchema>
 export type EmployeeCreateInput = z.infer<typeof employeeCreateSchema>

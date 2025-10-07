@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import User from '../models/User';
+import User from '../../../models/User';
 import Employee from '../models/Employee';
 import { Response } from 'express';
 import { ErrorResponse } from '@pharmacy-pos/shared/types/api';

@@ -1,5 +1,5 @@
-﻿import User from '../models/User';
-import { hashPassword } from '../utils/passwordUtils';
+﻿import User from '../../../models/User';
+import { hashPassword } from '../../../utils/passwordUtils';
 import {
   findEmployeeById,
   isUsernameExists,
@@ -257,4 +257,3 @@ export {
   deleteEmployeeAccount,
   unbindEmployeeAccount
 };
-

@@ -2,8 +2,8 @@
 import { Types } from "mongoose";
 import auth from "../../../middleware/auth";
 import OvertimeRecord from "../../../models/OvertimeRecord";
-import Employee from "../../../models/Employee";
-import EmployeeSchedule from "../../../models/EmployeeSchedule";
+import Employee from "../models/Employee";
+import EmployeeSchedule from "../models/EmployeeSchedule";
 import { AuthenticatedRequest } from "../../../src/types/express";
 import "../../../src/types/models";
 

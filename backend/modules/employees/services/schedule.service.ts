@@ -9,8 +9,8 @@ import {
   employeeSchedulesByDateSchema,
 } from '@pharmacy-pos/shared/schemas/zod/employeeSchedule'
 import type { z } from 'zod'
-import EmployeeSchedule from '../../../models/EmployeeSchedule'
-import Employee from '../../../models/Employee'
+import EmployeeSchedule from '../models/EmployeeSchedule'
+import Employee from '../models/Employee'
 
 export type EmployeeScheduleRecord = z.infer<typeof employeeScheduleSchema>
 export type EmployeeScheduleCreateInput = z.infer<typeof employeeScheduleCreateSchema>
