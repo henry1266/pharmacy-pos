@@ -1,14 +1,14 @@
 import express, { Request, Response } from 'express';
 import { check, validationResult } from 'express-validator';
-import auth from '../middleware/auth';
-import adminAuth from '../middleware/adminAuth';
+import auth from '../../middleware/auth';
+import adminAuth from '../../middleware/adminAuth';
 import {
   createEmployeeAccount,
   getEmployeeAccount,
   updateEmployeeAccount,
   deleteEmployeeAccount,
   unbindEmployeeAccount
-} from '../services/employeeAccountService';
+} from '../../services/employeeAccountService';
 
 // 導入共享類型和常數
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';

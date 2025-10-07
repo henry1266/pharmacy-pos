@@ -1,4 +1,4 @@
-﻿import express, { Application, Request, Response, NextFunction } from "express";
+import express, { Application, Request, Response, NextFunction } from "express";
 import path from "path";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -17,7 +17,8 @@ import productsContractRoutes from "./modules/products";
 import suppliersRoutes from "./modules/suppliers";
 import purchaseOrdersRoutes from "./modules/purchaseOrders";
 import employeesRoutes from "./modules/employees";
-
+import employeeAccountsRoutes from "./modules/employees/employeeAccounts";
+import employeeSchedulesRoutes from "./modules/employees/employeeSchedules";
 // 導入已轉換為 TypeScript 的路由
 import authRoutes from "./routes/auth";
 import usersRoutes from "./routes/users";
@@ -28,7 +29,6 @@ import packagesRoutes from "./routes/packages";
 import accountingRoutes from "./routes/accounting";
 import dashboardRoutes from "./routes/dashboard";
 import reportsRoutes from "./routes/reports";
-import employeeAccountsRoutes from "./routes/employeeAccounts";
 import accountingCategoriesRoutes from "./routes/accountingCategories";
 import shippingOrdersRoutes from "./modules/shippingOrders";
 import shippingOrderPdfRoutes from "./modules/shippingOrders/shippingOrderPdf";
@@ -38,7 +38,6 @@ import monitoredProductsRoutes from "./routes/monitoredProducts";
 import settingsRoutes from "./routes/settings";
 import configRoutes from "./routes/config";
 import csvImportApiRoutes from "./routes/csvImportApi";
-import employeeSchedulesRoutes from "./routes/employeeSchedules";
 import overtimeRecordsRoutes from "./routes/overtimeRecords";
 import shiftTimeConfigsRoutes from "./routes/shiftTimeConfigs";
 import themesRoutes from "./routes/themes";
