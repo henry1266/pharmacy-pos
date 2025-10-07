@@ -108,39 +108,38 @@ export class EmployeeApiClient extends BaseApiClient {
    * 獲取所有員工
    */
   async getAllEmployees(params?: EmployeeQueryParams): Promise<EmployeeListResponse> {
-    const response = await this.get<{
-      employees: Employee[];
-      totalCount: number;
-      page: number;
-      limit: number;
-    }>('', params);
+    const response = await this.get<any>('', params);
 
-    console.log('employeeApiClient 收到的回應:', response);
-    console.log('response.employees:', response.employees);
-    console.log('Array.isArray(response.employees):', Array.isArray(response.employees));
+    const employees: Employee[] = Array.isArray(response)
+      ? response
+      : Array.isArray(response?.employees)
+        ? response.employees
+        : [];
 
-    if (response && Array.isArray(response.employees)) {
-      console.log('條件檢查通過，返回員工資料');
+    if (employees.length === 0) {
       return {
-        employees: response.employees,
+        employees: [],
         pagination: {
-          total: response.totalCount,
-          page: response.page,
-          limit: response.limit,
-          totalPages: Math.ceil(response.totalCount / response.limit)
-        }
+          total: 0,
+          page: params?.page ?? 1,
+          limit: params?.limit ?? 10,
+          totalPages: 0,
+        },
       };
     }
 
-    console.log('條件檢查失敗，返回空陣列');
+    const total = typeof response?.totalCount === 'number' ? response.totalCount : employees.length;
+    const page = typeof response?.page === 'number' ? response.page : params?.page ?? 1;
+    const limit = typeof response?.limit === 'number' ? response.limit : params?.limit ?? employees.length;
+
     return {
-      employees: [],
+      employees,
       pagination: {
-        total: 0,
-        page: 0,
-        limit: 10,
-        totalPages: 0
-      }
+        total,
+        page,
+        limit,
+        totalPages: limit > 0 ? Math.ceil(total / limit) : 1,
+      },
     };
   }
 
