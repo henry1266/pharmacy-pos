@@ -1,4 +1,4 @@
-﻿import type { Employee } from '@pharmacy-pos/shared/types/entities'
+import type { Employee } from '@pharmacy-pos/shared/types/entities'
 import type { EmployeeAccount } from '@pharmacy-pos/shared/types/entities'
 import { createEmployeeContractClient } from '@/features/employees/api/client'
 import type { EmployeeQueryParams, EmployeeAccountUpdateInput } from './types/employeeServiceTypes'
@@ -89,7 +89,7 @@ export const deleteEmployee = async (id: string): Promise<{ success: boolean; me
 }
 
 export const getEmployeeAccount = async (id: string): Promise<EmployeeAccount> => {
-  const result = await employeeClient.getEmployeeAccount({ params: { id } })
+  const result = await employeeClient.getEmployeeAccount({ params: { employeeId: id } })
   return unwrapResponse<EmployeeAccount>(result, 'Failed to fetch employee account')
 }
 
@@ -97,7 +97,7 @@ export const updateEmployeeAccount = async (
   id: string,
   payload: EmployeeAccountUpdateInput,
 ): Promise<EmployeeAccount> => {
-  const result = await employeeClient.updateEmployeeAccount({ params: { id }, body: payload as any })
+  const result = await employeeClient.updateEmployeeAccount({ params: { employeeId: id }, body: payload as any })
   return unwrapResponse<EmployeeAccount>(result, 'Failed to update employee account')
 }
 
