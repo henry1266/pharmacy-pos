@@ -4,14 +4,14 @@ import { check, validationResult } from 'express-validator';
 import { format } from 'date-fns';
 
 // 使用 TypeScript import 語法導入模型和中介軟體
-import Accounting from '../models/Accounting';
-import Inventory from '../models/Inventory';
-import BaseProduct from '../models/BaseProduct';
-import MonitoredProduct from '../models/MonitoredProduct';
+import Accounting from './Accounting';
+import Inventory from '../../models/Inventory';
+import BaseProduct from '../../models/BaseProduct';
+import MonitoredProduct from '../../models/MonitoredProduct';
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
 import type { IAccountingItem } from '@pharmacy-pos/shared/types/models';
-import auth from '../middleware/auth';
+import auth from '../../middleware/auth';
 
 // 定義會計記錄狀態型別
 type AccountingStatus = 'pending' | 'completed';

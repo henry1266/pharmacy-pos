@@ -18,16 +18,16 @@ import suppliersRoutes from "./modules/suppliers";
 import purchaseOrdersRoutes from "./modules/purchaseOrders";
 import employeesRoutes from "./modules/employees";
 import overtimeRecordsRoutes from "./modules/employees/services/overtimeRecords";
+import legacyProductsRoutes from "./modules/products/legacy";
 // 導入已轉換為 TypeScript 的路由
 import authRoutes from "./routes/auth";
 import usersRoutes from "./routes/users";
 import inventoryRoutes from "./routes/inventory";
-import legacyProductsRoutes from "./modules/products/legacy";
 import packagesRoutes from "./routes/packages";
-import accountingRoutes from "./routes/accounting";
+import accountingRoutes from "./modules/daily-journals/daily-journal";
 import dashboardRoutes from "./routes/dashboard";
 import reportsRoutes from "./routes/reports";
-import accountingCategoriesRoutes from "./routes/accountingCategories";
+import accountingCategoriesRoutes from "./modules/daily-journals/daily-journalCategories";
 import shippingOrdersRoutes from "./modules/shippingOrders";
 import shippingOrderPdfRoutes from "./modules/shippingOrders/shippingOrderPdf";
 import shippingOrdersImportRoutes from "./routes/shippingOrdersImport";
@@ -88,7 +88,7 @@ export function createApp(): Application {
   app.use("/api", suppliersRoutes);
   app.use("/api", purchaseOrdersRoutes);
   app.use("/api", employeesRoutes);
-
+  app.use("/api", packageUnitsRoutes);
   // 定義路由
   app.use("/api/auth", authRoutes);
   app.use("/api/users", usersRoutes);
@@ -119,7 +119,6 @@ export function createApp(): Application {
   app.use("/api/overtime-records", overtimeRecordsRoutes);
   app.use("/api/shift-time-configs", shiftTimeConfigsRoutes);
   app.use("/api/themes", themesRoutes);
-  app.use("/api", packageUnitsRoutes);
   app.use(productsBasePath, productDescriptionsRouter);
   app.use("/api/link-references", linkReferencesRoutes);
   app.use("/api/link-global", linkGlobalUpdateRoutes);

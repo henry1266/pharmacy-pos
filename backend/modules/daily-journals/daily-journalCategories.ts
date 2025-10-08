@@ -3,13 +3,13 @@ import mongoose from 'mongoose';
 import { check, validationResult } from 'express-validator';
 
 // 使用 TypeScript import 語法導入模型和中介軟體
-import AccountingCategory from '../models/AccountingCategory';
-import auth from '../middleware/auth';
+import AccountingCategory from './daily-journalCategory';
+import auth from '../../middleware/auth';
 
 // 導入共享類型和常數
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { ERROR_MESSAGES, API_CONSTANTS } from '@pharmacy-pos/shared/constants';
-import { AuthenticatedRequest } from '../src/types/express';
+import { AuthenticatedRequest } from '../../src/types/express';
 
 // 定義請求介面
 interface AccountingCategoryRequest {

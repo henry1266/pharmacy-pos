@@ -1,5 +1,5 @@
 import mongoose, { Schema, Types } from 'mongoose';
-import { IAccounting, IAccountingItem } from '../../shared/types/models';
+import { IAccounting, IAccountingItem } from '../../../shared/types/models';
 
 // 記帳系統資料模型
 export interface IAccountingDocument extends mongoose.Document, Omit<IAccounting, '_id'> {

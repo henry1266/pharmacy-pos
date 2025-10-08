@@ -1,7 +1,7 @@
 ﻿import express from 'express';
 import request from 'supertest';
-import router from '../../routes/accountingCategories';
-import AccountingCategory from '../../models/AccountingCategory';
+import router from '../../modules/daily-journals/daily-journalCategories';
+import AccountingCategory from '../../modules/daily-journals/daily-journalCategory';
 
 jest.mock('../../middleware/auth', () => ({
   __esModule: true,

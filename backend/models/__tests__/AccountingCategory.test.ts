@@ -1,4 +1,4 @@
-import AccountingCategory, { IAccountingCategory } from '../AccountingCategory';
+import AccountingCategory, { IAccountingCategory } from '../../modules/daily-journals/daily-journalCategory';
 
 describe('AccountingCategory Model', () => {
   beforeEach(async () => {
