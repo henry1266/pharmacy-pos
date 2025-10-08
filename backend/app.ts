@@ -1,4 +1,4 @@
-import express, { Application, Request, Response, NextFunction } from "express";
+﻿import express, { Application, Request, Response, NextFunction } from "express";
 import path from "path";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -13,7 +13,7 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 // 新路由
 import customersRoutes from "./modules/customers";
 import salesRoutes from "./modules/sales";
-import productsContractRoutes from "./modules/products";
+import productsContractRoutes, { productCategoriesRouter, productDescriptionsRouter } from "./modules/products";
 import suppliersRoutes from "./modules/suppliers";
 import purchaseOrdersRoutes from "./modules/purchaseOrders";
 import employeesRoutes from "./modules/employees";
@@ -22,7 +22,6 @@ import overtimeRecordsRoutes from "./modules/employees/services/overtimeRecords"
 import authRoutes from "./routes/auth";
 import usersRoutes from "./routes/users";
 import inventoryRoutes from "./routes/inventory";
-import productCategoriesRoutes from "./modules/products/productCategories";
 import legacyProductsRoutes from "./modules/products/legacy";
 import packagesRoutes from "./routes/packages";
 import accountingRoutes from "./routes/accounting";
@@ -40,7 +39,6 @@ import csvImportApiRoutes from "./routes/csvImportApi";
 import shiftTimeConfigsRoutes from "./routes/shiftTimeConfigs";
 import themesRoutes from "./routes/themes";
 import packageUnitsRoutes from "./routes/packageUnits";
-import productDescriptionRoutes from "./modules/products/productDescriptionRoutes";
 import linkReferencesRoutes from "./routes/linkReferences";
 import linkGlobalUpdateRoutes from "./routes/linkGlobalUpdate";
 
@@ -95,7 +93,7 @@ export function createApp(): Application {
   app.use("/api/auth", authRoutes);
   app.use("/api/users", usersRoutes);
   app.use("/api/inventory", inventoryRoutes);
-  app.use("/api/product-categories", productCategoriesRoutes);
+  app.use("/api/product-categories", productCategoriesRouter);
   const enableProductsContract = process.env.FEATURE_PRODUCTS_CONTRACT === 'true';
   const productsBasePath = "/api/products";
 
@@ -122,7 +120,7 @@ export function createApp(): Application {
   app.use("/api/shift-time-configs", shiftTimeConfigsRoutes);
   app.use("/api/themes", themesRoutes);
   app.use("/api", packageUnitsRoutes);
-  app.use(productsBasePath, productDescriptionRoutes);
+  app.use(productsBasePath, productDescriptionsRouter);
   app.use("/api/link-references", linkReferencesRoutes);
   app.use("/api/link-global", linkGlobalUpdateRoutes);
 
@@ -280,5 +278,6 @@ export async function initializeDatabase() {
  */
 const app = createApp();
 export default app;
+
 
 

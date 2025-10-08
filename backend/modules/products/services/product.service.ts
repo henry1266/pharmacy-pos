@@ -1,16 +1,19 @@
-import type { FilterQuery } from 'mongoose'
-import BaseProduct, { Product, Medicine } from '../../models/BaseProduct'
-import { PackageUnitService } from '../../services/PackageUnitService'
+﻿import type { FilterQuery } from 'mongoose'
+import BaseProduct, { Product, Medicine } from '../../../models/BaseProduct'
+import { PackageUnitService } from '../../../services/PackageUnitService'
 import { ERROR_MESSAGES } from '@pharmacy-pos/shared/constants'
 import { ProductType } from '@pharmacy-pos/shared/enums'
-import { generateProductCodeByHealthInsurance } from '../../utils/codeGenerator'
+import { generateProductCodeByHealthInsurance } from '../../../utils/codeGenerator'
 import type {
   ProductCreateInput,
   ProductQueryParams,
   ProductSchema,
   ProductUpdateInput,
 } from '@pharmacy-pos/shared/schemas/zod/product'
-
+import {
+  normaliseProduct,
+  normaliseId,
+} from '../mappers/product.mapper'
 export type ProductListResult = {
   data?: ProductSchema[]
   filters?: Record<string, unknown>
@@ -57,58 +60,6 @@ function normaliseSort(sortBy?: string | null, sortOrder?: string | null) {
   const mappedField = fieldMap[sortBy ?? ''] ?? 'code'
 
   return { field: mappedField, order }
-}
-
-function toPlain(document: any): RawProduct {
-  if (!document) {
-    return document
-  }
-  if (typeof document.toObject === 'function') {
-    return document.toObject()
-  }
-  return document
-}
-
-function normaliseId(value: any): any {
-  if (value && typeof value.toString === 'function') {
-    return value.toString()
-  }
-  return value
-}
-
-function normaliseDate(value: any): any {
-  if (value instanceof Date) {
-    return value.toISOString()
-  }
-  if (value === null) {
-    return null
-  }
-  return value ?? undefined
-}
-
-function normaliseReference(reference: any): any {
-  if (!reference) return undefined
-  const plain = toPlain(reference)
-  if (plain && typeof plain === 'object') {
-    return {
-      ...plain,
-      _id: normaliseId(plain._id),
-    }
-  }
-  return reference
-}
-
-function normaliseProduct(product: any, packageUnits?: ProductSchema['packageUnits']): ProductSchema {
-  const plain = toPlain(product)
-  return {
-    ...plain,
-    _id: normaliseId(plain._id),
-    category: normaliseReference(plain.category),
-    supplier: normaliseReference(plain.supplier),
-    createdAt: normaliseDate(plain.createdAt),
-    updatedAt: normaliseDate(plain.updatedAt),
-    packageUnits: packageUnits ?? plain.packageUnits,
-  } as ProductSchema
 }
 
 async function withPackageUnits(product: RawProduct): Promise<ProductSchema> {
@@ -512,3 +463,9 @@ export async function deleteProduct(id: string): Promise<ProductSchema> {
     throw new ProductServiceError(500, ERROR_MESSAGES.GENERIC.INTERNAL_ERROR)
   }
 }
+
+
+
+
+
+

@@ -1,9 +1,11 @@
-import { Router } from 'express'
-import { initServer, createExpressEndpoints } from '@ts-rest/express'
+﻿import { initServer } from '@ts-rest/express'
 import type { ServerInferRequest } from '@ts-rest/core'
 import { productsContract } from '@pharmacy-pos/shared/api/contracts'
 import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants'
-import logger from '../../utils/logger'
+const SERVER_ERROR_MESSAGE = ERROR_MESSAGES.GENERIC?.SERVER_ERROR ?? '\\u4F3A\\u670D\\u5668\\u767C\\u751F\\u932F\\u8AA4'
+const NOT_FOUND_MESSAGE = ERROR_MESSAGES.GENERIC?.NOT_FOUND ?? '\\u627E\\u4E0D\\u5230\\u8CC7\\u6E90'
+
+import logger from '../../../../utils/logger'
 import {
   listProducts,
   listBaseProducts,
@@ -16,7 +18,8 @@ import {
   deleteProduct as deleteProductService,
   ProductServiceError,
   ProductServiceErrorStatus,
-} from './products.service'
+  ProductListResult,
+} from '../../services/product.service'
 
 const server = initServer()
 
@@ -32,7 +35,94 @@ export type DeleteProductRequest = ServerInferRequest<typeof productsContract['d
 
 type KnownErrorStatus = ProductServiceErrorStatus
 
-const implementation = server.router(productsContract, {
+type SuccessBody = {
+  success: true
+  message: string
+  timestamp: Date
+  data?: unknown
+  [key: string]: unknown
+}
+
+type ErrorBody = {
+  success: false
+  message: string
+  statusCode: KnownErrorStatus
+  error?: string
+  timestamp: Date
+}
+
+function createSuccessEnvelope<TStatus extends number>(
+  status: TStatus,
+  message: string,
+  data?: unknown,
+  extra?: Record<string, unknown>,
+) {
+  const body: SuccessBody = {
+    success: true,
+    message,
+    timestamp: new Date(),
+    ...(data === undefined ? {} : { data }),
+    ...(extra ?? {}),
+  }
+
+  return {
+    status,
+    body,
+  } as const
+}
+
+function successListResponse<TStatus extends number>(
+  status: TStatus,
+  result: ProductListResult,
+  message: string,
+) {
+  return createSuccessEnvelope(status, message, result?.data, {
+    filters: result?.filters ?? undefined,
+    count: result?.count ?? undefined,
+  })
+}
+
+function successResponse<TStatus extends number>(status: TStatus, data: unknown, message: string) {
+  return createSuccessEnvelope(status, message, data)
+}
+
+function errorResponse<TStatus extends KnownErrorStatus>(
+  status: TStatus,
+  message: string,
+  error?: unknown,
+) {
+  const body: ErrorBody = {
+    success: false,
+    message,
+    statusCode: status,
+    timestamp: new Date(),
+    ...(error instanceof Error ? { error: error.message } : {}),
+  }
+
+  return {
+    status,
+    body,
+  } as const
+}
+
+function handleError<Allowed extends KnownErrorStatus>(
+  error: unknown,
+  logMessage: string,
+  allowedStatuses: readonly Allowed[],
+) {
+  const defaultStatus = (allowedStatuses.find((status) => status === 500) ?? allowedStatuses[0]) as Allowed
+
+  if (error instanceof ProductServiceError) {
+    const status = error.status as Allowed
+    const finalStatus = allowedStatuses.includes(status) ? status : defaultStatus
+    return errorResponse(finalStatus, error.message)
+  }
+
+  logger.error(`${logMessage}: ${error instanceof Error ? error.message : String(error)}`)
+  return errorResponse(defaultStatus, SERVER_ERROR_MESSAGE, error)
+}
+
+export const productsController = server.router(productsContract, {
   listProducts: async ({ query }: ListProductsRequest) => {
     try {
       const result = await listProducts(query ?? {})
@@ -61,7 +151,7 @@ const implementation = server.router(productsContract, {
     try {
       const product = await getProductByCode(params.code)
       if (!product) {
-        return errorResponse(404, ERROR_MESSAGES.GENERIC.NOT_FOUND)
+        return errorResponse(404, NOT_FOUND_MESSAGE)
       }
       return successResponse(200, product, SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS)
     } catch (error) {
@@ -72,7 +162,7 @@ const implementation = server.router(productsContract, {
     try {
       const product = await getProductById(params.id)
       if (!product) {
-        return errorResponse(404, ERROR_MESSAGES.GENERIC.NOT_FOUND)
+        return errorResponse(404, NOT_FOUND_MESSAGE)
       }
       return successResponse(200, product, SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS)
     } catch (error) {
@@ -113,70 +203,10 @@ const implementation = server.router(productsContract, {
   },
 })
 
-function createSuccessEnvelope<TStatus extends number>(
-  status: TStatus,
-  message: string,
-  data?: unknown,
-  extra?: Record<string, unknown>,
-) {
-  return {
-    status,
-    body: {
-      success: true,
-      message,
-      timestamp: new Date(),
-      ...(data === undefined ? {} : { data }),
-      ...(extra ?? {}),
-    },
-  } as const
-}
 
-function successListResponse<TStatus extends number>(
-  status: TStatus,
-  result: Awaited<ReturnType<typeof listProducts>>,
-  message: string,
-) {
-  return createSuccessEnvelope(status, message, result?.data, {
-    filters: result?.filters ?? undefined,
-    count: result?.count ?? undefined,
-  })
-}
 
-function successResponse<TStatus extends number>(status: TStatus, data: unknown, message: string) {
-  return createSuccessEnvelope(status, message, data)
-}
 
-function errorResponse<TStatus extends KnownErrorStatus>(status: TStatus, message: string, error?: unknown) {
-  return {
-    status,
-    body: {
-      success: false,
-      message,
-      statusCode: status,
-      error: error instanceof Error ? error.message : undefined,
-      timestamp: new Date(),
-    },
-  } as const
-}
 
-function handleError<Allowed extends KnownErrorStatus>(
-  error: unknown,
-  logMessage: string,
-  allowedStatuses: readonly Allowed[],
-) {
-  const defaultStatus = (allowedStatuses.find((status) => status === 500) ?? allowedStatuses[0]) as Allowed
 
-  if (error instanceof ProductServiceError) {
-    const status = error.status as Allowed
-    const finalStatus = allowedStatuses.includes(status) ? status : defaultStatus
-    return errorResponse(finalStatus, error.message)
-  }
 
-  logger.error(`${logMessage}: ${error instanceof Error ? error.message : String(error)}`)
-  return errorResponse(defaultStatus, ERROR_MESSAGES.GENERIC.SERVER_ERROR, error)
-}
 
-const router: Router = Router()
-createExpressEndpoints(productsContract, implementation, router)
-
-export default router

@@ -1,4 +1,4 @@
-# 產品模組 ts-rest 遷移計畫
+﻿# 產品模組 ts-rest 遷移計畫
 
 ## 狀態快照
 
@@ -43,7 +43,7 @@
 - 任務清單：
   - [x] 在 `backend/modules/products` 下腳手架 ts-rest router 與 controller（初始 handler 回傳 501，待移植舊邏輯）。
   - [x] 重構舊服務為 orchestrator/services 分層並重用包裝單位（create/update/delete 從舊 router 遷移）。
-  - [x] 將讀取端點（清單 + 明細）移植至 `backend/modules/products/products.service.ts`，利用包裝單位 helper。
+  - [x] 將讀取端點（清單 + 明細）移植至 `backend/modules/products/services/product.service.ts`，利用包裝單位 helper。
   - [x] 透過 `FEATURE_PRODUCTS_CONTRACT` 功能旗標控管 ts-rest router 上線（預設關閉）。
   - [x] 新增封套轉接器以對應舊版成功/錯誤封套（timestamp、statusCode、filters）。
   - [x] 補充契約測試與回歸套件涵蓋 create/update/delete 流程（`backend/modules/products/__tests__/products.contract.test.ts`）。
@@ -104,8 +104,8 @@
 
 ## 參考資料
 
-- ts-rest router 腳手架：`../../../../backend/modules/products/products.routes.ts`
-- 服務層移植（讀取流程）：`../../../../backend/modules/products/products.service.ts`
+- ts-rest router 腳手架：`../../../../backend/modules/products/http/routes/products.router.ts`
+- 服務層移植（讀取流程）：`../../../../backend/modules/products/services/product.service.ts`
 - ADR：`../../../../docs/adr/2025-10-05-products-contract-migration-alignment.md`
 - 舊版 router 參考：`../../../../backend/routes/products.ts`
 - 現行產品服務使用處：`../` UI 模組與 `../../services/productServiceV2.ts`
@@ -156,3 +156,4 @@
 - 非同步更新：每週四收盤前於 `#proj-products-contract-migration` Slack 頻道更新狀態快照差異。
 - 決策紀錄：將關鍵決策補入 ADR 並從本 README 的參考區連結。
 - 事件處理：Sev-2 以上事件依 on-call 手冊處理，並註明本遷移為變更背景。
+
