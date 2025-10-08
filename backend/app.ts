@@ -24,10 +24,9 @@ import authRoutes from "./routes/auth";
 import usersRoutes from "./routes/users";
 import inventoryRoutes from "./routes/inventory";
 import packagesRoutes from "./routes/packages";
-import accountingRoutes from "./modules/daily-journals/daily-journal";
+import accountingRoutes from "./modules/daily-journals";
 import dashboardRoutes from "./routes/dashboard";
 import reportsRoutes from "./routes/reports";
-import accountingCategoriesRoutes from "./modules/daily-journals/daily-journalCategories";
 import shippingOrdersRoutes from "./modules/shippingOrders";
 import shippingOrderPdfRoutes from "./modules/shippingOrders/shippingOrderPdf";
 import shippingOrdersImportRoutes from "./routes/shippingOrdersImport";
@@ -104,10 +103,9 @@ export function createApp(): Application {
   }
   app.use("/api/packages", packagesRoutes);
   
-  app.use("/api/accounting", accountingRoutes);
+  app.use("/api", accountingRoutes);
   app.use("/api/dashboard", dashboardRoutes);
   app.use("/api/reports", reportsRoutes);
-  app.use("/api/accounting-categories", accountingCategoriesRoutes);
   app.use("/api/shipping-orders", shippingOrdersRoutes);
   app.use("/api/shipping-orders", shippingOrderPdfRoutes);
   app.use("/api/shipping-orders", shippingOrdersImportRoutes);

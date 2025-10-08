@@ -1,7 +1,7 @@
 ﻿import express from 'express';
 import request from 'supertest';
-import router from '../../modules/daily-journals/daily-journalCategories';
-import AccountingCategory from '../../modules/daily-journals/daily-journalCategory';
+import router from '../../modules/daily-journals';
+import AccountingCategory from '../../modules/daily-journals/models/accountingCategory.model';
 
 jest.mock('../../middleware/auth', () => ({
   __esModule: true,
@@ -13,7 +13,7 @@ jest.mock('../../middleware/auth', () => ({
   })
 }));
 
-jest.mock('../../models/AccountingCategory', () => ({
+jest.mock('../../modules/daily-journals/models/accountingCategory.model', () => ({
   __esModule: true,
   default: jest.fn()
 }));

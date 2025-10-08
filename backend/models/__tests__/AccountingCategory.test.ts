@@ -1,4 +1,4 @@
-import AccountingCategory, { IAccountingCategory } from '../../modules/daily-journals/daily-journalCategory';
+import AccountingCategory, { type AccountingCategoryDocument } from '../../modules/daily-journals/models/accountingCategory.model';
 
 describe('AccountingCategory Model', () => {
   beforeEach(async () => {
@@ -8,7 +8,7 @@ describe('AccountingCategory Model', () => {
 
   describe('Schema Validation', () => {
     it('應該成功創建有效的記帳名目類別', async () => {
-      const categoryData: Partial<IAccountingCategory> = {
+      const categoryData: Partial<AccountingCategoryDocument> = {
         name: '收入類別',
         description: '各種收入項目',
         order: 1,
