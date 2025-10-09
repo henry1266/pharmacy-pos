@@ -30,7 +30,7 @@ import dashboardRoutes from "./routes/dashboard";
 import reportsRoutes from "./routes/reports";
 import shippingOrdersRoutes from "./modules/shippingOrders";
 import shippingOrderPdfRoutes from "./modules/shippingOrders/shippingOrderPdf";
-import shippingOrdersImportRoutes from "./routes/shippingOrdersImport";
+import shippingOrdersImportRoutes from "./modules/shippingOrders/shippingOrdersImport";
 import fifoRoutes from "./routes/fifo";
 import monitoredProductsRoutes from "./routes/monitoredProducts";
 import settingsRoutes from "./routes/settings";

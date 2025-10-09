@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import DoubleEntryValidator from '../utils/doubleEntryValidation';
+import DoubleEntryValidator from '../modules/accounting/utils/doubleEntryValidation';
 import { IAccountingEntry } from '../models/AccountingEntry';
 
 /**

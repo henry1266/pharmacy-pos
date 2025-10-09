@@ -12,7 +12,7 @@ import {
 
 // Mock DoubleEntryValidator
 jest.mock('../../utils/doubleEntryValidation');
-import DoubleEntryValidator from '../../utils/doubleEntryValidation';
+import DoubleEntryValidator from '../../modules/accounting/utils/doubleEntryValidation';
 const mockValidator = DoubleEntryValidator as jest.Mocked<typeof DoubleEntryValidator>;
 
 // Mock console methods to reduce test output noise
