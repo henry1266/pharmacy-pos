@@ -22,7 +22,7 @@ import {
   validateEntriesIntegrity,
   calculateBalance,
   buildTransactionGroupData
-} from '../transactionFormatHelpers';
+} from '../../modules/accounting-old/utils/transactionFormatHelpers';
 
 describe('transactionFormatHelpers', () => {
   beforeEach(() => {

@@ -1,5 +1,5 @@
 ﻿import mongoose from 'mongoose';
-import * as helpers from '../../utils/transactionValidationHelpers';
+import * as helpers from '../../modules/accounting-old/utils/transactionValidationHelpers';
 import TransactionGroupWithEntries from '../../models/TransactionGroupWithEntries';
 
 jest.mock('../../models/TransactionGroupWithEntries', () => ({

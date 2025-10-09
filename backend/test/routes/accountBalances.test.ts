@@ -1,6 +1,6 @@
 ﻿import express from 'express';
 import request from 'supertest';
-import router from '../../routes/accountBalances';
+import router from '../../modules/accounting-old/accountBalances';
 import Account2 from '../../models/Account2';
 import AccountingEntry from '../../models/AccountingEntry';
 

@@ -11,7 +11,7 @@ import {
 } from '../doubleEntryValidation';
 
 // Mock DoubleEntryValidator
-jest.mock('../../utils/doubleEntryValidation');
+jest.mock('../../modules/accounting-old/utils/doubleEntryValidation');
 import DoubleEntryValidator from '../../modules/accounting-old/utils/doubleEntryValidation';
 const mockValidator = DoubleEntryValidator as jest.Mocked<typeof DoubleEntryValidator>;
 
