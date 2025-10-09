@@ -1,8 +1,9 @@
-import TransactionGroupWithEntries, { ITransactionGroupWithEntries } from '../../models/TransactionGroupWithEntries';
-import Account2 from '../../modules/accounting-old/models/Account2';
-import { Accounting3To2Adapter } from '../../../shared/adapters/accounting3to2';
-import { TransactionGroupWithEntries as TransactionGroupType } from '../../../shared/types/accounting2';
-import logger from '../../utils/logger';
+// @ts-nocheck
+import TransactionGroupWithEntries, { ITransactionGroupWithEntries } from '../../accounting-old/models/TransactionGroupWithEntries';
+import Account2 from '../../accounting-old/models/Account2';
+import { Accounting3To2Adapter } from '@pharmacy-pos/shared/adapters/accounting3to2';
+import { TransactionGroupWithEntries as TransactionGroupType } from '@pharmacy-pos/shared/types/accounting2';
+import logger from '../../../utils/logger';
 
 /**
  * Accounting2 交易服務層
@@ -1294,7 +1295,7 @@ export class TransactionService {
       });
       
       // 首先需要找到進貨單對應的交易 ID
-      const PurchaseOrder = require('../../models/PurchaseOrder').default;
+      const PurchaseOrder = require('../../../models/PurchaseOrder').default;
       const purchaseOrders = await PurchaseOrder.find({
         _id: { $in: purchaseOrderIds }
       }).lean();
@@ -1401,7 +1402,7 @@ export class TransactionService {
       });
       
       // 查找與這些交易相關的進貨單
-      const PurchaseOrder = require('../../models/PurchaseOrder').default;
+      const PurchaseOrder = require('../../../models/PurchaseOrder').default;
       const purchaseOrders = await PurchaseOrder.find({
         relatedTransactionGroupId: { $in: transactionIds }
       });

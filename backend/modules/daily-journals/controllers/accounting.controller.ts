@@ -1,8 +1,8 @@
 import { initServer } from '@ts-rest/express'
 import { accountingContract } from '@pharmacy-pos/shared/api/contracts'
 import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants'
-import logger from '../../../../utils/logger'
-import type { AuthenticatedRequest } from '../../../../src/types/express'
+import logger from '../../../utils/logger'
+import type { AuthenticatedRequest } from '../../../src/types/express'
 import {
   type AccountingRecordCreateInput,
   type AccountingRecordUpdateInput,
@@ -12,7 +12,7 @@ import {
   getUnaccountedSalesByDate,
   listAccountings,
   updateAccounting,
-} from '../../services/accounting.service'
+} from '../services/accounting.service'
 import {
   type AccountingCategoryCreateInput,
   type AccountingCategoryUpdateInput,
@@ -20,7 +20,7 @@ import {
   deleteAccountingCategory,
   listAccountingCategories,
   updateAccountingCategory,
-} from '../../services/accountingCategory.service'
+} from '../services/accountingCategory.service'
 
 const server = initServer()
 

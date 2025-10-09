@@ -1,8 +1,11 @@
-import Account2, { IAccount2 } from '../../modules/accounting-old/models/Account2';
-import TransactionGroupWithEntries from '../../models/TransactionGroupWithEntries';
-import { AccountManagementAdapter } from '../../../shared/adapters/accounting2to3';
-import { VersionCompatibilityManager } from '../../../shared/services/compatibilityService';
-import { Account2 as Account2Type, TransactionGroupWithEntries as TransactionGroupType } from '../../../shared/types/accounting2';
+import Account2, { IAccount2 } from '../../accounting-old/models/Account2';
+import TransactionGroupWithEntries from '../../accounting-old/models/TransactionGroupWithEntries';
+import { AccountManagementAdapter } from '@pharmacy-pos/shared/adapters/accounting2to3';
+import { VersionCompatibilityManager } from '@pharmacy-pos/shared/services/compatibilityService';
+import {
+  Account2 as Account2Type,
+  TransactionGroupWithEntries as TransactionGroupType,
+} from '@pharmacy-pos/shared/types/accounting2';
 
 /**
  * @description Accounting2 帳戶服務層

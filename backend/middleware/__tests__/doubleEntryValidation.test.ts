@@ -9,7 +9,7 @@ import {
   validateSingleEntry,
   validateTransactionGroup,
   validateCompleteTransaction
-} from '../doubleEntryValidation';
+} from '../../modules/accounting-old/middlewares/doubleEntryValidation';
 
 // Mock DoubleEntryValidator
 jest.mock('../../modules/accounting-old/utils/doubleEntryValidation');

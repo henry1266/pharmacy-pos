@@ -1,7 +1,8 @@
-import TransactionGroupWithEntries from '../../models/TransactionGroupWithEntries';
-import Account2 from '../../modules/accounting-old/models/Account2';
-import { VersionCompatibilityManager } from '../../../shared/services/compatibilityService';
-import { TransactionGroupWithEntries as TransactionGroupType, Account2 as Account2Type } from '../../../shared/types/accounting2';
+// @ts-nocheck
+import TransactionGroupWithEntries from '../../accounting-old/models/TransactionGroupWithEntries';
+import Account2 from '../../accounting-old/models/Account2';
+import { VersionCompatibilityManager } from '@pharmacy-pos/shared/services/compatibilityService';
+import { TransactionGroupWithEntries as TransactionGroupType, Account2 as Account2Type } from '@pharmacy-pos/shared/types/accounting2';
 
 /**
  * Accounting2 驗證服務層

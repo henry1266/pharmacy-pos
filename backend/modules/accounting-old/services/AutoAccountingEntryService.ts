@@ -1,8 +1,11 @@
 import mongoose from 'mongoose';
-import Account2, { IAccount2 } from '../modules/accounting-old/models/Account2';
-import TransactionGroupWithEntries, { ITransactionGroupWithEntries, IEmbeddedAccountingEntry } from '../models/TransactionGroupWithEntries';
-import { IPurchaseOrderDocument } from '../models/PurchaseOrder';
-import logger from '../utils/logger';
+import Account2, { IAccount2 } from '../models/Account2';
+import TransactionGroupWithEntries, {
+  ITransactionGroupWithEntries,
+  IEmbeddedAccountingEntry,
+} from '../models/TransactionGroupWithEntries';
+import { IPurchaseOrderDocument } from '../../../models/PurchaseOrder';
+import logger from '../../../utils/logger';
 
 /**
  * 自動會計分錄服務
