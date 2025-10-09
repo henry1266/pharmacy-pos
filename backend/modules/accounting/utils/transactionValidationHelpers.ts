@@ -1,6 +1,6 @@
 import express from 'express';
 import mongoose from 'mongoose';
-import TransactionGroupWithEntries from '../models/TransactionGroupWithEntries';
+import TransactionGroupWithEntries from '../../../models/TransactionGroupWithEntries';
 
 /**
  * 交易驗證和查詢輔助函數

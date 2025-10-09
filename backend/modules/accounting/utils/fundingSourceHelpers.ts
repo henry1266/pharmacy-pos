@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import TransactionGroupWithEntries from '../models/TransactionGroupWithEntries';
+import TransactionGroupWithEntries from '../../../models/TransactionGroupWithEntries';
 
 /**
  * 資金來源處理輔助函數

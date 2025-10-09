@@ -1,9 +1,9 @@
 import express, { Router } from 'express';
 import mongoose from 'mongoose';
-import TransactionGroupWithEntries, { ITransactionGroupWithEntries } from '../models/TransactionGroupWithEntries';
-import auth from '../middleware/auth';
-import DoubleEntryValidator from '../utils/doubleEntryValidation';
-import logger from '../utils/logger';
+import TransactionGroupWithEntries, { ITransactionGroupWithEntries } from '../../models/TransactionGroupWithEntries';
+import auth from '../../middleware/auth';
+import DoubleEntryValidator from '../../utils/doubleEntryValidation';
+import logger from '../../utils/logger';
 
 // 導入重構後的輔助函數
 import {
@@ -11,7 +11,7 @@ import {
   // processFundingSourceUsages,
   calculateProportionalFundingUsage,
   getReferencedByInfo
-} from '../utils/fundingSourceHelpers';
+} from './utils/fundingSourceHelpers';
 
 import {
   AuthenticatedRequest,
@@ -26,7 +26,7 @@ import {
   sendSuccessResponse,
   sendErrorResponse,
   handleRouteError
-} from '../utils/transactionValidationHelpers';
+} from './utils/transactionValidationHelpers';
 
 import {
   formatTransactionGroupsList,
@@ -35,7 +35,7 @@ import {
   calculateTotalAmount,
   buildTransactionGroupData,
   validateEntriesIntegrity
-} from '../utils/transactionFormatHelpers';
+} from './utils/transactionFormatHelpers';
 
 const router: Router = express.Router();
 

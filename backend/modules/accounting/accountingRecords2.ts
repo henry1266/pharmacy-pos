@@ -1,8 +1,8 @@
 import express, { Router } from 'express';
-import AccountingRecord2, { IAccountingRecord2 } from '../models/AccountingRecord2';
-import Account2 from '../models/Account2';
-import Category2 from '../models/Category2';
-import auth from '../middleware/auth';
+import AccountingRecord2, { IAccountingRecord2 } from '../../models/AccountingRecord2';
+import Account2 from '../../models/Account2';
+import Category2 from '../../models/Category2';
+import auth from '../../middleware/auth';
 
 // 擴展 Request 介面
 interface AuthenticatedRequest extends express.Request {

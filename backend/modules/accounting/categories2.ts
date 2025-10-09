@@ -1,6 +1,6 @@
 import express, { Router } from 'express';
-import Category2, { ICategory2 } from '../models/Category2';
-import auth from '../middleware/auth';
+import Category2, { ICategory2 } from '../../models/Category2';
+import auth from '../../middleware/auth';
 
 // 擴展 Request 介面
 interface AuthenticatedRequest extends express.Request {

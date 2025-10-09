@@ -1,8 +1,8 @@
 import express, { Router } from 'express';
 import mongoose from 'mongoose';
-import AccountingEntry from '../models/AccountingEntry';
-import TransactionGroup from '../models/TransactionGroup';
-import auth from '../middleware/auth';
+import AccountingEntry from '../../models/AccountingEntry';
+import TransactionGroup from '../../models/TransactionGroup';
+import auth from '../../middleware/auth';
 
 // 擴展 Request 介面
 interface AuthenticatedRequest extends express.Request {

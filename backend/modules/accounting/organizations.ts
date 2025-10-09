@@ -1,7 +1,7 @@
 import express, { Router } from 'express';
 import mongoose from 'mongoose';
 import { body, param, validationResult } from 'express-validator';
-import Organization from '../models/Organization';
+import Organization from '../../models/Organization';
 import {
   OrganizationType,
   OrganizationStatus,
@@ -9,7 +9,7 @@ import {
   OrganizationApiResponse,
   OrganizationListApiResponse
 } from '@pharmacy-pos/shared/types/organization';
-import auth from '../middleware/auth';
+import auth from '../../middleware/auth';
 
 // 擴展 Request 介面
 interface AuthenticatedRequest extends express.Request {

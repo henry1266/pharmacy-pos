@@ -19,12 +19,13 @@ import purchaseOrdersRoutes from "./modules/purchaseOrders";
 import employeesRoutes from "./modules/employees";
 import overtimeRecordsRoutes from "./modules/employees/services/overtimeRecords";
 import legacyProductsRoutes from "./modules/products/legacy";
+import accountingRoutes from "./modules/daily-journals";
 // 導入已轉換為 TypeScript 的路由
 import authRoutes from "./routes/auth";
 import usersRoutes from "./routes/users";
 import inventoryRoutes from "./routes/inventory";
 import packagesRoutes from "./routes/packages";
-import accountingRoutes from "./modules/daily-journals";
+
 import dashboardRoutes from "./routes/dashboard";
 import reportsRoutes from "./routes/reports";
 import shippingOrdersRoutes from "./modules/shippingOrders";
@@ -42,19 +43,19 @@ import linkReferencesRoutes from "./routes/linkReferences";
 import linkGlobalUpdateRoutes from "./routes/linkGlobalUpdate";
 
 // 新增 accounting2 模組路由 (舊版 - 保留相容性)
-import accounts2Routes from "./routes/accounts2";
-import categories2Routes from "./routes/categories2";
-import accountingRecords2Routes from "./routes/accountingRecords2";
-import transactionGroupsRoutes from "./routes/transactionGroups";
-import transactionGroupsWithEntriesRoutes from "./routes/transactionGroupsWithEntries";
-import accountingEntriesRoutes from "./routes/accountingEntries";
-import accountBalancesRoutes from "./routes/accountBalances";
+import accounts2Routes from "./modules/accounting/accounts2";
+import categories2Routes from "./modules/accounting/categories2";
+import accountingRecords2Routes from "./modules/accounting/accountingRecords2";
+import transactionGroupsRoutes from "./modules/accounting/transactionGroups";
+import transactionGroupsWithEntriesRoutes from "./modules/accounting/transactionGroupsWithEntries";
+import accountingEntriesRoutes from "./modules/accounting/accountingEntries";
+import accountBalancesRoutes from "./modules/accounting/accountBalances";
+
+// 新增機構管理路由
+import organizationsRoutes from "./modules/accounting/organizations";
 
 // 新增 accounting2 重構模組路由 (新版架構)
 import { accountRoutes, transactionRoutes, fundingRoutes } from "./routes/accounting2";
-
-// 新增機構管理路由
-import organizationsRoutes from "./routes/organizations";
 
 // 新增供應商科目配對路由
 import supplierAccountMappingsRoutes from "./routes/supplierAccountMappings";

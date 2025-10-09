@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
-import Account2 from '../models/Account2';
-import AccountingEntry from '../models/AccountingEntry';
-import auth from '../middleware/auth';
+import Account2 from '../../models/Account2';
+import AccountingEntry from '../../models/AccountingEntry';
+import auth from '../../middleware/auth';
 
 const router: express.Router = express.Router();
 
