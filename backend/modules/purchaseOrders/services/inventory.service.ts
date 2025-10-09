@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import Inventory from '../../../models/Inventory';
 import BaseProduct from '../../../models/BaseProduct';
 import { IPurchaseOrderDocument } from '../purchaseOrders.types';
-import AccountingIntegrationService from '../../../services/AccountingIntegrationService';
+import AccountingIntegrationService from '../../accounting-old/services/AccountingIntegrationService';
 import logger from '../../../utils/logger';
 
 /**

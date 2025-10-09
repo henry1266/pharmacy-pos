@@ -1,5 +1,5 @@
 ﻿import { Router, type Request, type Response } from 'express'
-import auth from '../../../../middleware/auth'
+import auth from '../../../middleware/auth'
 import { ERROR_MESSAGES } from '@pharmacy-pos/shared/constants'
 const INVALID_REQUEST_MESSAGE = ERROR_MESSAGES.GENERIC?.INVALID_REQUEST ?? '\u7121\u6548\u7684\u8ACB\u6C42'
 const VALIDATION_FAILED_MESSAGE = ERROR_MESSAGES.GENERIC?.VALIDATION_FAILED ?? '\u8CC7\u6599\u9A57\u8B49\u5931\u6557'
@@ -9,7 +9,7 @@ import {
   productCategoryCreateSchema,
   productCategoryIdSchema,
   productCategoryUpdateSchema,
-} from '../../schemas/product-category.schema'
+} from '../schemas/product-category.schema'
 import {
   archiveProductCategory,
   createProductCategory,
@@ -17,8 +17,8 @@ import {
   listProductCategories,
   updateProductCategory,
   ProductCategoryServiceError,
-} from '../../services/product-category.service'
-import logger from '../../../../utils/logger'
+} from '../services/product-category.service'
+import logger from '../../../utils/logger'
 
 const router: Router = Router()
 
@@ -151,11 +151,16 @@ router.delete('/:id', auth, async (req: Request, res: Response) => {
   }
 })
 
+function isProductCategoryServiceError(error: unknown): error is ProductCategoryServiceError {
+  return error instanceof ProductCategoryServiceError
+}
+
 function handleCategoryError(error: unknown, res: Response, fallbackMessage: string) {
-  if (error instanceof ProductCategoryServiceError) {
-    res.status(error.status).json({
+  if (isProductCategoryServiceError(error)) {
+    const { status, message } = error
+    res.status(status).json({
       success: false,
-      message: error.message,
+      message,
       timestamp: new Date(),
     })
     return

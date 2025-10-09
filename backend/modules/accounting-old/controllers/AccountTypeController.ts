@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import AccountType, { initializeSystemAccountTypes } from '../../models/AccountType';
+import AccountType, { initializeSystemAccountTypes } from '../models/AccountType';
 import { ApiResponse } from '@pharmacy-pos/shared/types/api';
-import logger from '../../utils/logger';
+import logger from '../../../utils/logger';
 
 // 擴展 Request 介面以包含用戶資訊
 interface AuthenticatedRequest extends Request {

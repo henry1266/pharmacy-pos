@@ -1,4 +1,4 @@
-import Account2, { IAccount2 } from '../../models/Account2';
+import Account2, { IAccount2 } from '../../modules/accounting-old/models/Account2';
 import TransactionGroupWithEntries from '../../models/TransactionGroupWithEntries';
 import { AccountManagementAdapter } from '../../../shared/adapters/accounting2to3';
 import { VersionCompatibilityManager } from '../../../shared/services/compatibilityService';

@@ -1,7 +1,7 @@
 import express, { Router } from 'express';
 import mongoose from 'mongoose';
 import { body, param, validationResult } from 'express-validator';
-import Organization from '../../models/Organization';
+import Organization from './models/Organization';
 import {
   OrganizationType,
   OrganizationStatus,

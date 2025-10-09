@@ -1,16 +1,16 @@
 ﻿import { Router, type Request, type Response } from 'express'
-import { productDescriptionParamsSchema, productDescriptionUpdateSchema } from '../../schemas/product-description.schema'
+import { productDescriptionParamsSchema, productDescriptionUpdateSchema } from '../schemas/product-description.schema'
 import {
   getProductDescription,
   upsertProductDescription,
   ProductDescriptionServiceError,
-} from '../../services/product-description.service'
+} from '../services/product-description.service'
 import { ERROR_MESSAGES } from '@pharmacy-pos/shared/constants'
 const INVALID_REQUEST_MESSAGE = ERROR_MESSAGES.GENERIC?.INVALID_REQUEST ?? '\u7121\u6548\u7684\u8ACB\u6C42'
 const VALIDATION_FAILED_MESSAGE = ERROR_MESSAGES.GENERIC?.VALIDATION_FAILED ?? '\u8CC7\u6599\u9A57\u8B49\u5931\u6557'
 const SERVER_ERROR_MESSAGE = ERROR_MESSAGES.GENERIC?.SERVER_ERROR ?? '\u4F3A\u670D\u5668\u767C\u751F\u932F\u8AA4'
 
-import logger from '../../../../utils/logger'
+import logger from '../../../utils/logger'
 
 const router: Router = Router()
 
@@ -85,11 +85,16 @@ router.patch('/:productId/description', async (req: Request, res: Response) => {
   }
 })
 
+function isProductDescriptionServiceError(error: unknown): error is ProductDescriptionServiceError {
+  return error instanceof ProductDescriptionServiceError
+}
+
 function handleProductDescriptionError(error: unknown, res: Response, fallbackMessage: string) {
-  if (error instanceof ProductDescriptionServiceError) {
-    res.status(error.status).json({
+  if (isProductDescriptionServiceError(error)) {
+    const { status, message } = error
+    res.status(status).json({
       success: false,
-      message: error.message,
+      message,
       timestamp: new Date(),
     })
     return

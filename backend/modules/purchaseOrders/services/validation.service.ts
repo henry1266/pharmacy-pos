@@ -15,7 +15,7 @@ import {
   PurchaseOrderStatus,
   ModelPaymentStatus
 } from '../purchaseOrders.types';
-import AccountingIntegrationService from '../../../services/AccountingIntegrationService';
+import AccountingIntegrationService from '../../accounting-old/services/AccountingIntegrationService';
 import { deleteInventoryRecords } from './inventory.service';
 
 /**

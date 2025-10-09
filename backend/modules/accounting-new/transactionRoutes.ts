@@ -1,5 +1,5 @@
 import express from 'express';
-import { TransactionController } from '../../controllers/accounting2';
+import { TransactionController } from '../accounting-old/controllers';
 import auth from '../../middleware/auth';
 
 const router: express.Router = express.Router();

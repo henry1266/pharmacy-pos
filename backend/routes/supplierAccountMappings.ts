@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import { check, validationResult } from 'express-validator';
 import mongoose from 'mongoose';
 import SupplierAccountMapping from '../models/SupplierAccountMapping';
-import Account2 from '../models/Account2';
+import Account2 from '../modules/accounting-old/models/Account2';
 import Supplier from '../models/Supplier';
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@pharmacy-pos/shared/constants';

@@ -1,6 +1,6 @@
 import express, { Router } from 'express';
 import mongoose from 'mongoose';
-import Account2, { IAccount2 } from '../../models/Account2';
+import Account2, { IAccount2 } from './models/Account2';
 import auth from '../../middleware/auth';
 
 // 擴展 Request 介面

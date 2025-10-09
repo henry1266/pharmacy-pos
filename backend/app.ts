@@ -55,7 +55,7 @@ import accountBalancesRoutes from "./modules/accounting-old/accountBalances";
 import organizationsRoutes from "./modules/accounting-old/organizations";
 
 // 新增 accounting2 重構模組路由 (新版架構)
-import { accountRoutes, transactionRoutes, fundingRoutes } from "./routes/accounting2";
+import { accountRoutes, transactionRoutes, fundingRoutes } from "./modules/accounting-new";
 
 // 新增供應商科目配對路由
 import supplierAccountMappingsRoutes from "./routes/supplierAccountMappings";

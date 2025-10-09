@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { FundingService } from '../../services/accounting2/FundingService';
-import { ValidationService } from '../../services/accounting2/ValidationService';
-import logger from '../../utils/logger';
+import { FundingService } from '../../accounting-new/services/FundingService';
+import { ValidationService } from '../../accounting-new/services/ValidationService';
+import logger from '../../../utils/logger';
 
 // 擴展 Request 介面以支援 user 屬性
 interface AuthenticatedRequest extends Request {

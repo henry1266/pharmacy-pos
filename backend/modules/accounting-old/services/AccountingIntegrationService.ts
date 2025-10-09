@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import Account2, { IAccount2 } from '../models/Account2';
-import { IPurchaseOrderDocument } from '../models/PurchaseOrder';
+import { IPurchaseOrderDocument } from '../../../models/PurchaseOrder';
 import AutoAccountingEntryService from './AutoAccountingEntryService';
 
 /**

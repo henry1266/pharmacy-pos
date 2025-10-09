@@ -1,4 +1,4 @@
-import { IAccountingEntry } from '../../../models/AccountingEntry';
+import { IAccountingEntry } from '../models/AccountingEntry';
 
 /**
  * 借貸平衡驗證工具

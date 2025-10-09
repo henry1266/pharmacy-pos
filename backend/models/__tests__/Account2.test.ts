@@ -1,5 +1,5 @@
 import mongoose, { Document } from 'mongoose';
-import Account2, { IAccount2 } from '../Account2';
+import Account2, { IAccount2 } from '../../modules/accounting-old/models/Account2';
 
 // 擴展 IAccount2 介面以包含虛擬欄位
 interface IAccount2WithVirtuals extends IAccount2 {

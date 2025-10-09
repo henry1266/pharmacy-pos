@@ -1,5 +1,5 @@
 import { DoubleEntryValidator } from '../../modules/accounting-old/utils/doubleEntryValidation';
-import { IAccountingEntry } from '../../models/AccountingEntry';
+import { IAccountingEntry } from '../../modules/accounting-old/models/AccountingEntry';
 
 describe('DoubleEntryValidator', () => {
   describe('validateDebitCreditBalance', () => {

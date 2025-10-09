@@ -1,5 +1,5 @@
 import express from 'express';
-import { AccountController } from '../../controllers/accounting2';
+import { AccountController } from '../accounting-old/controllers';
 import auth from '../../middleware/auth';
 import rateLimit from 'express-rate-limit';
 

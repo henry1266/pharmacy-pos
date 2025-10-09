@@ -1,4 +1,4 @@
-import TransactionGroupWithEntries from '../../models/TransactionGroupWithEntries';
+import TransactionGroupWithEntries from '../../accounting-old/models/TransactionGroupWithEntries';
 
 /**
  * Accounting2 資金服務層

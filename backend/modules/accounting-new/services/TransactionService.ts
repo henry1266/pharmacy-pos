@@ -1,5 +1,5 @@
 import TransactionGroupWithEntries, { ITransactionGroupWithEntries } from '../../models/TransactionGroupWithEntries';
-import Account2 from '../../models/Account2';
+import Account2 from '../../modules/accounting-old/models/Account2';
 import { Accounting3To2Adapter } from '../../../shared/adapters/accounting3to2';
 import { TransactionGroupWithEntries as TransactionGroupType } from '../../../shared/types/accounting2';
 import logger from '../../utils/logger';

@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { AccountService } from '../../services/accounting2/AccountService';
-import { ValidationService } from '../../services/accounting2/ValidationService';
-import { IAccount2 } from '../../models/Account2';
-import logger from '../../utils/logger';
+import { AccountService } from '../services/AccountService';
+import { ValidationService } from '../services/ValidationService';
+import { IAccount2 } from '../../accounting-old/models/Account2';
+import logger from '../../../utils/logger';
 
 /**
  * @description 擴展 Request 介面以支援已認證用戶的屬性

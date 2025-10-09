@@ -1,6 +1,6 @@
 import express, { Router } from 'express';
 import mongoose from 'mongoose';
-import TransactionGroupWithEntries, { ITransactionGroupWithEntries } from '../../models/TransactionGroupWithEntries';
+import TransactionGroupWithEntries, { ITransactionGroupWithEntries } from './models/TransactionGroupWithEntries';
 import auth from '../../middleware/auth';
 import DoubleEntryValidator from './utils/doubleEntryValidation';
 import logger from '../../utils/logger';

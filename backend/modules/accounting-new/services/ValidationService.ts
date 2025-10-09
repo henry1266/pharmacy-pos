@@ -1,5 +1,5 @@
 import TransactionGroupWithEntries from '../../models/TransactionGroupWithEntries';
-import Account2 from '../../models/Account2';
+import Account2 from '../../modules/accounting-old/models/Account2';
 import { VersionCompatibilityManager } from '../../../shared/services/compatibilityService';
 import { TransactionGroupWithEntries as TransactionGroupType, Account2 as Account2Type } from '../../../shared/types/accounting2';
 

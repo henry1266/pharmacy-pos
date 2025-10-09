@@ -1,4 +1,4 @@
-import AccountingRecord2, { IAccountingRecord2 } from '../AccountingRecord2';
+import AccountingRecord2, { IAccountingRecord2 } from '../../modules/accounting-old/models/AccountingRecord2';
 import mongoose from 'mongoose';
 
 describe('AccountingRecord2 Model', () => {

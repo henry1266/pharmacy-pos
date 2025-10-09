@@ -1,6 +1,6 @@
 ﻿import mongoose from 'mongoose';
 import * as helpers from '../../modules/accounting-old/utils/transactionValidationHelpers';
-import TransactionGroupWithEntries from '../../models/TransactionGroupWithEntries';
+import TransactionGroupWithEntries from '../../modules/accounting-old/models/TransactionGroupWithEntries';
 
 jest.mock('../../models/TransactionGroupWithEntries', () => ({
   __esModule: true,

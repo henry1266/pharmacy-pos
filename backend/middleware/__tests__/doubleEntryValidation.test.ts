@@ -3,6 +3,7 @@ process.env.NODE_ENV = 'test';
 
 import request from 'supertest';
 import express from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import {
   validateDoubleEntryBalance,
   validateSingleEntry,
@@ -32,22 +33,22 @@ const createTestApp = () => {
   app.use(express.json());
   
   // 測試路由 - 借貸平衡驗證
-  app.post('/test/double-entry', validateDoubleEntryBalance, (_req, res) => {
+  app.post('/test/double-entry', validateDoubleEntryBalance, (_req: Request, res: Response) => {
     res.json({ success: true, message: '借貸平衡驗證通過' });
   });
   
   // 測試路由 - 單筆分錄驗證
-  app.post('/test/single-entry', validateSingleEntry, (_req, res) => {
+  app.post('/test/single-entry', validateSingleEntry, (_req: Request, res: Response) => {
     res.json({ success: true, message: '單筆分錄驗證通過' });
   });
   
   // 測試路由 - 交易群組驗證
-  app.post('/test/transaction-group', validateTransactionGroup, (_req, res) => {
+  app.post('/test/transaction-group', validateTransactionGroup, (_req: Request, res: Response) => {
     res.json({ success: true, message: '交易群組驗證通過' });
   });
   
   // 測試路由 - 完整交易驗證
-  app.post('/test/complete-transaction', validateCompleteTransaction, (_req: any, res: any) => {
+  app.post('/test/complete-transaction', validateCompleteTransaction, (_req: Request, res: Response) => {
     res.json({ success: true, message: '完整交易驗證通過' });
   });
   
@@ -568,7 +569,7 @@ describe('DoubleEntryValidation Middleware 測試', () => {
       errorApp.use(express.json());
       
       // 模擬中間件內部拋出異常
-      errorApp.post('/test', (req, res, next) => {
+      errorApp.post('/test', (req: Request, res: Response, next: NextFunction) => {
         // 破壞 req.body 來觸發異常
         Object.defineProperty(req, 'body', {
           get() {
@@ -594,7 +595,7 @@ describe('DoubleEntryValidation Middleware 測試', () => {
       const errorApp = express();
       errorApp.use(express.json());
       
-      errorApp.post('/test', (req, res, next) => {
+      errorApp.post('/test', (req: Request, res: Response, next: NextFunction) => {
         Object.defineProperty(req, 'body', {
           get() {
             throw new Error('Request body error');

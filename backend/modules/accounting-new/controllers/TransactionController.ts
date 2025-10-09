@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { TransactionService } from '../../services/accounting2/TransactionService';
-import { ValidationService } from '../../services/accounting2/ValidationService';
-import { ITransactionGroupWithEntries } from '../../models/TransactionGroupWithEntries';
-import logger from '../../utils/logger';
+import { TransactionService } from '../services/TransactionService';
+import { ValidationService } from '../services/ValidationService';
+import { ITransactionGroupWithEntries, IPaymentInfo } from '../../accounting-old/models/TransactionGroupWithEntries';
+import logger from '../../../utils/logger';
 
 // 擴展 Request 介面以支援 user 屬性
 interface AuthenticatedRequest extends Request {
@@ -1013,13 +1013,15 @@ export class TransactionController {
       );
 
       const paymentHistory = paymentTransactions.transactions
-        .filter(transaction =>
+        .filter((transaction: ITransactionGroupWithEntries) =>
           transaction.transactionType === 'payment' &&
-          transaction.paymentInfo?.payableTransactions?.some(p => p.transactionId?.toString() === id)
+          transaction.paymentInfo?.payableTransactions?.some(
+            (p: IPaymentInfo['payableTransactions'][number]) => p.transactionId?.toString() === id
+          )
         )
-        .map(payment => {
+        .map((payment: ITransactionGroupWithEntries) => {
           const payableTransaction = payment.paymentInfo?.payableTransactions?.find(
-            p => p.transactionId?.toString() === id
+            (p: IPaymentInfo['payableTransactions'][number]) => p.transactionId?.toString() === id
           );
           
           return {

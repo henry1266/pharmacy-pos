@@ -5,7 +5,7 @@ import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants
 const SERVER_ERROR_MESSAGE = ERROR_MESSAGES.GENERIC?.SERVER_ERROR ?? '\\u4F3A\\u670D\\u5668\\u767C\\u751F\\u932F\\u8AA4'
 const NOT_FOUND_MESSAGE = ERROR_MESSAGES.GENERIC?.NOT_FOUND ?? '\\u627E\\u4E0D\\u5230\\u8CC7\\u6E90'
 
-import logger from '../../../../utils/logger'
+import logger from '../../../utils/logger'
 import {
   listProducts,
   listBaseProducts,
@@ -19,7 +19,7 @@ import {
   ProductServiceError,
   ProductServiceErrorStatus,
   ProductListResult,
-} from '../../services/product.service'
+} from '../services/product.service'
 
 const server = initServer()
 
@@ -105,6 +105,10 @@ function errorResponse<TStatus extends KnownErrorStatus>(
   } as const
 }
 
+function isProductServiceError(error: unknown): error is ProductServiceError {
+  return error instanceof ProductServiceError
+}
+
 function handleError<Allowed extends KnownErrorStatus>(
   error: unknown,
   logMessage: string,
@@ -112,7 +116,7 @@ function handleError<Allowed extends KnownErrorStatus>(
 ) {
   const defaultStatus = (allowedStatuses.find((status) => status === 500) ?? allowedStatuses[0]) as Allowed
 
-  if (error instanceof ProductServiceError) {
+  if (isProductServiceError(error)) {
     const status = error.status as Allowed
     const finalStatus = allowedStatuses.includes(status) ? status : defaultStatus
     return errorResponse(finalStatus, error.message)
