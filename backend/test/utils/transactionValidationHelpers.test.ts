@@ -2,20 +2,11 @@
 import * as helpers from '../../modules/accounting-old/utils/transactionValidationHelpers';
 import TransactionGroupWithEntries from '../../modules/accounting-old/models/TransactionGroupWithEntries';
 
-jest.mock('../../models/TransactionGroupWithEntries', () => ({
+jest.mock('../../modules/accounting-old/models/TransactionGroupWithEntries', () => ({
   __esModule: true,
   default: {
     findOne: jest.fn(),
     find: jest.fn()
-  }
-}));
-
-jest.mock('../../utils/logger', () => ({
-  __esModule: true,
-  default: {
-    error: jest.fn(),
-    warn: jest.fn(),
-    info: jest.fn()
   }
 }));
 

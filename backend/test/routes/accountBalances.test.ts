@@ -9,7 +9,7 @@ jest.mock('../../middleware/auth', () => ({
   default: jest.fn((_req, _res, next) => next())
 }));
 
-jest.mock('../../models/Account2', () => ({
+jest.mock('../../modules/accounting-old/models/Account2', () => ({
   __esModule: true,
   default: {
     find: jest.fn(),
@@ -17,7 +17,7 @@ jest.mock('../../models/Account2', () => ({
   }
 }));
 
-jest.mock('../../models/AccountingEntry', () => ({
+jest.mock('../../modules/accounting-old/models/AccountingEntry', () => ({
   __esModule: true,
   default: {
     find: jest.fn()

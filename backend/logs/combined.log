@@ -18423,3 +18423,7 @@
 {"level":"\u001b[31m'error'\u001b[39m","message":"\u001b[31m'創建自動會計分錄時發生錯誤: 部分會計科目不存在'\u001b[39m","stack":"Error: 部分會計科目不存在\n    at Function.getAccountDetails (D:\\pharmacy-pos\\backend\\services\\AutoAccountingEntryService.ts:210:13)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at Function.handlePurchaseOrderCompletion (D:\\pharmacy-pos\\backend\\services\\AutoAccountingEntryService.ts:30:24)\n    at Object.<anonymous> (D:\\pharmacy-pos\\backend\\services\\__tests__\\AutoAccountingEntryService.test.ts:241:7)","timestamp":"2025-10-09 14:34:06:346"}
 {"entryType":"expense-asset","level":"\u001b[33m'warn'\u001b[39m","message":"\u001b[33m'無法根據分錄格式找到合適的借貸科目:'\u001b[39m","timestamp":"2025-10-09 14:34:06:346"}
 {"error":"Database error","level":"\u001b[31merror\u001b[39m","message":"\u001b[31m建立交易錯誤\u001b[39m","timestamp":"2025-10-09 14:34:18:3418"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mFailed to list suppliers: Database connection failed\u001b[39m","timestamp":"2025-10-09 15:50:51:5051"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"\u001b[33m產品 測試產品 庫存不足，當前總庫存: 1，請求數量: 5\u001b[39m","timestamp":"2025-10-09 15:50:57:5057"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mlistSales failed: Database connection failed\u001b[39m","timestamp":"2025-10-09 15:50:59:5059"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mFailed to list customers: Database connection failed\u001b[39m","timestamp":"2025-10-09 15:51:15:5115"}

@@ -14,7 +14,7 @@ jest.mock('../../middleware/auth', () => ({
   })
 }));
 
-jest.mock('../../models/AccountingEntry', () => ({
+jest.mock('../../modules/accounting-old/models/AccountingEntry', () => ({
   __esModule: true,
   default: {
     find: jest.fn(),
