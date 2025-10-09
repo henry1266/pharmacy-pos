@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { PackageUnitService } from '../services/PackageUnitService';
+import { PackageUnitService } from '../../../../services/PackageUnitService';
 import {
   ProductPackageUnit,
   PackageUnitErrorCodes

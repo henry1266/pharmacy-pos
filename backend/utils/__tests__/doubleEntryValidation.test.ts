@@ -1,4 +1,4 @@
-import { DoubleEntryValidator } from '../../modules/accounting/utils/doubleEntryValidation';
+import { DoubleEntryValidator } from '../../modules/accounting-old/utils/doubleEntryValidation';
 import { IAccountingEntry } from '../../models/AccountingEntry';
 
 describe('DoubleEntryValidator', () => {

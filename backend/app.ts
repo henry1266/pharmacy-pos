@@ -38,21 +38,21 @@ import configRoutes from "./routes/config";
 import csvImportApiRoutes from "./routes/csvImportApi";
 import shiftTimeConfigsRoutes from "./routes/shiftTimeConfigs";
 import themesRoutes from "./routes/themes";
-import packageUnitsRoutes from "./routes/packageUnits";
+import packageUnitsRoutes from "./modules/products/packageUnits";
 import linkReferencesRoutes from "./routes/linkReferences";
 import linkGlobalUpdateRoutes from "./routes/linkGlobalUpdate";
 
 // 新增 accounting2 模組路由 (舊版 - 保留相容性)
-import accounts2Routes from "./modules/accounting/accounts2";
-import categories2Routes from "./modules/accounting/categories2";
-import accountingRecords2Routes from "./modules/accounting/accountingRecords2";
-import transactionGroupsRoutes from "./modules/accounting/transactionGroups";
-import transactionGroupsWithEntriesRoutes from "./modules/accounting/transactionGroupsWithEntries";
-import accountingEntriesRoutes from "./modules/accounting/accountingEntries";
-import accountBalancesRoutes from "./modules/accounting/accountBalances";
+import accounts2Routes from "./modules/accounting-old/accounts2";
+import categories2Routes from "./modules/accounting-old/categories2";
+import accountingRecords2Routes from "./modules/accounting-old/accountingRecords2";
+import transactionGroupsRoutes from "./modules/accounting-old/transactionGroups";
+import transactionGroupsWithEntriesRoutes from "./modules/accounting-old/transactionGroupsWithEntries";
+import accountingEntriesRoutes from "./modules/accounting-old/accountingEntries";
+import accountBalancesRoutes from "./modules/accounting-old/accountBalances";
 
 // 新增機構管理路由
-import organizationsRoutes from "./modules/accounting/organizations";
+import organizationsRoutes from "./modules/accounting-old/organizations";
 
 // 新增 accounting2 重構模組路由 (新版架構)
 import { accountRoutes, transactionRoutes, fundingRoutes } from "./routes/accounting2";

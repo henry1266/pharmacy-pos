@@ -1,5 +1,5 @@
 import { Router, type IRouter } from 'express';
-import { PackageUnitsController } from '../controllers/packageUnits';
+import { PackageUnitsController } from './http/controllers/packageUnits';
 
 const router: IRouter = Router();
 
