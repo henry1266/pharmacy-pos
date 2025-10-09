@@ -114,7 +114,7 @@ pnpm run dev
 
 ## API 契約與 SSOT 流程
 
-以 **Zod（shared）** 與 **OpenAPI（openapi）** 為唯一規格來源。流程如下：
+以 **Zod（shared）** 為唯一規格來源。流程如下：
 
 ```mermaid
 sequenceDiagram
