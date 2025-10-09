@@ -6,8 +6,8 @@ import type { ApiResponse } from '@pharmacy-pos/shared/types/api'
 const baseCreateRules = [
   check('name').notEmpty().withMessage('產品名稱為必填欄位'),
   check('unit').notEmpty().withMessage('基本單位為必填欄位'),
-  check('purchasePrice').optional().isNumeric().withMessage('進貨價格必須為數字'),
-  check('sellingPrice').optional().isNumeric().withMessage('售價必須為數字'),
+  check('purchasePrice').optional().isNumeric().withMessage('進貨價格必須是數字'),
+  check('sellingPrice').optional().isNumeric().withMessage('售價必須是數字'),
 ]
 
 export const createProductValidators = baseCreateRules

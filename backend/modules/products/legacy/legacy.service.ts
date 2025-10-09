@@ -10,6 +10,7 @@ import type {
   IMedicineDocument,
 } from '../../../src/types/models'
 import type { ProductPackageUnit } from '@pharmacy-pos/shared/types/package'
+import { ensureMongoConnection } from '../../../utils/mongoConnection'
 
 export class LegacyProductServiceError extends Error {
   public readonly status: number
@@ -285,14 +286,38 @@ async function ensureGeneratedCode(hasHealthInsurance: boolean, provided?: strin
   if (provided) {
     return provided
   }
+
   const result = await generateProductCodeByHealthInsurance(hasHealthInsurance)
-  if (!result.success || !result.code) {
+
+  const rawCode =
+    typeof result === 'string'
+      ? result
+      : result && typeof result === 'object' && 'code' in result
+        ? (result as { code?: unknown }).code
+        : undefined
+
+  const code = typeof rawCode === 'string' ? rawCode.trim() : rawCode !== undefined ? String(rawCode).trim() : ''
+
+  if (code) {
+    return code
+  }
+
+  const successFlag =
+    result && typeof result === 'object' && 'success' in result
+      ? Boolean((result as { success?: unknown }).success)
+      : undefined
+
+  if (successFlag === false) {
     throw new LegacyProductServiceError(
       API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR,
       ERROR_MESSAGES.GENERIC.INTERNAL_ERROR,
     )
   }
-  return result.code
+
+  throw new LegacyProductServiceError(
+    API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR,
+    ERROR_MESSAGES.GENERIC.INTERNAL_ERROR,
+  )
 }
 
 function applyStockStatusFilter(filter: FilterQuery<Record<string, unknown>>, status?: StockStatus): void {
@@ -312,6 +337,7 @@ function applyStockStatusFilter(filter: FilterQuery<Record<string, unknown>>, st
 }
 
 export async function listProducts(query: LegacyProductListQuery): Promise<LegacyProductListResult> {
+  await ensureMongoConnection()
   const search = extractString(query.search)
   const productType = extractString(query.productType)
   const category = extractString(query.category)
@@ -412,6 +438,7 @@ export async function listProducts(query: LegacyProductListQuery): Promise<Legac
 }
 
 export async function listBaseProducts(): Promise<IProductDocument[]> {
+  await ensureMongoConnection()
   const products = await Product.find(ACTIVE_FILTER)
     .populate('category', 'name')
     .populate('supplier', 'name')
@@ -420,6 +447,7 @@ export async function listBaseProducts(): Promise<IProductDocument[]> {
 }
 
 export async function listMedicines(): Promise<IMedicineDocument[]> {
+  await ensureMongoConnection()
   const medicines = await Medicine.find(ACTIVE_FILTER)
     .populate('category', 'name')
     .populate('supplier', 'name')
@@ -428,7 +456,14 @@ export async function listMedicines(): Promise<IMedicineDocument[]> {
 }
 
 export async function findProductByCode(code: string): Promise<IBaseProductDocument> {
+  await ensureMongoConnection()
   const value = code?.toString().trim().toUpperCase()
+  if (!value) {
+    throw new LegacyProductServiceError(
+      API_CONSTANTS.HTTP_STATUS.NOT_FOUND,
+      ERROR_MESSAGES.PRODUCT.NOT_FOUND,
+    )
+  }
   const product = await BaseProduct.findByCode(value)
   if (!product) {
     throw new LegacyProductServiceError(
@@ -440,6 +475,7 @@ export async function findProductByCode(code: string): Promise<IBaseProductDocum
 }
 
 export async function findProductById(id: string): Promise<Record<string, unknown>> {
+  await ensureMongoConnection()
   if (!id) {
     throw new LegacyProductServiceError(
       API_CONSTANTS.HTTP_STATUS.BAD_REQUEST,
@@ -465,6 +501,7 @@ async function createProductDocument(
   payload: LegacyProductPayload,
   forceMedicine: boolean,
 ): Promise<LegacyProductCreateResult> {
+  await ensureMongoConnection()
   const trimmedCode = trimUnknown(payload.code)
   if (trimmedCode) {
     const existing = await BaseProduct.findByCode(trimmedCode)
@@ -552,6 +589,7 @@ export async function updateLegacyProduct(
   productId: string,
   payload: LegacyProductUpdatePayload,
 ): Promise<IBaseProductDocument> {
+  await ensureMongoConnection()
   if (!productId) {
     throw new LegacyProductServiceError(
       API_CONSTANTS.HTTP_STATUS.BAD_REQUEST,
@@ -656,6 +694,7 @@ export async function updateLegacyProduct(
 }
 
 export async function softDeleteProduct(productId: string): Promise<IBaseProductDocument> {
+  await ensureMongoConnection()
   if (!productId) {
     throw new LegacyProductServiceError(
       API_CONSTANTS.HTTP_STATUS.BAD_REQUEST,
@@ -691,6 +730,7 @@ export async function updateProductPackageUnits(
   productId: string,
   packageUnits: unknown,
 ): Promise<unknown[]> {
+  await ensureMongoConnection()
   if (!productId) {
     throw new LegacyProductServiceError(
       API_CONSTANTS.HTTP_STATUS.BAD_REQUEST,
@@ -724,6 +764,7 @@ export async function updateProductPackageUnits(
 }
 
 export async function createLegacyTestData(): Promise<LegacyTestDataResult> {
+  await ensureMongoConnection()
   const existingCount = await BaseProduct.countDocuments()
   if (existingCount > 0) {
     return {

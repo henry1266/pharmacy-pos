@@ -25,7 +25,7 @@ const router: Router = Router()
 router.get('/', listProductsHandler)
 router.get('/products', listBaseProductsHandler)
 router.get('/medicines', listMedicinesHandler)
-router.get('/code/:code', getProductByCodeHandler)
+router.get('/code/:code?', getProductByCodeHandler)
 router.get('/:id', getProductByIdHandler)
 
 router.post('/product', auth, createProductValidators, validateRequest, createProductHandler)

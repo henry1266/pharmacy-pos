@@ -1,0 +1,248 @@
+﻿
+> @pharmacy-pos/backend@1.0.0 test D:\pharmacy-pos\backend
+> jest "--runTestsByPath" "routes/__tests__/products.integration.test.ts" "-t" "?府??鞈?摨恍??航炊"
+
+  console.warn
+    ?⊥?頛敺垢logger嚗?雿輻console雿?蹂誨 ModuleNotFoundError: Cannot find module 'D:\backend\utils\logger' from '../shared/utils/logger.ts'
+        at Resolver._throwModNotFoundError (D:\pharmacy-pos\node_modules\.pnpm\jest-resolve@29.7.0\node_modules\jest-resolve\build\resolver.js:427:11)
+        at Resolver.resolveModule (D:\pharmacy-pos\node_modules\.pnpm\jest-resolve@29.7.0\node_modules\jest-resolve\build\resolver.js:358:10)
+        at Resolver._getVirtualMockPath (D:\pharmacy-pos\node_modules\.pnpm\jest-resolve@29.7.0\node_modules\jest-resolve\build\resolver.js:619:14)
+        at Resolver._getAbsolutePath (D:\pharmacy-pos\node_modules\.pnpm\jest-resolve@29.7.0\node_modules\jest-resolve\build\resolver.js:587:14)
+        at Resolver.getModuleID (D:\pharmacy-pos\node_modules\.pnpm\jest-resolve@29.7.0\node_modules\jest-resolve\build\resolver.js:530:31)
+        at Runtime._shouldMockCjs (D:\pharmacy-pos\node_modules\.pnpm\jest-runtime@29.7.0\node_modules\jest-runtime\build\index.js:1713:37)
+        at Runtime.requireModuleOrMock (D:\pharmacy-pos\node_modules\.pnpm\jest-runtime@29.7.0\node_modules\jest-runtime\build\index.js:1045:16)
+        at Object.<anonymous> (D:\pharmacy-pos\shared\utils\logger.ts:25:33)
+        at Runtime._execModule (D:\pharmacy-pos\node_modules\.pnpm\jest-runtime@29.7.0\node_modules\jest-runtime\build\index.js:1439:24)
+        at Runtime._loadModule (D:\pharmacy-pos\node_modules\.pnpm\jest-runtime@29.7.0\node_modules\jest-runtime\build\index.js:1022:12)
+        at Runtime.requireModule (D:\pharmacy-pos\node_modules\.pnpm\jest-runtime@29.7.0\node_modules\jest-runtime\build\index.js:882:12)
+        at Runtime.requireModuleOrMock (D:\pharmacy-pos\node_modules\.pnpm\jest-runtime@29.7.0\node_modules\jest-runtime\build\index.js:1048:21)
+        at Object.<anonymous> (D:\pharmacy-pos\shared\utils\transactionDataConverter.ts:4:1)
+        at Runtime._execModule (D:\pharmacy-pos\node_modules\.pnpm\jest-runtime@29.7.0\node_modules\jest-runtime\build\index.js:1439:24)
+        at Runtime._loadModule (D:\pharmacy-pos\node_modules\.pnpm\jest-runtime@29.7.0\node_modules\jest-runtime\build\index.js:1022:12)
+        at Runtime.requireModule (D:\pharmacy-pos\node_modules\.pnpm\jest-runtime@29.7.0\node_modules\jest-runtime\build\index.js:882:12)
+        at Runtime.requireModuleOrMock (D:\pharmacy-pos\node_modules\.pnpm\jest-runtime@29.7.0\node_modules\jest-runtime\build\index.js:1048:21)
+        at Object.<anonymous> (D:\pharmacy-pos\shared\index.ts:229:1)
+        at Runtime._execModule (D:\pharmacy-pos\node_modules\.pnpm\jest-runtime@29.7.0\node_modules\jest-runtime\build\index.js:1439:24)
+        at Runtime._loadModule (D:\pharmacy-pos\node_modules\.pnpm\jest-runtime@29.7.0\node_modules\jest-runtime\build\index.js:1022:12)
+        at Runtime.requireModule (D:\pharmacy-pos\node_modules\.pnpm\jest-runtime@29.7.0\node_modules\jest-runtime\build\index.js:882:12)
+        at Runtime.requireModuleOrMock (D:\pharmacy-pos\node_modules\.pnpm\jest-runtime@29.7.0\node_modules\jest-runtime\build\index.js:1048:21)
+        at Object.<anonymous> (D:\pharmacy-pos\backend\modules\employees\services\overtimeRecords.ts:11:1)
+        at Runtime._execModule (D:\pharmacy-pos\node_modules\.pnpm\jest-runtime@29.7.0\node_modules\jest-runtime\build\index.js:1439:24)
+        at Runtime._loadModule (D:\pharmacy-pos\node_modules\.pnpm\jest-runtime@29.7.0\node_modules\jest-runtime\build\index.js:1022:12)
+        at Runtime.requireModule (D:\pharmacy-pos\node_modules\.pnpm\jest-runtime@29.7.0\node_modules\jest-runtime\build\index.js:882:12)
+        at Runtime.requireModuleOrMock (D:\pharmacy-pos\node_modules\.pnpm\jest-runtime@29.7.0\node_modules\jest-runtime\build\index.js:1048:21)
+        at Object.require (D:\pharmacy-pos\backend\app.ts:20:1)
+        at Runtime._execModule (D:\pharmacy-pos\node_modules\.pnpm\jest-runtime@29.7.0\node_modules\jest-runtime\build\index.js:1439:24)
+        at Runtime._loadModule (D:\pharmacy-pos\node_modules\.pnpm\jest-runtime@29.7.0\node_modules\jest-runtime\build\index.js:1022:12)
+        at Runtime.requireModule (D:\pharmacy-pos\node_modules\.pnpm\jest-runtime@29.7.0\node_modules\jest-runtime\build\index.js:882:12)
+        at Runtime.requireModuleOrMock (D:\pharmacy-pos\node_modules\.pnpm\jest-runtime@29.7.0\node_modules\jest-runtime\build\index.js:1048:21)
+        at Object.<anonymous> (D:\pharmacy-pos\backend\routes\__tests__\products.integration.test.ts:2:1)
+        at Runtime._execModule (D:\pharmacy-pos\node_modules\.pnpm\jest-runtime@29.7.0\node_modules\jest-runtime\build\index.js:1439:24)
+        at Runtime._loadModule (D:\pharmacy-pos\node_modules\.pnpm\jest-runtime@29.7.0\node_modules\jest-runtime\build\index.js:1022:12)
+        at Runtime.requireModule (D:\pharmacy-pos\node_modules\.pnpm\jest-runtime@29.7.0\node_modules\jest-runtime\build\index.js:882:12)
+        at jestAdapter (D:\pharmacy-pos\node_modules\.pnpm\jest-circus@29.7.0_babel-plugin-macros@3.1.0\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:77:13)
+        at runTestInternal (D:\pharmacy-pos\node_modules\.pnpm\jest-runner@29.7.0\node_modules\jest-runner\build\runTest.js:367:16)
+        at runTest (D:\pharmacy-pos\node_modules\.pnpm\jest-runner@29.7.0\node_modules\jest-runner\build\runTest.js:444:34) {
+      code: 'MODULE_NOT_FOUND',
+      hint: '',
+      requireStack: undefined,
+      siblingWithSimilarExtensionFound: false,
+      moduleName: 'D:\\backend\\utils\\logger',
+      _originalMessage: "Cannot find module 'D:\\backend\\utils\\logger' from '../shared/utils/logger.ts'"
+    }
+
+    [0m [90m 27 |[39m     backendBusinessLogger [33m=[39m backendLoggerModule[33m.[39mbusinessLogger[33m;[39m
+     [90m 28 |[39m   } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 29 |[39m     console[33m.[39mwarn([32m'?⊥?頛敺垢logger嚗?雿輻console雿?蹂誨'[39m[33m,[39m error)[33m;[39m
+     [90m    |[39m             [31m[1m^[22m[39m
+     [90m 30 |[39m   }
+     [90m 31 |[39m }
+     [90m 32 |[39m[0m
+
+      at Object.<anonymous> (../shared/utils/logger.ts:29:13)
+      at Object.<anonymous> (../shared/utils/transactionDataConverter.ts:4:1)
+      at Object.<anonymous> (../shared/index.ts:229:1)
+      at Object.<anonymous> (modules/employees/services/overtimeRecords.ts:11:1)
+      at Object.require (app.ts:20:1)
+      at Object.<anonymous> (routes/__tests__/products.integration.test.ts:2:1)
+
+  console.log
+    DEBUG disconnect stack Error: 
+        at NativeConnection.<anonymous> (D:\pharmacy-pos\backend\utils\mongoConnection.ts:14:27)
+        at NativeConnection.emit (node:events:518:28)
+        at NativeConnection.set (D:\pharmacy-pos\node_modules\.pnpm\mongoose@8.16.0_socks@2.8.5\node_modules\mongoose\lib\connection.js:145:12)
+        at NativeConnection.onClose (D:\pharmacy-pos\node_modules\.pnpm\mongoose@8.16.0_socks@2.8.5\node_modules\mongoose\lib\connection.js:1315:19)
+        at NativeConnection._close (D:\pharmacy-pos\node_modules\.pnpm\mongoose@8.16.0_socks@2.8.5\node_modules\mongoose\lib\connection.js:1264:12)
+        at async Promise.all (index 0)
+        at Mongoose.disconnect (D:\pharmacy-pos\node_modules\.pnpm\mongoose@8.16.0_socks@2.8.5\node_modules\mongoose\lib\mongoose.js:471:3)
+        at Object.<anonymous> (D:\pharmacy-pos\backend\routes\__tests__\products.integration.test.ts:439:7)
+
+      at NativeConnection.log (utils/mongoConnection.ts:15:13)
+          at async Promise.all (index 0)
+
+  console.log
+    DEBUG ensure caller stack Error: 
+        at ensureMongoConnection (D:\pharmacy-pos\backend\utils\mongoConnection.ts:57:48)
+        at listProducts (D:\pharmacy-pos\backend\modules\products\legacy\legacy.service.ts:316:30)
+        at listProductsHandler (D:\pharmacy-pos\backend\modules\products\legacy\legacy.controller.ts:81:38)
+        at Layer.handle [as handle_request] (D:\pharmacy-pos\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\router\layer.js:95:5)
+        at next (D:\pharmacy-pos\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\router\route.js:149:13)
+        at Route.dispatch (D:\pharmacy-pos\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\router\route.js:119:3)
+        at Layer.handle [as handle_request] (D:\pharmacy-pos\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\router\layer.js:95:5)
+        at D:\pharmacy-pos\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\router\index.js:284:15
+        at Function.process_params (D:\pharmacy-pos\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\router\index.js:346:12)
+        at next (D:\pharmacy-pos\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\router\index.js:280:10)
+        at Function.handle (D:\pharmacy-pos\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\router\index.js:175:3)
+        at router (D:\pharmacy-pos\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\router\index.js:47:12)
+        at Layer.handle [as handle_request] (D:\pharmacy-pos\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\router\layer.js:95:5)
+        at trim_prefix (D:\pharmacy-pos\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\router\index.js:328:13)
+        at D:\pharmacy-pos\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\router\index.js:286:9
+        at Function.process_params (D:\pharmacy-pos\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\router\index.js:346:12)
+        at next (D:\pharmacy-pos\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\router\index.js:280:10)
+        at D:\pharmacy-pos\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\router\index.js:646:15
+        at next (D:\pharmacy-pos\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\router\index.js:265:14)
+        at Function.handle (D:\pharmacy-pos\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\router\index.js:175:3)
+        at router (D:\pharmacy-pos\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\router\index.js:47:12)
+        at Layer.handle [as handle_request] (D:\pharmacy-pos\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\router\layer.js:95:5)
+        at trim_prefix (D:\pharmacy-pos\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\router\index.js:328:13)
+        at D:\pharmacy-pos\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\router\index.js:286:9
+        at Function.process_params (D:\pharmacy-pos\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\router\index.js:346:12)
+        at Immediate.next (D:\pharmacy-pos\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\router\index.js:280:10)
+        at Immediate._onImmediate (D:\pharmacy-pos\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\router\index.js:646:15)
+        at processImmediate (node:internal/timers:487:21)
+
+      at log (utils/mongoConnection.ts:57:15)
+
+  console.error
+    ?亥岷?Ｗ??”?航炊嚗?Error: MongoDB test connection temporarily unavailable
+        at ensureMongoConnection (D:\pharmacy-pos\backend\utils\mongoConnection.ts:62:13)
+        at processTicksAndRejections (node:internal/process/task_queues:105:5)
+        at listProducts (D:\pharmacy-pos\backend\modules\products\legacy\legacy.service.ts:316:3)
+        at listProductsHandler (D:\pharmacy-pos\backend\modules\products\legacy\legacy.controller.ts:81:20)
+
+    [0m [90m 68 |[39m   }
+     [90m 69 |[39m
+    [31m[1m>[22m[39m[90m 70 |[39m   console[33m.[39merror(logMessage[33m,[39m error)
+     [90m    |[39m           [31m[1m^[22m[39m
+     [90m 71 |[39m   res[33m.[39mstatus([33mAPI_CONSTANTS[39m[33m.[39m[33mHTTP_STATUS[39m[33m.[39m[33mINTERNAL_SERVER_ERROR[39m)[33m.[39mjson({
+     [90m 72 |[39m     success[33m:[39m [36mfalse[39m[33m,[39m
+     [90m 73 |[39m     message[33m:[39m [33mERROR_MESSAGES[39m[33m.[39m[33mGENERIC[39m[33m.[39m[33mINTERNAL_ERROR[39m[33m,[39m[0m
+
+      at handleControllerError (modules/products/legacy/legacy.controller.ts:70:11)
+      at listProductsHandler (modules/products/legacy/legacy.controller.ts:87:5)
+
+  console.log
+    DEBUG disconnect stack Error: 
+        at NativeConnection.<anonymous> (D:\pharmacy-pos\backend\utils\mongoConnection.ts:14:27)
+        at NativeConnection.emit (node:events:518:28)
+        at NativeConnection.set (D:\pharmacy-pos\node_modules\.pnpm\mongoose@8.16.0_socks@2.8.5\node_modules\mongoose\lib\connection.js:145:12)
+        at NativeConnection.onClose (D:\pharmacy-pos\node_modules\.pnpm\mongoose@8.16.0_socks@2.8.5\node_modules\mongoose\lib\connection.js:1315:19)
+        at NativeConnection._close (D:\pharmacy-pos\node_modules\.pnpm\mongoose@8.16.0_socks@2.8.5\node_modules\mongoose\lib\connection.js:1264:12)
+        at Object.<anonymous> (D:\pharmacy-pos\backend\test\setup.ts:52:7)
+
+      at NativeConnection.log (utils/mongoConnection.ts:15:13)
+
+----------------------------------|---------|----------|---------|---------|--------------------------------------------------------------------------------------------------------------------------------
+File                              | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                                                                                              
+----------------------------------|---------|----------|---------|---------|--------------------------------------------------------------------------------------------------------------------------------
+All files                         |   13.03 |     0.76 |    0.89 |   13.08 |                                                                                                                                
+ backend                          |   86.11 |    37.77 |   16.66 |   86.11 |                                                                                                                                
+  app.ts                          |   86.11 |    37.77 |   16.66 |   86.11 | 100,160-182,198-201,246-247,252-254,267-268                                                                                    
+ backend/middleware               |     2.4 |        0 |       0 |    2.23 |                                                                                                                                
+  adminAuth.ts                    |       0 |        0 |       0 |       0 | 8-69                                                                                                                           
+  auth.ts                         |       0 |        0 |       0 |       0 | 1-113                                                                                                                          
+  doubleEntryValidation.ts        |       0 |        0 |       0 |       0 | 2-208                                                                                                                          
+  errorHandler.ts                 |       0 |        0 |       0 |       0 | 5-370                                                                                                                          
+  performanceMonitor.ts           |   10.81 |        0 |       0 |    9.85 | 21,26-116,122-170,195,200-204,216-224                                                                                          
+ backend/models                   |   43.82 |        0 |       0 |   45.53 |                                                                                                                                
+  Account2.ts                     |   57.14 |        0 |       0 |   57.14 | 164-189                                                                                                                        
+  AccountType.ts                  |       0 |        0 |       0 |       0 | 1-223                                                                                                                          
+  AccountingEntry.ts              |   72.22 |        0 |       0 |   72.22 | 107-115                                                                                                                        
+  AccountingRecord2.ts            |   84.61 |      100 |       0 |   84.61 | 83-85                                                                                                                          
+  BaseProduct.ts                  |   93.33 |      100 |       0 |   92.85 | 134                                                                                                                            
+  Category2.ts                    |     100 |      100 |     100 |     100 |                                                                                                                                
+  Customer.ts                     |    25.8 |        0 |       0 |   30.76 | 75-76,80-90,94-96,100-105                                                                                                      
+  Inventory.ts                    |     100 |      100 |     100 |     100 |                                                                                                                                
+  LinkReference.ts                |   34.88 |        0 |       0 |   34.88 | 53,124-160,168,175,183-185,190,195-198                                                                                         
+  MonitoredProduct.ts             |     100 |      100 |     100 |     100 |                                                                                                                                
+  Organization.ts                 |      50 |        0 |       0 |   51.85 | 149,154,159,165-175,180-181                                                                                                    
+  OvertimeRecord.ts               |   83.33 |      100 |       0 |   83.33 | 95-96                                                                                                                          
+  Package.ts                      |      40 |        0 |       0 |   41.17 | 36-65,81-85,90-98,103-104,110-112                                                                                              
+  ProductCategory.ts              |     100 |      100 |     100 |     100 |                                                                                                                                
+  ProductNote.ts                  |   30.35 |        0 |       0 |   32.07 | 154-195,200,212-234,243-246,251-252                                                                                            
+  ProductPackageUnit.ts           |       0 |        0 |       0 |       0 | 1-170                                                                                                                          
+  PurchaseOrder.ts                |   53.33 |        0 |       0 |   57.14 | 71,99,174-180                                                                                                                  
+  Sale.ts                         |   44.82 |        0 |       0 |   46.42 | 72,76-78,83,87,91-106                                                                                                          
+  ShiftTimeConfig.ts              |      75 |      100 |       0 |      75 | 34-45                                                                                                                          
+  ShippingOrder.ts                |   53.33 |        0 |       0 |   57.14 | 73,105,148-154                                                                                                                 
+  Supplier.ts                     |   61.53 |        0 |       0 |   61.53 | 59,74-85                                                                                                                       
+  SupplierAccountMapping.ts       |   32.25 |        0 |       0 |   35.71 | 112-138,146-152,160                                                                                                            
+  TransactionGroup.ts             |   43.75 |        0 |       0 |   43.75 | 108-139                                                                                                                        
+  TransactionGroupWithEntries.ts  |    40.5 |        0 |       0 |   43.24 | 350,394-425,430-462,467-479                                                                                                    
+  User.ts                         |   54.54 |        0 |       0 |      60 | 81-91                                                                                                                          
+ backend/routes                   |    8.98 |        0 |       0 |    9.31 |                                                                                                                                
+  accountBalances.ts              |   10.22 |        0 |       0 |   10.22 | 33-105,114-180,189-265                                                                                                         
+  accountingEntries.ts            |    5.47 |        0 |       0 |    6.01 | 19-179,188-330,339-514,523-654                                                                                                 
+  accountingRecords2.ts           |    5.57 |        0 |       0 |     5.7 | 19-115,124-188,197-225,234-390,400-568,578-620                                                                                 
+  accounts2.ts                    |    8.76 |        0 |       0 |    9.03 | 20-24,43-46,51-60,65-84,89-126,140,153,167-177,183-204,210-369,375-459,465-543,549-576,582-618,624-706,712-727,733-812,818-846 
+  auth.ts                         |    7.44 |        0 |       0 |    7.53 | 62-99,112-247,254-258,267-284,292-307,315-340,355-453,465-523,532-572,584-670,678-694,702-783,791-884,892-979                  
+  categories2.ts                  |    7.34 |        0 |       0 |    7.64 | 17-65,74-93,102-121,130-158,167-263,272-366,375-421,430-464                                                                    
+  config.ts                       |   38.46 |        0 |       0 |   38.46 | 21-44                                                                                                                          
+  csvImportApi.ts                 |    7.77 |        0 |       0 |    7.89 | 63-71,88-300,322-535                                                                                                           
+  dashboard.ts                    |   10.18 |        0 |       0 |   11.22 | 132-273,281-367                                                                                                                
+  fifo.ts                         |    7.17 |        0 |       0 |    7.37 | 56-120,128-254,262-384,392-528,538-582,711-800                                                                                 
+  inventory.ts                    |    9.23 |        0 |       0 |    9.39 | 39-41,72-82,90-116,130-201,210-276,284-306,314-335,343-398,406-477,485-526                                                     
+  linkGlobalUpdate.ts             |   13.11 |        0 |       0 |   13.11 | 10-105,115-191                                                                                                                 
+  linkReferences.ts               |   10.16 |        0 |       0 |   10.43 | 9-72,83-97,107-128,138-198,208-277,287-319,329-365                                                                             
+  monitoredProducts.ts            |   13.92 |        0 |       0 |   13.92 | 30-84,98-195,204-273                                                                                                           
+  monitoring.ts                   |   12.74 |        0 |       0 |   12.74 | 14-53,63-104,114-122,132-148,158-196,206-254,264-282,292-341                                                                   
+  organizations.ts                |      10 |        0 |       0 |   10.12 | 57-98,114-150,163-242,256-328,341-399,412-470,480-511                                                                          
+  packageUnits.ts                 |     100 |      100 |     100 |     100 |                                                                                                                                
+  packages.ts                     |    10.2 |        0 |       0 |   10.41 | 17-61,70-87,96-161,171-242,251-268,277-299,308-329,338-348,357-367                                                             
+  reports.ts                      |   12.85 |        0 |       0 |   13.04 | 35-173,181-283                                                                                                                 
+  settings.ts                     |   13.11 |        0 |       0 |   13.11 | 23-70,78-158                                                                                                                   
+  shiftTimeConfigs.ts             |    9.48 |        0 |       0 |    9.77 | 41-61,72-115,129-204,219-318,329-386                                                                                           
+  shippingOrdersImport.ts         |    7.72 |        0 |       0 |    7.83 | 85-93,110-455,464-487,495-689                                                                                                  
+  supplierAccountMappings.ts      |   14.88 |        0 |       0 |   16.02 | 63-70,75-92,104-108,113-117,121-123,133-159,169-203,213-228,235-253,265-316,329-385,396-409                                    
+  themes.ts                       |   11.11 |        0 |       0 |   11.33 | 26-30,37-56,64-80,88-122,134-203,211-264,272-343,351-405                                                                       
+  transactionGroups.ts            |    7.27 |        0 |       0 |    7.75 | 23-29,34-36,41-45,64-70,75-82,89-114,119-139,145-244,250-279,285-449,455-599,605-662,668-709,715-767,773-857,863-942           
+  transactionGroupsWithEntries.ts |    7.12 |        0 |       0 |    7.84 | 45-64,69-89,95-137,143-198,204-300,306-406,412-444,450-475,481-502,508-616,625-726,735-832                                     
+  userThemes.ts                   |       0 |        0 |       0 |       0 | 1-392                                                                                                                          
+  users.ts                        |      25 |        0 |       0 |   25.71 | 37-120                                                                                                                         
+ backend/routes/accounting2       |   85.89 |      100 |     100 |   85.89 |                                                                                                                                
+  accountRoutes.ts                |     100 |      100 |     100 |     100 |                                                                                                                                
+  accountTypes.ts                 |       0 |      100 |     100 |       0 | 1-32                                                                                                                           
+  fundingRoutes.ts                |     100 |      100 |     100 |     100 |                                                                                                                                
+  index.ts                        |     100 |      100 |     100 |     100 |                                                                                                                                
+  transactionRoutes.ts            |     100 |      100 |     100 |     100 |                                                                                                                                
+ backend/services                 |    1.48 |        0 |       0 |    1.55 |                                                                                                                                
+  AccountingIntegrationService.ts |    6.25 |        0 |       0 |    6.34 | 19-230                                                                                                                         
+  AutoAccountingEntryService.ts   |    4.76 |        0 |       0 |    5.08 | 20-403                                                                                                                         
+  CacheService.ts                 |       0 |        0 |       0 |       0 | 1-493                                                                                                                          
+  OptimizedProductService.ts      |       0 |        0 |       0 |       0 | 1-479                                                                                                                          
+  PackageUnitService.ts           |       0 |        0 |       0 |       0 | 1-371                                                                                                                          
+  accountBalanceService.ts        |       0 |        0 |       0 |       0 | 1-309                                                                                                                          
+ backend/services/accounting2     |    2.39 |        0 |       0 |    2.51 |                                                                                                                                
+  AccountService.ts               |     5.3 |        0 |       0 |    5.55 | 27-410                                                                                                                         
+  FundingService.ts               |    2.45 |        0 |       0 |    2.52 | 34-496                                                                                                                         
+  TransactionService.ts           |    1.41 |        0 |       0 |    1.48 | 25-1422                                                                                                                        
+  ValidationService.ts            |    3.03 |        0 |       0 |    3.18 | 44-668                                                                                                                         
+  index.ts                        |       0 |      100 |       0 |       0 | 6-12                                                                                                                           
+ backend/utils                    |   16.21 |     1.61 |    4.57 |   13.45 |                                                                                                                                
+  OrderNumberGenerator.ts         |    1.33 |        0 |       0 |    1.35 | 44-206                                                                                                                         
+  OrderNumberService.ts           |    7.14 |        0 |       0 |    7.14 | 29-172                                                                                                                         
+  codeGenerator.ts                |       0 |        0 |       0 |       0 | 8-240                                                                                                                          
+  doubleEntryValidation.ts        |       5 |        0 |       0 |    5.55 | 14-141                                                                                                                         
+  fifoCalculator.ts               |    5.42 |        0 |       0 |    3.28 | 137-263,278-355,377-477,486-625                                                                                                
+  fundingSourceHelpers.ts         |   20.33 |        0 |       0 |   13.46 | 14-44,53-77,93-128,139-167,175-180                                                                                             
+  logger.ts                       |      70 |    18.18 |   16.66 |   66.66 | 39,188,208-222,242-257,270,285                                                                                                 
+  mongoConnection.ts              |    64.7 |    46.66 |   85.71 |    64.7 | 18,29-33,48,52,65-69,73-80                                                                                                     
+  passwordUtils.ts                |   15.71 |        0 |       0 |   13.22 | 40-70,87-105,125-143,155-167,179-209,222-237,250-256,266-269,282-306,324-351,365-370,379-388                                   
+  pdfGenerator.ts                 |       0 |        0 |       0 |       0 | 35-346                                                                                                                         
+  responseHelpers.ts              |    32.5 |        0 |       0 |    32.5 | 16,31-41,57,73,82,96,109,122-126,140-143,155-159,168,181-190                                                                   
+  transactionFormatHelpers.ts     |   25.92 |        0 |       0 |   17.14 | 12-28,54-58,67-75,96-123,133,153-232,238-239,248-250,272-297                                                                   
+  transactionValidationHelpers.ts |   21.23 |        0 |       0 |   12.74 | 27,41,50-55,64-79,89-99,108-125,135-160,174-215,224-229,237-279,288-298                                                        
+----------------------------------|---------|----------|---------|---------|--------------------------------------------------------------------------------------------------------------------------------
+D:\pharmacy-pos\backend:
+?RR_PNPM_RECURSIVE_RUN_FIRST_FAIL??@pharmacy-pos/backend@1.0.0 test: `jest "--runTestsByPath" "routes/__tests__/products.integration.test.ts" "-t" "?府??鞈?摨恍??航炊"`
+Exit status 1

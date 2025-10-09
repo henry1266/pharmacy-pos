@@ -456,6 +456,11 @@ export const SUCCESS_MESSAGES = {
   FILE: {
     UPLOAD_SUCCESS: '檔案上傳成功',
     IMPORT_SUCCESS: '資料匯入成功'
+  },
+
+  PRODUCT: {
+    CREATED: '商品創建成功',
+    MEDICINE_CREATED: '藥品創建成功'
   }
 } as const;
 

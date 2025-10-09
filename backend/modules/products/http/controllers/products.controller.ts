@@ -172,7 +172,7 @@ export const productsController = server.router(productsContract, {
   createProduct: async ({ body }: CreateProductRequest) => {
     try {
       const product = await createProductService(body)
-      return successResponse(201, product, SUCCESS_MESSAGES.GENERIC.CREATED)
+      return successResponse(201, product, SUCCESS_MESSAGES.PRODUCT.CREATED)
     } catch (error) {
       return handleError(error, 'Failed to create product', [400, 409, 500] as const) as any
     }
@@ -180,7 +180,7 @@ export const productsController = server.router(productsContract, {
   createMedicine: async ({ body }: CreateMedicineRequest) => {
     try {
       const product = await createMedicineService(body)
-      return successResponse(201, product, SUCCESS_MESSAGES.GENERIC.CREATED)
+      return successResponse(201, product, SUCCESS_MESSAGES.PRODUCT.MEDICINE_CREATED)
     } catch (error) {
       return handleError(error, 'Failed to create medicine', [400, 409, 500] as const) as any
     }

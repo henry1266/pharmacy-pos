@@ -184,7 +184,7 @@ export function createApp(): Application {
     });
   }
   
-  // 設置Swagger UI - 優先使用保存的OpenAPI規範文件作為SSOT
+  // 設置Swagger UI
   const openapiPath = path.resolve(__dirname, '../openapi/openapi.json');
   let apiSpec = swaggerSpec;
   
@@ -193,7 +193,6 @@ export function createApp(): Application {
     try {
       const openapiContent = fs.readFileSync(openapiPath, 'utf8');
       apiSpec = JSON.parse(openapiContent);
-      console.log('使用保存的OpenAPI規範文件作為SSOT');
     } catch (err) {
       console.error('讀取OpenAPI規範文件失敗，使用動態生成的規範:', err);
     }

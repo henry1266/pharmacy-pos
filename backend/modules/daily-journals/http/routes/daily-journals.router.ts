@@ -7,7 +7,9 @@ import { accountingController } from '../controllers/accounting.controller'
 
 const router: Router = Router()
 
-router.use(auth)
+// Protect only the accounting contract routes to avoid intercepting other /api traffic
+router.use('/accounting', auth)
+router.use('/accounting-categories', auth)
 
 createExpressEndpoints(accountingContract, accountingController, router, {
   requestValidationErrorHandler: createValidationErrorHandler({

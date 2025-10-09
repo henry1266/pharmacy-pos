@@ -1,3 +1,3 @@
-import accountingRouter from './http/routes/accounting.router'
+import accountingRouter from './http/routes/daily-journals.router'
 
 export default accountingRouter

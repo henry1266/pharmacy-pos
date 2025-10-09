@@ -20,8 +20,7 @@ interface AuthenticatedRequest extends Request {
  * @constant {string} TEST_MODE_TOKEN - 測試模式使用的令牌
  * @constant {Object} TEST_MODE_USER - 測試模式使用的用戶對象
  */
-const TEST_MODE_ENABLED = process.env.REACT_APP_TEST_MODE === 'true';
-const TEST_MODE_TOKEN = 'test-mode-token';
+const DEFAULT_TEST_MODE_TOKEN = 'test-mode-token';
 const TEST_MODE_USER = {
   id: 'test-user-id'
 };
@@ -46,9 +45,12 @@ const auth = (req: AuthenticatedRequest, res: Response, next: NextFunction): voi
     }
   }
   
+  const testModeEnabled = process.env.REACT_APP_TEST_MODE === 'true';
+  const testModeToken = process.env.REACT_APP_TEST_TOKEN ?? DEFAULT_TEST_MODE_TOKEN;
+
   //console.log(`Auth middleware - Request path: ${req.originalUrl}`);
   //console.log(`Token found: ${token ? 'Yes' : 'No'}`);
-  console.log(`Test mode enabled: ${TEST_MODE_ENABLED}`);
+  console.log(`Test mode enabled: ${testModeEnabled}`);
 
   // 檢查是否有 token
   if (!token) {
@@ -63,7 +65,7 @@ const auth = (req: AuthenticatedRequest, res: Response, next: NextFunction): voi
   }
 
   // 檢查是否為測試模式 token
-  if (TEST_MODE_ENABLED && token === TEST_MODE_TOKEN) {
+  if (testModeEnabled && token === testModeToken) {
     console.log("Test mode token detected, bypassing JWT verification");
     req.user = TEST_MODE_USER;
     next();
