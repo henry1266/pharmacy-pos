@@ -81,8 +81,6 @@ sequenceDiagram
 └─ README.md / AGENTS.md / CONTRIBUTING.md / SECURITY.md / CHANGELOG.md
 ```
 
-> 備註：若當前倉庫尚未包含 `openapi/` 子模組，請先以 `shared/` 為準進行結構定義，後續再補齊 OpenAPI 並導入生成流程。
-
 ## 快速開始
 
 ### 1) 先決條件
@@ -203,8 +201,6 @@ agent_task:
 * 不得提交任何憑證、個資或機敏設定；請使用環境變數與密鑰管理。
 * 提交前請執行秘密掃描（CI 可加入 secret scanning）。
 * 測試資料需**去識別化**。
-
-詳見：[**SECURITY.md**](./SECURITY.md)
 
 ## 版本與發佈
 

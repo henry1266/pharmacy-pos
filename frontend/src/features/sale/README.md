@@ -2,6 +2,24 @@
 
 此模組涵蓋收銀/銷售的完整流程：銷售列表、建立/結帳、編輯、詳細檢視與刪除，並整合 RTK Query、Axios 客戶端、共用型別與多個 UI 子元件。內容也可作為本專案其他模組的結構範例。
 
+## SSOT 與 ts-rest 檢核摘要（2025-10-13）
+
+- **主要缺口**
+  - `backend/models/Sale.ts:15` 與 `shared/schemas/zod/sale.ts:15` 未對齊：缺少 `unitPrice`、`discount`、`discountAmount`，且 `paymentMethod` 未涵蓋 `'transfer'`、`'card'`。
+  - `backend/modules/sales/sales.types.ts:50`、`backend/modules/sales/utils/sales.utils.ts:148` 在建檔/更新時丟棄 Zod 定義欄位（例如 `discountAmount`、項目 `discount`），資料無法回填。
+  - 前端重複宣告不一致型別（如 `frontend/src/features/sale/types/detail.ts:21`、`frontend/src/features/sale/types/list.ts:24`、`frontend/src/features/sale/hooks/useSaleManagementV2.ts:24`）。
+  - `frontend/src/features/sale/utils/editUtils.ts:31` 將後端返回的 `discount` 歸零，違反 SSOT。
+  - `shared/services/salesApiClient.ts:1` 仍提供非 ts-rest 路徑，可能繞過契約。
+
+- **已符合項目**
+  - `shared/api/contracts/sales.ts:1` 重用 Zod schema，`backend/modules/sales/sales.routes.ts:1` 以 `createExpressEndpoints` 綁定契約。
+  - 前端主要資料流使用共享客戶端（`frontend/src/features/sale/api/client.ts:1`、`frontend/src/features/sale/api/saleApi.ts:1`），DTO 透過 `z.infer` 推導。
+
+- **建議下一步**
+  1. 將 Mongo Schema 及 `buildSaleFields` 與 SSOT 對齊，補整合測試確保 round-trip。
+  2. 移除前端重複型別，改用 shared 型別/guards，修正 discount 與 payment 流程。
+  3. 停用或移除 legacy `salesApiClient`，集中於 ts-rest 客戶端。
+
 ## 功能概述
 
 - 銷售列表：搜尋、萬用字元搜尋、預覽、刪除
