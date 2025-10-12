@@ -5,16 +5,8 @@ import { ErrorResponse } from '@pharmacy-pos/shared/types/api';
 export function validateSaleQuery() {
   return async function (req: Request, res: Response, next: NextFunction) {
     try {
-      // Load shared sale zod schema and merge with extra fields used by this endpoint
-      const saleSchemas: any = await import('@pharmacy-pos/shared/schemas/zod/sale');
-      const base = saleSchemas.saleSearchSchema as z.ZodObject<any>;
-      const extra = z.object({
-        search: z.string().trim().max(100).optional(),
-        wildcardSearch: z.string().trim().max(100).optional()
-      });
-      const schema = base.merge(extra);
-
-      const parsed = schema.safeParse(req.query);
+      const { saleQuerySchema } = await import('@pharmacy-pos/shared/schemas/zod/sale');
+      const parsed = (saleQuerySchema as z.ZodTypeAny).safeParse(req.query);
       if (!parsed.success) {
         const errorResponse: ErrorResponse = {
           success: false,
@@ -26,10 +18,9 @@ export function validateSaleQuery() {
       }
       next();
     } catch (err) {
-      // Fallback: minimal local validation to avoid blocking
       const fallback = z.object({
         search: z.string().trim().max(100).optional(),
-        wildcardSearch: z.string().trim().max(100).optional()
+        wildcardSearch: z.string().trim().max(100).optional(),
       });
       const parsed = fallback.safeParse(req.query);
       if (!parsed.success) {

@@ -18427,3 +18427,7 @@
 {"level":"\u001b[33mwarn\u001b[39m","message":"\u001b[33m產品 測試產品 庫存不足，當前總庫存: 1，請求數量: 5\u001b[39m","timestamp":"2025-10-09 15:50:57:5057"}
 {"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mlistSales failed: Database connection failed\u001b[39m","timestamp":"2025-10-09 15:50:59:5059"}
 {"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mFailed to list customers: Database connection failed\u001b[39m","timestamp":"2025-10-09 15:51:15:5115"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mFailed to list suppliers: Database connection failed\u001b[39m","timestamp":"2025-10-12 23:58:09:589"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"\u001b[33m產品 測試產品 庫存不足，當前總庫存: 1，請求數量: 5\u001b[39m","timestamp":"2025-10-12 23:58:13:5813"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mlistSales failed: Database connection failed\u001b[39m","timestamp":"2025-10-12 23:58:14:5814"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mFailed to list customers: Database connection failed\u001b[39m","timestamp":"2025-10-12 23:58:37:5837"}

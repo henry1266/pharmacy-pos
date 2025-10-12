@@ -57,9 +57,17 @@
                           "customer": {
                             "oneOf": [
                               {
-                                "type": "string",
-                                "minLength": 24,
-                                "maxLength": 24
+                                "oneOf": [
+                                  {
+                                    "type": "string",
+                                    "minLength": 24,
+                                    "maxLength": 24
+                                  },
+                                  {
+                                    "type": "string",
+                                    "minLength": 1
+                                  }
+                                ]
                               },
                               {
                                 "type": "object",
@@ -109,6 +117,11 @@
                                   "minimum": 0,
                                   "maximum": 999999.99
                                 },
+                                "unitPrice": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 999999.99
+                                },
                                 "discount": {
                                   "type": "number",
                                   "minimum": 0,
@@ -148,6 +161,11 @@
                             "minimum": 0,
                             "maximum": 9999999.99
                           },
+                          "discountAmount": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 9999999.99
+                          },
                           "paymentMethod": {
                             "type": "string",
                             "enum": [
@@ -176,9 +194,17 @@
                           "cashier": {
                             "oneOf": [
                               {
-                                "type": "string",
-                                "minLength": 24,
-                                "maxLength": 24
+                                "oneOf": [
+                                  {
+                                    "type": "string",
+                                    "minLength": 24,
+                                    "maxLength": 24
+                                  },
+                                  {
+                                    "type": "string",
+                                    "minLength": 1
+                                  }
+                                ]
                               },
                               {
                                 "type": "object",
@@ -200,6 +226,66 @@
                           },
                           "finalAmount": {
                             "type": "number"
+                          },
+                          "saleDate": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            ]
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "completed",
+                              "pending",
+                              "cancelled"
+                            ]
+                          },
+                          "user": {
+                            "oneOf": [
+                              {
+                                "oneOf": [
+                                  {
+                                    "type": "string",
+                                    "minLength": 24,
+                                    "maxLength": 24
+                                  },
+                                  {
+                                    "type": "string",
+                                    "minLength": 1
+                                  }
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "_id": {
+                                    "type": "string",
+                                    "minLength": 24,
+                                    "maxLength": 24
+                                  }
+                                },
+                                "additionalProperties": true
+                              }
+                            ]
+                          },
+                          "createdBy": {
+                            "oneOf": [
+                              {
+                                "type": "string",
+                                "minLength": 24,
+                                "maxLength": 24
+                              },
+                              {
+                                "type": "string",
+                                "minLength": 1
+                              }
+                            ]
                           },
                           "createdAt": {
                             "oneOf": [
@@ -340,7 +426,17 @@
                     ]
                   },
                   "customer": {
-                    "type": "string"
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "minLength": 24,
+                        "maxLength": 24
+                      },
+                      {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    ]
                   },
                   "items": {
                     "type": "array",
@@ -358,6 +454,11 @@
                           "maximum": 999999
                         },
                         "price": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 999999.99
+                        },
+                        "unitPrice": {
                           "type": "number",
                           "minimum": 0,
                           "maximum": 999999.99
@@ -397,6 +498,11 @@
                     "minimum": 0,
                     "maximum": 9999999.99
                   },
+                  "discountAmount": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 9999999.99
+                  },
                   "paymentMethod": {
                     "type": "string",
                     "enum": [
@@ -423,7 +529,17 @@
                     "maxLength": 1000
                   },
                   "cashier": {
-                    "type": "string"
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "minLength": 24,
+                        "maxLength": 24
+                      },
+                      {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    ]
                   }
                 },
                 "required": [
@@ -483,9 +599,17 @@
                         "customer": {
                           "oneOf": [
                             {
-                              "type": "string",
-                              "minLength": 24,
-                              "maxLength": 24
+                              "oneOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 24,
+                                  "maxLength": 24
+                                },
+                                {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              ]
                             },
                             {
                               "type": "object",
@@ -535,6 +659,11 @@
                                 "minimum": 0,
                                 "maximum": 999999.99
                               },
+                              "unitPrice": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 999999.99
+                              },
                               "discount": {
                                 "type": "number",
                                 "minimum": 0,
@@ -574,6 +703,11 @@
                           "minimum": 0,
                           "maximum": 9999999.99
                         },
+                        "discountAmount": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 9999999.99
+                        },
                         "paymentMethod": {
                           "type": "string",
                           "enum": [
@@ -602,9 +736,17 @@
                         "cashier": {
                           "oneOf": [
                             {
-                              "type": "string",
-                              "minLength": 24,
-                              "maxLength": 24
+                              "oneOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 24,
+                                  "maxLength": 24
+                                },
+                                {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              ]
                             },
                             {
                               "type": "object",
@@ -626,6 +768,66 @@
                         },
                         "finalAmount": {
                           "type": "number"
+                        },
+                        "saleDate": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          ]
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "completed",
+                            "pending",
+                            "cancelled"
+                          ]
+                        },
+                        "user": {
+                          "oneOf": [
+                            {
+                              "oneOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 24,
+                                  "maxLength": 24
+                                },
+                                {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              ]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "_id": {
+                                  "type": "string",
+                                  "minLength": 24,
+                                  "maxLength": 24
+                                }
+                              },
+                              "additionalProperties": true
+                            }
+                          ]
+                        },
+                        "createdBy": {
+                          "oneOf": [
+                            {
+                              "type": "string",
+                              "minLength": 24,
+                              "maxLength": 24
+                            },
+                            {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          ]
                         },
                         "createdAt": {
                           "oneOf": [
@@ -863,9 +1065,17 @@
                           "customer": {
                             "oneOf": [
                               {
-                                "type": "string",
-                                "minLength": 24,
-                                "maxLength": 24
+                                "oneOf": [
+                                  {
+                                    "type": "string",
+                                    "minLength": 24,
+                                    "maxLength": 24
+                                  },
+                                  {
+                                    "type": "string",
+                                    "minLength": 1
+                                  }
+                                ]
                               },
                               {
                                 "type": "object",
@@ -915,6 +1125,11 @@
                                   "minimum": 0,
                                   "maximum": 999999.99
                                 },
+                                "unitPrice": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 999999.99
+                                },
                                 "discount": {
                                   "type": "number",
                                   "minimum": 0,
@@ -954,6 +1169,11 @@
                             "minimum": 0,
                             "maximum": 9999999.99
                           },
+                          "discountAmount": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 9999999.99
+                          },
                           "paymentMethod": {
                             "type": "string",
                             "enum": [
@@ -982,9 +1202,17 @@
                           "cashier": {
                             "oneOf": [
                               {
-                                "type": "string",
-                                "minLength": 24,
-                                "maxLength": 24
+                                "oneOf": [
+                                  {
+                                    "type": "string",
+                                    "minLength": 24,
+                                    "maxLength": 24
+                                  },
+                                  {
+                                    "type": "string",
+                                    "minLength": 1
+                                  }
+                                ]
                               },
                               {
                                 "type": "object",
@@ -1006,6 +1234,66 @@
                           },
                           "finalAmount": {
                             "type": "number"
+                          },
+                          "saleDate": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            ]
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "completed",
+                              "pending",
+                              "cancelled"
+                            ]
+                          },
+                          "user": {
+                            "oneOf": [
+                              {
+                                "oneOf": [
+                                  {
+                                    "type": "string",
+                                    "minLength": 24,
+                                    "maxLength": 24
+                                  },
+                                  {
+                                    "type": "string",
+                                    "minLength": 1
+                                  }
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "_id": {
+                                    "type": "string",
+                                    "minLength": 24,
+                                    "maxLength": 24
+                                  }
+                                },
+                                "additionalProperties": true
+                              }
+                            ]
+                          },
+                          "createdBy": {
+                            "oneOf": [
+                              {
+                                "type": "string",
+                                "minLength": 24,
+                                "maxLength": 24
+                              },
+                              {
+                                "type": "string",
+                                "minLength": 1
+                              }
+                            ]
                           },
                           "createdAt": {
                             "oneOf": [
@@ -1185,9 +1473,17 @@
                         "customer": {
                           "oneOf": [
                             {
-                              "type": "string",
-                              "minLength": 24,
-                              "maxLength": 24
+                              "oneOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 24,
+                                  "maxLength": 24
+                                },
+                                {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              ]
                             },
                             {
                               "type": "object",
@@ -1237,6 +1533,11 @@
                                 "minimum": 0,
                                 "maximum": 999999.99
                               },
+                              "unitPrice": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 999999.99
+                              },
                               "discount": {
                                 "type": "number",
                                 "minimum": 0,
@@ -1276,6 +1577,11 @@
                           "minimum": 0,
                           "maximum": 9999999.99
                         },
+                        "discountAmount": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 9999999.99
+                        },
                         "paymentMethod": {
                           "type": "string",
                           "enum": [
@@ -1304,9 +1610,17 @@
                         "cashier": {
                           "oneOf": [
                             {
-                              "type": "string",
-                              "minLength": 24,
-                              "maxLength": 24
+                              "oneOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 24,
+                                  "maxLength": 24
+                                },
+                                {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              ]
                             },
                             {
                               "type": "object",
@@ -1328,6 +1642,66 @@
                         },
                         "finalAmount": {
                           "type": "number"
+                        },
+                        "saleDate": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          ]
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "completed",
+                            "pending",
+                            "cancelled"
+                          ]
+                        },
+                        "user": {
+                          "oneOf": [
+                            {
+                              "oneOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 24,
+                                  "maxLength": 24
+                                },
+                                {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              ]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "_id": {
+                                  "type": "string",
+                                  "minLength": 24,
+                                  "maxLength": 24
+                                }
+                              },
+                              "additionalProperties": true
+                            }
+                          ]
+                        },
+                        "createdBy": {
+                          "oneOf": [
+                            {
+                              "type": "string",
+                              "minLength": 24,
+                              "maxLength": 24
+                            },
+                            {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          ]
                         },
                         "createdAt": {
                           "oneOf": [
@@ -1546,7 +1920,17 @@
                     ]
                   },
                   "customer": {
-                    "type": "string"
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "minLength": 24,
+                        "maxLength": 24
+                      },
+                      {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    ]
                   },
                   "items": {
                     "type": "array",
@@ -1564,6 +1948,11 @@
                           "maximum": 999999
                         },
                         "price": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 999999.99
+                        },
+                        "unitPrice": {
                           "type": "number",
                           "minimum": 0,
                           "maximum": 999999.99
@@ -1603,6 +1992,11 @@
                     "minimum": 0,
                     "maximum": 9999999.99
                   },
+                  "discountAmount": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 9999999.99
+                  },
                   "paymentMethod": {
                     "type": "string",
                     "enum": [
@@ -1629,7 +2023,17 @@
                     "maxLength": 1000
                   },
                   "cashier": {
-                    "type": "string"
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "minLength": 24,
+                        "maxLength": 24
+                      },
+                      {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    ]
                   }
                 }
               }
@@ -1684,9 +2088,17 @@
                         "customer": {
                           "oneOf": [
                             {
-                              "type": "string",
-                              "minLength": 24,
-                              "maxLength": 24
+                              "oneOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 24,
+                                  "maxLength": 24
+                                },
+                                {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              ]
                             },
                             {
                               "type": "object",
@@ -1736,6 +2148,11 @@
                                 "minimum": 0,
                                 "maximum": 999999.99
                               },
+                              "unitPrice": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 999999.99
+                              },
                               "discount": {
                                 "type": "number",
                                 "minimum": 0,
@@ -1775,6 +2192,11 @@
                           "minimum": 0,
                           "maximum": 9999999.99
                         },
+                        "discountAmount": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 9999999.99
+                        },
                         "paymentMethod": {
                           "type": "string",
                           "enum": [
@@ -1803,9 +2225,17 @@
                         "cashier": {
                           "oneOf": [
                             {
-                              "type": "string",
-                              "minLength": 24,
-                              "maxLength": 24
+                              "oneOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 24,
+                                  "maxLength": 24
+                                },
+                                {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              ]
                             },
                             {
                               "type": "object",
@@ -1827,6 +2257,66 @@
                         },
                         "finalAmount": {
                           "type": "number"
+                        },
+                        "saleDate": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          ]
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "completed",
+                            "pending",
+                            "cancelled"
+                          ]
+                        },
+                        "user": {
+                          "oneOf": [
+                            {
+                              "oneOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 24,
+                                  "maxLength": 24
+                                },
+                                {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              ]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "_id": {
+                                  "type": "string",
+                                  "minLength": 24,
+                                  "maxLength": 24
+                                }
+                              },
+                              "additionalProperties": true
+                            }
+                          ]
+                        },
+                        "createdBy": {
+                          "oneOf": [
+                            {
+                              "type": "string",
+                              "minLength": 24,
+                              "maxLength": 24
+                            },
+                            {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          ]
                         },
                         "createdAt": {
                           "oneOf": [

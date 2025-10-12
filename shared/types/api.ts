@@ -6,6 +6,15 @@
 
 import type { PurchaseOrder as SharedPurchaseOrder, PurchaseOrderRequest as SharedPurchaseOrderCreateRequest, PurchaseOrderUpdateRequest as SharedPurchaseOrderUpdateRequest } from './purchase-order';
 import type { ShippingOrder as SharedShippingOrder, ShippingOrderCreateRequest as SharedShippingOrderCreateRequest, ShippingOrderUpdateRequest as SharedShippingOrderUpdateRequest, ShippingOrderSearchParams as SharedShippingOrderSearchParams } from './shipping-order';
+import type {
+  CreateSaleInput,
+  PaymentMethod,
+  PaymentStatus,
+  SaleEntity,
+  SaleItem,
+  SaleQueryInput,
+  UpdateSaleInput,
+} from '../schemas/zod/sale';
 
 
 /**
@@ -212,64 +221,14 @@ export interface ProductResponse {
 /**
  * 銷售相關 API 型別
  */
-export interface SaleCreateRequest {
-  saleNumber?: string;
-  date?: string;
-  customer?: string;
-  items: Array<{
-    product: string;
-    quantity: number;
-    price?: number;
-    unitPrice?: number;
-    discount?: number;
-    subtotal?: number;
-    notes?: string;
-  }>;
-  totalAmount?: number;
-  discount?: number;
-  discountAmount?: number;
-  paymentMethod: 'cash' | 'card' | 'transfer' | 'other' | 'credit_card' | 'debit_card' | 'mobile_payment';
-  paymentStatus?: 'paid' | 'pending' | 'partial' | 'cancelled';
-  notes?: string;
-}
-
-export interface SaleResponse {
-  _id: string;
-  saleNumber: string;
-  customer?: {
-    _id: string;
-    name: string;
-  };
-  items: Array<{
-    _id?: string;
-    product: {
-      _id: string;
-      name: string;
-      code?: string;
-    };
-    quantity: number;
-    price: number;
-    unitPrice?: number;
-    subtotal: number;
-    discount?: number;
-    notes?: string;
-  }>;
-  totalAmount: number;
-  discount?: number;
-  discountAmount?: number;
-  finalAmount?: number;
-  paymentMethod: string;
-  paymentStatus: string;
-  date: Date | string;
-  saleDate?: Date | string;
-  cashier?: {
-    _id: string;
-    username: string;
-  };
-  notes?: string;
-  createdAt: Date | string;
-  updatedAt: Date | string;
-}
+export type SaleItemRequest = SaleItem;
+export type SaleCreateRequest = CreateSaleInput;
+export type SaleUpdateRequest = UpdateSaleInput;
+export type SaleResponse = SaleEntity;
+export type SaleQueryRequest = SaleQueryInput;
+export type SaleQueryParams = SaleQueryInput;
+export type SalePaymentMethod = PaymentMethod;
+export type SalePaymentStatus = PaymentStatus;
 
 /**
  * 採購訂單相關 API 型別

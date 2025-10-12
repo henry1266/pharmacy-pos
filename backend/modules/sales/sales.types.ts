@@ -40,22 +40,22 @@ export interface InventoryCheckResult {
 export interface SaleItemInput {
   product: string;
   quantity: number;
-  price?: number;
-  unitPrice?: number;
-  discount?: number;
-  subtotal?: number;
-  notes?: string;
+  price?: number | undefined;
+  unitPrice?: number | undefined;
+  discount?: number | undefined;
+  subtotal?: number | undefined;
+  notes?: string | undefined;
 }
 
 export interface SaleFieldsInput {
   saleNumber: string;
-  customer?: string;
+  customer?: string | undefined;
   items: SaleItemInput[];
   totalAmount: number;
-  discount?: number;
-  paymentMethod?: string;
-  paymentStatus?: string;
-  notes?: string;
+  discount?: number | undefined;
+  paymentMethod?: string | undefined;
+  paymentStatus?: string | undefined;
+  notes?: string | undefined;
   cashier?: string | undefined;
 }
 
