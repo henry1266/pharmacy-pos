@@ -142,6 +142,17 @@ sequenceDiagram
 * OpenAPI 變更需伴隨 **相容性（SemVer）** 說明與 **valid/invalid 測試樣本**。
 * 前端表單驗證以 `shared/` schema 或由其衍生的型別/守衛為準。
 
+## 目前評估狀況
+
+* **SSOT 強化**：`shared/schemas/zod/sale.ts` 已補上付款枚舉、折扣欄位、狀態與 `saleDate`，`shared/types/api.ts` 也改用 `z.infer` 型別輸出。
+* **後端型別同步**：`sales.types.ts` 的 `SaleItemInput`、`SaleFieldsInput` 已允許 `undefined`；`validateSaleQuery` 直接載入 shared `saleQuerySchema`；`pnpm --filter @pharmacy-pos/shared build`、`pnpm --filter @pharmacy-pos/backend type-check` 均能通過。
+* **尚待處理**：OpenAPI diff 與 SDK 尚未重新產出；前端仍使用 axios client；後端部分 service/controller 仍有舊型別需汰換。
+
+> **建議後續行動**
+> 1. 執行 `pnpm --filter @pharmacy-pos/shared run generate:openapi` 同步契約並附上 diff。
+> 2. 將前端銷售模組改用 shared `createSalesContractClient` 與 ts-rest 流程。
+> 3. 持續把後端 middleware/service 切換為 shared alias，逐步移除 legacy controller/service 內容。
+
 ## 品質保證與規範
 
 * **ESLint + Prettier**：統一程式風格與可讀性。
