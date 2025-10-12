@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, ChangeEvent, useRef } from 'react';
 import { createSale } from '@/services/salesServiceV2';
 import { Product } from '@pharmacy-pos/shared/types/entities';
-import type { Sale } from '@pharmacy-pos/shared';
+import type { SaleCreateRequest } from '@/features/sale/api/dto';
 import { Package } from '@pharmacy-pos/shared/types/package';
 
 /**
@@ -339,26 +339,29 @@ const useSaleManagementV2 = (
   }, [showSnackbar]);
 
   // 準備銷售數據
-  const prepareSaleData = useCallback((finalSaleNumber: string): Partial<Sale> => {
-    const data: Partial<Sale> = {
+  const prepareSaleData = useCallback((finalSaleNumber: string): SaleCreateRequest => {
+    const items = currentSale.items.map((item) => ({
+      product: item.product,
+      quantity: item.quantity,
+      price: item.price,
+      subtotal: item.subtotal,
+    }));
+
+    const payload: SaleCreateRequest = {
       saleNumber: finalSaleNumber,
-      items: currentSale.items.map(item => ({
-        product: item.product,
-        quantity: item.quantity,
-        price: item.price,
-        subtotal: item.subtotal
-      })) as any, // align with shared type (product can be string | Product)
+      items,
       totalAmount: currentSale.totalAmount,
       discount: currentSale.discount,
-      paymentMethod: currentSale.paymentMethod as any,
-      paymentStatus: currentSale.paymentStatus as any,
-      notes: currentSale.notes || ''
+      paymentMethod: currentSale.paymentMethod as SaleCreateRequest['paymentMethod'],
+      paymentStatus: currentSale.paymentStatus as SaleCreateRequest['paymentStatus'],
+      notes: currentSale.notes || '',
     };
-    // Only include customer when present to satisfy exactOptionalPropertyTypes
+
     if (currentSale.customer) {
-      (data as any).customer = currentSale.customer;
+      payload.customer = currentSale.customer;
     }
-    return data;
+
+    return payload;
   }, [currentSale]);
 
   // 重置表單

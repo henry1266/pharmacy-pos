@@ -10,17 +10,7 @@ import { SaleQueryParams } from '../api/dto';
 /**
  * 銷售列表篩選條件
  */
-export interface SaleListFilter extends SaleQueryParams {
-  startDate?: string;
-  endDate?: string;
-  customer?: string;
-  paymentMethod?: string;
-  paymentStatus?: string;
-  status?: string;
-  minAmount?: number;
-  maxAmount?: number;
-  search?: string;
-}
+export type SaleListFilter = SaleQueryParams;
 
 /**
  * 銷售列表排序

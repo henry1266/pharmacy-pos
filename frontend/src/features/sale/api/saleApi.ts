@@ -1,198 +1,276 @@
-/**
- * Sale API
- * 使用 RTK Query 定義 API 端點
- */
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import {
+import type { FetchBaseQueryError } from '@reduxjs/toolkit/query';
+import { salesContractClient } from './client';
+import type {
   SaleResponseDto,
   SaleCreateRequest,
   SaleQueryParams,
-  PaginatedResponse,
-  SaleStatsResponseDto,
-  SaleRefundRequestDto,
-  SaleRefundResponseDto,
   ApiResponse,
-  mapSaleResponseToSaleData,
-  SaleDataDto
+  SaleDataDto,
 } from './dto';
-import { saleApiClient } from './client';
+import { mapSaleResponseToSaleData } from './dto';
+
+type ListSalesArgs = Parameters<typeof salesContractClient.listSales>[0];
+type GetSaleByIdArgs = Parameters<typeof salesContractClient.getSaleById>[0];
+type CreateSaleArgs = Parameters<typeof salesContractClient.createSale>[0];
+type UpdateSaleArgs = Parameters<typeof salesContractClient.updateSale>[0];
+type DeleteSaleArgs = Parameters<typeof salesContractClient.deleteSale>[0];
+type GetTodaySalesArgs = Parameters<typeof salesContractClient.getTodaySales>[0];
+
+type SuccessEnvelope<T> = {
+  success: true;
+  data?: T;
+  message?: string;
+};
+
+const toFetchError = (status: number, body: unknown): FetchBaseQueryError => ({
+  status,
+  data: body,
+});
+
+const toUnknownFetchError = (error: unknown): FetchBaseQueryError => ({
+  status: 'FETCH_ERROR',
+  data: undefined,
+  error: error instanceof Error ? error.message : 'Unknown error',
+});
+
+const isSuccessEnvelope = <T>(body: unknown): body is SuccessEnvelope<T> => (
+  typeof body === 'object'
+  && body !== null
+  && 'success' in body
+  && (body as { success?: boolean }).success === true
+);
+
+const extractSalesList = (body: unknown): SaleResponseDto[] => {
+  if (Array.isArray(body)) {
+    return body as SaleResponseDto[];
+  }
+
+  if (isSuccessEnvelope<SaleResponseDto[] | SaleResponseDto>(body)) {
+    const data = body.data;
+    if (Array.isArray(data)) {
+      return data as SaleResponseDto[];
+    }
+    if (data) {
+      return [data as SaleResponseDto];
+    }
+  }
+
+  return [];
+};
+
+const extractSale = (body: unknown): SaleResponseDto | undefined => {
+  if (!body) {
+    return undefined;
+  }
+
+  if (Array.isArray(body)) {
+    return (body[0] ?? undefined) as SaleResponseDto | undefined;
+  }
+
+  if (isSuccessEnvelope<SaleResponseDto>(body)) {
+    if (Array.isArray(body.data)) {
+      return (body.data[0] ?? undefined) as SaleResponseDto | undefined;
+    }
+    return body.data as SaleResponseDto | undefined;
+  }
+
+  return body as SaleResponseDto;
+};
+
+const buildListSalesArgs = (params?: SaleQueryParams | void): ListSalesArgs => {
+  const normalized = params ?? undefined;
+  if (normalized && Object.keys(normalized).length > 0) {
+    return { query: normalized } as ListSalesArgs;
+  }
+  return {} as ListSalesArgs;
+};
 
 export const saleApi = createApi({
   reducerPath: 'saleApi',
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
-  tagTypes: ['Sale', 'SaleStats'],
+  tagTypes: ['Sale'],
   endpoints: (builder) => ({
-    // 銷售清單
-    getSales: builder.query<PaginatedResponse<SaleResponseDto>, SaleQueryParams | void>({
+    getSales: builder.query<SaleResponseDto[], SaleQueryParams | void>({
       queryFn: async (params = {}) => {
         try {
-          const response = await saleApiClient.get('/sales', { params });
-          return { data: response.data };
-        } catch (error: any) {
-          return { error: { status: error.status, data: error.message } };
+          const args = buildListSalesArgs(params);
+          const result = await salesContractClient.listSales(args);
+
+          if (result.status === 200) {
+            return { data: extractSalesList(result.body) };
+          }
+
+          return { error: toFetchError(result.status, result.body) };
+        } catch (error) {
+          return { error: toUnknownFetchError(error) };
         }
       },
-      providesTags: (result) =>
-        result
-          ? [
-              ...result.data.map(({ _id }) => ({ type: 'Sale' as const, id: _id })),
-              { type: 'Sale', id: 'LIST' }
-            ]
-          : [{ type: 'Sale', id: 'LIST' }]
+      providesTags: (result) => (result && result.length > 0)
+        ? [
+          ...result.map((sale) => ({
+            type: 'Sale' as const,
+            id: (sale as SaleResponseDto & { id?: string }).id ?? sale._id,
+          })),
+          { type: 'Sale', id: 'LIST' },
+        ]
+        : [{ type: 'Sale', id: 'LIST' }],
     }),
 
-    // 取得單筆銷售
     getSaleById: builder.query<SaleResponseDto, string>({
       queryFn: async (id) => {
         try {
-          const response = await saleApiClient.get(`/sales/${id}`);
-          return { data: response.data };
-        } catch (error: any) {
-          return { error: { status: error.status, data: error.message } };
+          const result = await salesContractClient.getSaleById({
+            params: { id },
+          } as GetSaleByIdArgs);
+
+          if (result.status === 200) {
+            const sale = extractSale(result.body);
+            if (sale) {
+              return { data: sale };
+            }
+          }
+
+          if (result.status === 404) {
+            return {
+              error: toFetchError(result.status, result.body ?? { message: 'Sale not found' }),
+            };
+          }
+
+          return { error: toFetchError(result.status, result.body) };
+        } catch (error) {
+          return { error: toUnknownFetchError(error) };
         }
       },
-      providesTags: (_result, _error, id) => [{ type: 'Sale', id }]
+      providesTags: (_result, _error, id) => [{ type: 'Sale', id }],
     }),
 
-    // 取得單筆並轉為前端使用格式
     getSaleDataById: builder.query<SaleDataDto, string>({
       queryFn: async (id) => {
         try {
-          const response = await saleApiClient.get(`/sales/${id}`);
-          const saleData = mapSaleResponseToSaleData(response.data.data);
-          return { data: saleData };
-        } catch (error: any) {
-          return { error: { status: error.status, data: error.message } };
+          const result = await salesContractClient.getSaleById({
+            params: { id },
+          } as GetSaleByIdArgs);
+
+          if (result.status === 200) {
+            const sale = extractSale(result.body);
+            if (sale) {
+              return { data: mapSaleResponseToSaleData(sale) };
+            }
+          }
+
+          if (result.status === 404) {
+            return {
+              error: toFetchError(result.status, result.body ?? { message: 'Sale not found' }),
+            };
+          }
+
+          return { error: toFetchError(result.status, result.body) };
+        } catch (error) {
+          return { error: toUnknownFetchError(error) };
         }
       },
-      providesTags: (_result, _error, id) => [{ type: 'Sale', id }]
+      providesTags: (_result, _error, id) => [{ type: 'Sale', id }],
     }),
 
-    // 新增銷售
     createSale: builder.mutation<SaleResponseDto, SaleCreateRequest>({
-      queryFn: async (saleData) => {
+      queryFn: async (payload) => {
         try {
-          const response = await saleApiClient.post('/sales', saleData);
-          return { data: response.data };
-        } catch (error: any) {
-          return { error: { status: error.status, data: error.message } };
+          const result = await salesContractClient.createSale({
+            body: payload,
+          } as CreateSaleArgs);
+
+          if (result.status === 200) {
+            const sale = extractSale(result.body);
+            if (sale) {
+              return { data: sale };
+            }
+          }
+
+          return { error: toFetchError(result.status, result.body) };
+        } catch (error) {
+          return { error: toUnknownFetchError(error) };
         }
       },
-      invalidatesTags: [{ type: 'Sale', id: 'LIST' }, { type: 'SaleStats' }]
+      invalidatesTags: [{ type: 'Sale', id: 'LIST' }],
     }),
 
-    // 更新銷售
     updateSale: builder.mutation<SaleResponseDto, { id: string; data: SaleCreateRequest }>({
       queryFn: async ({ id, data }) => {
         try {
-          const response = await saleApiClient.put(`/sales/${id}`, data);
-          return { data: response.data };
-        } catch (error: any) {
-          return { error: { status: error.status, data: error.message } };
+          const result = await salesContractClient.updateSale({
+            params: { id },
+            body: data,
+          } as UpdateSaleArgs);
+
+          if (result.status === 200) {
+            const sale = extractSale(result.body);
+            if (sale) {
+              return { data: sale };
+            }
+          }
+
+          return { error: toFetchError(result.status, result.body) };
+        } catch (error) {
+          return { error: toUnknownFetchError(error) };
         }
       },
       invalidatesTags: (_result, _error, { id }) => [
         { type: 'Sale', id },
         { type: 'Sale', id: 'LIST' },
-        { type: 'SaleStats' }
-      ]
+      ],
     }),
 
-    // 刪除銷售
     deleteSale: builder.mutation<ApiResponse<{ id: string }>, string>({
       queryFn: async (id) => {
         try {
-          const response = await saleApiClient.delete(`/sales/${id}`);
-          return { data: response.data };
-        } catch (error: any) {
-          return { error: { status: error.status, data: error.message } };
+          const result = await salesContractClient.deleteSale({
+            params: { id },
+          } as DeleteSaleArgs);
+
+          if (result.status === 200 && isSuccessEnvelope<{ id?: string }>(result.body)) {
+            const payloadId = result.body.data?.id ?? id;
+            return {
+              data: {
+                success: true,
+                data: { id: payloadId },
+                message: result.body.message ?? 'Sale deleted',
+              },
+            };
+          }
+
+          return { error: toFetchError(result.status, result.body) };
+        } catch (error) {
+          return { error: toUnknownFetchError(error) };
         }
       },
       invalidatesTags: (_result, _error, id) => [
         { type: 'Sale', id },
         { type: 'Sale', id: 'LIST' },
-        { type: 'SaleStats' }
-      ]
+      ],
     }),
 
-    // 銷售統計
-    getSaleStats: builder.query<SaleStatsResponseDto, { startDate?: string; endDate?: string } | void>({
-      queryFn: async (params = {}) => {
+    getTodaySales: builder.query<SaleResponseDto[], void>({
+      queryFn: async () => {
         try {
-          const response = await saleApiClient.get('/sales/stats', { params });
-          return { data: response.data };
-        } catch (error: any) {
-          return { error: { status: error.status, data: error.message } };
-        }
-      },
-      providesTags: [{ type: 'SaleStats' }]
-    }),
+          const result = await salesContractClient.getTodaySales(
+            undefined as GetTodaySalesArgs,
+          );
 
-    // 客戶銷售
-    getCustomerSales: builder.query<PaginatedResponse<SaleResponseDto>, { customerId: string; params?: SaleQueryParams }>({
-      queryFn: async ({ customerId, params = {} }) => {
-        try {
-          const response = await saleApiClient.get(`/customers/${customerId}/sales`, { params });
-          return { data: response.data };
-        } catch (error: any) {
-          return { error: { status: error.status, data: error.message } };
-        }
-      },
-      providesTags: (_result, _error, { customerId }) => [
-        { type: 'Sale', id: `customer-${customerId}` },
-        { type: 'Sale', id: 'LIST' }
-      ]
-    }),
+          if (result.status === 200) {
+            return { data: extractSalesList(result.body) };
+          }
 
-    // 今日銷售（由後端 /sales/today 提供）
-    getTodaySales: builder.query<PaginatedResponse<SaleResponseDto>, SaleQueryParams | void>({
-      queryFn: async (params = {}) => {
-        try {
-          const response = await saleApiClient.get('/sales/today', { params });
-          return { data: response.data };
-        } catch (error: any) {
-          return { error: { status: error.status, data: error.message } };
+          return { error: toFetchError(result.status, result.body) };
+        } catch (error) {
+          return { error: toUnknownFetchError(error) };
         }
       },
-      providesTags: [{ type: 'Sale', id: 'TODAY' }, { type: 'Sale', id: 'LIST' }]
+      providesTags: [{ type: 'Sale', id: 'TODAY' }],
     }),
-
-    // 月度銷售
-    getMonthlySales: builder.query<PaginatedResponse<SaleResponseDto>, { year: number; month: number; params?: SaleQueryParams }>({
-      queryFn: async ({ year, month, params = {} }) => {
-        try {
-          const response = await saleApiClient.get(`/sales/monthly/${year}/${month}`, { params });
-          return { data: response.data };
-        } catch (error: any) {
-          return { error: { status: error.status, data: error.message } };
-        }
-      },
-      providesTags: (_result, _error, { year, month }) => [
-        { type: 'Sale', id: `monthly-${year}-${month}` },
-        { type: 'Sale', id: 'LIST' }
-      ]
-    }),
-
-    // 退款
-    processRefund: builder.mutation<SaleRefundResponseDto, SaleRefundRequestDto>({
-      queryFn: async (refundData) => {
-        try {
-          const response = await saleApiClient.post('/sales/refund', refundData);
-          return { data: response.data };
-        } catch (error: any) {
-          return { error: { status: error.status, data: error.message } };
-        }
-      },
-      invalidatesTags: (_result, _error, { saleId }) => [
-        { type: 'Sale', id: saleId },
-        { type: 'Sale', id: 'LIST' },
-        { type: 'SaleStats' }
-      ]
-    })
-  })
+  }),
 });
 
-// 導出 hooks
 export const {
   useGetSalesQuery,
   useGetSaleByIdQuery,
@@ -200,12 +278,7 @@ export const {
   useCreateSaleMutation,
   useUpdateSaleMutation,
   useDeleteSaleMutation,
-  useGetSaleStatsQuery,
-  useGetCustomerSalesQuery,
   useGetTodaySalesQuery,
-  useGetMonthlySalesQuery,
-  useProcessRefundMutation
 } = saleApi;
 
 export default saleApi;
-

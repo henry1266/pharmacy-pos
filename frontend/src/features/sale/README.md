@@ -149,7 +149,7 @@ sale/
 - 新增 API 端點
   1) 在 `api/dto.ts` 補齊請求/回應型別（必要時提供 map 函式）。
   2) 於 `api/saleApi.ts` 增加 endpoint，回傳/失敗以 `queryFn` 統一處理。
-  3) 需要攜帶認證時，直接使用 `saleApiClient`。
+  3) 需要攜帶認證時，直接使用 `salesContractClient`。
 - 新增頁面或功能
   1) 依場景放入 `pages/` 或對應子資料夾（`components/list|edit|detail`）。
   2) 邏輯放在 `hooks/`，共用 UI 放在 `components/`。

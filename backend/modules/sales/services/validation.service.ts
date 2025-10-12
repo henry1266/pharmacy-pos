@@ -1,5 +1,6 @@
 ﻿import mongoose from 'mongoose';
 import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
+import { createSaleSchema, updateSaleSchema } from '@pharmacy-pos/shared/schemas/zod/sale';
 import Customer from '../../../models/Customer';
 import BaseProduct from '../../../models/BaseProduct';
 import Inventory from '../../../models/Inventory';
@@ -12,20 +13,101 @@ import {
   SaleCreationRequest
 } from '../sales.types';
 
-async function validateWithSharedZod(body: any, mode: 'create' | 'update'): Promise<ValidationResult> {
-  try {
-    const saleSchemas: any = await import('@pharmacy-pos/shared/schemas/zod/sale');
-    const schema = mode === 'create' ? saleSchemas.createSaleSchema : saleSchemas.updateSaleSchema;
-    const result = schema.safeParse(body);
-    if (!result.success) {
-      const message = result.error.errors?.map((e: any) => e.message).join('; ') || ERROR_MESSAGES.GENERIC.VALIDATION_FAILED;
-      return { success: false, statusCode: API_CONSTANTS.HTTP_STATUS.BAD_REQUEST, message };
-    }
-    return { success: true };
-  } catch (err) {
-    logger.warn(`Shared zod sale schema not applied: ${err instanceof Error ? err.message : String(err)}`);
-    return { success: true };
+function extractNotes(payload: SaleCreationRequest): string | undefined {
+  if (typeof payload.notes === 'string' && payload.notes.trim().length > 0) {
+    return payload.notes;
   }
+
+  const legacyNote = (payload as { note?: unknown }).note;
+  if (typeof legacyNote === 'string' && legacyNote.trim().length > 0) {
+    return legacyNote;
+  }
+
+  return undefined;
+}
+
+export function mapToSaleSchemaInput(payload: SaleCreationRequest): Record<string, unknown> {
+  const normalized: Record<string, unknown> = {};
+
+  if (payload.saleNumber !== undefined) {
+    normalized.saleNumber = payload.saleNumber;
+  }
+
+  if (payload.date !== undefined) {
+    normalized.date = payload.date;
+  }
+
+  if (payload.customer !== undefined) {
+    normalized.customer = payload.customer;
+  }
+
+  if (Array.isArray(payload.items)) {
+    normalized.items = payload.items.map((item) => {
+      const normalizedItem: Record<string, unknown> = {
+        product: item.product,
+        quantity: item.quantity,
+      };
+
+      if (item.price !== undefined) normalizedItem.price = item.price;
+      if (item.unitPrice !== undefined) normalizedItem.unitPrice = item.unitPrice;
+      if (item.discount !== undefined) normalizedItem.discount = item.discount;
+      if (item.subtotal !== undefined) normalizedItem.subtotal = item.subtotal;
+      if (item.notes !== undefined) normalizedItem.notes = item.notes;
+
+      return normalizedItem;
+    });
+  }
+
+  if (payload.totalAmount !== undefined) {
+    normalized.totalAmount = payload.totalAmount;
+  }
+
+  if (payload.discount !== undefined) {
+    normalized.discount = payload.discount;
+  }
+
+  if (payload.discountAmount !== undefined) {
+    normalized.discountAmount = payload.discountAmount;
+  }
+
+  if (payload.paymentMethod !== undefined) {
+    normalized.paymentMethod = payload.paymentMethod;
+  }
+
+  if (payload.paymentStatus !== undefined) {
+    normalized.paymentStatus = payload.paymentStatus;
+  }
+
+  const notes = extractNotes(payload);
+  if (notes !== undefined) {
+    normalized.notes = notes;
+  }
+
+  if (payload.cashier !== undefined) {
+    normalized.cashier = payload.cashier;
+  }
+
+  return normalized;
+}
+
+function validateSaleWithSchema(payload: SaleCreationRequest, mode: 'create' | 'update'): ValidationResult {
+  const schema = mode === 'create' ? createSaleSchema : updateSaleSchema;
+  const normalizedPayload = mapToSaleSchemaInput(payload);
+  const result = schema.safeParse(normalizedPayload);
+
+  if (!result.success) {
+    const message = result.error.errors
+      ?.map((error) => error.message)
+      .join('; ') || ERROR_MESSAGES.GENERIC.VALIDATION_FAILED;
+
+    return {
+      success: false,
+      statusCode: API_CONSTANTS.HTTP_STATUS.BAD_REQUEST,
+      message,
+    };
+  }
+
+  return { success: true };
 }
 
 export function isValidObjectId(id: any): boolean {
@@ -138,13 +220,10 @@ export async function checkProductInventory(product: mongoose.Document, quantity
 }
 
 export async function validateSaleCreationRequest(requestBody: SaleCreationRequest): Promise<ValidationResult> {
-  const structuralValidation = validateSalePayloadStructure(requestBody, false);
-  if (!structuralValidation.success) {
-    return structuralValidation;
+  const schemaValidation = validateSaleWithSchema(requestBody, 'create');
+  if (!schemaValidation.success) {
+    return schemaValidation;
   }
-
-  const z = await validateWithSharedZod(requestBody, 'create');
-  if (!z.success) return z;
 
   const { customer, items } = requestBody;
 
@@ -171,13 +250,10 @@ export async function validateSaleCreationRequest(requestBody: SaleCreationReque
 }
 
 export async function validateSaleUpdateRequest(requestBody: SaleCreationRequest): Promise<ValidationResult> {
-  const structuralValidation = validateSalePayloadStructure(requestBody, false);
-  if (!structuralValidation.success) {
-    return structuralValidation;
+  const schemaValidation = validateSaleWithSchema(requestBody, 'update');
+  if (!schemaValidation.success) {
+    return schemaValidation;
   }
-
-  const z = await validateWithSharedZod(requestBody, 'update');
-  if (!z.success) return z;
 
   const { customer, items } = requestBody;
 
@@ -196,64 +272,4 @@ export async function validateSaleUpdateRequest(requestBody: SaleCreationRequest
   return { success: true };
 }
 
-function validateSalePayloadStructure(payload: SaleCreationRequest | undefined, requirePaymentMethod = true): ValidationResult {
-  if (!payload || typeof payload !== 'object') {
-    return {
-      success: false,
-      statusCode: API_CONSTANTS.HTTP_STATUS.BAD_REQUEST,
-      message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
-    };
-  }
 
-  if (!Array.isArray(payload.items) || payload.items.length === 0) {
-    return {
-      success: false,
-      statusCode: API_CONSTANTS.HTTP_STATUS.BAD_REQUEST,
-      message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
-    };
-  }
-
-  for (const item of payload.items) {
-    if (!item || typeof item !== 'object' || !item.product || !isValidObjectId(String(item.product))) {
-      return {
-        success: false,
-        statusCode: API_CONSTANTS.HTTP_STATUS.BAD_REQUEST,
-        message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
-      };
-    }
-
-    if (typeof item.quantity !== 'number' || Number.isNaN(item.quantity)) {
-      return {
-        success: false,
-        statusCode: API_CONSTANTS.HTTP_STATUS.BAD_REQUEST,
-        message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
-      };
-    }
-  }
-
-  if (typeof payload.totalAmount !== 'number' || Number.isNaN(payload.totalAmount)) {
-    return {
-      success: false,
-      statusCode: API_CONSTANTS.HTTP_STATUS.BAD_REQUEST,
-      message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
-    };
-  }
-
-  if (requirePaymentMethod) {
-    if (!payload.paymentMethod || typeof payload.paymentMethod !== 'string') {
-      return {
-        success: false,
-        statusCode: API_CONSTANTS.HTTP_STATUS.BAD_REQUEST,
-        message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
-      };
-    }
-  } else if (payload.paymentMethod !== undefined && typeof payload.paymentMethod !== 'string') {
-    return {
-      success: false,
-      statusCode: API_CONSTANTS.HTTP_STATUS.BAD_REQUEST,
-      message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
-    };
-  }
-
-  return { success: true };
-}

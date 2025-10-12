@@ -5,6 +5,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sale, SnackbarState } from '../types/list';
+import type { SaleQueryParams } from '../api/dto';
 import TestModeConfig from '@/testMode/config/TestModeConfig';
 import { useGetSalesQuery, useDeleteSaleMutation } from '../api/saleApi';
 
@@ -24,14 +25,13 @@ export const useSalesList = () => {
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
-
   // 測試模式旗標
   useEffect(() => {
     setIsTestMode(TestModeConfig.isEnabled());
   }, []);
 
-  // 查詢參數（RTK Query）
-  const [queryParams, setQueryParams] = useState<{ search?: string; wildcardSearch?: string }>({});
+  const [queryParams, setQueryParams] = useState<SaleQueryParams | undefined>(undefined);
+
 
   // 取得清單
   const { data: listData, error: listError, isFetching, refetch } = useGetSalesQuery(queryParams);
@@ -45,8 +45,10 @@ export const useSalesList = () => {
     } else {
       setError(null);
     }
-    if (listData && Array.isArray(listData.data)) {
-      setSales(listData.data as unknown as Sale[]);
+    if (Array.isArray(listData)) {
+      setSales(listData as unknown as Sale[]);
+    } else if (!listData) {
+      setSales([]);
     }
   }, [listData, listError, isFetching]);
 
@@ -66,7 +68,7 @@ export const useSalesList = () => {
   // 觸發搜尋
   const handleSearch = useCallback((value: string): void => {
     if (!value.trim()) {
-      setQueryParams({});
+      setQueryParams(undefined);
       return;
     }
     setQueryParams(wildcardMode ? { wildcardSearch: value } : { search: value });
@@ -82,7 +84,10 @@ export const useSalesList = () => {
 
   // 計算總金額
   const filteredSales = useMemo(() => sales, [sales]);
-  const totalAmount = useMemo(() => filteredSales.reduce((sum, sale) => sum + (sale.totalAmount || 0), 0), [filteredSales]);
+  const totalAmount = useMemo(
+    () => filteredSales.reduce((sum, sale) => sum + (sale.totalAmount ?? 0), 0),
+    [filteredSales],
+  );
 
   // 刪除
   const [deleteSale] = useDeleteSaleMutation();
@@ -173,4 +178,3 @@ export const useSalesList = () => {
     handleBackToHome
   };
 };
-

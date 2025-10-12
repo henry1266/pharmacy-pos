@@ -1,22 +1,5 @@
-/**
- * Sale API DTO (Data Transfer Objects)
- * 定義 Request/Response 型別
- */
-import { Sale, Customer, Product } from '@pharmacy-pos/shared/types/entities';
 import type { z } from 'zod';
-
-/**
- * 通用分頁響應介面
- */
-export interface PaginatedResponse<T> {
-  data: T[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-}
+import type { Sale, Customer, Product } from '@pharmacy-pos/shared/types/entities';
 
 /**
  * 通用響應介面
@@ -64,21 +47,9 @@ export interface SaleResponseDto extends Sale {
 /**
  * 銷售列表查詢參數
  */
-export interface SaleQueryParams {
-  page?: number;
-  limit?: number;
-  startDate?: string;
-  endDate?: string;
-  customer?: string;
-  paymentMethod?: string;
-  paymentStatus?: string;
-  status?: string;
-  minAmount?: number;
-  maxAmount?: number;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-  search?: string;
-}
+export type SaleQueryParams = z.infer<
+  typeof import('@pharmacy-pos/shared/schemas/zod/sale').saleQuerySchema
+>;
 
 /**
  * 銷售統計響應 DTO

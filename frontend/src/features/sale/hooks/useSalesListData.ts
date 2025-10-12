@@ -1,6 +1,7 @@
 ﻿import { useState, useEffect, useCallback } from 'react';
 import { useGetSalesQuery, useGetTodaySalesQuery } from '../api/saleApi';
 import type { Sale, SaleItem, User } from '../types/list';
+import type { SaleQueryParams } from '../api/dto';
 import type { Customer } from '@pharmacy-pos/shared/types/entities';
 
 /**
@@ -11,7 +12,7 @@ const useSalesListData = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isTestMode, setIsTestMode] = useState<boolean>(false);
-  const [searchParams, setSearchParams] = useState<{ search?: string; wildcardSearch?: string } | undefined>(undefined);
+  const [searchParams, setSearchParams] = useState<SaleQueryParams | undefined>(undefined);
 
   // 測試模式旗標（僅用於 UI 顯示）
   useEffect(() => {
@@ -21,10 +22,8 @@ const useSalesListData = () => {
 
   // RTK Query hooks：有查詢條件用 getSales，否則用 getTodaySales
   const hasSearch = Boolean(searchParams?.search || searchParams?.wildcardSearch);
-  const mergedSearch = searchParams?.wildcardSearch ?? searchParams?.search;
-
-  const todayQuery = useGetTodaySalesQuery({}, { skip: hasSearch });
-  const listQuery = useGetSalesQuery(mergedSearch ? ({ search: mergedSearch } as any) : ({} as any), { skip: !hasSearch });
+  const todayQuery = useGetTodaySalesQuery(undefined, { skip: hasSearch });
+  const listQuery = useGetSalesQuery(searchParams, { skip: !hasSearch });
 
   // 統一由 RTK Query 更新本地狀態
   useEffect(() => {
@@ -41,8 +40,10 @@ const useSalesListData = () => {
       setError(null);
     }
 
-    if (activeData && Array.isArray(activeData.data)) {
-      setSales(activeData.data as unknown as Sale[]);
+    if (Array.isArray(activeData)) {
+      setSales(activeData as unknown as Sale[]);
+    } else if (!activeData) {
+      setSales([]);
     }
   }, [hasSearch, listQuery.data, listQuery.error, listQuery.isFetching, todayQuery.data, todayQuery.error, todayQuery.isFetching]);
 
