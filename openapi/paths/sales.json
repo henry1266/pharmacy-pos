@@ -41,18 +41,57 @@
         },
         {
           "in": "query",
+          "name": "customer",
+          "schema": {
+            "$ref": "../components/schemas/sales.json#/EntityReference"
+          },
+          "description": "Customer identifier."
+        },
+        {
+          "in": "query",
           "name": "customerId",
           "schema": {
-            "type": "string"
+            "$ref": "../components/schemas/sales.json#/EntityReference"
           },
           "description": "客戶ID"
         },
         {
           "in": "query",
+          "name": "paymentMethod",
+          "schema": {
+            "$ref": "../components/schemas/sales.json#/PaymentMethod"
+          }
+        },
+        {
+          "in": "query",
+          "name": "paymentStatus",
+          "schema": {
+            "$ref": "../components/schemas/sales.json#/PaymentStatus"
+          }
+        },
+        {
+          "in": "query",
           "name": "status",
           "schema": {
-            "type": "string",
-            "enum": ["paid", "pending", "partial", "cancelled"]
+            "$ref": "../components/schemas/sales.json#/SaleLifecycleStatus"
+          },
+          "description": "Lifecycle status of the sale."
+        },
+        {
+          "in": "query",
+          "name": "minAmount",
+          "schema": {
+            "type": "number",
+            "minimum": 0
+          },
+          "description": "Minimum total amount filter."
+        },
+        {
+          "in": "query",
+          "name": "maxAmount",
+          "schema": {
+            "type": "number",
+            "minimum": 0
           },
           "description": "付款狀態"
         },
@@ -60,17 +99,35 @@
           "in": "query",
           "name": "page",
           "schema": {
-            "type": "integer"
-          },
-          "description": "頁碼"
+            "type": "integer",
+            "minimum": 1
+          }
         },
         {
           "in": "query",
           "name": "limit",
           "schema": {
-            "type": "integer"
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        {
+          "in": "query",
+          "name": "sortBy",
+          "schema": {
+            "type": "string"
           },
-          "description": "每頁數量"
+          "description": "Field used for sorting."
+        },
+        {
+          "in": "query",
+          "name": "sortOrder",
+          "schema": {
+            "type": "string",
+            "enum": ["asc", "desc"]
+          },
+          "description": "Sort direction."
         }
       ],
       "responses": {
@@ -79,27 +136,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "success": {
-                    "type": "boolean",
-                    "example": true
-                  },
-                  "message": {
-                    "type": "string",
-                    "example": "銷售記錄列表獲取成功"
-                  },
-                  "data": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "../components/schemas/sales.json#/Sale"
-                    }
-                  },
-                  "timestamp": {
-                    "type": "string",
-                    "format": "date-time"
-                  }
-                }
+                "$ref": "../components/schemas/sales.json#/SaleListResponse"
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "Invalid query parameters.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "../components/schemas/common.json#/ErrorResponse"
               }
             }
           }
@@ -141,24 +188,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "success": {
-                    "type": "boolean",
-                    "example": true
-                  },
-                  "message": {
-                    "type": "string",
-                    "example": "銷售記錄創建成功"
-                  },
-                  "data": {
-                    "$ref": "../components/schemas/sales.json#/Sale"
-                  },
-                  "timestamp": {
-                    "type": "string",
-                    "format": "date-time"
-                  }
-                }
+                "$ref": "../components/schemas/sales.json#/SaleResponse"
               }
             }
           }
@@ -168,25 +198,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "success": {
-                    "type": "boolean",
-                    "example": false
-                  },
-                  "message": {
-                    "type": "string",
-                    "example": "驗證失敗"
-                  },
-                  "error": {
-                    "type": "string",
-                    "description": "詳細錯誤信息"
-                  },
-                  "timestamp": {
-                    "type": "string",
-                    "format": "date-time"
-                  }
-                }
+                "$ref": "../components/schemas/common.json#/ErrorResponse"
               }
             }
           }
@@ -197,6 +209,25 @@
             "application/json": {
               "schema": {
                 "$ref": "../components/schemas/common.json#/ErrorResponse"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "/api/sales/today": {
+    "get": {
+      "summary": "Today's sales",
+      "description": "Fetch sales created on the current day.",
+      "tags": ["Sales"],
+      "responses": {
+        "200": {
+          "description": "List of today's sales.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "../components/schemas/sales.json#/SaleListResponse"
               }
             }
           }
@@ -225,9 +256,8 @@
           "name": "id",
           "required": true,
           "schema": {
-            "type": "string"
-          },
-          "description": "銷售記錄ID"
+            "$ref": "../components/schemas/sales.json#/EntityReference"
+          }
         }
       ],
       "responses": {
@@ -236,24 +266,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "success": {
-                    "type": "boolean",
-                    "example": true
-                  },
-                  "message": {
-                    "type": "string",
-                    "example": "銷售記錄獲取成功"
-                  },
-                  "data": {
-                    "$ref": "../components/schemas/sales.json#/Sale"
-                  },
-                  "timestamp": {
-                    "type": "string",
-                    "format": "date-time"
-                  }
-                }
+                "$ref": "../components/schemas/sales.json#/SaleResponse"
               }
             }
           }
@@ -295,9 +308,8 @@
           "name": "id",
           "required": true,
           "schema": {
-            "type": "string"
-          },
-          "description": "銷售記錄ID"
+            "$ref": "../components/schemas/sales.json#/EntityReference"
+          }
         }
       ],
       "requestBody": {
@@ -316,24 +328,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "success": {
-                    "type": "boolean",
-                    "example": true
-                  },
-                  "message": {
-                    "type": "string",
-                    "example": "銷售記錄更新成功"
-                  },
-                  "data": {
-                    "$ref": "../components/schemas/sales.json#/Sale"
-                  },
-                  "timestamp": {
-                    "type": "string",
-                    "format": "date-time"
-                  }
-                }
+                "$ref": "../components/schemas/sales.json#/SaleResponse"
               }
             }
           }
@@ -385,9 +380,8 @@
           "name": "id",
           "required": true,
           "schema": {
-            "type": "string"
-          },
-          "description": "銷售記錄ID"
+            "$ref": "../components/schemas/sales.json#/EntityReference"
+          }
         }
       ],
       "responses": {
@@ -396,30 +390,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "success": {
-                    "type": "boolean",
-                    "example": true
-                  },
-                  "message": {
-                    "type": "string",
-                    "example": "銷售記錄已刪除"
-                  },
-                  "data": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "string",
-                        "description": "被刪除的銷售記錄ID"
-                      }
-                    }
-                  },
-                  "timestamp": {
-                    "type": "string",
-                    "format": "date-time"
-                  }
-                }
+                "$ref": "../components/schemas/sales.json#/SaleDeleteResponse"
               }
             }
           }

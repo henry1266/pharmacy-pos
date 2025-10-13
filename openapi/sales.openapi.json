@@ -2,389 +2,74 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Pharmacy POS Sales API",
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "description": "OpenAPI specification for the sales domain, aligned with shared Zod schemas."
   },
   "servers": [
     {
       "url": "/api"
     }
   ],
-  "paths": {},
+  "paths": {
+    "/api/sales": {
+      "$ref": "./paths/sales.json#/~1api~1sales"
+    },
+    "/api/sales/today": {
+      "$ref": "./paths/sales.json#/~1api~1sales~1today"
+    },
+    "/api/sales/{id}": {
+      "$ref": "./paths/sales.json#/~1api~1sales~1{id}"
+    }
+  },
   "components": {
     "schemas": {
+      "ObjectId": {
+        "$ref": "./components/schemas/sales.json#/ObjectId"
+      },
+      "EntityReference": {
+        "$ref": "./components/schemas/sales.json#/EntityReference"
+      },
+      "PaymentMethod": {
+        "$ref": "./components/schemas/sales.json#/PaymentMethod"
+      },
+      "PaymentStatus": {
+        "$ref": "./components/schemas/sales.json#/PaymentStatus"
+      },
+      "SaleLifecycleStatus": {
+        "$ref": "./components/schemas/sales.json#/SaleLifecycleStatus"
+      },
       "SaleItem": {
-        "type": "object",
-        "properties": {
-          "product": {
-            "type": "string",
-            "minLength": 24,
-            "maxLength": 24
-          },
-          "quantity": {
-            "type": "number",
-            "minimum": 0.001,
-            "maximum": 999999
-          },
-          "price": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 999999.99
-          },
-          "unitPrice": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 999999.99
-          },
-          "discount": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 999999.99
-          },
-          "subtotal": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 9999999.99
-          },
-          "notes": {
-            "type": "string",
-            "maxLength": 500
-          }
-        },
-        "required": [
-          "product",
-          "quantity",
-          "price",
-          "subtotal"
-        ],
-        "additionalProperties": false
+        "$ref": "./components/schemas/sales.json#/SaleItem"
+      },
+      "SaleItemResponse": {
+        "$ref": "./components/schemas/sales.json#/SaleItemResponse"
       },
       "SaleCreateRequest": {
-        "type": "object",
-        "properties": {
-          "saleNumber": {
-            "type": "string"
-          },
-          "customer": {
-            "type": "string",
-            "minLength": 24,
-            "maxLength": 24
-          },
-          "items": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "product": {
-                  "$ref": "#/definitions/SaleCreateRequest/properties/customer"
-                },
-                "quantity": {
-                  "type": "number",
-                  "minimum": 0.001,
-                  "maximum": 999999
-                },
-                "price": {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 999999.99
-                },
-                "unitPrice": {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 999999.99
-                },
-                "discount": {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 999999.99
-                },
-                "subtotal": {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 9999999.99
-                },
-                "notes": {
-                  "type": "string",
-                  "maxLength": 500
-                }
-              },
-              "required": [
-                "product",
-                "quantity",
-                "price",
-                "subtotal"
-              ],
-              "additionalProperties": false
-            },
-            "minItems": 1
-          },
-          "totalAmount": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 9999999.99
-          },
-          "discount": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 9999999.99
-          },
-          "paymentMethod": {
-            "type": "string",
-            "enum": [
-              "cash",
-              "card",
-              "credit_card",
-              "debit_card",
-              "transfer",
-              "mobile_payment",
-              "other"
-            ]
-          },
-          "paymentStatus": {
-            "type": "string",
-            "enum": [
-              "paid",
-              "pending",
-              "partial",
-              "cancelled"
-            ]
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "completed",
-              "pending",
-              "cancelled"
-            ]
-          },
-          "notes": {
-            "type": "string",
-            "maxLength": 1000
-          },
-          "note": {
-            "type": "string",
-            "maxLength": 1000
-          },
-          "cashier": {
-            "$ref": "#/definitions/SaleCreateRequest/properties/customer"
-          },
-          "createdBy": {
-            "$ref": "#/definitions/SaleCreateRequest/properties/customer"
-          },
-          "date": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "string",
-                "format": "date-time"
-              }
-            ]
-          }
-        },
-        "required": [
-          "items",
-          "totalAmount",
-          "paymentMethod"
-        ],
-        "additionalProperties": false
+        "$ref": "./components/schemas/sales.json#/SaleCreateRequest"
       },
       "SaleUpdateRequest": {
-        "type": "object",
-        "properties": {
-          "saleNumber": {
-            "type": "string"
-          },
-          "customer": {
-            "type": "string",
-            "minLength": 24,
-            "maxLength": 24
-          },
-          "items": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "product": {
-                  "$ref": "#/definitions/SaleUpdateRequest/properties/customer"
-                },
-                "quantity": {
-                  "type": "number",
-                  "minimum": 0.001,
-                  "maximum": 999999
-                },
-                "price": {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 999999.99
-                },
-                "unitPrice": {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 999999.99
-                },
-                "discount": {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 999999.99
-                },
-                "subtotal": {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 9999999.99
-                },
-                "notes": {
-                  "type": "string",
-                  "maxLength": 500
-                }
-              },
-              "required": [
-                "product",
-                "quantity",
-                "price",
-                "subtotal"
-              ],
-              "additionalProperties": false
-            },
-            "minItems": 1
-          },
-          "totalAmount": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 9999999.99
-          },
-          "discount": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 9999999.99
-          },
-          "paymentMethod": {
-            "type": "string",
-            "enum": [
-              "cash",
-              "card",
-              "credit_card",
-              "debit_card",
-              "transfer",
-              "mobile_payment",
-              "other"
-            ]
-          },
-          "paymentStatus": {
-            "type": "string",
-            "enum": [
-              "paid",
-              "pending",
-              "partial",
-              "cancelled"
-            ]
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "completed",
-              "pending",
-              "cancelled"
-            ]
-          },
-          "notes": {
-            "type": "string",
-            "maxLength": 1000
-          },
-          "note": {
-            "type": "string",
-            "maxLength": 1000
-          },
-          "cashier": {
-            "$ref": "#/definitions/SaleUpdateRequest/properties/customer"
-          },
-          "createdBy": {
-            "$ref": "#/definitions/SaleUpdateRequest/properties/customer"
-          },
-          "date": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "string",
-                "format": "date-time"
-              }
-            ]
-          },
-          "_id": {
-            "$ref": "#/definitions/SaleUpdateRequest/properties/customer"
-          }
-        },
-        "required": [
-          "_id"
-        ],
-        "additionalProperties": false
+        "$ref": "./components/schemas/sales.json#/SaleUpdateRequest"
       },
-      "SaleSearchQuery": {
-        "type": "object",
-        "properties": {
-          "saleNumber": {
-            "type": "string"
-          },
-          "customer": {
-            "type": "string"
-          },
-          "startDate": {
-            "type": "string",
-            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
-          },
-          "endDate": {
-            "type": "string",
-            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
-          },
-          "paymentMethod": {
-            "type": "string",
-            "enum": [
-              "cash",
-              "card",
-              "credit_card",
-              "debit_card",
-              "transfer",
-              "mobile_payment",
-              "other"
-            ]
-          },
-          "paymentStatus": {
-            "type": "string",
-            "enum": [
-              "paid",
-              "pending",
-              "partial",
-              "cancelled"
-            ]
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "completed",
-              "pending",
-              "cancelled"
-            ]
-          },
-          "minAmount": {
-            "type": "number",
-            "minimum": 0
-          },
-          "maxAmount": {
-            "type": "number",
-            "minimum": 0
-          },
-          "cashier": {
-            "type": "string"
-          },
-          "createdBy": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false
+      "SaleQueryParameters": {
+        "$ref": "./components/schemas/sales.json#/SaleQueryParameters"
+      },
+      "Sale": {
+        "$ref": "./components/schemas/sales.json#/Sale"
+      },
+      "SaleResponse": {
+        "$ref": "./components/schemas/sales.json#/SaleResponse"
+      },
+      "SaleListResponse": {
+        "$ref": "./components/schemas/sales.json#/SaleListResponse"
+      },
+      "SaleDeleteResponse": {
+        "$ref": "./components/schemas/sales.json#/SaleDeleteResponse"
+      },
+      "ApiResponse": {
+        "$ref": "./components/schemas/common.json#/ApiResponse"
+      },
+      "ErrorResponse": {
+        "$ref": "./components/schemas/common.json#/ErrorResponse"
       }
     }
   }

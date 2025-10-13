@@ -1,224 +1,510 @@
 {
+  "ObjectId": {
+    "type": "string",
+    "minLength": 24,
+    "maxLength": 24,
+    "description": "MongoDB ObjectId represented as a 24 character hexadecimal string."
+  },
+  "EntityReference": {
+    "type": "string",
+    "minLength": 1,
+    "description": "Entity identifier or legacy string reference."
+  },
+  "Timestamp": {
+    "type": "string",
+    "format": "date-time",
+    "description": "ISO 8601 timestamp."
+  },
+  "PaymentMethod": {
+    "type": "string",
+    "enum": [
+      "cash",
+      "card",
+      "transfer",
+      "other",
+      "credit_card",
+      "debit_card",
+      "mobile_payment"
+    ],
+    "description": "Supported payment method values."
+  },
+  "PaymentStatus": {
+    "type": "string",
+    "enum": [
+      "paid",
+      "pending",
+      "partial",
+      "cancelled"
+    ],
+    "description": "Tracked payment status values."
+  },
+  "SaleLifecycleStatus": {
+    "type": "string",
+    "enum": [
+      "completed",
+      "pending",
+      "cancelled"
+    ],
+    "description": "High-level sale lifecycle status."
+  },
   "SaleItem": {
     "type": "object",
-    "required": ["product", "quantity", "price", "subtotal"],
+    "required": [
+      "product",
+      "quantity",
+      "price",
+      "subtotal"
+    ],
+    "additionalProperties": false,
     "properties": {
       "product": {
-        "type": "string",
-        "description": "產品ID"
+        "$ref": "#/EntityReference",
+        "description": "Product identifier."
       },
       "quantity": {
         "type": "number",
-        "description": "數量"
+        "minimum": 0.001,
+        "maximum": 999999,
+        "description": "Quantity of the product sold."
       },
       "price": {
         "type": "number",
-        "description": "單價"
+        "minimum": 0,
+        "maximum": 999999.99,
+        "description": "Unit price applied to the item."
       },
-      "subtotal": {
+      "unitPrice": {
         "type": "number",
-        "description": "小計"
-      }
-    }
-  },
-  "Sale": {
-    "type": "object",
-    "properties": {
-      "_id": {
-        "type": "string",
-        "description": "銷售記錄ID"
-      },
-      "saleNumber": {
-        "type": "string",
-        "description": "銷貨單號"
-      },
-      "customer": {
-        "type": "string",
-        "description": "客戶ID"
-      },
-      "items": {
-        "type": "array",
-        "description": "銷售項目",
-        "items": {
-          "$ref": "#/SaleItem"
-        }
-      },
-      "totalAmount": {
-        "type": "number",
-        "description": "總金額"
+        "minimum": 0,
+        "maximum": 999999.99,
+        "description": "Original unit price before adjustments."
       },
       "discount": {
         "type": "number",
-        "description": "折扣金額",
-        "default": 0
+        "minimum": 0,
+        "maximum": 999999.99,
+        "description": "Discount amount applied to the item."
       },
-      "paymentMethod": {
-        "type": "string",
-        "enum": ["cash", "credit_card", "debit_card", "mobile_payment", "other"],
-        "description": "付款方式",
-        "default": "cash"
-      },
-      "paymentStatus": {
-        "type": "string",
-        "enum": ["paid", "pending", "partial", "cancelled"],
-        "description": "付款狀態",
-        "default": "paid"
+      "subtotal": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 9999999.99,
+        "description": "Calculated subtotal after discount."
       },
       "notes": {
         "type": "string",
-        "description": "備註"
+        "maxLength": 500,
+        "description": "Optional per-item notes."
+      }
+    }
+  },
+  "SaleItemResponse": {
+    "allOf": [
+      {
+        "$ref": "#/SaleItem"
       },
-      "cashier": {
+      {
+        "type": "object",
+        "additionalProperties": true,
+        "properties": {
+          "_id": {
+            "$ref": "#/ObjectId"
+          },
+          "product": {
+            "oneOf": [
+              {
+                "$ref": "#/EntityReference"
+              },
+              {
+                "type": "object",
+                "additionalProperties": true,
+                "properties": {
+                  "_id": {
+                    "$ref": "#/ObjectId"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "SaleCreateRequest": {
+    "type": "object",
+    "required": [
+      "items",
+      "totalAmount",
+      "paymentMethod"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "saleNumber": {
         "type": "string",
-        "description": "收銀員ID"
+        "description": "Optional human readable sale number."
       },
       "date": {
         "type": "string",
         "format": "date-time",
-        "description": "銷售日期"
-      },
-      "createdAt": {
-        "type": "string",
-        "format": "date-time",
-        "description": "創建時間"
-      },
-      "updatedAt": {
-        "type": "string",
-        "format": "date-time",
-        "description": "更新時間"
-      }
-    }
-  },
-  "SaleCreateRequest": {
-    "type": "object",
-    "required": ["items", "totalAmount"],
-    "properties": {
-      "saleNumber": {
-        "type": "string",
-        "description": "銷貨單號（如果不提供將自動生成）"
+        "description": "Sale creation datetime (ISO 8601)."
       },
       "customer": {
-        "type": "string",
-        "description": "客戶ID"
+        "$ref": "#/EntityReference",
+        "description": "Customer identifier."
       },
       "items": {
         "type": "array",
-        "description": "銷售項目",
         "items": {
           "$ref": "#/SaleItem"
-        }
+        },
+        "minItems": 1,
+        "maxItems": 100,
+        "description": "List of sold items."
       },
       "totalAmount": {
         "type": "number",
-        "description": "總金額"
+        "minimum": 0,
+        "maximum": 9999999.99,
+        "description": "Total amount before global discounts."
       },
       "discount": {
         "type": "number",
-        "description": "折扣金額",
-        "default": 0
+        "minimum": 0,
+        "maximum": 9999999.99,
+        "description": "Optional overall discount."
+      },
+      "discountAmount": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 9999999.99,
+        "description": "Explicit discount amount applied to the total."
       },
       "paymentMethod": {
-        "type": "string",
-        "enum": ["cash", "credit_card", "debit_card", "mobile_payment", "other"],
-        "description": "付款方式",
-        "default": "cash"
+        "$ref": "#/PaymentMethod"
       },
       "paymentStatus": {
-        "type": "string",
-        "enum": ["paid", "pending", "partial", "cancelled"],
-        "description": "付款狀態",
-        "default": "paid"
+        "$ref": "#/PaymentStatus"
       },
       "notes": {
         "type": "string",
-        "description": "備註"
+        "maxLength": 1000,
+        "description": "Optional sale level notes."
       },
       "cashier": {
-        "type": "string",
-        "description": "收銀員ID"
+        "$ref": "#/EntityReference",
+        "description": "Cashier responsible for the sale."
       }
     }
   },
   "SaleUpdateRequest": {
     "type": "object",
+    "additionalProperties": false,
     "properties": {
-      "customer": {
+      "saleNumber": {
+        "type": "string"
+      },
+      "date": {
         "type": "string",
-        "description": "客戶ID"
+        "format": "date-time"
+      },
+      "customer": {
+        "$ref": "#/EntityReference"
       },
       "items": {
         "type": "array",
-        "description": "銷售項目",
         "items": {
           "$ref": "#/SaleItem"
-        }
+        },
+        "minItems": 1,
+        "maxItems": 100
       },
       "totalAmount": {
         "type": "number",
-        "description": "總金額"
+        "minimum": 0,
+        "maximum": 9999999.99
       },
       "discount": {
         "type": "number",
-        "description": "折扣金額"
+        "minimum": 0,
+        "maximum": 9999999.99
+      },
+      "discountAmount": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 9999999.99
       },
       "paymentMethod": {
-        "type": "string",
-        "enum": ["cash", "credit_card", "debit_card", "mobile_payment", "other"],
-        "description": "付款方式"
+        "$ref": "#/PaymentMethod"
       },
       "paymentStatus": {
-        "type": "string",
-        "enum": ["paid", "pending", "partial", "cancelled"],
-        "description": "付款狀態"
+        "$ref": "#/PaymentStatus"
+      },
+      "status": {
+        "$ref": "#/SaleLifecycleStatus"
       },
       "notes": {
         "type": "string",
-        "description": "備註"
+        "maxLength": 1000
       },
       "cashier": {
-        "type": "string",
-        "description": "收銀員ID"
+        "$ref": "#/EntityReference"
+      },
+      "createdBy": {
+        "$ref": "#/EntityReference"
+      },
+      "user": {
+        "$ref": "#/EntityReference"
       }
     }
   },
-  "SalesQueryParams": {
+  "SaleQueryParameters": {
     "type": "object",
+    "additionalProperties": false,
     "properties": {
+      "search": {
+        "type": "string",
+        "description": "Keyword match against sale number or customer/product names."
+      },
+      "wildcardSearch": {
+        "type": "string",
+        "description": "Wildcard search supporting partial matches."
+      },
       "startDate": {
         "type": "string",
         "format": "date",
-        "description": "開始日期"
+        "description": "Inclusive start date filter."
       },
       "endDate": {
         "type": "string",
         "format": "date",
-        "description": "結束日期"
+        "description": "Inclusive end date filter."
+      },
+      "customer": {
+        "$ref": "#/EntityReference"
       },
       "customerId": {
-        "type": "string",
-        "description": "客戶ID"
+        "$ref": "#/EntityReference"
+      },
+      "paymentMethod": {
+        "$ref": "#/PaymentMethod"
+      },
+      "paymentStatus": {
+        "$ref": "#/PaymentStatus"
       },
       "status": {
-        "type": "string",
-        "enum": ["paid", "pending", "partial", "cancelled"],
-        "description": "付款狀態"
+        "$ref": "#/SaleLifecycleStatus"
+      },
+      "minAmount": {
+        "type": "number",
+        "minimum": 0
+      },
+      "maxAmount": {
+        "type": "number",
+        "minimum": 0
       },
       "page": {
         "type": "integer",
-        "description": "頁碼"
+        "minimum": 1
       },
       "limit": {
         "type": "integer",
-        "description": "每頁數量"
+        "minimum": 1,
+        "maximum": 100
       },
-      "search": {
-        "type": "string",
-        "description": "搜尋關鍵字"
+      "sortBy": {
+        "type": "string"
       },
-      "wildcardSearch": {
+      "sortOrder": {
         "type": "string",
-        "description": "萬用字元搜尋"
+        "enum": [
+          "asc",
+          "desc"
+        ]
       }
     }
+  },
+  "Sale": {
+    "type": "object",
+    "required": [
+      "_id",
+      "items",
+      "totalAmount",
+      "paymentMethod",
+      "createdAt",
+      "updatedAt"
+    ],
+    "additionalProperties": true,
+    "properties": {
+      "_id": {
+        "$ref": "#/ObjectId"
+      },
+      "saleNumber": {
+        "type": "string"
+      },
+      "date": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "customer": {
+        "oneOf": [
+          {
+            "$ref": "#/EntityReference"
+          },
+          {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "_id": {
+                "$ref": "#/ObjectId"
+              }
+            }
+          }
+        ]
+      },
+      "items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/SaleItemResponse"
+        }
+      },
+      "totalAmount": {
+        "type": "number"
+      },
+      "discount": {
+        "type": "number"
+      },
+      "discountAmount": {
+        "type": "number"
+      },
+      "paymentMethod": {
+        "$ref": "#/PaymentMethod"
+      },
+      "paymentStatus": {
+        "$ref": "#/PaymentStatus"
+      },
+      "status": {
+        "$ref": "#/SaleLifecycleStatus"
+      },
+      "finalAmount": {
+        "type": "number"
+      },
+      "saleDate": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "notes": {
+        "type": "string"
+      },
+      "cashier": {
+        "oneOf": [
+          {
+            "$ref": "#/EntityReference"
+          },
+          {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "_id": {
+                "$ref": "#/ObjectId"
+              }
+            }
+          }
+        ]
+      },
+      "createdBy": {
+        "oneOf": [
+          {
+            "$ref": "#/EntityReference"
+          },
+          {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "_id": {
+                "$ref": "#/ObjectId"
+              }
+            }
+          }
+        ]
+      },
+      "user": {
+        "oneOf": [
+          {
+            "$ref": "#/EntityReference"
+          },
+          {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "_id": {
+                "$ref": "#/ObjectId"
+              }
+            }
+          }
+        ]
+      },
+      "createdAt": {
+        "$ref": "#/Timestamp"
+      },
+      "updatedAt": {
+        "$ref": "#/Timestamp"
+      }
+    }
+  },
+  "SaleResponse": {
+    "allOf": [
+      {
+        "$ref": "common.json#/ApiResponse"
+      },
+      {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/Sale"
+          }
+        }
+      }
+    ]
+  },
+  "SaleListResponse": {
+    "allOf": [
+      {
+        "$ref": "common.json#/ApiResponse"
+      },
+      {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/Sale"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "SaleDeleteResponse": {
+    "allOf": [
+      {
+        "$ref": "common.json#/ApiResponse"
+      },
+      {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "$ref": "#/EntityReference"
+              }
+            }
+          }
+        }
+      }
+    ]
   }
 }
