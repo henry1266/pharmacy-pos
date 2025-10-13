@@ -18514,3 +18514,41 @@
 {"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-13 22:56:49:5649"}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e025f5042c84ea93cc7fa6"},"supplierId":"67e025f5042c84ea93cc7fa6","timestamp":"2025-10-13 22:56:49:5649"}
 {"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-13 22:56:49:5649"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e025f5042c84ea93cc7fa6"},"supplierId":"67e025f5042c84ea93cc7fa6","timestamp":"2025-10-14 00:45:19:4519"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 00:45:19:4519"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e025f5042c84ea93cc7fa6"},"supplierId":"67e025f5042c84ea93cc7fa6","timestamp":"2025-10-14 00:45:19:4519"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 00:45:19:4519"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e025f5042c84ea93cc7fa6"},"supplierId":"67e025f5042c84ea93cc7fa6","timestamp":"2025-10-14 00:45:21:4521"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 00:45:21:4521"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e025f5042c84ea93cc7fa6"},"supplierId":"67e025f5042c84ea93cc7fa6","timestamp":"2025-10-14 00:45:21:4521"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 00:45:21:4521"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e025f5042c84ea93cc7fa6"},"supplierId":"67e025f5042c84ea93cc7fa6","timestamp":"2025-10-14 00:45:33:4533"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 00:45:33:4533"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e025f5042c84ea93cc7fa6"},"supplierId":"67e025f5042c84ea93cc7fa6","timestamp":"2025-10-14 00:45:33:4533"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 00:45:33:4533"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e0d13d49330732e939473a"},"supplierId":"67e0d13d49330732e939473a","timestamp":"2025-10-14 00:45:44:4544"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 00:45:44:4544"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e025f5042c84ea93cc7fa6"},"supplierId":"67e025f5042c84ea93cc7fa6","timestamp":"2025-10-14 00:45:45:4545"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 00:45:45:4545"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e025f5042c84ea93cc7fa6"},"supplierId":"67e025f5042c84ea93cc7fa6","timestamp":"2025-10-14 00:45:47:4547"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 00:45:47:4547"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e025f5042c84ea93cc7fa6"},"supplierId":"67e025f5042c84ea93cc7fa6","timestamp":"2025-10-14 00:45:47:4547"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 00:45:47:4547"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e0d13d49330732e939473a"},"supplierId":"67e0d13d49330732e939473a","timestamp":"2025-10-14 00:45:58:4558"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 00:45:58:4558"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e025f5042c84ea93cc7fa6"},"supplierId":"67e025f5042c84ea93cc7fa6","timestamp":"2025-10-14 00:45:59:4559"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 00:45:59:4559"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e0d13d49330732e939473a"},"supplierId":"67e0d13d49330732e939473a","timestamp":"2025-10-14 00:46:00:460"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 00:46:00:460"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e4d52aa597229df074c486"},"supplierId":"67e4d52aa597229df074c486","timestamp":"2025-10-14 00:46:02:462"}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 00:46:02:462"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e4d52aa597229df074c486"},"supplierId":"67e4d52aa597229df074c486","timestamp":"2025-10-14 00:46:04:464"}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 00:46:04:464"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e4d52aa597229df074c486"},"supplierId":"67e4d52aa597229df074c486","timestamp":"2025-10-14 00:46:04:464"}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 00:46:04:464"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e4df4aa6f9d4c76b0461d0"},"supplierId":"67e4df4aa6f9d4c76b0461d0","timestamp":"2025-10-14 00:46:13:4613"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 00:46:13:4613"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e4d52aa597229df074c486"},"supplierId":"67e4d52aa597229df074c486","timestamp":"2025-10-14 00:46:15:4615"}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 00:46:15:4615"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e4df4aa6f9d4c76b0461d0"},"supplierId":"67e4df4aa6f9d4c76b0461d0","timestamp":"2025-10-14 00:46:16:4616"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 00:46:16:4616"}

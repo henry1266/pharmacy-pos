@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { initServer, createExpressEndpoints } from '@ts-rest/express';
-import type { ServerInferRequest, ServerInferResponseBody } from '@ts-rest/core';
+import type { ServerInferRequest } from '@ts-rest/core';
 import { suppliersContract } from '@pharmacy-pos/shared/api/contracts';
-import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
+import { API_CONSTANTS, SUCCESS_MESSAGES, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
 import logger from '../../utils/logger';
 import * as suppliersService from './suppliers.service';
 import { SupplierServiceError } from './suppliers.service';
@@ -17,189 +17,159 @@ type DeleteSupplierRequest = ServerInferRequest<typeof suppliersContract['delete
 
 const server = initServer();
 
+type SuccessMessage = typeof SUCCESS_MESSAGES.GENERIC[keyof typeof SUCCESS_MESSAGES.GENERIC];
+
+type SuccessBody<TData> = {
+  success: true;
+  message: SuccessMessage | string;
+  data: TData;
+  timestamp: string;
+};
+
+type ErrorBody = {
+  success: false;
+  message: string;
+  statusCode: number;
+  timestamp: string;
+};
+
+type KnownErrorStatus = 400 | 404 | 500;
+
+const mapServiceStatus = (status: number): KnownErrorStatus => {
+  if (status === API_CONSTANTS.HTTP_STATUS.NOT_FOUND || status === 404) {
+    return API_CONSTANTS.HTTP_STATUS.NOT_FOUND as KnownErrorStatus;
+  }
+  if (status === API_CONSTANTS.HTTP_STATUS.BAD_REQUEST || status === 400) {
+    return API_CONSTANTS.HTTP_STATUS.BAD_REQUEST as KnownErrorStatus;
+  }
+  return API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR as KnownErrorStatus;
+};
+
+function successResponse<TStatus extends number, TData>(
+  status: TStatus,
+  data: TData,
+  message: SuccessMessage | string,
+): { status: TStatus; body: SuccessBody<TData>; } {
+  return {
+    status,
+    body: {
+      success: true,
+      message,
+      data,
+      timestamp: new Date().toISOString(),
+    },
+  };
+}
+
+function errorResponse<TStatus extends KnownErrorStatus>(
+  status: TStatus,
+  message: string,
+): { status: TStatus; body: ErrorBody; } {
+  return {
+    status,
+    body: {
+      success: false,
+      message,
+      statusCode: status,
+      timestamp: new Date().toISOString(),
+    },
+  };
+}
+
+const toApiSupplier = (record: unknown) => transformSupplierToResponse(record as any);
+
 const implementation = server.router(suppliersContract, {
   listSuppliers: async ({ query }: ListSuppliersRequest) => {
     try {
       const suppliers = await suppliersService.listSuppliers(query ?? {});
-      const body: ServerInferResponseBody<typeof suppliersContract['listSuppliers'], 200> = {
-        success: true,
-        message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
-        data: mapSuppliersToResponse(suppliers),
-        timestamp: new Date().toISOString(),
-      };
-      return { status: 200, body } as const;
+      return successResponse(
+        API_CONSTANTS.HTTP_STATUS.OK,
+        mapSuppliersToResponse(suppliers),
+        SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
+      );
     } catch (error) {
       logger.error(`Failed to list suppliers: ${error instanceof Error ? error.message : String(error)}`);
-      const body: ServerInferResponseBody<typeof suppliersContract['listSuppliers'], 500> = {
-        success: false,
-        message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-        statusCode: 500,
-        timestamp: new Date().toISOString(),
-      };
-      return { status: 500, body } as const;
+      return errorResponse(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR, ERROR_MESSAGES.GENERIC.SERVER_ERROR);
     }
   },
   getSupplierById: async ({ params }: GetSupplierRequest) => {
     try {
       const supplier = await suppliersService.findSupplierById(params.id);
       if (!supplier) {
-        const body: ServerInferResponseBody<typeof suppliersContract['getSupplierById'], 404> = {
-          success: false,
-          message: ERROR_MESSAGES.SUPPLIER.NOT_FOUND,
-          statusCode: 404,
-          timestamp: new Date().toISOString(),
-        };
-        return { status: 404 as const, body };
+        return errorResponse(API_CONSTANTS.HTTP_STATUS.NOT_FOUND, ERROR_MESSAGES.SUPPLIER.NOT_FOUND);
       }
-      const body: ServerInferResponseBody<typeof suppliersContract['getSupplierById'], 200> = {
-        success: true,
-        message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
-        data: transformSupplierToResponse(supplier),
-        timestamp: new Date().toISOString(),
-      };
-      return { status: 200, body } as const;
+
+      return successResponse(
+        API_CONSTANTS.HTTP_STATUS.OK,
+        toApiSupplier(supplier),
+        SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
+      );
     } catch (error) {
-      if (error instanceof SupplierServiceError && error.status === 404) {
-        const body: ServerInferResponseBody<typeof suppliersContract['getSupplierById'], 404> = {
-          success: false,
-          message: error.message,
-          statusCode: 404,
-          timestamp: new Date().toISOString(),
-        };
-        return { status: 404 as const, body };
+      if (error instanceof SupplierServiceError) {
+        return errorResponse(mapServiceStatus(error.status), error.message);
       }
+
       logger.error(`Failed to get supplier: ${error instanceof Error ? error.message : String(error)}`);
-      const body: ServerInferResponseBody<typeof suppliersContract['getSupplierById'], 500> = {
-        success: false,
-        message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-        statusCode: 500,
-        timestamp: new Date().toISOString(),
-      };
-      return { status: 500 as const, body };
+      return errorResponse(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR, ERROR_MESSAGES.GENERIC.SERVER_ERROR);
     }
   },
   createSupplier: async ({ body }: CreateSupplierRequest) => {
     try {
       const supplier = await suppliersService.createSupplier(body);
-      const responseBody: ServerInferResponseBody<typeof suppliersContract['createSupplier'], 200> = {
-        success: true,
-        message: SUCCESS_MESSAGES.GENERIC.CREATED,
-        data: transformSupplierToResponse(supplier),
-        timestamp: new Date().toISOString(),
-      };
-      return { status: 200, body: responseBody } as const;
+      return successResponse(
+        API_CONSTANTS.HTTP_STATUS.OK,
+        toApiSupplier(supplier),
+        SUCCESS_MESSAGES.GENERIC.CREATED ?? 'Created',
+      );
     } catch (error) {
       if (error instanceof SupplierServiceError) {
-        if (error.status === 400) {
-          const errorBody: ServerInferResponseBody<typeof suppliersContract['createSupplier'], 400> = {
-            success: false,
-            message: error.message,
-            statusCode: 400,
-            timestamp: new Date().toISOString(),
-          };
-          return { status: 400 as const, body: errorBody };
-        }
-
+        return errorResponse(mapServiceStatus(error.status), error.message);
       }
+
       logger.error(`Failed to create supplier: ${error instanceof Error ? error.message : String(error)}`);
-      const errorBody: ServerInferResponseBody<typeof suppliersContract['createSupplier'], 500> = {
-        success: false,
-        message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-        statusCode: 500,
-        timestamp: new Date().toISOString(),
-      };
-      return { status: 500 as const, body: errorBody };
+      return errorResponse(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR, ERROR_MESSAGES.GENERIC.SERVER_ERROR);
     }
   },
   updateSupplier: async ({ params, body }: UpdateSupplierRequest) => {
     try {
       const updated = await suppliersService.updateSupplier(params.id, body);
       if (!updated) {
-        const errorBody: ServerInferResponseBody<typeof suppliersContract['updateSupplier'], 404> = {
-          success: false,
-          message: ERROR_MESSAGES.SUPPLIER.NOT_FOUND,
-          statusCode: 404,
-          timestamp: new Date().toISOString(),
-        };
-        return { status: 404 as const, body: errorBody };
+        return errorResponse(API_CONSTANTS.HTTP_STATUS.NOT_FOUND, ERROR_MESSAGES.SUPPLIER.NOT_FOUND);
       }
-      const responseBody: ServerInferResponseBody<typeof suppliersContract['updateSupplier'], 200> = {
-        success: true,
-        message: SUCCESS_MESSAGES.GENERIC.UPDATED,
-        data: transformSupplierToResponse(updated),
-        timestamp: new Date().toISOString(),
-      };
-      return { status: 200, body: responseBody } as const;
+
+      return successResponse(
+        API_CONSTANTS.HTTP_STATUS.OK,
+        toApiSupplier(updated),
+        SUCCESS_MESSAGES.GENERIC.UPDATED ?? 'Updated',
+      );
     } catch (error) {
       if (error instanceof SupplierServiceError) {
-        if (error.status === 400) {
-          const errorBody: ServerInferResponseBody<typeof suppliersContract['updateSupplier'], 400> = {
-            success: false,
-            message: error.message,
-            statusCode: 400,
-            timestamp: new Date().toISOString(),
-          };
-          return { status: 400 as const, body: errorBody };
-        }
-
-        if (error.status === 404) {
-          const errorBody: ServerInferResponseBody<typeof suppliersContract['updateSupplier'], 404> = {
-            success: false,
-            message: error.message,
-            statusCode: 404,
-            timestamp: new Date().toISOString(),
-          };
-          return { status: 404 as const, body: errorBody };
-        }
-
+        return errorResponse(mapServiceStatus(error.status), error.message);
       }
+
       logger.error(`Failed to update supplier: ${error instanceof Error ? error.message : String(error)}`);
-      const errorBody: ServerInferResponseBody<typeof suppliersContract['updateSupplier'], 500> = {
-        success: false,
-        message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-        statusCode: 500,
-        timestamp: new Date().toISOString(),
-      };
-      return { status: 500 as const, body: errorBody };
+      return errorResponse(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR, ERROR_MESSAGES.GENERIC.SERVER_ERROR);
     }
   },
   deleteSupplier: async ({ params }: DeleteSupplierRequest) => {
     try {
       const deleted = await suppliersService.deleteSupplier(params.id);
       if (!deleted) {
-        const errorBody: ServerInferResponseBody<typeof suppliersContract['deleteSupplier'], 404> = {
-          success: false,
-          message: ERROR_MESSAGES.SUPPLIER.NOT_FOUND,
-          statusCode: 404,
-          timestamp: new Date().toISOString(),
-        };
-        return { status: 404 as const, body: errorBody };
+        return errorResponse(API_CONSTANTS.HTTP_STATUS.NOT_FOUND, ERROR_MESSAGES.SUPPLIER.NOT_FOUND);
       }
-      const responseBody: ServerInferResponseBody<typeof suppliersContract['deleteSupplier'], 200> = {
-        success: true,
-        message: SUCCESS_MESSAGES.GENERIC.DELETED,
-        data: { id: params.id },
-        timestamp: new Date().toISOString(),
-      };
-      return { status: 200, body: responseBody } as const;
+
+      return successResponse(
+        API_CONSTANTS.HTTP_STATUS.OK,
+        { id: params.id },
+        SUCCESS_MESSAGES.GENERIC.DELETED ?? 'Deleted',
+      );
     } catch (error) {
-      if (error instanceof SupplierServiceError && error.status === 404) {
-        const errorBody: ServerInferResponseBody<typeof suppliersContract['deleteSupplier'], 404> = {
-          success: false,
-          message: error.message,
-          statusCode: 404,
-          timestamp: new Date().toISOString(),
-        };
-        return { status: 404 as const, body: errorBody };
+      if (error instanceof SupplierServiceError) {
+        return errorResponse(mapServiceStatus(error.status), error.message);
       }
+
       logger.error(`Failed to delete supplier: ${error instanceof Error ? error.message : String(error)}`);
-      const errorBody: ServerInferResponseBody<typeof suppliersContract['deleteSupplier'], 500> = {
-        success: false,
-        message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-        statusCode: 500,
-        timestamp: new Date().toISOString(),
-      };
-      return { status: 500 as const, body: errorBody };
+      return errorResponse(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR, ERROR_MESSAGES.GENERIC.SERVER_ERROR);
     }
   },
 });
@@ -208,8 +178,8 @@ const router: Router = Router();
 
 createExpressEndpoints(suppliersContract, implementation, router, {
   requestValidationErrorHandler: createValidationErrorHandler({
-    defaultStatus: 400,
-    pathParamStatus: 404,
+    defaultStatus: API_CONSTANTS.HTTP_STATUS.BAD_REQUEST,
+    pathParamStatus: API_CONSTANTS.HTTP_STATUS.NOT_FOUND,
   }),
 });
 

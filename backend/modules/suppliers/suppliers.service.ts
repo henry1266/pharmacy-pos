@@ -145,7 +145,7 @@ function buildSupplierFields(input: SupplierUpsertInput): Record<string, any> {
     fields.name = normalizedName;
   }
 
-  const optionalKeys: Array<keyof SupplierUpsertInput> = [
+  const optionalKeys: Array<Extract<keyof SupplierUpsertInput, string>> = [
     'code',
     'shortCode',
     'contactPerson',

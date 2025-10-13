@@ -6,7 +6,7 @@
 
 | 檔案 / 資料夾 | 說明 |
 | --- | --- |
-| `suppliers.routes.ts` | ts-rest bridge：呼叫 `suppliersContract` 並直接回寫回應，避免額外的路徑再掛載 `/suppliers` |
+| `suppliers.routes.ts` | ts-rest bridge：呼叫 `suppliersContract` 並以 `successResponse` / `errorResponse` 共用流程回傳，避免額外的路徑再掛載 `/suppliers` |
 | `suppliers.service.ts` | 領域邏輯（驗證、建檔、更新、刪除等）|
 | `services/*` | 子服務（驗證、資料庫查詢…）|
 | `middlewares/*` | 仍保留舊有 Express 驗證，必要時可重構或移除 |
@@ -19,7 +19,7 @@
 2. **Contract**：`shared/api/contracts/suppliers.ts` 以 ts-rest 描述 `/suppliers` 路由。
 3. **Client**：`shared/api/clients/suppliers.ts` 提供 `createSuppliersContractClient`。
 4. **後端橋接**：`suppliers.routes.ts` 呼叫契約 handler，並將結果回傳 Express response。
-5. **OpenAPI**：`pnpm --filter @pharmacy-pos/shared run generate:openapi` 會自動輸出最新契約與相關 SDK。
+5. **OpenAPI**：執行 `pnpm --filter @pharmacy-pos/shared run generate:openapi` 後會同步產生 `openapi/components/schemas/suppliers.json`、`openapi/paths/suppliers.json` 與 `openapi/suppliers.openapi.json`，供 SDK / 文件共用。
 
 ## 路由總覽
 
@@ -72,7 +72,7 @@ pnpm --filter @pharmacy-pos/backend test -- --runTestsByPath modules/suppliers
 
 - [ ] `shared/schemas/zod/supplier.ts` 及 `supplierEntitySchema` 已更新
 - [ ] `shared/api/contracts/suppliers.ts` / `suppliers.routes.ts` 已同步調整
-- [ ] `pnpm --filter @pharmacy-pos/shared run generate:openapi` 執行成功
+- [ ] `pnpm --filter @pharmacy-pos/shared run generate:openapi` 產出 suppliers 專屬的 components / paths / module OpenAPI
 - [ ] `transformSupplierToResponse` 已反映欄位調整
 - [ ] 補上測試或說明原因
 - [ ] README / ADR 依需求更新

@@ -1,0 +1,55 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Pharmacy POS Suppliers API",
+    "version": "1.0.0",
+    "description": "OpenAPI specification for the suppliers domain, aligned with shared Zod schemas."
+  },
+  "servers": [
+    {
+      "url": "/api"
+    }
+  ],
+  "paths": {
+    "/api/suppliers": {
+      "$ref": "./paths/suppliers.json#/~1api~1suppliers"
+    },
+    "/api/suppliers/{id}": {
+      "$ref": "./paths/suppliers.json#/~1api~1suppliers~1{id}"
+    }
+  },
+  "components": {
+    "schemas": {
+      "SupplierId": {
+        "$ref": "./components/schemas/suppliers.json#/SupplierId"
+      },
+      "Supplier": {
+        "$ref": "./components/schemas/suppliers.json#/Supplier"
+      },
+      "SupplierCreateRequest": {
+        "$ref": "./components/schemas/suppliers.json#/SupplierCreateRequest"
+      },
+      "SupplierUpdateRequest": {
+        "$ref": "./components/schemas/suppliers.json#/SupplierUpdateRequest"
+      },
+      "SupplierSearchQuery": {
+        "$ref": "./components/schemas/suppliers.json#/SupplierSearchQuery"
+      },
+      "SupplierResponse": {
+        "$ref": "./components/schemas/suppliers.json#/SupplierResponse"
+      },
+      "SupplierListResponse": {
+        "$ref": "./components/schemas/suppliers.json#/SupplierListResponse"
+      },
+      "SupplierDeleteResponse": {
+        "$ref": "./components/schemas/suppliers.json#/SupplierDeleteResponse"
+      },
+      "ApiResponse": {
+        "$ref": "./components/schemas/common.json#/ApiResponse"
+      },
+      "ErrorResponse": {
+        "$ref": "./components/schemas/common.json#/ErrorResponse"
+      }
+    }
+  }
+}

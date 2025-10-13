@@ -15,6 +15,11 @@ import type {
   SaleQueryInput,
   UpdateSaleInput,
 } from '../schemas/zod/sale';
+import type {
+  CreateSupplierInput,
+  SupplierEntity,
+  UpdateSupplierInput,
+} from '../schemas/zod/supplier';
 
 
 /**
@@ -463,34 +468,9 @@ export interface CustomerResponse {
 /**
  * 供應商相關 API 型別
  */
-export interface SupplierCreateRequest {
-  name: string;
-  code?: string;
-  shortCode?: string;
-  contactPerson?: string;
-  phone?: string;
-  email?: string;
-  address?: string;
-  taxId?: string;
-  paymentTerms?: string;
-  notes?: string;
-}
-
-export interface SupplierResponse {
-  _id: string;
-  name: string;
-  code?: string;
-  shortCode?: string;
-  contactPerson?: string;
-  phone?: string;
-  email?: string;
-  address?: string;
-  taxId?: string;
-  paymentTerms?: string;
-  notes?: string;
-  createdAt: Date | string;
-  updatedAt: Date | string;
-}
+export type SupplierCreateRequest = CreateSupplierInput;
+export type SupplierUpdateRequest = UpdateSupplierInput;
+export type SupplierResponse = SupplierEntity;
 
 /**
  * 檔案上傳相關型別

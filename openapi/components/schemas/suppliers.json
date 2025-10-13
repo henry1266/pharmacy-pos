@@ -1,0 +1,307 @@
+{
+  "SupplierId": {
+    "type": "string",
+    "minLength": 24,
+    "maxLength": 24
+  },
+  "Supplier": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "code": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 50
+      },
+      "shortCode": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 20
+      },
+      "contactPerson": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "phone": {
+        "type": "string",
+        "pattern": "^[\\d\\s\\-+()]+$",
+        "minLength": 8,
+        "maxLength": 20
+      },
+      "email": {
+        "type": "string",
+        "maxLength": 254
+      },
+      "address": {
+        "type": "string",
+        "maxLength": 200
+      },
+      "taxId": {
+        "type": "string",
+        "pattern": "^\\d{8}$"
+      },
+      "paymentTerms": {
+        "type": "string",
+        "maxLength": 200
+      },
+      "notes": {
+        "type": "string",
+        "maxLength": 500
+      },
+      "isActive": {
+        "type": "boolean"
+      },
+      "_id": {
+        "type": "string",
+        "minLength": 24,
+        "maxLength": 24
+      },
+      "createdAt": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "string",
+            "format": "date-time"
+          }
+        ]
+      },
+      "updatedAt": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "string",
+            "format": "date-time"
+          }
+        ]
+      },
+      "date": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "string",
+            "format": "date-time"
+          }
+        ]
+      }
+    },
+    "required": [
+      "name",
+      "_id",
+      "createdAt",
+      "updatedAt"
+    ],
+    "additionalProperties": true
+  },
+  "SupplierCreateRequest": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "code": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 50
+      },
+      "shortCode": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 20
+      },
+      "contactPerson": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "phone": {
+        "type": "string",
+        "pattern": "^[\\d\\s\\-+()]+$",
+        "minLength": 8,
+        "maxLength": 20
+      },
+      "email": {
+        "type": "string",
+        "maxLength": 254
+      },
+      "address": {
+        "type": "string",
+        "maxLength": 200
+      },
+      "taxId": {
+        "type": "string",
+        "pattern": "^\\d{8}$"
+      },
+      "paymentTerms": {
+        "type": "string",
+        "maxLength": 200
+      },
+      "notes": {
+        "type": "string",
+        "maxLength": 500
+      },
+      "isActive": {
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "name"
+    ],
+    "additionalProperties": false
+  },
+  "SupplierUpdateRequest": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "code": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 50
+      },
+      "shortCode": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 20
+      },
+      "contactPerson": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "phone": {
+        "type": "string",
+        "pattern": "^[\\d\\s\\-+()]+$",
+        "minLength": 8,
+        "maxLength": 20
+      },
+      "email": {
+        "type": "string",
+        "maxLength": 254
+      },
+      "address": {
+        "type": "string",
+        "maxLength": 200
+      },
+      "taxId": {
+        "type": "string",
+        "pattern": "^\\d{8}$"
+      },
+      "paymentTerms": {
+        "type": "string",
+        "maxLength": 200
+      },
+      "notes": {
+        "type": "string",
+        "maxLength": 500
+      },
+      "isActive": {
+        "type": "boolean"
+      }
+    },
+    "additionalProperties": false
+  },
+  "SupplierSearchQuery": {
+    "type": "object",
+    "properties": {
+      "search": {
+        "type": "string"
+      },
+      "active": {
+        "type": "boolean"
+      },
+      "page": {
+        "type": "number",
+        "minimum": 1
+      },
+      "limit": {
+        "type": "number",
+        "minimum": 1,
+        "maximum": 100
+      },
+      "sortBy": {
+        "type": "string",
+        "maxLength": 50
+      },
+      "sortOrder": {
+        "type": "string",
+        "enum": [
+          "asc",
+          "desc"
+        ]
+      }
+    },
+    "additionalProperties": true
+  },
+  "SupplierResponse": {
+    "allOf": [
+      {
+        "$ref": "common.json#/ApiResponse"
+      },
+      {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/Supplier"
+          }
+        }
+      }
+    ]
+  },
+  "SupplierListResponse": {
+    "allOf": [
+      {
+        "$ref": "common.json#/ApiResponse"
+      },
+      {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/Supplier"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "SupplierDeleteResponse": {
+    "allOf": [
+      {
+        "$ref": "common.json#/ApiResponse"
+      },
+      {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "$ref": "#/SupplierId"
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1,6 +1,7 @@
 ﻿import { z } from 'zod';
 import { zodId } from '../../utils/zodUtils';
 import { VALIDATION_CONSTANTS } from '../../constants';
+import { timestampSchema } from './common';
 
 const optionalTrimmedString = (schema: z.ZodString) =>
   z.preprocess(
@@ -68,8 +69,6 @@ const addressSchema = z.string().max(200, { message: 'Address must not exceed 20
 const paymentTermsSchema = z.string().max(200, { message: 'Payment terms must not exceed 200 characters.' });
 const notesSchema = z.string().max(500, { message: 'Notes must not exceed 500 characters.' });
 
-const timestampSchema = z.union([z.string(), z.date()]);
-
 export const supplierSchema = z.object({
   name: supplierNameSchema,
   code: supplierCodeSchema,
@@ -112,3 +111,9 @@ export default {
   updateSupplierSchema,
   supplierSearchSchema,
 };
+
+export type SupplierInput = z.infer<typeof supplierSchema>;
+export type CreateSupplierInput = z.infer<typeof createSupplierSchema>;
+export type UpdateSupplierInput = z.infer<typeof updateSupplierSchema>;
+export type SupplierSearchInput = z.infer<typeof supplierSearchSchema>;
+export type SupplierEntity = z.infer<typeof supplierEntitySchema>;

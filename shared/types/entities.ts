@@ -11,6 +11,7 @@ import type {
   PaymentStatus,
   SaleLifecycleStatus,
 } from '../schemas/zod/sale';
+import type { SupplierEntity as SupplierEntityType } from '../schemas/zod/supplier';
 
 type StripIndexSignature<T> = {
   [K in keyof T as string extends K ? never : number extends K ? never : symbol extends K ? never : K]: T[K];
@@ -146,22 +147,24 @@ export interface Category {
   updatedAt: string | Date;
 }
 
+type SupplierBase = StripIndexSignature<SupplierEntityType>;
+
 export interface Supplier {
-  _id: string;
-  code?: string;
-  shortCode?: string;
-  name: string;
-  contactPerson?: string;
-  phone?: string;
-  email?: string;
-  address?: string;
-  taxId?: string;
-  paymentTerms?: string;
-  notes?: string;
-  isActive?: boolean;
-  date?: string | Date;
-  createdAt: string | Date;
-  updatedAt: string | Date;
+  _id: SupplierBase['_id'];
+  code?: SupplierBase['code'];
+  shortCode?: SupplierBase['shortCode'];
+  name: SupplierBase['name'];
+  contactPerson?: SupplierBase['contactPerson'];
+  phone?: SupplierBase['phone'];
+  email?: SupplierBase['email'];
+  address?: SupplierBase['address'];
+  taxId?: SupplierBase['taxId'];
+  paymentTerms?: SupplierBase['paymentTerms'];
+  notes?: SupplierBase['notes'];
+  isActive?: SupplierBase['isActive'];
+  date?: SupplierBase['date'];
+  createdAt: SupplierBase['createdAt'];
+  updatedAt: SupplierBase['updatedAt'];
 }
 
 /**
