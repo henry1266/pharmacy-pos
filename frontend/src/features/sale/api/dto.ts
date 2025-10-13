@@ -1,6 +1,12 @@
 import type { z } from 'zod';
 import type { Sale, Customer, Product } from '@pharmacy-pos/shared/types/entities';
 import type { PaymentMethod, PaymentStatus } from '@pharmacy-pos/shared/schemas/zod/sale';
+import {
+  DEFAULT_PAYMENT_METHOD,
+  DEFAULT_PAYMENT_STATUS,
+  ensurePaymentMethod,
+  ensurePaymentStatus,
+} from '../constants/payment';
 
 /**
  * 通用響應介面
@@ -157,8 +163,8 @@ export const mapSaleResponseToSaleData = (sale: SaleResponseDto): SaleDataDto =>
     totalAmount: sale.totalAmount,
     discount: sale.discount ?? discountAmount,
     discountAmount,
-    paymentMethod: sale.paymentMethod as PaymentMethod,
-    paymentStatus: (sale.paymentStatus || 'paid') as PaymentStatus,
+    paymentMethod: ensurePaymentMethod(sale.paymentMethod, DEFAULT_PAYMENT_METHOD),
+    paymentStatus: ensurePaymentStatus(sale.paymentStatus ?? DEFAULT_PAYMENT_STATUS, DEFAULT_PAYMENT_STATUS),
     notes: sale.notes || ''
   };
 };

@@ -17,11 +17,16 @@ import {
 } from '@mui/material';
 import { ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
 import { Customer } from '@pharmacy-pos/shared/types/entities';
+import type { PaymentMethod } from '@pharmacy-pos/shared/schemas/zod/sale';
+import {
+  PAYMENT_METHOD_LABELS,
+  PAYMENT_METHOD_OPTIONS,
+} from '../../constants/payment';
 
 interface SaleData {
   saleNumber: string;
   customer: string;
-  paymentMethod: string;
+  paymentMethod: PaymentMethod;
   discount: string | number;
   notes: string;
 }
@@ -176,11 +181,11 @@ const SaleInfoCard: React.FC<SaleInfoCardProps> = ({
                   onChange={onInputChange}
                   label="付款方式"
                 >
-                  <MenuItem value="cash">現金</MenuItem>
-                  <MenuItem value="credit_card">信用卡</MenuItem>
-                  <MenuItem value="debit_card">金融卡</MenuItem>
-                  <MenuItem value="mobile_payment">行動支付</MenuItem>
-                  {/* Add other payment methods as needed */}
+                  {PAYMENT_METHOD_OPTIONS.map((method) => (
+                    <MenuItem key={method} value={method}>
+                      {PAYMENT_METHOD_LABELS[method]}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </Grid>

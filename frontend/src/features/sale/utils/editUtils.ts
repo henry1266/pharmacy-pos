@@ -1,7 +1,12 @@
 import { SaleItem, SaleData } from '../types/edit';
 import { Product } from '@pharmacy-pos/shared/types/entities';
 import type { PaymentStatus } from '@pharmacy-pos/shared/schemas/zod/sale';
-import { calculateSaleTotals } from './saleTotals';
+import { calculateSaleTotals } from './saleTotals';import {
+  DEFAULT_PAYMENT_METHOD,
+  DEFAULT_PAYMENT_STATUS,
+  ensurePaymentMethod,
+  ensurePaymentStatus,
+} from '../constants/payment';
 
 /**
  * 格式化銷售項目
@@ -32,14 +37,16 @@ export const formatSaleItem = (item: any): SaleItem => {
  */
 export const formatSaleData = (saleData: any): SaleData => {
   // 確定付款狀態
-  let paymentStatus: PaymentStatus = 'pending';
-  if (saleData.status === 'completed') {
-    paymentStatus = 'paid';
-  } else if (saleData.status === 'cancelled') {
-    paymentStatus = 'cancelled';
-  } else if (saleData.paymentStatus === 'partial') {
-    paymentStatus = 'partial';
-  }
+  const statusFromLifecycle: PaymentStatus | undefined = saleData.status === 'completed'
+    ? 'paid'
+    : saleData.status === 'cancelled'
+      ? 'cancelled'
+      : undefined;
+
+  const paymentStatus = ensurePaymentStatus(
+    statusFromLifecycle ?? saleData.paymentStatus,
+    DEFAULT_PAYMENT_STATUS,
+  );
 
   const formattedItems = saleData.items.map((item: any) => formatSaleItem(item));
   const { grossAmount, discountAmount, netAmount } = calculateSaleTotals(
@@ -54,7 +61,7 @@ export const formatSaleData = (saleData: any): SaleData => {
     discount: parseFloat(saleData.discount.toString()) || 0,
     ...(discountAmount > 0 ? { discountAmount } : {}),
     discountAmount,
-    paymentMethod: saleData.paymentMethod ?? 'cash',
+    paymentMethod: ensurePaymentMethod(saleData.paymentMethod, DEFAULT_PAYMENT_METHOD),
     paymentStatus,
     notes: saleData.notes ?? ''
   };

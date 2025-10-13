@@ -24,6 +24,12 @@ import {
 import { InputMode, SnackbarState } from '../types/edit';
 import { findProductByCode } from '../utils/editUtils';
 import { calculateSaleTotals } from '../utils/saleTotals';
+import {
+  DEFAULT_PAYMENT_METHOD,
+  DEFAULT_PAYMENT_STATUS,
+  ensurePaymentMethod,
+  ensurePaymentStatus,
+} from '../constants/payment';
 
 // 默認的表單狀態，用於防禦性編程
 const defaultFormState = {
@@ -71,11 +77,11 @@ export const useSaleEdit = (saleId: string, products: Product[]) => {
   const [currentSale, setCurrentSale] = useState<SaleDataDto>({
     customer: '',
     items: [],
-      totalAmount: 0,
+    totalAmount: 0,
     discount: 0,
     discountAmount: 0,
-    paymentMethod: 'cash',
-    paymentStatus: 'paid',
+    paymentMethod: DEFAULT_PAYMENT_METHOD,
+    paymentStatus: DEFAULT_PAYMENT_STATUS,
     notes: ''
   });
   const [barcode, setBarcode] = useState<string>('');
@@ -89,6 +95,12 @@ export const useSaleEdit = (saleId: string, products: Product[]) => {
   // 初始化銷售數據
   useEffect(() => {
     if (initialSaleData) {
+      const normalizedSale: SaleDataDto = {
+        ...initialSaleData,
+        paymentMethod: ensurePaymentMethod(initialSaleData.paymentMethod, DEFAULT_PAYMENT_METHOD),
+        paymentStatus: ensurePaymentStatus(initialSaleData.paymentStatus, DEFAULT_PAYMENT_STATUS),
+      };
+
       // 創建一個深拷貝，確保 currentSale 是可變的
       setCurrentSale(JSON.parse(JSON.stringify(initialSaleData)));
       // 初始化輸入模式，預設為單價模式
@@ -117,6 +129,23 @@ export const useSaleEdit = (saleId: string, products: Product[]) => {
   // 處理輸入變更
   const handleInputChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+
+    if (name === 'paymentMethod') {
+      setCurrentSale(prev => ({
+        ...prev,
+        paymentMethod: ensurePaymentMethod(value, prev.paymentMethod ?? DEFAULT_PAYMENT_METHOD),
+      }));
+      return;
+    }
+
+    if (name === 'paymentStatus') {
+      setCurrentSale(prev => ({
+        ...prev,
+        paymentStatus: ensurePaymentStatus(value, prev.paymentStatus ?? DEFAULT_PAYMENT_STATUS),
+      }));
+      return;
+    }
+
     setCurrentSale(prev => ({
       ...prev,
       [name]: value

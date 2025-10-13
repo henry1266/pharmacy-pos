@@ -6,6 +6,13 @@
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 import { PaymentStatusInfo } from '../types/list';
+import type { PaymentMethod, PaymentStatus } from '@pharmacy-pos/shared/schemas/zod/sale';
+import {
+  PAYMENT_METHOD_LABELS,
+  PAYMENT_STATUS_META,
+  parsePaymentMethod,
+  parsePaymentStatus,
+} from '../constants/payment';
 
 /**
  * 獲取付款方式的顯示文字
@@ -13,29 +20,24 @@ import { PaymentStatusInfo } from '../types/list';
  * @returns 付款方式的顯示文字
  */
 export const getPaymentMethodText = (method: string): string => {
-  const methodMap: Record<string, string> = {
-    'cash': '現金',
-    'credit_card': '信用卡',
-    'debit_card': '金融卡',
-    'mobile_payment': '行動支付',
-    'other': '其他'
-  };
-  return methodMap[method] ?? method;
+  const parsed = parsePaymentMethod(method);
+  if (parsed) {
+    return PAYMENT_METHOD_LABELS[parsed as PaymentMethod];
+  }
+  return method;
 };
-
 /**
  * 獲取付款狀態的顯示信息
  * @param status 付款狀態
  * @returns 付款狀態的顯示信息
  */
 export const getPaymentStatusInfo = (status: string): PaymentStatusInfo => {
-  const statusMap: Record<string, PaymentStatusInfo> = {
-    'paid': { text: '已付款', color: 'success' },
-    'pending': { text: '待付款', color: 'warning' },
-    'partial': { text: '部分付款', color: 'info' },
-    'cancelled': { text: '已取消', color: 'error' }
-  };
-  return statusMap[status] ?? { text: status, color: 'default' };
+  const parsed = parsePaymentStatus(status);
+  if (parsed) {
+    const meta = PAYMENT_STATUS_META[parsed as PaymentStatus];
+    return { text: meta.text, color: meta.color };
+  }
+  return { text: status, color: 'default' };
 };
 
 /**

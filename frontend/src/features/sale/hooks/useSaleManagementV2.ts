@@ -10,6 +10,12 @@ import type {
   SaleItem as SharedSaleItem,
 } from '@pharmacy-pos/shared/schemas/zod/sale';
 import { calculateSaleTotals } from '@/features/sale/utils/saleTotals';
+import {
+  DEFAULT_PAYMENT_METHOD,
+  DEFAULT_PAYMENT_STATUS,
+  ensurePaymentMethod,
+  ensurePaymentStatus,
+} from '../constants/payment';
 
 /**
  * 銷售項目介面
@@ -54,8 +60,8 @@ const initialSaleState: SaleData = {
   grossAmount: 0,
   discount: 0,
   discountAmount: 0,
-  paymentMethod: 'cash',
-  paymentStatus: 'paid',
+  paymentMethod: DEFAULT_PAYMENT_METHOD,
+  paymentStatus: DEFAULT_PAYMENT_STATUS,
   notes: '',
 };
 
@@ -120,14 +126,14 @@ const useSaleManagementV2 = (
       if (fieldName === 'paymentMethod') {
         return {
           ...prev,
-          paymentMethod: String(target.value) as PaymentMethod,
+          paymentMethod: ensurePaymentMethod(target.value, prev.paymentMethod),
         };
       }
 
       if (fieldName === 'paymentStatus') {
         return {
           ...prev,
-          paymentStatus: String(target.value) as PaymentStatus,
+          paymentStatus: ensurePaymentStatus(target.value, prev.paymentStatus),
         };
       }
 

@@ -15,6 +15,12 @@ import {
   SelectChangeEvent
 } from '@mui/material';
 import { SaleEditDetailsCardProps } from '../../types/edit';
+import {
+  PAYMENT_METHOD_LABELS,
+  PAYMENT_METHOD_OPTIONS,
+  PAYMENT_STATUS_LABELS,
+  PAYMENT_STATUS_OPTIONS,
+} from '../../constants/payment';
 
 /**
  * 銷售編輯詳情卡片組件
@@ -88,10 +94,11 @@ const SaleEditDetailsCard: React.FC<SaleEditDetailsCardProps> = ({
                 }}
                 label="付款方式"
               >
-                <MenuItem value="cash">現金</MenuItem>
-                <MenuItem value="credit_card">信用卡</MenuItem>
-                <MenuItem value="transfer">轉帳</MenuItem>
-                <MenuItem value="other">其他</MenuItem>
+                {PAYMENT_METHOD_OPTIONS.map((method) => (
+                  <MenuItem key={method} value={method}>
+                    {PAYMENT_METHOD_LABELS[method]}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
           </Grid>
@@ -108,10 +115,11 @@ const SaleEditDetailsCard: React.FC<SaleEditDetailsCardProps> = ({
                 }}
                 label="付款狀態"
               >
-                <MenuItem value="paid">已付款</MenuItem>
-                <MenuItem value="pending">待付款</MenuItem>
-                <MenuItem value="partial">部分付款</MenuItem>
-                <MenuItem value="cancelled">已取消</MenuItem>
+                {PAYMENT_STATUS_OPTIONS.map((status) => (
+                  <MenuItem key={status} value={status}>
+                    {PAYMENT_STATUS_LABELS[status]}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
           </Grid>
