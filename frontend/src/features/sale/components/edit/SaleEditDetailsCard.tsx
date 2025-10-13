@@ -102,7 +102,7 @@ const SaleEditDetailsCard: React.FC<SaleEditDetailsCardProps> = ({
               <InputLabel>付款狀態</InputLabel>
               <Select
                 name="paymentStatus"
-                value={currentSale.paymentStatus}
+                value={currentSale.paymentStatus ?? ''}
                 onChange={(event: SelectChangeEvent<string>) => {
                   handleInputChange(event as any);
                 }}

@@ -45,15 +45,21 @@ const SalesItemsTable: FC<SalesItemsTableProps> = ({
         </TableRow>
       </TableHead>
       <TableBody>
-        {sale.items.map((item, index) => (
-          <SalesItemRow 
-            key={item.product?._id ?? `item-${index}`}
-            item={item} 
-            fifoLoading={fifoLoading} 
-            fifoData={fifoData} 
-            showSalesProfitColumns={showSalesProfitColumns} 
-          />
-        ))}
+        {sale.items.map((item, index) => {
+          const productId = (typeof item.product === 'object' && item.product !== null)
+            ? item.product._id
+            : undefined;
+
+          return (
+            <SalesItemRow 
+              key={productId ?? `item-${index}`}
+              item={item} 
+              fifoLoading={fifoLoading} 
+              fifoData={fifoData} 
+              showSalesProfitColumns={showSalesProfitColumns} 
+            />
+          );
+        })}
       </TableBody>
     </Table>
   </TableContainer>

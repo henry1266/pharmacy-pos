@@ -16,7 +16,8 @@ export type Product = SharedProduct;
 export type Customer = SharedCustomer;
 
 export type SaleItem = Omit<SharedSaleItem, 'product'> & {
-  product?: SharedProduct | string;
+  product?: SharedProduct | { name: string; _id?: string; id?: string; code?: string };
+  amount?: number;
   name?: string;
 };
 

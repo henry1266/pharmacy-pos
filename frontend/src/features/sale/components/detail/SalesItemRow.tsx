@@ -20,14 +20,19 @@ const SalesItemRow: FC<SalesItemRowProps> = ({
   showSalesProfitColumns 
 }) => {
   // 查找對應的 FIFO 項目
-  const fifoItem = !fifoLoading && fifoData?.items?.find(fi => fi.product?._id === item.product?._id);
+  const product = (typeof item.product === 'object' && item.product !== null)
+    ? item.product
+    : undefined;
+  const productId = product?._id;
+  const productName = product?.name ?? item.name ?? 'N/A';
+  const fifoItem = !fifoLoading && fifoData?.items?.find(fi => fi.product?._id === productId);
   
   return (
     <TableRow hover>
       <TableCell>
-        <ProductCodeLink product={item.product || null} />
+        <ProductCodeLink product={product ?? null} />
       </TableCell>
-      <TableCell>{item.product?.name ?? item.name ?? 'N/A'}</TableCell>
+      <TableCell>{productName}</TableCell>
       <TableCell align="right">{item.price.toFixed(2)}</TableCell>
       <TableCell align="right">{item.quantity}</TableCell>
       <TableCell align="right">{(item.price * item.quantity).toFixed(2)}</TableCell>
