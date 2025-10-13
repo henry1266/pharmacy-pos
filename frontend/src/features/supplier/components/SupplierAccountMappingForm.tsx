@@ -90,13 +90,30 @@ const SupplierAccountMappingForm: React.FC<SupplierAccountMappingFormProps> = ({
         
         // 設置選中的會計科目
         if (existingMapping.accountMappings && Array.isArray(existingMapping.accountMappings)) {
-          const accounts: SelectedAccount[] = existingMapping.accountMappings.map((am: any) => ({
-            _id: am.accountId,
-            name: am.accountName,
-            code: am.accountCode,
-            accountType: '',
-            organizationId: existingMapping.organizationId
-          }));
+          const accounts: SelectedAccount[] = existingMapping.accountMappings.map((am: any, index: number) => {
+            const accountId = am.accountId as unknown;
+            let normalizedAccountId: string;
+
+            if (typeof accountId === 'string' && accountId.trim().length > 0) {
+              normalizedAccountId = accountId;
+            } else if (accountId && typeof accountId === 'object') {
+              const candidate = accountId as { _id?: unknown; id?: unknown };
+              const candidateValue = typeof candidate._id === 'string' && candidate._id.trim().length > 0
+                ? candidate._id
+                : (typeof candidate.id === 'string' && candidate.id.trim().length > 0 ? candidate.id : null);
+              normalizedAccountId = candidateValue ?? `${am.accountCode ?? 'account'}-${index}`;
+            } else {
+              normalizedAccountId = `${am.accountCode ?? 'account'}-${index}`;
+            }
+
+            return {
+              _id: normalizedAccountId,
+              name: am.accountName,
+              code: am.accountCode,
+              accountType: '',
+              organizationId: existingMapping.organizationId
+            };
+          });
           console.log('設置選中的會計科目:', accounts);
           setSelectedAccounts(accounts);
         } else {

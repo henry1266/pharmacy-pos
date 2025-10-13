@@ -119,6 +119,26 @@ describe('suppliersContract router', () => {
     expect(envelope.success).toBe(false);
   });
 
+  it('allows updating supplier without email information', async () => {
+    const createResponse = await request(app)
+      .post('/api/suppliers')
+      .send(buildSupplierPayload({ email: undefined }))
+      .expect(200);
+
+    const createdEnvelope = parseEnvelope(supplierEnvelopeSchema, createResponse.body);
+    const supplierId = createdEnvelope.data?._id;
+    expect(typeof supplierId).toBe('string');
+
+    const updateResponse = await request(app)
+      .put(`/api/suppliers/${supplierId}`)
+      .send({ name: 'Updated Supplier', email: '' })
+      .expect(200);
+
+    const updatedEnvelope = parseEnvelope(supplierEnvelopeSchema, updateResponse.body);
+    expect(updatedEnvelope.success).toBe(true);
+    expect(updatedEnvelope.data?.name).toBe('Updated Supplier');
+    expect(updatedEnvelope.data?.email).toBeUndefined();
+  });
   it('rejects invalid supplier id formats with validation handler', async () => {
     const response = await request(app)
       .get('/api/suppliers/invalid-id')
@@ -132,6 +152,3 @@ describe('suppliersContract router', () => {
     ).toBeDefined();
   });
 });
-
-
-

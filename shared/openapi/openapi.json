@@ -5120,7 +5120,8 @@
                           "email": {
                             "type": "string",
                             "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
-                            "maxLength": 254
+                            "maxLength": 254,
+                            "nullable": true
                           },
                           "address": {
                             "type": "string",
@@ -5308,7 +5309,8 @@
                   "email": {
                     "type": "string",
                     "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
-                    "maxLength": 254
+                    "maxLength": 254,
+                    "nullable": true
                   },
                   "address": {
                     "type": "string",
@@ -5397,7 +5399,8 @@
                         "email": {
                           "type": "string",
                           "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
-                          "maxLength": 254
+                          "maxLength": 254,
+                          "nullable": true
                         },
                         "address": {
                           "type": "string",
@@ -5689,7 +5692,8 @@
                         "email": {
                           "type": "string",
                           "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
-                          "maxLength": 254
+                          "maxLength": 254,
+                          "nullable": true
                         },
                         "address": {
                           "type": "string",
@@ -5955,7 +5959,8 @@
                   "email": {
                     "type": "string",
                     "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
-                    "maxLength": 254
+                    "maxLength": 254,
+                    "nullable": true
                   },
                   "address": {
                     "type": "string",
@@ -6041,7 +6046,8 @@
                         "email": {
                           "type": "string",
                           "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
-                          "maxLength": 254
+                          "maxLength": 254,
+                          "nullable": true
                         },
                         "address": {
                           "type": "string",

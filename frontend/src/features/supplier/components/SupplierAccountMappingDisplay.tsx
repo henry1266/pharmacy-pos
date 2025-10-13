@@ -225,9 +225,12 @@ const SupplierAccountMappingDisplay: React.FC<SupplierAccountMappingDisplayProps
                 const accountData = (accountMapping as any).accountId;
                 const hierarchyPath = accountData ? buildAccountHierarchy(accountData) :
                   `${accountMapping.accountCode} - ${accountMapping.accountName}`;
+                const mappingKey = typeof accountData === 'string'
+                  ? accountData
+                  : accountData?._id ?? accountMapping.accountCode ?? `account-${index}`;
                 
                 return (
-                  <React.Fragment key={accountMapping.accountId}>
+                  <React.Fragment key={mappingKey}>
                     <ListItem sx={{ px: 0, py: 1 }}>
                       <ListItemText
                         primary={
