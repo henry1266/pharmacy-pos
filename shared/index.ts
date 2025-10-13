@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Shared 模組主要匯出檔案
  * 統一匯出所有共享的型別、常數、工具函數等
  */
@@ -282,13 +282,6 @@ export {
 } from './services/customerApiClient';
 
 export {
-  SalesApiClient,
-  createSalesApiClient,
-  SalesQueryParams,
-  SalesStats
-} from './services/salesApiClient';
-
-export {
   InventoryApiClient,
   createInventoryApiClient,
   InventoryQueryParams,
@@ -421,12 +414,27 @@ export { supplierEntitySchema } from './schemas/zod/supplier';
 export { purchaseOrderEntitySchema } from './schemas/zod/purchaseOrder';
 export { shippingOrderEntitySchema } from './schemas/zod/shippingOrder';
 export { productSchema, productCreateSchema, productUpdateSchema, productQuerySchema, productListFiltersSchema } from './schemas/zod/product';
+
+export {
+  productDescriptionParamsSchema,
+  productDescriptionUpdateSchema,
+  productDescriptionResponseSchema,
+  emptyProductDescription,
+} from './schemas/zod/productDescription';
+
+export type {
+  ProductDescriptionDTO,
+  ProductDescriptionParams,
+  ProductDescriptionUpdateInput,
+} from './schemas/zod/productDescription';
+
 export {
   fifoProfitSchema,
   fifoSaleItemSchema,
   fifoSaleSummarySchema,
   fifoSaleResponseSchema,
 } from './schemas/zod/fifo';
+
 export type { FifoSaleResponse } from './schemas/zod/fifo';
 
 export { createSalesContractClient } from './api/clients/sales';

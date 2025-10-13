@@ -1,13 +1,20 @@
 import { useState, useEffect, useCallback, ChangeEvent, useRef } from 'react';
+import type { SelectChangeEvent } from '@mui/material/Select';
 import { createSale } from '@/services/salesServiceV2';
 import { Product } from '@pharmacy-pos/shared/types/entities';
 import type { SaleCreateRequest } from '@/features/sale/api/dto';
 import { Package } from '@pharmacy-pos/shared/types/package';
+import type {
+  PaymentMethod,
+  PaymentStatus,
+  SaleItem as SharedSaleItem,
+} from '@pharmacy-pos/shared/schemas/zod/sale';
+import { calculateSaleTotals } from '@/features/sale/utils/saleTotals';
 
 /**
  * 銷售項目介面
  */
-interface SaleItem {
+interface SaleLineItem extends SharedSaleItem {
   product: string;
   productDetails?: Product;
   name: string;
@@ -24,11 +31,13 @@ interface SaleItem {
 interface SaleData {
   saleNumber: string;
   customer: string;
-  items: SaleItem[];
+  items: SaleLineItem[];
   totalAmount: number;
+  grossAmount: number;
   discount: number;
-  paymentMethod: 'cash' | 'card' | 'transfer' | 'other';
-  paymentStatus: 'paid' | 'pending' | 'cancelled';
+  discountAmount: number;
+  paymentMethod: PaymentMethod;
+  paymentStatus: PaymentStatus;
   notes: string;
 }
 
@@ -42,10 +51,12 @@ const initialSaleState: SaleData = {
   customer: '',
   items: [],
   totalAmount: 0,
+  grossAmount: 0,
   discount: 0,
+  discountAmount: 0,
   paymentMethod: 'cash',
   paymentStatus: 'paid',
-  notes: ''
+  notes: '',
 };
 
 /**
@@ -65,22 +76,66 @@ const useSaleManagementV2 = (
   const isProcessingProductRef = useRef<boolean>(false);
   const lastProcessedProductRef = useRef<string | null>(null);
 
-  // Calculate Total Amount whenever items or discount change
+  // Keep derived totals (gross, discount amount, net) in sync with items/discount input
   useEffect(() => {
-    const total = currentSale.items.reduce((sum, item) => sum + item.subtotal, 0);
-    setCurrentSale(prev => ({
-      ...prev,
-      totalAmount: total - prev.discount
-    }));
+    setCurrentSale(prev => {
+      const { grossAmount, discountAmount, netAmount } = calculateSaleTotals(prev.items, prev.discount);
+      if (
+        prev.totalAmount === netAmount &&
+        prev.grossAmount === grossAmount &&
+        prev.discountAmount === discountAmount
+      ) {
+        return prev;
+      }
+      return {
+        ...prev,
+        totalAmount: netAmount,
+        grossAmount,
+        discountAmount,
+      };
+    });
   }, [currentSale.items, currentSale.discount]);
 
   // Handler for general sale info changes (customer, paymentMethod, note, discount, saleNumber)
-  const handleSaleInfoChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setCurrentSale(prev => ({
-      ...prev,
-      [name]: name === 'discount' ? parseFloat(value) || 0 : value
-    }));
+  const handleSaleInfoChange = useCallback((
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement> | SelectChangeEvent<string>,
+  ) => {
+    const target = e.target as { name?: string; value: unknown };
+    const fieldName = target?.name;
+    if (!fieldName) {
+      return;
+    }
+
+    setCurrentSale(prev => {
+      if (fieldName === 'discount') {
+        const parsed = typeof target.value === 'number'
+          ? target.value
+          : parseFloat(String(target.value));
+        return {
+          ...prev,
+          discount: Number.isFinite(parsed) && parsed > 0 ? parsed : 0,
+        };
+      }
+
+      if (fieldName === 'paymentMethod') {
+        return {
+          ...prev,
+          paymentMethod: String(target.value) as PaymentMethod,
+        };
+      }
+
+      if (fieldName === 'paymentStatus') {
+        return {
+          ...prev,
+          paymentStatus: String(target.value) as PaymentStatus,
+        };
+      }
+
+      return {
+        ...prev,
+        [fieldName]: typeof target.value === 'string' ? target.value : String(target.value ?? ''),
+      } as SaleData;
+    });
   }, []);
 
   // Handler for adding a product to the sale
@@ -130,7 +185,7 @@ const useSaleManagementV2 = (
           }
         } else {
           // 添加新項目，不影響其他項目
-          const newItem: SaleItem = {
+          const newItem: SaleLineItem = {
             product: product._id,
             productDetails: product, // Keep details for reference if needed
             name: product.name,
@@ -166,7 +221,7 @@ const useSaleManagementV2 = (
     
     setCurrentSale(prevSale => {
       // 將套餐展開為其包含的各個商品項目
-      const newItems: SaleItem[] = [];
+      const newItems: SaleLineItem[] = [];
       const newModes: InputMode[] = [];
       
       if (packageItem.items && packageItem.items.length > 0) {
@@ -188,7 +243,7 @@ const useSaleManagementV2 = (
             }
           } else {
             // 創建新的銷售項目
-            const newItem: SaleItem = {
+            const newItem: SaleLineItem = {
               product: packageItemDetail.productId,
               name: packageItemDetail.productName,
               code: packageItemDetail.productCode || packageItem.code || '',
@@ -228,7 +283,7 @@ const useSaleManagementV2 = (
             showSnackbar(`已增加套餐 ${packageItem.name} 的數量`, 'success');
           }
         } else {
-          const newItem: SaleItem = {
+          const newItem: SaleLineItem = {
             product: packageItem._id || '',
             name: `[套餐] ${packageItem.name}`,
             code: packageItem.code,
@@ -345,16 +400,22 @@ const useSaleManagementV2 = (
       quantity: item.quantity,
       price: item.price,
       subtotal: item.subtotal,
+      ...(item.discount !== undefined ? { discount: item.discount } : {}),
+      ...(item.unitPrice !== undefined ? { unitPrice: item.unitPrice } : {}),
+      ...(item.notes !== undefined ? { notes: item.notes } : {}),
     }));
+
+    const { grossAmount, discountAmount } = calculateSaleTotals(currentSale.items, currentSale.discount);
 
     const payload: SaleCreateRequest = {
       saleNumber: finalSaleNumber,
       items,
-      totalAmount: currentSale.totalAmount,
-      discount: currentSale.discount,
-      paymentMethod: currentSale.paymentMethod as SaleCreateRequest['paymentMethod'],
-      paymentStatus: currentSale.paymentStatus as SaleCreateRequest['paymentStatus'],
-      notes: currentSale.notes || '',
+      totalAmount: grossAmount,
+      paymentMethod: currentSale.paymentMethod,
+      paymentStatus: currentSale.paymentStatus,
+      ...(currentSale.discount > 0 ? { discount: currentSale.discount } : {}),
+      ...(discountAmount > 0 ? { discountAmount } : {}),
+      ...(currentSale.notes ? { notes: currentSale.notes } : {}),
     };
 
     if (currentSale.customer) {
@@ -380,7 +441,8 @@ const useSaleManagementV2 = (
     try {
       const finalSaleNumber = currentSale.saleNumber || await generateSaleNumber();
       const saleData = prepareSaleData(finalSaleNumber);
-      
+      const { netAmount } = calculateSaleTotals(currentSale.items, currentSale.discount);
+
       await createSale(saleData);
       showSnackbar('銷售記錄已保存', 'success');
       resetForm();
@@ -388,7 +450,7 @@ const useSaleManagementV2 = (
       // Call the completion callback if provided
       if (onSaleCompleted) {
         onSaleCompleted({
-          totalAmount: currentSale.totalAmount,
+          totalAmount: netAmount,
           saleNumber: finalSaleNumber
         });
       }

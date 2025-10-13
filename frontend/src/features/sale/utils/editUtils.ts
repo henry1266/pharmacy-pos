@@ -1,5 +1,7 @@
 import { SaleItem, SaleData } from '../types/edit';
 import { Product } from '@pharmacy-pos/shared/types/entities';
+import type { PaymentStatus } from '@pharmacy-pos/shared/schemas/zod/sale';
+import { calculateSaleTotals } from './saleTotals';
 
 /**
  * 格式化銷售項目
@@ -30,22 +32,30 @@ export const formatSaleItem = (item: any): SaleItem => {
  */
 export const formatSaleData = (saleData: any): SaleData => {
   // 確定付款狀態
-  let paymentStatus: 'paid' | 'pending' | 'cancelled' = 'pending';
+  let paymentStatus: PaymentStatus = 'pending';
   if (saleData.status === 'completed') {
     paymentStatus = 'paid';
   } else if (saleData.status === 'cancelled') {
     paymentStatus = 'cancelled';
+  } else if (saleData.paymentStatus === 'partial') {
+    paymentStatus = 'partial';
   }
 
   const formattedItems = saleData.items.map((item: any) => formatSaleItem(item));
+  const { grossAmount, discountAmount, netAmount } = calculateSaleTotals(
+    formattedItems,
+    saleData.discount ?? 0,
+  );
 
   return {
     customer: typeof saleData.customer === 'object' ? saleData.customer._id : (saleData.customer ?? ''),
     items: formattedItems,
-    totalAmount: saleData.totalAmount,
-    discount: 0, // 在 Sale 介面中沒有 discount 屬性，設為 0
+    totalAmount: netAmount,
+    discount: parseFloat(saleData.discount.toString()) || 0,
+    ...(discountAmount > 0 ? { discountAmount } : {}),
+    discountAmount,
     paymentMethod: saleData.paymentMethod ?? 'cash',
-    paymentStatus: paymentStatus,
+    paymentStatus,
     notes: saleData.notes ?? ''
   };
 };
@@ -58,6 +68,7 @@ export const formatSaleData = (saleData: any): SaleData => {
  * @returns 格式化後的銷售數據，準備提交到後端
  */
 export const prepareSaleDataForSubmission = (saleData: SaleData) => {
+  const { grossAmount, discountAmount } = calculateSaleTotals(saleData.items, saleData.discount);
   return {
     customer: saleData.customer ?? null,
     items: saleData.items.map(item => ({
@@ -66,8 +77,9 @@ export const prepareSaleDataForSubmission = (saleData: SaleData) => {
       price: parseFloat(item.price.toString()) ?? 0,
       subtotal: (parseFloat(item.price.toString()) ?? 0) * item.quantity
     })),
-    totalAmount: saleData.totalAmount,
-    discount: parseFloat(saleData.discount.toString()) ?? 0,
+    totalAmount: grossAmount,
+    discount: parseFloat(saleData.discount.toString()) || 0,
+    ...(discountAmount > 0 ? { discountAmount } : {}),
     paymentMethod: saleData.paymentMethod,
     paymentStatus: saleData.paymentStatus,
     notes: saleData.notes,
@@ -99,7 +111,13 @@ export const findProductByCode = (barcode: string, products: Product[]): Product
  * @param discount 折扣金額
  * @returns 計算後的總金額
  */
-export const calculateTotalAmount = <T extends { price: number; quantity: number }>(items: T[], discount: number): number => {
-  const total = items.reduce((sum, item) => sum + (parseFloat(item.price.toString()) * item.quantity), 0);
-  return total - (parseFloat(discount.toString()) || 0);
+export const calculateTotalAmount = <T extends { price: number; quantity: number }>(
+  items: T[],
+  discount: number,
+): number => {
+  const subtotals = items.map(item => ({
+    subtotal: parseFloat(item.price.toString()) * item.quantity,
+  }));
+  const { netAmount } = calculateSaleTotals(subtotals, parseFloat(discount.toString()) || 0);
+  return netAmount;
 };

@@ -164,6 +164,7 @@ export interface Sale {
   items: SaleItem[];
   totalAmount: number;
   discount?: number;
+  discountAmount?: number;
   paymentMethod: 'cash' | 'card' | 'transfer' | 'other' | 'credit_card' | 'debit_card' | 'mobile_payment';
   paymentStatus?: 'paid' | 'pending' | 'partial' | 'cancelled';
   status?: 'completed' | 'pending' | 'cancelled';

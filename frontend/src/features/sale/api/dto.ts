@@ -1,5 +1,6 @@
 import type { z } from 'zod';
 import type { Sale, Customer, Product } from '@pharmacy-pos/shared/types/entities';
+import type { PaymentMethod, PaymentStatus } from '@pharmacy-pos/shared/schemas/zod/sale';
 
 /**
  * 通用響應介面
@@ -123,8 +124,9 @@ export interface SaleDataDto {
   items: SaleItemWithDetailsDto[];
   totalAmount: number;
   discount: number;
-  paymentMethod: 'cash' | 'card' | 'transfer' | 'other' | 'credit_card' | 'debit_card' | 'mobile_payment';
-  paymentStatus: 'paid' | 'pending' | 'cancelled';
+  discountAmount?: number;
+  paymentMethod: PaymentMethod;
+  paymentStatus: PaymentStatus;
   notes: string;
 }
 
@@ -132,6 +134,7 @@ export interface SaleDataDto {
  * 將 SaleResponseDto 轉換為 SaleDataDto
  */
 export const mapSaleResponseToSaleData = (sale: SaleResponseDto): SaleDataDto => {
+  const discountAmount = sale.discountAmount ?? sale.discount ?? 0;
   return {
     customer: typeof sale.customer === 'string' ? sale.customer : sale.customer?._id || '',
     items: sale.items.map(item => {
@@ -152,9 +155,10 @@ export const mapSaleResponseToSaleData = (sale: SaleResponseDto): SaleDataDto =>
       };
     }),
     totalAmount: sale.totalAmount,
-    discount: sale.discount || 0,
-    paymentMethod: sale.paymentMethod,
-    paymentStatus: (sale.paymentStatus || 'paid') as 'paid' | 'pending' | 'cancelled',
+    discount: sale.discount ?? discountAmount,
+    discountAmount,
+    paymentMethod: sale.paymentMethod as PaymentMethod,
+    paymentStatus: (sale.paymentStatus || 'paid') as PaymentStatus,
     notes: sale.notes || ''
   };
 };
@@ -176,6 +180,7 @@ export const mapSaleDataToSaleRequest = (saleData: SaleDataDto): SaleCreateReque
     })),
     totalAmount: saleData.totalAmount,
     discount: saleData.discount,
+    ...(saleData.discountAmount !== undefined ? { discountAmount: saleData.discountAmount } : {}),
     paymentMethod: saleData.paymentMethod,
     paymentStatus: saleData.paymentStatus,
     notes: saleData.notes

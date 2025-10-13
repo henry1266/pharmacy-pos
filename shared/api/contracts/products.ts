@@ -8,6 +8,11 @@ import {
   productListFiltersSchema,
 } from '../../schemas/zod/product'
 import {
+  productDescriptionParamsSchema,
+  productDescriptionUpdateSchema,
+  productDescriptionResponseSchema,
+} from '../../schemas/zod/productDescription'
+import {
   apiErrorResponseSchema,
   apiSuccessEnvelopeSchema,
   createApiResponseSchema,
@@ -27,6 +32,7 @@ export const productListEnvelopeSchema = apiSuccessEnvelopeSchema
   .passthrough()
 
 export const productListResponseSchema = productListEnvelopeSchema.or(z.array(productSchema))
+const productDescriptionResponseEnvelope = createApiResponseSchema(productDescriptionResponseSchema)
 
 export const productsContract = c.router({
   listProducts: {
@@ -151,6 +157,37 @@ export const productsContract = c.router({
     },
     metadata: {
       summary: 'Delete product',
+      tags: ['Products'],
+    },
+  },
+  getProductDescription: {
+    method: 'GET',
+    path: '/products/:productId/description',
+    pathParams: productDescriptionParamsSchema,
+    responses: {
+      200: productDescriptionResponseEnvelope,
+      400: apiErrorResponseSchema,
+      404: apiErrorResponseSchema,
+      500: apiErrorResponseSchema,
+    },
+    metadata: {
+      summary: 'Get product description',
+      tags: ['Products'],
+    },
+  },
+  upsertProductDescription: {
+    method: 'PATCH',
+    path: '/products/:productId/description',
+    pathParams: productDescriptionParamsSchema,
+    body: productDescriptionUpdateSchema,
+    responses: {
+      200: productDescriptionResponseEnvelope,
+      400: apiErrorResponseSchema,
+      404: apiErrorResponseSchema,
+      500: apiErrorResponseSchema,
+    },
+    metadata: {
+      summary: 'Update product description',
       tags: ['Products'],
     },
   },

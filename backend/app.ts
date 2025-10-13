@@ -13,7 +13,7 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 // 新路由
 import customersRoutes from "./modules/customers";
 import salesRoutes from "./modules/sales";
-import productsContractRoutes, { productCategoriesRouter, productDescriptionsRouter } from "./modules/products";
+import productsContractRoutes, { productCategoriesRouter } from "./modules/products";
 import suppliersRoutes from "./modules/suppliers";
 import purchaseOrdersRoutes from "./modules/purchaseOrders";
 import employeesRoutes from "./modules/employees";
@@ -118,7 +118,6 @@ export function createApp(): Application {
   app.use("/api/overtime-records", overtimeRecordsRoutes);
   app.use("/api/shift-time-configs", shiftTimeConfigsRoutes);
   app.use("/api/themes", themesRoutes);
-  app.use(productsBasePath, productDescriptionsRouter);
   app.use("/api/link-references", linkReferencesRoutes);
   app.use("/api/link-global", linkGlobalUpdateRoutes);
 

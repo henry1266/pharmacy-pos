@@ -34,8 +34,10 @@ import {
   Divider
 } from '@mui/material';
 import MDEditor from '@uiw/react-md-editor';
-import axios from 'axios';
 import { prepareMarkdownForDisplay, prepareMarkdownForDisplaySync } from '@/utils/markdownUtils';
+import { productContractClient } from '@/features/product/api/client';
+import type { ProductDescriptionDTO } from '@pharmacy-pos/shared/schemas/zod/productDescription';
+import { emptyProductDescription } from '@pharmacy-pos/shared';
 import '@/styles/force-light-theme.css';
 
 // 定義銷售項目的型別
@@ -78,6 +80,38 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const tableContainerRef = useRef<HTMLDivElement>(null);
 
+  const defaultProductDescription = emptyProductDescription;
+
+type DescriptionEnvelope = {
+  success?: boolean;
+  message?: string;
+  data?: ProductDescriptionDTO;
+};
+
+const normalizeProductDescription = (body: unknown): { data: ProductDescriptionDTO; message?: string } => {
+  if (body && typeof body === 'object') {
+    const envelope = body as DescriptionEnvelope;
+    if (envelope.success === false) {
+      throw new Error(typeof envelope.message === 'string' ? envelope.message : '\u8F09\u5165\u5546\u54C1\u7B46\u8A18\u5931\u6557');
+    }
+    if (envelope.data) {
+      return typeof envelope.message === 'string'
+        ? { data: envelope.data, message: envelope.message }
+        : { data: envelope.data };
+    }
+  }
+  return { data: defaultProductDescription };
+};
+
+const buildDescriptionError = (status: number, body: unknown, fallback: string) => {
+  const message = typeof (body as { message?: string })?.message === 'string'
+    ? (body as { message?: string }).message!
+    : fallback;
+  const error = new Error(message);
+  (error as any).status = status;
+  (error as any).body = body;
+  return error;
+};
   // 筆記對話框狀態
   const [selectedProductForNote, setSelectedProductForNote] = useState<string | null>(null);
   const [noteData, setNoteData] = useState<{ summary: string; description: string } | null>(null);
@@ -92,10 +126,19 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
     setNoteLoading(true);
 
     try {
-      const response = await axios.get(`/api/products/${productId}/description`);
-      if (response.data.success) {
-        const { summary, description } = response.data.data;
-        setNoteData({ summary: summary || '', description: description || '' });
+      const result = await productContractClient.getProductDescription({
+        params: { productId },
+      } as Parameters<typeof productContractClient.getProductDescription>[0]);
+
+      if (result.status >= 200 && result.status < 300) {
+        const { data } = normalizeProductDescription(result.body);
+        const description = data ?? defaultProductDescription;
+        setNoteData({
+          summary: description.summary ?? '',
+          description: description.description ?? '',
+        });
+      } else {
+        throw buildDescriptionError(result.status, result.body, '\u8F09\u5165\u5546\u54C1\u7B46\u8A18\u5931\u6557');
       }
     } catch (error) {
       console.error('載入產品筆記失敗:', error);

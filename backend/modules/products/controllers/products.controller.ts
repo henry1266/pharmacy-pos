@@ -1,4 +1,4 @@
-﻿import { initServer } from '@ts-rest/express'
+import { initServer } from '@ts-rest/express'
 import type { ServerInferRequest } from '@ts-rest/core'
 import { productsContract } from '@pharmacy-pos/shared/api/contracts'
 import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants'
@@ -20,6 +20,11 @@ import {
   ProductServiceErrorStatus,
   ProductListResult,
 } from '../services/product.service'
+import {
+  getProductDescription as getProductDescriptionService,
+  upsertProductDescription as upsertProductDescriptionService,
+  ProductDescriptionServiceError,
+} from '../services/product-description.service'
 
 const server = initServer()
 
@@ -32,6 +37,8 @@ export type CreateProductRequest = ServerInferRequest<typeof productsContract['c
 export type CreateMedicineRequest = ServerInferRequest<typeof productsContract['createMedicine']>
 export type UpdateProductRequest = ServerInferRequest<typeof productsContract['updateProduct']>
 export type DeleteProductRequest = ServerInferRequest<typeof productsContract['deleteProduct']>
+export type GetProductDescriptionRequest = ServerInferRequest<typeof productsContract['getProductDescription']>
+export type UpsertProductDescriptionRequest = ServerInferRequest<typeof productsContract['upsertProductDescription']>
 
 type KnownErrorStatus = ProductServiceErrorStatus
 
@@ -126,6 +133,27 @@ function handleError<Allowed extends KnownErrorStatus>(
   return errorResponse(defaultStatus, SERVER_ERROR_MESSAGE, error)
 }
 
+function isProductDescriptionError(error: unknown): error is ProductDescriptionServiceError {
+  return error instanceof ProductDescriptionServiceError
+}
+
+function handleProductDescriptionError<Allowed extends KnownErrorStatus>(
+  error: unknown,
+  logMessage: string,
+  allowedStatuses: readonly Allowed[],
+) {
+  const defaultStatus = (allowedStatuses.find((status) => status === 500) ?? allowedStatuses[0]) as Allowed
+
+  if (isProductDescriptionError(error)) {
+    const status = error.status as Allowed
+    const finalStatus = allowedStatuses.includes(status) ? status : defaultStatus
+    return errorResponse(finalStatus, error.message)
+  }
+
+  logger.error(`${logMessage}: ${error instanceof Error ? error.message : String(error)}`)
+  return errorResponse(defaultStatus, SERVER_ERROR_MESSAGE, error)
+}
+
 export const productsController = server.router(productsContract, {
   listProducts: async ({ query }: ListProductsRequest) => {
     try {
@@ -203,6 +231,33 @@ export const productsController = server.router(productsContract, {
       return successResponse(200, product, SUCCESS_MESSAGES.GENERIC.DELETED)
     } catch (error) {
       return handleError(error, 'Failed to delete product', [404, 500] as const) as any
+    }
+  },
+  getProductDescription: async ({ params }: GetProductDescriptionRequest) => {
+    try {
+      const description = await getProductDescriptionService(params.productId)
+      const hasContent =
+        (description.summary ?? '').trim().length > 0 ||
+        (description.description ?? '').trim().length > 0
+      const message = hasContent
+        ? '\u53D6\u5F97\u5546\u54C1\u63CF\u8FF0\u6210\u529F'
+        : '\u5C1A\u672A\u5EFA\u7ACB\u5546\u54C1\u63CF\u8FF0'
+      return createSuccessEnvelope(200, message, description)
+    } catch (error) {
+      return handleProductDescriptionError(error, 'Failed to get product description', [400, 404, 500] as const) as any
+    }
+  },
+  upsertProductDescription: async ({ params, body }: UpsertProductDescriptionRequest) => {
+    try {
+      const { data, hasChanged } = await upsertProductDescriptionService(params.productId, body)
+      const message = body.isAutoSave
+        ? '\u81EA\u52D5\u5132\u5B58\u6210\u529F'
+        : hasChanged
+          ? '\u5132\u5B58\u5546\u54C1\u63CF\u8FF0\u6210\u529F'
+          : '\u5167\u5BB9\u672A\u8B8A\u66F4'
+      return createSuccessEnvelope(200, message, data)
+    } catch (error) {
+      return handleProductDescriptionError(error, 'Failed to upsert product description', [400, 404, 500] as const) as any
     }
   },
 })

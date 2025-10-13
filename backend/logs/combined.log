@@ -18440,3 +18440,5 @@
 {"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mFailed to list customers: Database connection failed\u001b[39m","timestamp":"2025-10-13 09:20:37:2037"}
 {"level":"\u001b[33mwarn\u001b[39m","message":"\u001b[33m產品 測試產品 庫存不足，當前總庫存: 1，請求數量: 5\u001b[39m","timestamp":"2025-10-13 09:21:29:2129"}
 {"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mlistSales failed: Database connection failed\u001b[39m","timestamp":"2025-10-13 09:21:30:2130"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m生成銷貨單號: 20251013007\u001b[39m","timestamp":"2025-10-13 12:11:21:1121"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m為產品 67eb59480f2cf9d2647e3b7d 創建銷售庫存記錄，數量: -1, 總金額: 90\u001b[39m","timestamp":"2025-10-13 12:11:21:1121"}

@@ -22,7 +22,8 @@ import {
   selectSaleEditFormState
 } from '../model/saleSlice';
 import { InputMode, SnackbarState } from '../types/edit';
-import { findProductByCode, calculateTotalAmount } from '../utils/editUtils';
+import { findProductByCode } from '../utils/editUtils';
+import { calculateSaleTotals } from '../utils/saleTotals';
 
 // 默認的表單狀態，用於防禦性編程
 const defaultFormState = {
@@ -70,8 +71,9 @@ export const useSaleEdit = (saleId: string, products: Product[]) => {
   const [currentSale, setCurrentSale] = useState<SaleDataDto>({
     customer: '',
     items: [],
-    totalAmount: 0,
+      totalAmount: 0,
     discount: 0,
+    discountAmount: 0,
     paymentMethod: 'cash',
     paymentStatus: 'paid',
     notes: ''
@@ -100,13 +102,13 @@ export const useSaleEdit = (saleId: string, products: Product[]) => {
 
   // 計算總金額
   useEffect(() => {
-    const total = calculateTotalAmount(currentSale.items, currentSale.discount);
+    const { discountAmount, netAmount } = calculateSaleTotals(currentSale.items, currentSale.discount);
     setCurrentSale(prev => ({
       ...prev,
-      totalAmount: total
+      totalAmount: netAmount,
+      discountAmount,
     }));
-    
-    // 標記表單為已修改
+
     if (initialSaleData && JSON.stringify(initialSaleData) !== JSON.stringify(currentSale)) {
       dispatch(setFormDirty(true));
     }
