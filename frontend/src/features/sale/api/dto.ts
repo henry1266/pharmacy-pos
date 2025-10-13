@@ -1,6 +1,7 @@
 import type { z } from 'zod';
 import type { Sale, Customer, Product } from '@pharmacy-pos/shared/types/entities';
 import type { PaymentMethod, PaymentStatus } from '@pharmacy-pos/shared/schemas/zod/sale';
+import type { ApiResponse as SharedApiResponse } from '@pharmacy-pos/shared/types/api';
 import {
   DEFAULT_PAYMENT_METHOD,
   DEFAULT_PAYMENT_STATUS,
@@ -8,14 +9,9 @@ import {
   ensurePaymentStatus,
 } from '../constants/payment';
 
-/**
- * 通用響應介面
- */
-export interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message?: string;
-}
+
+/** Shared API response type (derived from shared module) */
+export type ApiResponse<T> = SharedApiResponse<T>;
 
 /**
  * 銷售項目 DTO
@@ -143,10 +139,10 @@ export const mapSaleResponseToSaleData = (sale: SaleResponseDto): SaleDataDto =>
   const discountAmount = sale.discountAmount ?? sale.discount ?? 0;
   return {
     customer: typeof sale.customer === 'string' ? sale.customer : sale.customer?._id || '',
-    items: sale.items.map(item => {
-      const productObj = typeof item.product === 'string' 
-        ? undefined 
-        : item.product as unknown as Product;
+    items: sale.items.map((item) => {
+      const productObj = typeof item.product === 'string'
+        ? undefined
+        : (item.product as unknown as Product);
 
       const mappedItem: SaleItemWithDetailsDto = {
         product: typeof item.product === 'string' ? item.product : (item.product as any)._id,
@@ -156,7 +152,7 @@ export const mapSaleResponseToSaleData = (sale: SaleResponseDto): SaleDataDto =>
         price: Number(item.price ?? 0),
         quantity: Number(item.quantity ?? 0),
         subtotal: Number(item.subtotal ?? 0),
-        productType: (productObj as any)?.productType
+        productType: (productObj as any)?.productType,
       };
 
       if (item.discount !== undefined && item.discount !== null) {
@@ -169,8 +165,11 @@ export const mapSaleResponseToSaleData = (sale: SaleResponseDto): SaleDataDto =>
     discount: sale.discount ?? discountAmount,
     discountAmount,
     paymentMethod: ensurePaymentMethod(sale.paymentMethod, DEFAULT_PAYMENT_METHOD),
-    paymentStatus: ensurePaymentStatus(sale.paymentStatus ?? DEFAULT_PAYMENT_STATUS, DEFAULT_PAYMENT_STATUS),
-    notes: sale.notes || ''
+    paymentStatus: ensurePaymentStatus(
+      sale.paymentStatus ?? DEFAULT_PAYMENT_STATUS,
+      DEFAULT_PAYMENT_STATUS,
+    ),
+    notes: sale.notes || '',
   };
 };
 
@@ -179,21 +178,21 @@ export const mapSaleResponseToSaleData = (sale: SaleResponseDto): SaleDataDto =>
  */
 export const mapSaleDataToSaleRequest = (saleData: SaleDataDto): SaleCreateRequest => {
   return {
-    saleNumber: '', // 後端生成
+    // saleNumber 由後端產生，僅在需要覆寫時由呼叫方補上
     date: new Date().toISOString(), // 使用當前日期
     customer: saleData.customer || undefined,
-    items: saleData.items.map(item => ({
+    items: saleData.items.map((item) => ({
       product: item.product,
       quantity: item.quantity,
       price: item.price,
       discount: item.discount,
-      subtotal: item.subtotal
+      subtotal: item.subtotal,
     })),
     totalAmount: saleData.totalAmount,
     discount: saleData.discount,
     ...(saleData.discountAmount !== undefined ? { discountAmount: saleData.discountAmount } : {}),
     paymentMethod: saleData.paymentMethod,
     paymentStatus: saleData.paymentStatus,
-    notes: saleData.notes
+    notes: saleData.notes,
   };
 };

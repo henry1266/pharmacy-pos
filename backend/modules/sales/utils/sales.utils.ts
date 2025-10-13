@@ -200,7 +200,7 @@ export function buildSaleFields(saleData: SaleFieldsInput): Record<string, any> 
     saleFields.date = saleData.date;
   }
   
-  // 計算最終金額（優先使用 discountAmount）
+  // Calculate final amount (prefer discountAmount)
   const discountValue = saleFields.discountAmount ?? saleFields.discount ?? 0;
   saleFields.finalAmount = saleFields.totalAmount - discountValue;
   

@@ -4,16 +4,12 @@
  */
 
 import type { Sale as SharedSale, SaleItem as SharedSaleItem, Customer as SharedCustomer, Product as SharedProduct } from '@pharmacy-pos/shared/types/entities';
+import type { ApiResponse as SharedApiResponse } from '@pharmacy-pos/shared/types/api';
 
 /**
  * API 回應類型定義
  */
-export interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
-  timestamp: string;
-}
+export type ApiResponse<T> = SharedApiResponse<T>;
 
 export interface User {
   _id: string;

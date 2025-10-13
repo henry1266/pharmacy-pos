@@ -381,26 +381,8 @@ const useSaleManagementV2 = (
     });
   }, []);
 
-  // 生成銷貨單號
-  const generateSaleNumber = useCallback(async (): Promise<string> => {
-    const now = new Date();
-    const month = now.getMonth() + 1;
-    const date = now.getDate();
-    const datePrefix = `${now.getFullYear().toString()}${month < 10 ? '0' + month : month.toString()}${date < 10 ? '0' + date : date.toString()}`;
-    
-    try {
-      // 暫時使用簡單的時間戳生成，後續可以實現 getLatestSaleNumber 功能
-      const timestamp = Date.now().toString().slice(-3);
-      return `${datePrefix}${timestamp}`;
-    } catch (err) {
-      console.error('生成銷貨單號失敗:', err);
-      showSnackbar('自動生成銷貨單號失敗，使用備用號碼', 'warning');
-      return `${datePrefix}001`; // Fallback
-    }
-  }, [showSnackbar]);
 
-  // 準備銷售數據
-  const prepareSaleData = useCallback((finalSaleNumber: string): SaleCreateRequest => {
+  const prepareSaleData = useCallback((): SaleCreateRequest => {
     const items = currentSale.items.map((item) => ({
       product: item.product,
       quantity: item.quantity,
@@ -414,7 +396,6 @@ const useSaleManagementV2 = (
     const { grossAmount, discountAmount } = calculateSaleTotals(currentSale.items, currentSale.discount);
 
     const payload: SaleCreateRequest = {
-      saleNumber: finalSaleNumber,
       items,
       totalAmount: grossAmount,
       paymentMethod: currentSale.paymentMethod,
@@ -423,6 +404,10 @@ const useSaleManagementV2 = (
       ...(discountAmount > 0 ? { discountAmount } : {}),
       ...(currentSale.notes ? { notes: currentSale.notes } : {}),
     };
+
+    if (currentSale.saleNumber && currentSale.saleNumber.trim().length > 0) {
+      payload.saleNumber = currentSale.saleNumber;
+    }
 
     if (currentSale.customer) {
       payload.customer = currentSale.customer;
@@ -445,29 +430,26 @@ const useSaleManagementV2 = (
     }
 
     try {
-      const finalSaleNumber = currentSale.saleNumber || await generateSaleNumber();
-      const saleData = prepareSaleData(finalSaleNumber);
+      const saleData = prepareSaleData();
       const { netAmount } = calculateSaleTotals(currentSale.items, currentSale.discount);
 
-      await createSale(saleData);
+      const createdSale = await createSale(saleData);
       showSnackbar('銷售記錄已保存', 'success');
       resetForm();
-      
-      // Call the completion callback if provided
       if (onSaleCompleted) {
+        const confirmedSaleNumber = createdSale?.saleNumber ?? saleData.saleNumber ?? '';
         onSaleCompleted({
           totalAmount: netAmount,
-          saleNumber: finalSaleNumber
+          saleNumber: confirmedSaleNumber,
         });
       }
-      
       return true;
     } catch (err: any) {
       console.error('保存銷售記錄失敗:', err);
       showSnackbar('保存銷售記錄失敗: ' + (err.response?.data?.msg ?? err.message), 'error');
       return false;
     }
-  }, [currentSale, generateSaleNumber, prepareSaleData, resetForm, showSnackbar, onSaleCompleted]);
+  }, [currentSale, prepareSaleData, resetForm, showSnackbar, onSaleCompleted]);
 
   return {
     currentSale,

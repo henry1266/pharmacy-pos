@@ -8,11 +8,8 @@ import { Fab, Badge } from '@mui/material';
 import { Receipt as ReceiptIcon } from '@mui/icons-material';
 
 interface MobileFabButtonProps {
-  /** 銷售記錄數量 */
   salesCount: number;
-  /** 是否為平板 */
   isTablet: boolean;
-  /** 點擊按鈕時的處理函數 */
   onClick: () => void;
 }
 
