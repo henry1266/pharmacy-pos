@@ -19,6 +19,7 @@ import purchaseOrdersRoutes from "./modules/purchaseOrders";
 import employeesRoutes from "./modules/employees";
 import overtimeRecordsRoutes from "./modules/employees/services/overtimeRecords";
 import legacyProductsRoutes from "./modules/products/legacy";
+import productDescriptionLegacyRoutes from "./modules/products/legacy/product-description.router";
 import accountingRoutes from "./modules/daily-journals";
 // 導入已轉換為 TypeScript 的路由
 import authRoutes from "./routes/auth";
@@ -101,6 +102,7 @@ export function createApp(): Application {
     app.use('/api', productsContractRoutes);
   } else {
     app.use(productsBasePath, legacyProductsRoutes);
+    app.use(productsBasePath, productDescriptionLegacyRoutes);
   }
   app.use("/api/packages", packagesRoutes);
   
