@@ -7,6 +7,9 @@ export interface SaleCreationRequest extends SaleCreateRequest {
   productName?: string; // 向後兼容
   finalAmount?: number;
   cashier?: string | undefined;
+  status?: 'completed' | 'pending' | 'cancelled';
+  createdBy?: string;
+  user?: string;
 }
 
 // 定義更具體的型別
@@ -53,10 +56,15 @@ export interface SaleFieldsInput {
   items: SaleItemInput[];
   totalAmount: number;
   discount?: number | undefined;
+  discountAmount?: number | undefined;
   paymentMethod?: string | undefined;
   paymentStatus?: string | undefined;
+  status?: string | undefined;
   notes?: string | undefined;
   cashier?: string | undefined;
+  date?: Date | string | undefined;
+  createdBy?: string | undefined;
+  user?: string | undefined;
 }
 
 export interface SaleItem {
@@ -64,3 +72,4 @@ export interface SaleItem {
   quantity: number;
   subtotal?: number;
 }
+

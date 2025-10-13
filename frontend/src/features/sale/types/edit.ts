@@ -1,30 +1,28 @@
-import { Product, Customer } from '@pharmacy-pos/shared/types/entities';
+import type { Product, Customer, SaleItem as SharedSaleItem } from '@pharmacy-pos/shared/types/entities';
+import type { PaymentMethod, PaymentStatus } from '@pharmacy-pos/shared/schemas/zod/sale';
 
 /**
- * 銷售項目介面 (前端使用的格式，與後端 SaleItem 介面有些差異)
+ * Sales form item representation aligned with shared schema.
  */
-export interface SaleItem {
-  product: string;                // 產品ID
-  productDetails?: Product;       // 前端特有，用於存儲產品詳細資訊
-  name: string;                   // 前端特有，產品名稱
-  code: string;                   // 前端特有，產品代碼
-  price: number;                  // 與後端一致
-  quantity: number;               // 與後端一致
-  subtotal: number;               // 與後端一致
-  productType?: string;           // 前端特有，產品類型
-  discount?: number;              // 與後端一致，可選折扣
-}
+export type SaleItem = Omit<SharedSaleItem, 'product'> & {
+  product: string;
+  productDetails?: Product;
+  name: string;
+  code: string;
+  subtotal: number;
+  productType?: string;
+  packageName?: string;
+};
 
-/**
- * 銷售資料介面 (前端使用的格式，與後端 Sale 介面有些差異)
- */
 export interface SaleData {
+  saleNumber?: string;
   customer: string;
   items: SaleItem[];
   totalAmount: number;
-  discount: number; // 前端特有，用於處理整體折扣
-  paymentMethod: 'cash' | 'card' | 'transfer' | 'other' | 'credit_card' | 'debit_card' | 'mobile_payment';
-  paymentStatus: 'paid' | 'pending' | 'cancelled'; // 對應後端的 status: 'completed' | 'pending' | 'cancelled'
+  discount: number;
+  discountAmount?: number;
+  paymentMethod: PaymentMethod;
+  paymentStatus?: PaymentStatus;
   notes: string;
 }
 

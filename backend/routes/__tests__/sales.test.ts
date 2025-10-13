@@ -1,4 +1,4 @@
-import request from 'supertest';
+﻿import request from 'supertest';
 import { createApp } from '../../app';
 import Sale from '../../models/Sale';
 import BaseProduct from '../../models/BaseProduct';
@@ -172,7 +172,7 @@ describe('Sales API', () => {
   describe('POST /api/sales', () => {
     const validSaleData = {
       items: [{
-        product: '', // 將在測試中設置
+        product: '', // 撠皜祈岫銝剛身蝵?
         quantity: 2,
         price: 80,
         subtotal: 160
@@ -220,6 +220,83 @@ describe('Sales API', () => {
 
       expect(response.body.success).toBe(true);
       expect(response.body.data.customer).toBeDefined();
+    });
+    it('should persist SSOT-aligned sale fields', async () => {
+      const ssotAlignedSale = {
+        items: [{
+          product: testProduct._id.toString(),
+          quantity: 1,
+          price: 80,
+          unitPrice: 80,
+          discount: 5,
+          subtotal: 75,
+          notes: 'unit-test-item',
+        }],
+        totalAmount: 75,
+        discount: 5,
+        discountAmount: 5,
+        paymentMethod: 'transfer',
+        paymentStatus: 'partial',
+        notes: 'unit-test-sale',
+      };
+
+      const response = await request(app)
+        .post('/api/sales')
+        .set('Authorization', 'Bearer test-mode-token')
+        .send(ssotAlignedSale)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      const createdSale = response.body.data;
+      expect(createdSale.paymentMethod).toBe('transfer');
+      expect(createdSale.paymentStatus).toBe('partial');
+      expect(createdSale.discount).toBe(5);
+      expect(createdSale.discountAmount).toBe(5);
+      expect(createdSale.notes).toBe('unit-test-sale');
+      expect(createdSale.finalAmount).toBe(70);
+      expect(Array.isArray(createdSale.items)).toBe(true);
+      expect(createdSale.items[0].unitPrice).toBe(80);
+      expect(createdSale.items[0].discount).toBe(5);
+      expect(createdSale.items[0].notes).toBe('unit-test-item');
+    });
+
+    it('should persist SSOT-aligned sale fields', async () => {
+      const ssotAlignedSale = {
+        items: [{
+          product: testProduct._id.toString(),
+          quantity: 1,
+          price: 80,
+          unitPrice: 80,
+          discount: 5,
+          subtotal: 75,
+          notes: 'unit-test-item',
+        }],
+        totalAmount: 75,
+        discount: 5,
+        discountAmount: 5,
+        paymentMethod: 'transfer',
+        paymentStatus: 'partial',
+        notes: 'unit-test-sale',
+      };
+
+      const response = await request(app)
+        .post('/api/sales')
+        .set('Authorization', 'Bearer test-mode-token')
+        .send(ssotAlignedSale)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      const createdSale = response.body.data;
+      expect(createdSale.paymentMethod).toBe('transfer');
+      expect(createdSale.paymentStatus).toBe('partial');
+      expect(createdSale.discount).toBe(5);
+      expect(createdSale.discountAmount).toBe(5);
+      expect(createdSale.notes).toBe('unit-test-sale');
+      expect(createdSale.finalAmount).toBe(70);
+      expect(Array.isArray(createdSale.items)).toBe(true);
+      expect(createdSale.items[0].unitPrice).toBe(80);
+      expect(createdSale.items[0].discount).toBe(5);
+      expect(createdSale.items[0].notes).toBe('unit-test-item');
     });
 
     it('應該驗證必填欄位', async () => {
@@ -488,7 +565,7 @@ describe('Sales API', () => {
       expect(response.body.data.discount).toBe(20);
     });
 
-    it('應該處理不扣庫存的產品', async () => {
+     it('應該處理不扣庫存的產品', async () => {
       // 創建不扣庫存的產品
       const noStockProduct = await BaseProduct.create({
         code: 'P002',
@@ -594,3 +671,7 @@ describe('Sales API', () => {
     });
   });
 });
+
+
+
+

@@ -1,6 +1,10 @@
 ﻿import { Schema, model } from 'mongoose';
 import { ISaleDocument } from '../src/types/models';
 
+const saleLifecycleStatuses = ['completed', 'pending', 'cancelled'] as const;
+const paymentMethods = ['cash', 'card', 'transfer', 'other', 'credit_card', 'debit_card', 'mobile_payment'] as const;
+const paymentStatuses = ['paid', 'pending', 'partial', 'cancelled'] as const;
+
 const SaleSchema = new Schema<ISaleDocument>({
   saleNumber: {
     type: String,
@@ -25,12 +29,20 @@ const SaleSchema = new Schema<ISaleDocument>({
         type: Number,
         required: true,
       },
+      unitPrice: {
+        type: Number,
+      },
+      discount: {
+        type: Number,
+        default: 0,
+      },
       subtotal: {
         type: Number,
         required: true,
       },
-      note: {
+      notes: {
         type: String,
+        alias: 'note',
       },
     },
   ],
@@ -42,21 +54,38 @@ const SaleSchema = new Schema<ISaleDocument>({
     type: Number,
     default: 0,
   },
+  discountAmount: {
+    type: Number,
+    default: 0,
+  },
   paymentMethod: {
     type: String,
-    enum: ['cash', 'credit_card', 'debit_card', 'mobile_payment', 'other'],
+    enum: paymentMethods,
     default: 'cash',
   },
   paymentStatus: {
     type: String,
-    enum: ['paid', 'pending', 'partial', 'cancelled'],
+    enum: paymentStatuses,
     default: 'paid',
+  },
+  status: {
+    type: String,
+    enum: saleLifecycleStatuses,
+    default: 'completed',
   },
   notes: {
     type: String,
     alias: 'note',
   },
   cashier: {
+    type: Schema.Types.ObjectId,
+    ref: 'user',
+  },
+  createdBy: {
+    type: Schema.Types.ObjectId,
+    ref: 'user',
+  },
+  user: {
     type: Schema.Types.ObjectId,
     ref: 'user',
   },

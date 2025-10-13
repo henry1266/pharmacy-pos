@@ -5,52 +5,26 @@
 
 import { ReactNode } from 'react';
 import { ChipProps } from '@mui/material';
+import type {
+  Sale as SharedSale,
+  SaleItem as SharedSaleItem,
+  Product as SharedProduct,
+  Customer as SharedCustomer,
+} from '@pharmacy-pos/shared/types/entities';
 
-/**
- * 產品類型
- */
-export interface Product {
-  _id: string;
-  name: string;
-  code?: string;
-}
+export type Product = SharedProduct;
+export type Customer = SharedCustomer;
 
-/**
- * 銷售項目類型
- */
-export interface SaleItem {
-  product?: Product;
+export type SaleItem = Omit<SharedSaleItem, 'product'> & {
+  product?: SharedProduct | string;
   name?: string;
-  price: number;
-  quantity: number;
-}
+};
 
-/**
- * 客戶類型
- */
-export interface Customer {
-  _id: string;
-  name: string;
-}
-
-/**
- * 銷售記錄類型
- */
-export interface Sale {
-  _id: string;
-  saleNumber?: string;
-  date?: string | Date;
+export type Sale = Omit<SharedSale, 'customer' | 'items'> & {
   customer?: Customer;
   items: SaleItem[];
-  totalAmount: number;
-  discount?: number;
   tax?: number;
-  paymentMethod: 'cash' | 'credit_card' | 'debit_card' | 'mobile_payment' | 'other';
-  paymentStatus: 'paid' | 'pending' | 'partial' | 'cancelled';
-  notes?: string;
-  createdAt?: string | Date;
-  updatedAt?: string | Date;
-}
+};
 
 /**
  * FIFO 毛利類型

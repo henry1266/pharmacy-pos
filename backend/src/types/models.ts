@@ -92,6 +92,8 @@ export interface ISaleItem {
   product: Types.ObjectId;
   quantity: number;
   price: number;
+  unitPrice?: number;
+  discount?: number;
   subtotal: number;
   notes?: string;
 }
@@ -102,10 +104,14 @@ export interface ISale {
   items: ISaleItem[];
   totalAmount: number;
   discount: number;
+  discountAmount?: number;
   paymentMethod: 'cash' | 'credit_card' | 'debit_card' | 'mobile_payment' | 'other' | 'transfer' | 'card';
   paymentStatus: 'paid' | 'pending' | 'partial' | 'cancelled';
+  status?: 'completed' | 'pending' | 'cancelled';
   notes?: string;
   cashier?: Types.ObjectId;
+  createdBy?: Types.ObjectId;
+  user?: Types.ObjectId;
   date: Date;
 }
 

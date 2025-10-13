@@ -30,6 +30,12 @@ export function normalizePaymentMethod(method?: string): string | undefined {
   switch (method) {
     case 'card':
       return 'credit_card';
+    case 'CASH':
+    case 'CREDIT_CARD':
+    case 'DEBIT_CARD':
+    case 'MOBILE_PAYMENT':
+    case 'TRANSFER':
+      return method.toLowerCase();
     default:
       return method;
   }
@@ -160,15 +166,43 @@ export function buildSaleFields(saleData: SaleFieldsInput): Record<string, any> 
     totalAmount: saleData.totalAmount,
   };
   
-  if (saleData.customer) saleFields.customer = saleData.customer;
-  if (saleData.discount) saleFields.discount = saleData.discount;
-  if (saleData.paymentMethod) saleFields.paymentMethod = normalizePaymentMethod(saleData.paymentMethod) as any;
-  if (saleData.paymentStatus) saleFields.paymentStatus = saleData.paymentStatus as any;
-  if (saleData.notes) saleFields.notes = saleData.notes;
-  if (saleData.cashier) saleFields.cashier = saleData.cashier;
+  if (saleData.customer) {
+    saleFields.customer = saleData.customer;
+  }
+  if (saleData.discount !== undefined) {
+    saleFields.discount = saleData.discount;
+  }
+  if (saleData.discountAmount !== undefined) {
+    saleFields.discountAmount = saleData.discountAmount;
+  }
+  if (saleData.paymentMethod) {
+    saleFields.paymentMethod = normalizePaymentMethod(saleData.paymentMethod) as any;
+  }
+  if (saleData.paymentStatus) {
+    saleFields.paymentStatus = saleData.paymentStatus as any;
+  }
+  if (saleData.status) {
+    saleFields.status = saleData.status as any;
+  }
+  if (saleData.notes !== undefined) {
+    saleFields.notes = saleData.notes;
+  }
+  if (saleData.cashier) {
+    saleFields.cashier = saleData.cashier;
+  }
+  if (saleData.createdBy) {
+    saleFields.createdBy = saleData.createdBy;
+  }
+  if (saleData.user) {
+    saleFields.user = saleData.user;
+  }
+  if (saleData.date) {
+    saleFields.date = saleData.date;
+  }
   
-  // 計算最終金額
-  saleFields.finalAmount = saleFields.totalAmount - (saleFields.discount ?? 0);
+  // 計算最終金額（優先使用 discountAmount）
+  const discountValue = saleFields.discountAmount ?? saleFields.discount ?? 0;
+  saleFields.finalAmount = saleFields.totalAmount - discountValue;
   
   return saleFields;
 }

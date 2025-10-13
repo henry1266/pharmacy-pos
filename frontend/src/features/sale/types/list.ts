@@ -3,7 +3,7 @@
  * @description 定義銷售列表頁面所需的所有類型
  */
 
-import { Customer } from '@pharmacy-pos/shared/types/entities';
+import type { Sale as SharedSale, SaleItem as SharedSaleItem, Customer as SharedCustomer, Product as SharedProduct } from '@pharmacy-pos/shared/types/entities';
 
 /**
  * API 回應類型定義
@@ -15,54 +15,25 @@ export interface ApiResponse<T> {
   timestamp: string;
 }
 
-/**
- * 銷售項目類型
- */
-export interface SaleItem {
-  product?: {
-    name: string;
-    _id?: string;
-    id?: string;
-  };
-  name?: string;
-  quantity: number;
-  price: number;
-  unitPrice?: number;
-  amount?: number;
-  subtotal?: number;
-}
-
-/**
- * 用戶類型
- */
 export interface User {
   _id: string;
   name: string;
 }
 
-/**
- * 擴展銷售記錄類型
- */
-export interface ExtendedSale {
-  _id: string;
-  saleNumber?: string;
-  date?: string | Date;
+export type Product = SharedProduct;
+export type Customer = SharedCustomer;
+
+export type SaleItem = Omit<SharedSaleItem, 'product'> & {
+  product?: SharedProduct | { name: string; _id?: string; id?: string };
+  amount?: number;
+};
+
+export type ExtendedSale = Omit<SharedSale, 'customer' | 'items' | 'user'> & {
   customer?: Customer | { name: string; _id?: string };
   items: SaleItem[];
-  totalAmount?: number;
-  paymentMethod: 'cash' | 'credit_card' | 'debit_card' | 'mobile_payment' | 'other';
-  paymentStatus: 'paid' | 'pending' | 'partial' | 'cancelled';
-  status?: 'completed' | 'pending' | 'cancelled';
   user?: User;
-  notes?: string;
-  createdBy?: string;
-  createdAt?: string | Date;
-  updatedAt?: string | Date;
-}
+};
 
-/**
- * 為了保持代碼兼容性，將 Sale 類型定義為 ExtendedSale 的別名
- */
 export type Sale = ExtendedSale;
 
 /**

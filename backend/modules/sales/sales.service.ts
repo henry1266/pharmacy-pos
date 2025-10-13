@@ -78,6 +78,7 @@ export async function createSaleRecord(requestBody: SaleCreationRequest): Promis
     items: requestBody.items ?? [],
     totalAmount: requestBody.totalAmount ?? 0,
     paymentMethod: requestBody.paymentMethod,
+    date: requestBody.date ?? undefined,
   };
 
   if (requestBody.customer) {
@@ -86,6 +87,10 @@ export async function createSaleRecord(requestBody: SaleCreationRequest): Promis
 
   if (requestBody.discount !== undefined) {
     saleFieldsInput.discount = requestBody.discount;
+  }
+
+  if (requestBody.discountAmount !== undefined) {
+    saleFieldsInput.discountAmount = requestBody.discountAmount;
   }
 
   if (requestBody.paymentStatus) {
@@ -99,6 +104,18 @@ export async function createSaleRecord(requestBody: SaleCreationRequest): Promis
 
   if (requestBody.cashier) {
     saleFieldsInput.cashier = requestBody.cashier;
+  }
+
+  if (requestBody.status) {
+    saleFieldsInput.status = requestBody.status;
+  }
+
+  if (requestBody.createdBy) {
+    saleFieldsInput.createdBy = requestBody.createdBy;
+  }
+
+  if (requestBody.user) {
+    saleFieldsInput.user = requestBody.user;
   }
 
   const saleFields = buildSaleFields(saleFieldsInput);
@@ -138,6 +155,11 @@ export async function updateSaleRecord(
     saleFieldsInput.discount = discount;
   }
 
+  const discountAmount = requestBody.discountAmount ?? (existingSale as any).discountAmount;
+  if (discountAmount !== undefined) {
+    saleFieldsInput.discountAmount = discountAmount as number;
+  }
+
   const paymentMethod = requestBody.paymentMethod ?? existingSale.paymentMethod;
   if (paymentMethod) {
     saleFieldsInput.paymentMethod = paymentMethod;
@@ -147,6 +169,11 @@ export async function updateSaleRecord(
     requestBody.paymentStatus ?? existingSale.paymentStatus;
   if (paymentStatus) {
     saleFieldsInput.paymentStatus = paymentStatus;
+  }
+
+  const status = requestBody.status ?? (existingSale as any).status;
+  if (status) {
+    saleFieldsInput.status = status;
   }
 
   const notes = extractNotesFromRequest(requestBody);
@@ -159,6 +186,27 @@ export async function updateSaleRecord(
     ((existingSale.cashier as any)?.toString?.() as string | undefined);
   if (cashierId) {
     saleFieldsInput.cashier = cashierId;
+  }
+
+  const createdBy =
+    requestBody.createdBy ??
+    ((existingSale.createdBy as any)?.toString?.() as string | undefined);
+  if (createdBy) {
+    saleFieldsInput.createdBy = createdBy;
+  }
+
+  const userId =
+    requestBody.user ??
+    ((existingSale.user as any)?.toString?.() as string | undefined);
+  if (userId) {
+    saleFieldsInput.user = userId;
+  }
+
+  const saleDate =
+    requestBody.date ??
+    (existingSale.date ? (existingSale.date as any) : undefined);
+  if (saleDate) {
+    saleFieldsInput.date = saleDate as string | Date;
   }
 
   const saleFields = buildSaleFields(saleFieldsInput);
