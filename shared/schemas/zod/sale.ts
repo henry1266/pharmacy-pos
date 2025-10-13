@@ -83,8 +83,11 @@ export const createSaleSchema = z.object({
     .optional(),
   paymentMethod: paymentMethodSchema,
   paymentStatus: paymentStatusSchema.optional(),
+  status: saleLifecycleStatusSchema.optional(),
   notes: z.string().max(1000, { message: '備註不可超過 1000 字元' }).optional(),
   cashier: idOrStringSchema.optional(),
+  createdBy: idOrStringSchema.optional(),
+  user: idOrStringSchema.optional(),
 });
 
 // 更新銷售請求 Schema

@@ -1,17 +1,14 @@
 import mongoose from 'mongoose';
 import { SaleCreateRequest } from '@pharmacy-pos/shared/types/api';
+import type {
+  PaymentMethod,
+  PaymentStatus,
+  SaleLifecycleStatus,
+} from '@pharmacy-pos/shared/schemas/zod/sale';
 import { ISaleDocument } from '../../src/types/models';
 
-// 使用 shared 的 SaleCreateRequest，並擴展本地需要的欄位
-export interface SaleCreationRequest extends SaleCreateRequest {
-  productName?: string; // 向後兼容
-  finalAmount?: number;
-  cashier?: string | undefined;
-  status?: 'completed' | 'pending' | 'cancelled';
-  createdBy?: string;
-  user?: string;
-}
-
+// Keep parity with the shared SaleCreateRequest contract
+export type SaleCreationRequest = SaleCreateRequest;
 // 定義更具體的型別
 // 使用 Record<string, any> 來避免 _id 型別衝突
 export type SaleDocument = ISaleDocument;
@@ -57,9 +54,9 @@ export interface SaleFieldsInput {
   totalAmount: number;
   discount?: number | undefined;
   discountAmount?: number | undefined;
-  paymentMethod?: string | undefined;
-  paymentStatus?: string | undefined;
-  status?: string | undefined;
+  paymentMethod?: PaymentMethod | undefined;
+  paymentStatus?: PaymentStatus | undefined;
+  status?: SaleLifecycleStatus | undefined;
   notes?: string | undefined;
   cashier?: string | undefined;
   date?: Date | string | undefined;

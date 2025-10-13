@@ -78,6 +78,18 @@ export function mapToSaleSchemaInput(payload: SaleCreationRequest): Record<strin
     normalized.paymentStatus = payload.paymentStatus;
   }
 
+  if (payload.status !== undefined) {
+    normalized.status = payload.status;
+  }
+
+  if (payload.createdBy !== undefined) {
+    normalized.createdBy = payload.createdBy;
+  }
+
+  if (payload.user !== undefined) {
+    normalized.user = payload.user;
+  }
+
   const notes = extractNotes(payload);
   if (notes !== undefined) {
     normalized.notes = notes;

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Chip, Typography } from '@mui/material';
 import { Receipt as ReceiptIcon, Person as PersonIcon } from '@mui/icons-material';
+import type { Sale } from '@pharmacy-pos/shared/types/entities';
 import {
   DailyPanel,
   DailyPanelConfig,
@@ -32,8 +33,10 @@ export type SaleLike = {
   items?: any[];
 };
 
+type DailySaleInput = SaleLike | Sale | Record<string, any>;
+
 export interface DailySalesPanelProps {
-  sales: SaleLike[];
+  sales: DailySaleInput[];
   loading: boolean;
   error: string | null;
   targetDate: string;
@@ -43,6 +46,33 @@ export interface DailySalesPanelProps {
   wildcardMode?: boolean;
   onWildcardModeChange?: (enabled: boolean) => void;
 }
+
+const normalizeSale = (sale: DailySaleInput): SaleLike => {
+  const source = sale as Record<string, unknown>;
+  const normalized: SaleLike = {
+    _id: typeof source._id === 'string' ? source._id : String(source._id ?? ''),
+    items: Array.isArray(source.items) ? (source.items as any[]) : [],
+    customer: source.customer,
+  };
+
+  if (typeof source.saleNumber === 'string') {
+    normalized.saleNumber = source.saleNumber;
+  }
+  if (typeof source.totalAmount === 'number') {
+    normalized.totalAmount = source.totalAmount;
+  }
+  if (source.date !== undefined) {
+    normalized.date = source.date as string | Date;
+  }
+  if (typeof source.paymentMethod === 'string') {
+    normalized.paymentMethod = source.paymentMethod;
+  }
+  if (typeof source.paymentStatus === 'string') {
+    normalized.paymentStatus = source.paymentStatus;
+  }
+
+  return normalized;
+};
 
 const createSalesConfig = (onSaleClick?: (sale: SaleLike) => void): DailyPanelConfig<SaleLike> => ({
   title: '今日銷售',
@@ -137,11 +167,12 @@ const DailySalesPanel: React.FC<DailySalesPanelProps> = ({
   wildcardMode = false,
   onWildcardModeChange
 }) => {
+  const normalizedSales = React.useMemo(() => sales.map(normalizeSale), [sales]);
   const config = React.useMemo(() => createSalesConfig(onSaleClick), [onSaleClick]);
 
   return (
     <DailyPanel
-      items={sales}
+      items={normalizedSales}
       loading={loading}
       error={error}
       targetDate={targetDate}

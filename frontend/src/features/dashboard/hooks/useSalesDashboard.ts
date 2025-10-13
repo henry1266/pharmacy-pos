@@ -74,7 +74,7 @@ export const useSalesDashboard = () => {
         sale.customer !== null &&
         'name' in sale.customer &&
         sale.customer.name &&
-        sale.customer.name.toLowerCase().includes(lowerTerm);
+        String(sale.customer.name).toLowerCase().includes(lowerTerm);
       
       // 檢查 customer 是否為對象類型且有 phone 屬性
       const hasMatchingCustomerPhone =
@@ -82,7 +82,7 @@ export const useSalesDashboard = () => {
         sale.customer !== null &&
         'phone' in sale.customer &&
         sale.customer.phone &&
-        sale.customer.phone.includes(term);
+        String(sale.customer.phone).includes(term);
       
       // 檢查產品名稱或代碼是否匹配
       const hasMatchingProduct =
@@ -95,14 +95,14 @@ export const useSalesDashboard = () => {
             item.product !== null &&
             'name' in item.product &&
             item.product.name ?
-            item.product.name.toLowerCase() : '';
+            String(item.product.name).toLowerCase() : '';
           
           // 檢查 product 是否為對象類型且有 code 屬性
           const productCode = typeof item.product === 'object' &&
             item.product !== null &&
             'code' in item.product &&
             item.product.code ?
-            item.product.code.toLowerCase() : '';
+            String(item.product.code).toLowerCase() : '';
           
           return productName.includes(lowerTerm) || productCode.includes(lowerTerm);
         });

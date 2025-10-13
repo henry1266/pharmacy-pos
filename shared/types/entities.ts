@@ -4,6 +4,17 @@
  */
 
 import { ProductPackageUnit } from './package';
+import type {
+  SaleEntity as SaleEntityType,
+  SaleItemResponse as SaleItemResponseType,
+  PaymentMethod,
+  PaymentStatus,
+  SaleLifecycleStatus,
+} from '../schemas/zod/sale';
+
+type StripIndexSignature<T> = {
+  [K in keyof T as string extends K ? never : number extends K ? never : symbol extends K ? never : K]: T[K];
+};
 
 /**
  * 基礎時間戳記介面
@@ -156,34 +167,39 @@ export interface Supplier {
 /**
  * 銷售相關型別
  */
-export interface Sale {
-  _id: string;
-  saleNumber: string;
-  date: string | Date;
-  customer?: string | Customer; // 客戶ID或客戶對象
-  items: SaleItem[];
-  totalAmount: number;
-  discount?: number;
-  discountAmount?: number;
-  paymentMethod: 'cash' | 'card' | 'transfer' | 'other' | 'credit_card' | 'debit_card' | 'mobile_payment';
-  paymentStatus?: 'paid' | 'pending' | 'partial' | 'cancelled';
-  status?: 'completed' | 'pending' | 'cancelled';
-  notes?: string;
-  cashier?: string; // 創建者ID
-  createdBy?: string; // 創建者ID
-  createdAt: string | Date;
-  updatedAt: string | Date;
-}
+type SaleItemBase = StripIndexSignature<SaleItemResponseType>;
 
 export interface SaleItem {
   _id?: string;
-  product: string | Product; // 產品ID或產品對象
-  quantity: number;
-  price: number;
-  unitPrice?: number;
-  discount?: number;
-  subtotal: number;
-  notes?: string;
+  product: string | Product;
+  quantity: SaleItemBase['quantity'];
+  price: SaleItemBase['price'];
+  unitPrice?: SaleItemBase['unitPrice'];
+  discount?: SaleItemBase['discount'];
+  subtotal: SaleItemBase['subtotal'];
+  notes?: SaleItemBase['notes'];
+}
+
+type SaleBase = StripIndexSignature<SaleEntityType>;
+
+export interface Sale {
+  _id: SaleBase['_id'];
+  saleNumber?: SaleBase['saleNumber'];
+  date?: SaleBase['date'];
+  customer?: SaleBase['customer'] | Customer;
+  items: SaleItem[];
+  totalAmount: SaleBase['totalAmount'];
+  discount?: SaleBase['discount'];
+  discountAmount?: SaleBase['discountAmount'];
+  paymentMethod: PaymentMethod;
+  paymentStatus?: PaymentStatus;
+  status?: SaleLifecycleStatus;
+  notes?: SaleBase['notes'];
+  cashier?: SaleBase['cashier'] | string;
+  createdBy?: SaleBase['createdBy'];
+  user?: SaleBase['user'] | string;
+  createdAt: SaleBase['createdAt'];
+  updatedAt: SaleBase['updatedAt'];
 }
 
 export interface Customer {

@@ -23,19 +23,12 @@ interface SalesInputPanelProps {
   customers: Customer[];
   /** 條碼輸入框引用 */
   barcodeInputRef: RefObject<HTMLInputElement>;
-  /** 當前銷售資料 */
   currentSale: any;
-  /** 輸入模式 */
   inputModes: any[];
-  /** 是否為手機版 */
   isMobile: boolean;
-  /** 是否為平板 */
   isTablet: boolean;
-  /** 是否展開資訊卡 */
   infoExpanded: boolean;
-  /** 是否正在載入 */
   loading: boolean;
-  /** 是否處於測試模式 */
   isTestMode: boolean;
   /** 選擇產品處理函數 */
   onSelectProduct: (product: Product, quantity?: number) => void;
@@ -57,7 +50,6 @@ interface SalesInputPanelProps {
   onInfoExpandToggle: () => void;
   /** 銷售資訊變更處理函數 */
   onSaleInfoChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | { target: { value: string; name: string; } }) => void;
-  /** 儲存銷售處理函數 */
   onSaveSale: () => Promise<void>;
   /** 顯示通知處理函數 */
   showSnackbar: (message: string, severity?: 'success' | 'info' | 'warning' | 'error') => void;
@@ -110,12 +102,6 @@ const SalesInputPanel: FC<SalesInputPanelProps> = ({
         overflow: 'visible', // 改為 visible 讓按鈕可以超出邊界
         boxSizing: 'border-box'
       }}>
-        {/*
-          修正後的 Grid 容器:
-          1. 移除了 sx prop 中的 `px` 屬性，避免雙重 padding。
-          2. 讓 Grid 的 `spacing` 屬性全權負責項目間的間距。
-          3. 將 Grid 比例從 9.5/2.5 改為更穩定的 9/3。
-        */}
         <Grid
           container
           spacing={{ xs: 1, md: 3 }}
@@ -125,8 +111,8 @@ const SalesInputPanel: FC<SalesInputPanelProps> = ({
             margin: 0,
             width: '100%',
             '& > .MuiGrid-item': {
-              paddingTop: { xs: '10px', md: '24px' },
-              paddingLeft: { xs: '10px', md: '24px' }
+              paddingTop: { xs: '10px', md: '20px' },
+              paddingLeft: { xs: '10px', md: '20px' }
             }
           }}
         >

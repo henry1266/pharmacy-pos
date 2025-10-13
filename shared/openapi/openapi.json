@@ -187,11 +187,60 @@
                               "cancelled"
                             ]
                           },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "completed",
+                              "pending",
+                              "cancelled"
+                            ]
+                          },
                           "notes": {
                             "type": "string",
                             "maxLength": 1000
                           },
                           "cashier": {
+                            "oneOf": [
+                              {
+                                "oneOf": [
+                                  {
+                                    "type": "string",
+                                    "minLength": 24,
+                                    "maxLength": 24
+                                  },
+                                  {
+                                    "type": "string",
+                                    "minLength": 1
+                                  }
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "_id": {
+                                    "type": "string",
+                                    "minLength": 24,
+                                    "maxLength": 24
+                                  }
+                                },
+                                "additionalProperties": true
+                              }
+                            ]
+                          },
+                          "createdBy": {
+                            "oneOf": [
+                              {
+                                "type": "string",
+                                "minLength": 24,
+                                "maxLength": 24
+                              },
+                              {
+                                "type": "string",
+                                "minLength": 1
+                              }
+                            ]
+                          },
+                          "user": {
                             "oneOf": [
                               {
                                 "oneOf": [
@@ -235,55 +284,6 @@
                               {
                                 "type": "string",
                                 "format": "date-time"
-                              }
-                            ]
-                          },
-                          "status": {
-                            "type": "string",
-                            "enum": [
-                              "completed",
-                              "pending",
-                              "cancelled"
-                            ]
-                          },
-                          "user": {
-                            "oneOf": [
-                              {
-                                "oneOf": [
-                                  {
-                                    "type": "string",
-                                    "minLength": 24,
-                                    "maxLength": 24
-                                  },
-                                  {
-                                    "type": "string",
-                                    "minLength": 1
-                                  }
-                                ]
-                              },
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "_id": {
-                                    "type": "string",
-                                    "minLength": 24,
-                                    "maxLength": 24
-                                  }
-                                },
-                                "additionalProperties": true
-                              }
-                            ]
-                          },
-                          "createdBy": {
-                            "oneOf": [
-                              {
-                                "type": "string",
-                                "minLength": 24,
-                                "maxLength": 24
-                              },
-                              {
-                                "type": "string",
-                                "minLength": 1
                               }
                             ]
                           },
@@ -524,11 +524,45 @@
                       "cancelled"
                     ]
                   },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "completed",
+                      "pending",
+                      "cancelled"
+                    ]
+                  },
                   "notes": {
                     "type": "string",
                     "maxLength": 1000
                   },
                   "cashier": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "minLength": 24,
+                        "maxLength": 24
+                      },
+                      {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    ]
+                  },
+                  "createdBy": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "minLength": 24,
+                        "maxLength": 24
+                      },
+                      {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    ]
+                  },
+                  "user": {
                     "oneOf": [
                       {
                         "type": "string",
@@ -729,11 +763,60 @@
                             "cancelled"
                           ]
                         },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "completed",
+                            "pending",
+                            "cancelled"
+                          ]
+                        },
                         "notes": {
                           "type": "string",
                           "maxLength": 1000
                         },
                         "cashier": {
+                          "oneOf": [
+                            {
+                              "oneOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 24,
+                                  "maxLength": 24
+                                },
+                                {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              ]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "_id": {
+                                  "type": "string",
+                                  "minLength": 24,
+                                  "maxLength": 24
+                                }
+                              },
+                              "additionalProperties": true
+                            }
+                          ]
+                        },
+                        "createdBy": {
+                          "oneOf": [
+                            {
+                              "type": "string",
+                              "minLength": 24,
+                              "maxLength": 24
+                            },
+                            {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          ]
+                        },
+                        "user": {
                           "oneOf": [
                             {
                               "oneOf": [
@@ -777,55 +860,6 @@
                             {
                               "type": "string",
                               "format": "date-time"
-                            }
-                          ]
-                        },
-                        "status": {
-                          "type": "string",
-                          "enum": [
-                            "completed",
-                            "pending",
-                            "cancelled"
-                          ]
-                        },
-                        "user": {
-                          "oneOf": [
-                            {
-                              "oneOf": [
-                                {
-                                  "type": "string",
-                                  "minLength": 24,
-                                  "maxLength": 24
-                                },
-                                {
-                                  "type": "string",
-                                  "minLength": 1
-                                }
-                              ]
-                            },
-                            {
-                              "type": "object",
-                              "properties": {
-                                "_id": {
-                                  "type": "string",
-                                  "minLength": 24,
-                                  "maxLength": 24
-                                }
-                              },
-                              "additionalProperties": true
-                            }
-                          ]
-                        },
-                        "createdBy": {
-                          "oneOf": [
-                            {
-                              "type": "string",
-                              "minLength": 24,
-                              "maxLength": 24
-                            },
-                            {
-                              "type": "string",
-                              "minLength": 1
                             }
                           ]
                         },
@@ -1195,11 +1229,60 @@
                               "cancelled"
                             ]
                           },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "completed",
+                              "pending",
+                              "cancelled"
+                            ]
+                          },
                           "notes": {
                             "type": "string",
                             "maxLength": 1000
                           },
                           "cashier": {
+                            "oneOf": [
+                              {
+                                "oneOf": [
+                                  {
+                                    "type": "string",
+                                    "minLength": 24,
+                                    "maxLength": 24
+                                  },
+                                  {
+                                    "type": "string",
+                                    "minLength": 1
+                                  }
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "_id": {
+                                    "type": "string",
+                                    "minLength": 24,
+                                    "maxLength": 24
+                                  }
+                                },
+                                "additionalProperties": true
+                              }
+                            ]
+                          },
+                          "createdBy": {
+                            "oneOf": [
+                              {
+                                "type": "string",
+                                "minLength": 24,
+                                "maxLength": 24
+                              },
+                              {
+                                "type": "string",
+                                "minLength": 1
+                              }
+                            ]
+                          },
+                          "user": {
                             "oneOf": [
                               {
                                 "oneOf": [
@@ -1243,55 +1326,6 @@
                               {
                                 "type": "string",
                                 "format": "date-time"
-                              }
-                            ]
-                          },
-                          "status": {
-                            "type": "string",
-                            "enum": [
-                              "completed",
-                              "pending",
-                              "cancelled"
-                            ]
-                          },
-                          "user": {
-                            "oneOf": [
-                              {
-                                "oneOf": [
-                                  {
-                                    "type": "string",
-                                    "minLength": 24,
-                                    "maxLength": 24
-                                  },
-                                  {
-                                    "type": "string",
-                                    "minLength": 1
-                                  }
-                                ]
-                              },
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "_id": {
-                                    "type": "string",
-                                    "minLength": 24,
-                                    "maxLength": 24
-                                  }
-                                },
-                                "additionalProperties": true
-                              }
-                            ]
-                          },
-                          "createdBy": {
-                            "oneOf": [
-                              {
-                                "type": "string",
-                                "minLength": 24,
-                                "maxLength": 24
-                              },
-                              {
-                                "type": "string",
-                                "minLength": 1
                               }
                             ]
                           },
@@ -1603,11 +1637,60 @@
                             "cancelled"
                           ]
                         },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "completed",
+                            "pending",
+                            "cancelled"
+                          ]
+                        },
                         "notes": {
                           "type": "string",
                           "maxLength": 1000
                         },
                         "cashier": {
+                          "oneOf": [
+                            {
+                              "oneOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 24,
+                                  "maxLength": 24
+                                },
+                                {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              ]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "_id": {
+                                  "type": "string",
+                                  "minLength": 24,
+                                  "maxLength": 24
+                                }
+                              },
+                              "additionalProperties": true
+                            }
+                          ]
+                        },
+                        "createdBy": {
+                          "oneOf": [
+                            {
+                              "type": "string",
+                              "minLength": 24,
+                              "maxLength": 24
+                            },
+                            {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          ]
+                        },
+                        "user": {
                           "oneOf": [
                             {
                               "oneOf": [
@@ -1651,55 +1734,6 @@
                             {
                               "type": "string",
                               "format": "date-time"
-                            }
-                          ]
-                        },
-                        "status": {
-                          "type": "string",
-                          "enum": [
-                            "completed",
-                            "pending",
-                            "cancelled"
-                          ]
-                        },
-                        "user": {
-                          "oneOf": [
-                            {
-                              "oneOf": [
-                                {
-                                  "type": "string",
-                                  "minLength": 24,
-                                  "maxLength": 24
-                                },
-                                {
-                                  "type": "string",
-                                  "minLength": 1
-                                }
-                              ]
-                            },
-                            {
-                              "type": "object",
-                              "properties": {
-                                "_id": {
-                                  "type": "string",
-                                  "minLength": 24,
-                                  "maxLength": 24
-                                }
-                              },
-                              "additionalProperties": true
-                            }
-                          ]
-                        },
-                        "createdBy": {
-                          "oneOf": [
-                            {
-                              "type": "string",
-                              "minLength": 24,
-                              "maxLength": 24
-                            },
-                            {
-                              "type": "string",
-                              "minLength": 1
                             }
                           ]
                         },
@@ -2018,11 +2052,45 @@
                       "cancelled"
                     ]
                   },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "completed",
+                      "pending",
+                      "cancelled"
+                    ]
+                  },
                   "notes": {
                     "type": "string",
                     "maxLength": 1000
                   },
                   "cashier": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "minLength": 24,
+                        "maxLength": 24
+                      },
+                      {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    ]
+                  },
+                  "createdBy": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "minLength": 24,
+                        "maxLength": 24
+                      },
+                      {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    ]
+                  },
+                  "user": {
                     "oneOf": [
                       {
                         "type": "string",
@@ -2218,11 +2286,60 @@
                             "cancelled"
                           ]
                         },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "completed",
+                            "pending",
+                            "cancelled"
+                          ]
+                        },
                         "notes": {
                           "type": "string",
                           "maxLength": 1000
                         },
                         "cashier": {
+                          "oneOf": [
+                            {
+                              "oneOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 24,
+                                  "maxLength": 24
+                                },
+                                {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              ]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "_id": {
+                                  "type": "string",
+                                  "minLength": 24,
+                                  "maxLength": 24
+                                }
+                              },
+                              "additionalProperties": true
+                            }
+                          ]
+                        },
+                        "createdBy": {
+                          "oneOf": [
+                            {
+                              "type": "string",
+                              "minLength": 24,
+                              "maxLength": 24
+                            },
+                            {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          ]
+                        },
+                        "user": {
                           "oneOf": [
                             {
                               "oneOf": [
@@ -2266,55 +2383,6 @@
                             {
                               "type": "string",
                               "format": "date-time"
-                            }
-                          ]
-                        },
-                        "status": {
-                          "type": "string",
-                          "enum": [
-                            "completed",
-                            "pending",
-                            "cancelled"
-                          ]
-                        },
-                        "user": {
-                          "oneOf": [
-                            {
-                              "oneOf": [
-                                {
-                                  "type": "string",
-                                  "minLength": 24,
-                                  "maxLength": 24
-                                },
-                                {
-                                  "type": "string",
-                                  "minLength": 1
-                                }
-                              ]
-                            },
-                            {
-                              "type": "object",
-                              "properties": {
-                                "_id": {
-                                  "type": "string",
-                                  "minLength": 24,
-                                  "maxLength": 24
-                                }
-                              },
-                              "additionalProperties": true
-                            }
-                          ]
-                        },
-                        "createdBy": {
-                          "oneOf": [
-                            {
-                              "type": "string",
-                              "minLength": 24,
-                              "maxLength": 24
-                            },
-                            {
-                              "type": "string",
-                              "minLength": 1
                             }
                           ]
                         },

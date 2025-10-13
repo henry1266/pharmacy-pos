@@ -147,18 +147,23 @@ export const mapSaleResponseToSaleData = (sale: SaleResponseDto): SaleDataDto =>
       const productObj = typeof item.product === 'string' 
         ? undefined 
         : item.product as unknown as Product;
-      
-      return {
+
+      const mappedItem: SaleItemWithDetailsDto = {
         product: typeof item.product === 'string' ? item.product : (item.product as any)._id,
         productDetails: productObj,
         name: productObj?.name || '',
         code: productObj?.code || '',
-        price: item.price,
-        quantity: item.quantity,
-        subtotal: item.subtotal,
-        discount: item.discount,
+        price: Number(item.price ?? 0),
+        quantity: Number(item.quantity ?? 0),
+        subtotal: Number(item.subtotal ?? 0),
         productType: (productObj as any)?.productType
       };
+
+      if (item.discount !== undefined && item.discount !== null) {
+        mappedItem.discount = Number(item.discount);
+      }
+
+      return mappedItem;
     }),
     totalAmount: sale.totalAmount,
     discount: sale.discount ?? discountAmount,
