@@ -18494,3 +18494,23 @@
 {"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-13 22:28:21:2821"}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e025f5042c84ea93cc7fa6"},"supplierId":"67e025f5042c84ea93cc7fa6","timestamp":"2025-10-13 22:28:21:2821"}
 {"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-13 22:28:21:2821"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e025f5042c84ea93cc7fa6"},"supplierId":"67e025f5042c84ea93cc7fa6","timestamp":"2025-10-13 22:49:19:4919"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-13 22:49:19:4919"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e025f5042c84ea93cc7fa6"},"supplierId":"67e025f5042c84ea93cc7fa6","timestamp":"2025-10-13 22:49:19:4919"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-13 22:49:19:4919"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e025f5042c84ea93cc7fa6"},"supplierId":"67e025f5042c84ea93cc7fa6","timestamp":"2025-10-13 22:49:24:4924"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-13 22:49:24:4924"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e025f5042c84ea93cc7fa6"},"supplierId":"67e025f5042c84ea93cc7fa6","timestamp":"2025-10-13 22:49:24:4924"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-13 22:49:24:4924"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e025f5042c84ea93cc7fa6"},"supplierId":"67e025f5042c84ea93cc7fa6","timestamp":"2025-10-13 22:49:40:4940"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-13 22:49:41:4941"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e025f5042c84ea93cc7fa6"},"supplierId":"67e025f5042c84ea93cc7fa6","timestamp":"2025-10-13 22:49:41:4941"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-13 22:49:41:4941"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e025f5042c84ea93cc7fa6"},"supplierId":"67e025f5042c84ea93cc7fa6","timestamp":"2025-10-13 22:56:38:5638"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-13 22:56:39:5639"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e025f5042c84ea93cc7fa6"},"supplierId":"67e025f5042c84ea93cc7fa6","timestamp":"2025-10-13 22:56:39:5639"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-13 22:56:39:5639"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e025f5042c84ea93cc7fa6"},"supplierId":"67e025f5042c84ea93cc7fa6","timestamp":"2025-10-13 22:56:49:5649"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-13 22:56:49:5649"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e025f5042c84ea93cc7fa6"},"supplierId":"67e025f5042c84ea93cc7fa6","timestamp":"2025-10-13 22:56:49:5649"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-13 22:56:49:5649"}

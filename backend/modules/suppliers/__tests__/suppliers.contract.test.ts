@@ -131,13 +131,38 @@ describe('suppliersContract router', () => {
 
     const updateResponse = await request(app)
       .put(`/api/suppliers/${supplierId}`)
-      .send({ name: 'Updated Supplier', email: '' })
+      .send({
+        name: 'Updated Supplier',
+        email: '   ',
+        contactPerson: '   ',
+        phone: '   '
+      })
       .expect(200);
 
     const updatedEnvelope = parseEnvelope(supplierEnvelopeSchema, updateResponse.body);
     expect(updatedEnvelope.success).toBe(true);
     expect(updatedEnvelope.data?.name).toBe('Updated Supplier');
     expect(updatedEnvelope.data?.email).toBeUndefined();
+  });
+  it('allows updating supplier with arbitrary email string', async () => {
+    const payload = buildSupplierPayload({ email: 'not-an-email' });
+
+    const createResponse = await request(app)
+      .post('/api/suppliers')
+      .send(payload)
+      .expect(200);
+
+    const createdEnvelope = parseEnvelope(supplierEnvelopeSchema, createResponse.body);
+    const supplierId = createdEnvelope.data?._id;
+
+    const updateResponse = await request(app)
+      .put(`/api/suppliers/${supplierId}`)
+      .send({ email: 'definitely-not-an-email', name: 'Supplier Without Email' })
+      .expect(200);
+
+    const updateEnvelope = parseEnvelope(supplierEnvelopeSchema, updateResponse.body);
+    expect(updateEnvelope.success).toBe(true);
+    expect(updateEnvelope.data?.email).toBe('definitely-not-an-email');
   });
   it('rejects invalid supplier id formats with validation handler', async () => {
     const response = await request(app)

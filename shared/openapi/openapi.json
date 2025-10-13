@@ -5099,27 +5099,30 @@
                           "code": {
                             "type": "string",
                             "minLength": 1,
-                            "maxLength": 50
+                            "maxLength": 50,
+                            "nullable": true
                           },
                           "shortCode": {
                             "type": "string",
                             "minLength": 1,
-                            "maxLength": 20
+                            "maxLength": 20,
+                            "nullable": true
                           },
                           "contactPerson": {
                             "type": "string",
                             "minLength": 1,
-                            "maxLength": 100
+                            "maxLength": 100,
+                            "nullable": true
                           },
                           "phone": {
                             "type": "string",
                             "pattern": "^[\\d\\s\\-+()]+$",
                             "minLength": 8,
-                            "maxLength": 20
+                            "maxLength": 20,
+                            "nullable": true
                           },
                           "email": {
                             "type": "string",
-                            "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
                             "maxLength": 254,
                             "nullable": true
                           },
@@ -5129,7 +5132,8 @@
                           },
                           "taxId": {
                             "type": "string",
-                            "pattern": "^\\d{8}$"
+                            "pattern": "^\\d{8}$",
+                            "nullable": true
                           },
                           "paymentTerms": {
                             "type": "string",
@@ -5288,27 +5292,30 @@
                   "code": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 50
+                    "maxLength": 50,
+                    "nullable": true
                   },
                   "shortCode": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 20
+                    "maxLength": 20,
+                    "nullable": true
                   },
                   "contactPerson": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 100
+                    "maxLength": 100,
+                    "nullable": true
                   },
                   "phone": {
                     "type": "string",
                     "pattern": "^[\\d\\s\\-+()]+$",
                     "minLength": 8,
-                    "maxLength": 20
+                    "maxLength": 20,
+                    "nullable": true
                   },
                   "email": {
                     "type": "string",
-                    "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
                     "maxLength": 254,
                     "nullable": true
                   },
@@ -5318,7 +5325,8 @@
                   },
                   "taxId": {
                     "type": "string",
-                    "pattern": "^\\d{8}$"
+                    "pattern": "^\\d{8}$",
+                    "nullable": true
                   },
                   "paymentTerms": {
                     "type": "string",
@@ -5378,27 +5386,30 @@
                         "code": {
                           "type": "string",
                           "minLength": 1,
-                          "maxLength": 50
+                          "maxLength": 50,
+                          "nullable": true
                         },
                         "shortCode": {
                           "type": "string",
                           "minLength": 1,
-                          "maxLength": 20
+                          "maxLength": 20,
+                          "nullable": true
                         },
                         "contactPerson": {
                           "type": "string",
                           "minLength": 1,
-                          "maxLength": 100
+                          "maxLength": 100,
+                          "nullable": true
                         },
                         "phone": {
                           "type": "string",
                           "pattern": "^[\\d\\s\\-+()]+$",
                           "minLength": 8,
-                          "maxLength": 20
+                          "maxLength": 20,
+                          "nullable": true
                         },
                         "email": {
                           "type": "string",
-                          "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
                           "maxLength": 254,
                           "nullable": true
                         },
@@ -5408,7 +5419,8 @@
                         },
                         "taxId": {
                           "type": "string",
-                          "pattern": "^\\d{8}$"
+                          "pattern": "^\\d{8}$",
+                          "nullable": true
                         },
                         "paymentTerms": {
                           "type": "string",
@@ -5671,27 +5683,30 @@
                         "code": {
                           "type": "string",
                           "minLength": 1,
-                          "maxLength": 50
+                          "maxLength": 50,
+                          "nullable": true
                         },
                         "shortCode": {
                           "type": "string",
                           "minLength": 1,
-                          "maxLength": 20
+                          "maxLength": 20,
+                          "nullable": true
                         },
                         "contactPerson": {
                           "type": "string",
                           "minLength": 1,
-                          "maxLength": 100
+                          "maxLength": 100,
+                          "nullable": true
                         },
                         "phone": {
                           "type": "string",
                           "pattern": "^[\\d\\s\\-+()]+$",
                           "minLength": 8,
-                          "maxLength": 20
+                          "maxLength": 20,
+                          "nullable": true
                         },
                         "email": {
                           "type": "string",
-                          "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
                           "maxLength": 254,
                           "nullable": true
                         },
@@ -5701,7 +5716,8 @@
                         },
                         "taxId": {
                           "type": "string",
-                          "pattern": "^\\d{8}$"
+                          "pattern": "^\\d{8}$",
+                          "nullable": true
                         },
                         "paymentTerms": {
                           "type": "string",
@@ -5938,27 +5954,30 @@
                   "code": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 50
+                    "maxLength": 50,
+                    "nullable": true
                   },
                   "shortCode": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 20
+                    "maxLength": 20,
+                    "nullable": true
                   },
                   "contactPerson": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 100
+                    "maxLength": 100,
+                    "nullable": true
                   },
                   "phone": {
                     "type": "string",
                     "pattern": "^[\\d\\s\\-+()]+$",
                     "minLength": 8,
-                    "maxLength": 20
+                    "maxLength": 20,
+                    "nullable": true
                   },
                   "email": {
                     "type": "string",
-                    "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
                     "maxLength": 254,
                     "nullable": true
                   },
@@ -5968,7 +5987,8 @@
                   },
                   "taxId": {
                     "type": "string",
-                    "pattern": "^\\d{8}$"
+                    "pattern": "^\\d{8}$",
+                    "nullable": true
                   },
                   "paymentTerms": {
                     "type": "string",
@@ -6025,27 +6045,30 @@
                         "code": {
                           "type": "string",
                           "minLength": 1,
-                          "maxLength": 50
+                          "maxLength": 50,
+                          "nullable": true
                         },
                         "shortCode": {
                           "type": "string",
                           "minLength": 1,
-                          "maxLength": 20
+                          "maxLength": 20,
+                          "nullable": true
                         },
                         "contactPerson": {
                           "type": "string",
                           "minLength": 1,
-                          "maxLength": 100
+                          "maxLength": 100,
+                          "nullable": true
                         },
                         "phone": {
                           "type": "string",
                           "pattern": "^[\\d\\s\\-+()]+$",
                           "minLength": 8,
-                          "maxLength": 20
+                          "maxLength": 20,
+                          "nullable": true
                         },
                         "email": {
                           "type": "string",
-                          "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
                           "maxLength": 254,
                           "nullable": true
                         },
@@ -6055,7 +6078,8 @@
                         },
                         "taxId": {
                           "type": "string",
-                          "pattern": "^\\d{8}$"
+                          "pattern": "^\\d{8}$",
+                          "nullable": true
                         },
                         "paymentTerms": {
                           "type": "string",

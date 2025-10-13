@@ -11,7 +11,20 @@ export function validateSupplierPayload(mode: 'create' | 'update') {
       const schema = mode === 'create'
         ? supplierSchemas.createSupplierSchema
         : supplierSchemas.updateSupplierSchema;
-      const result = schema.safeParse(req.body);
+
+      const sanitizedBody = Object.entries(req.body ?? {}).reduce<Record<string, unknown>>((acc, [key, value]) => {
+        if (typeof value === 'string') {
+          const trimmed = value.trim();
+          if (trimmed.length > 0) {
+            acc[key] = trimmed;
+          }
+          return acc;
+        }
+        acc[key] = value;
+        return acc;
+      }, {});
+
+      const result = schema.safeParse(sanitizedBody);
       if (!result.success) {
         const errorResponse: ErrorResponse = buildErrorResponse(
           ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,

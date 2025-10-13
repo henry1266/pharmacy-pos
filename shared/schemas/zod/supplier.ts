@@ -55,7 +55,6 @@ const phoneSchema = optionalTrimmedString(
 const emailSchema = optionalTrimmedString(
   z
     .string()
-    .regex(VALIDATION_CONSTANTS.EMAIL.PATTERN, { message: 'Email format is invalid.' })
     .max(VALIDATION_CONSTANTS.EMAIL.MAX_LENGTH, { message: 'Email must not exceed 254 characters.' })
 );
 
