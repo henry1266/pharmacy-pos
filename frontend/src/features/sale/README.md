@@ -1,53 +1,51 @@
-# Sale 模組
+# 銷售模組
 
-銷售模組涵蓋銷售單建立／結帳、列表檢視、詳細檢視與編輯等流程，前端以 React + RTK Query 管理互動，後端採 ts-rest 合約對接 Express，資料結構以 `shared/` 的 Zod schema 為單一事實來源（SSOT）。
+銷售模組涵蓋快速結帳、清單／明細檢視與編輯流程。前端以 React 18 搭配 RTK Query 建構，所有網路請求都應透過由 shared Zod Schemas（`shared/schemas/zod`）生成的 ts-rest client，確保符合單一事實來源（SSOT）。
 
-## SSOT 與 ts-rest 檢核（2025-10-14）
+## SSOT 與 ts-rest 現況（2025-10-14）
 
-- **主要缺口**
-  - `openapi/components/schemas/sales.json:2`、`shared/schemas/zod/sale.ts:15`：OpenAPI schema 遺漏 `unitPrice`、`discount`、`discountAmount`、`notes` 等欄位，`paymentMethod`／`status` 枚舉亦未同步（缺少 `'card'`、`'transfer'`、`saleLifecycleStatus`）。
-- `frontend/src/features/sale/hooks/useSaleManagementV2.ts:30`–`:47` 手動宣告的 `paymentMethod`、`paymentStatus` 聯集與 shared 枚舉不符，遺漏 `credit_card`、`debit_card`、`mobile_payment`、`partial` 等值；折扣相關邏輯亦未沿用 Zod 定義。
-- `shared/services/salesApiClient.ts:1` 仍透過 `shared/index.ts:285` 對外輸出 legacy BaseApiClient，`backend/modules/sales/sales.controller.ts:1` 保留未使用的 Express handler，存在繞過契約的風險。
+- **待改善項目**
+  - `frontend/src/features/sale/hooks/useSaleManagementV2.ts` 仍以文字常值（`'cash' | 'card' | 'transfer' | 'other'` 等）描述付款方式／狀態，未引用 `@pharmacy-pos/shared/schemas/zod/sale` 的 `PaymentMethod`、`PaymentStatus` 型別，導致 `credit_card`、`mobile_payment`、`partial` 等新值在快速結帳流程中被忽略。
+  - `frontend/src/features/sale/components/new/SalesItemsTable.tsx` 以 `axios` 直接呼叫 `/api/products/{id}/description`，繞過 ts-rest 契約且失去 schema 驗證與統一錯誤包裝。
+  - `shared/services/salesApiClient.ts`（由 `shared/index.ts` 重新輸出）與 `backend/modules/sales/sales.controller.ts` 仍保留 legacy BaseApiClient + Express handler 路徑，違反「ts-rest 單一路徑」原則。
 - **已符合**
-  - `shared/api/contracts/sales.ts:4` 重用 Zod schema，`backend/modules/sales/sales.routes.ts:3`、`:224` 已以 `createExpressEndpoints` 綁定 ts-rest 合約。
-  - `frontend/src/features/sale/api/saleApi.ts:13` 與 `frontend/src/services/salesServiceV2.ts:226` 皆透過 `salesContractClient` 讀寫銷售資料並保留 typed DTO／Envelope。
-  - `frontend/src/features/sale/pages/SalesDetailPage.tsx` 已改用 `salesServiceV2` 與 `fifoService`（ts-rest client）載入銷售與 FIFO 毛利資料，移除殘存 `axios`。
+  - `shared/api/contracts/sales.ts` 直接使用 Zod schema 定義 ts-rest router，`backend/modules/sales/sales.routes.ts` 透過 `@ts-rest/express` 與共用驗證中介層暴露路由。
+  - `openapi/components/schemas/sales.json` 由相同 schema 產生，枚舉與欄位約束已與 Zod 定義一致，付款／狀態欄位符合 SSOT。
+  - 前端資料存取（`frontend/src/features/sale/api/saleApi.ts`、`frontend/src/services/salesServiceV2.ts` 以及各明細／FIFO 頁面）已使用 `salesContractClient`，保留型別安全與共享錯誤處理。
 
-## 整改計畫（優先順序）
+## 改進計畫（依優先順序）
 
-1. **Schema Steward｜API Contract Enforcer**：以 `shared/schemas/zod/sale.ts` 為來源重生 `openapi/components/schemas/sales.json`、`openapi/paths/sales.json`，補齊欄位與枚舉，標註 SemVer（預期 `minor`）。
-2. **Frontend Builder**：將 `SalesDetailPage`、FIFO call 改用 `salesContractClient` 或 shared service，移除殘存 `axios`，並補充契約層錯誤處理。必要時抽共用 mapper 供詳細頁與列表共用。
-3. **Frontend Builder**：導入 `PaymentMethod`、`PaymentStatus` 等 shared 型別，替換 `useSaleManagementV2.ts`、`types/*.ts` 的手動聯集與 magic string；修正 discount reset 等遺留行為並為計算邏輯補測試。
-4. **Backend Orchestrator**：淘汰 legacy `SalesApiClient` 與 `sales.controller.ts`，或改為純粹轉呼叫 ts-rest handler；完成後更新 `shared/index.ts` export，避免下游再引用舊路徑。
+1. **Frontend Builder · Schema Steward**：重構 `useSaleManagementV2`（含相關表單／型別工具），導入 shared `PaymentMethod`、`PaymentStatus`、`SaleItem` 型別，並依契約修正合計／折扣邏輯，補上快速結帳計算的單元測試。
+2. **Frontend Builder**：將 `SalesItemsTable` 中的 `axios` 呼叫改為對應的 ts-rest client（若缺少產品敘述端點則先補契約），並統一成功／失敗訊息處理。
+3. **Backend Orchestrator**：移除 legacy `SalesApiClient` 輸出並淘汰 `sales.controller.ts`，僅保留 ts-rest handler 作為後端入口，避免新程式依賴 BaseApiClient 路徑。
 
-## 功能概述
+## 主要功能
 
-- 銷售列表：搜尋、萬用字元查詢、批次選取與刪除。
-- 銷售建檔／結帳：條碼、快捷鍵、套餐組合、折扣付款流程。
-- 銷售編輯：自動回填、單價／小計雙模式、流程防呆。
-- 銷售詳細：基礎資訊、FIFO 毛利、調整／刪除操作。
-- 統計擴充：`saleApi` 已預留統計端點包裝。
+- 銷售清單：支援搜尋、通配字查詢、批次勾選與刪除。
+- 快速銷售建立／編輯：條碼快捷鍵、付款追蹤、即時折扣計算。
+- 銷售明細：透過契約 client 取得 FIFO 毛利資料並整合呈現。
+- 統計資訊：`saleApi`（RTK Query）提供儀表板所需的統計資料。
 
-## 路由
+## 前端路由
 
-- `GET /sales`：列表頁。
-- `GET /sales/new`：建立／結帳頁。
-- `GET /sales/edit/:id`：編輯頁。
-- `GET /sales/:id`：詳細頁。
+- `GET /sales`：清單頁
+- `GET /sales/new`：快速結帳頁
+- `GET /sales/edit/:id`：編輯既有銷售
+- `GET /sales/:id`：詳細頁
 
-路由定義於 `frontend/src/AppRouter.tsx`。
+路由配置位於 `frontend/src/AppRouter.tsx`。
 
-## 檔案結構速覽
+## 目錄結構
 
 ```text
 sale/
-├── api/                      # ts-rest client、RTK Query endpoints、DTO
-├── components/               # UI 子元件（list/edit/new/detail 分類）
-├── hooks/                    # 業務邏輯 hooks（列表、編輯、結帳流程）
-├── model/                    # Redux slice（UI 狀態）
-├── pages/                    # React Router 頁面組件
-├── types/                    # 前端型別，待全面對齊 shared 型別
-└── utils/                    # 邏輯工具（折扣、FIFO、快捷鍵等）
+├── api/         # ts-rest client 包裝、RTK Query endpoints、DTO 工具
+├── components/  # 清單／編輯／新建／明細的 UI 子元件
+├── hooks/       # 業務邏輯 hooks（清單、編輯、快速結帳流程）
+├── model/       # Redux slice（UI 狀態）
+├── pages/       # React Router 頁面元件
+├── types/       # 前端專用型別（疊合 shared 契約）
+└── utils/       # 計算工具與輔助函式（快捷鍵、FIFO 等）
 ```
 
-> 如需啟動任務，請於 Issue/PR 描述附上 `agent_task` 任務卡並標註對應 Agent（Schema Steward、Frontend Builder、Backend Orchestrator 等）。
+> 對本模組提出需求或變更時，請在 Issue／PR 描述中附上 `agent_task` YAML，並標註負責的 Agent 角色（例：Schema Steward、Frontend Builder、Backend Orchestrator），以確保稽核紀錄完整。
