@@ -1,5 +1,10 @@
 import { Document, Types } from 'mongoose';
 import { AccountingItem, AccountingCategory } from '@pharmacy-pos/shared/types/accounting';
+import type {
+  PaymentMethod,
+  PaymentStatus,
+  SaleLifecycleStatus,
+} from '@pharmacy-pos/shared/schemas/zod/sale';
 
 // 基礎介面
 export interface ITimestamps {
@@ -105,9 +110,9 @@ export interface ISale {
   totalAmount: number;
   discount: number;
   discountAmount?: number;
-  paymentMethod: 'cash' | 'credit_card' | 'debit_card' | 'mobile_payment' | 'other' | 'transfer' | 'card';
-  paymentStatus: 'paid' | 'pending' | 'partial' | 'cancelled';
-  status?: 'completed' | 'pending' | 'cancelled';
+  paymentMethod: PaymentMethod;
+  paymentStatus: PaymentStatus;
+  status?: SaleLifecycleStatus;
   notes?: string;
   cashier?: Types.ObjectId;
   createdBy?: Types.ObjectId;

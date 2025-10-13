@@ -1,52 +1,51 @@
 # 銷售模組
 
-銷售模組涵蓋快速結帳、銷售詳情檢視與編輯流程。前端以 React 18 與 RTK Query 建構，所有網路請求均透過 shared Zod Schemas（`shared/schemas/zod`）推導出的 ts-rest client 執行，確保符合單一事實來源（SSOT）。
+銷售模組涵蓋快速結帳、銷售詳情檢視與編輯流程。前端採用 React 18、Redux Toolkit 與 RTK Query，所有 API 互動皆透過 shared Zod Schemas（`shared/schemas/zod`）推導出的 ts-rest client，維護單一事實來源（SSOT）。
 
-## SSOT 與 ts-rest 現況（更新日期：2025-10-14）
+## SSOT 與 ts-rest 現況（更新：2025-10-14）
 
-- **待改善**
-  - `frontend/src/features/sale/hooks/useSaleManagementV2.ts` 仍以手寫字串（`'cash' | 'card' | 'transfer' | 'other'` 等）描述付款方式與付款狀態，未統一引用 `@pharmacy-pos/shared/schemas/zod/sale` 的 `PaymentMethod`、`PaymentStatus`。因此 `credit_card`、`mobile_payment`、`partial` 等新值在快速結帳流程中可能遭忽略。
-  - `frontend/src/features/sale/components/new/SalesItemsTable.tsx` 直接透過 `axios` 呼叫 `/api/products/{id}/description`，未走 ts-rest 契約，缺乏 schema 驗證與一致的錯誤處理。
-  - `shared/services/salesApiClient.ts`（由 `shared/index.ts` 再輸出）與 `backend/modules/sales/sales.controller.ts` 仍保留 legacy BaseApiClient + Express handler 流程，與 ts-rest 契約化路由並行。
+- **契約與類型來源**
+  - `shared/schemas/zod/sale.ts` 作為唯一結構定義來源，供後端驗證、中介層與前端 DTO 推導。
+  - `shared/api/contracts/sales.ts` 以上述 schema 建立 ts-rest contract，`shared/api/clients/sales.ts` 與 `frontend/src/features/sale/api/client.ts` 共用同一 contract client。
+  - `backend/modules/sales/sales.routes.ts` 透過 `@ts-rest/express` 掛載 contract，並搭配 `createValidationErrorHandler` 統一錯誤格式。
+  - `frontend/src/features/sale/api/saleApi.ts` 與 `frontend/src/services/salesServiceV2.ts` 皆由 contract client 驅動，避免重複維護請求與回應模型。
+- **共用常數與枚舉**
+  - 前端付款方式／狀態選項與 parser 直接引用 `paymentMethodSchema`、`paymentStatusSchema`（`frontend/src/features/sale/constants/payment.ts`）。
+  - DTO 與 UI 型別以 `z.infer` 或 shared entity 型別取得欄位定義，移除魔法字串。
 
-- **已完成**
-  - `shared/api/contracts/sales.ts` 以 Zod schema 定義 ts-rest router，`backend/modules/sales/sales.routes.ts` 透過 `@ts-rest/express` 暴露路由並掛載驗證中介層。
-  - `openapi/components/schemas/sales.json` 已同步欄位約束，付款／狀態等枚舉可與 SSOT 一致。
-  - 前端資料存取層（`frontend/src/features/sale/api/saleApi.ts`、`frontend/src/services/salesServiceV2.ts` 以及 FIFO 相關頁面）已統一使用 `salesContractClient`，並共享錯誤處理邏輯。
+## 風險與改善項目
 
-## 待辦事項與優先順序
-
-1. **Frontend Builder · Schema Steward**：調整 `useSaleManagementV2`（含表單與工廠方法），全面改用 shared `PaymentMethod`、`PaymentStatus`、`SaleItem` 型別，並依契約修正折扣與計價邏輯，補上對應單元測試。
-2. **Frontend Builder**：將 `SalesItemsTable` 的 `axios` 呼叫改為 ts-rest client。如契約缺少端點應同步補齊，並統一載入與錯誤攔截流程。
-3. **Backend Orchestrator**：淘汰 legacy `SalesApiClient` 再輸出與 `sales.controller.ts`，確保僅由 ts-rest handler 提供後端 API，避免新程式碼倚賴舊有 BaseApiClient。
+- [已完成] Mongoose 枚舉與狀態值改為引用 shared schema options（2025-10-14 更新）。
+- [已完成] 後端資料層付款類型改用 shared `PaymentMethod`、`PaymentStatus`、`SaleLifecycleStatus` 型別（2025-10-14 更新）。
+- [持續監控] 文件同步性治理：新增需求請在 PR 中附 `agent_task` YAML 與對應 Agent 決策記錄，以利稽核追蹤。
 
 ## 主要功能
 
-- 銷售清單：支援搜尋、萬用字查詢、批次勾選與刪除。
-- 快速銷售建立與編輯：條碼快捷鍵、付款追蹤、即時計算折扣與總金額。
-- 銷售詳情：透過契約 client 取得 FIFO 毛利資訊並整合展示。
-- 統計資訊：`saleApi`（RTK Query）提供儀表板所需的統計資料。
+- 銷售清單：支援搜尋、萬用搜尋、批次勾選刪除。
+- 快速結帳／銷售建立：條碼輸入、付款追蹤、即時計算折扣與總額。
+- 銷售詳情：透過 ts-rest client 載入 FIFO 毛利與關聯資料。
+- 統計分析：`saleApi` 搭配 selectors 供儀表板使用銷售統計。
 
 ## 前端路由
 
-- `GET /sales`：銷售列表。
-- `GET /sales/new`：快速結帳頁。
-- `GET /sales/edit/:id`：編輯既有銷售。
-- `GET /sales/:id`：銷售詳細。
+- `/sales`：銷售清單頁
+- `/sales/new`：快速結帳頁
+- `/sales/edit/:id`：銷售編輯頁
+- `/sales/:id`：銷售詳情頁
 
-路由配置位於 `frontend/src/AppRouter.tsx`。
+路由註冊於 `frontend/src/AppRouter.tsx`。
 
-## 目錄結構
+## 檔案結構
 
 ```text
 sale/
-├── api/         # ts-rest client、RTK Query endpoints 與 DTO 工具
-├── components/  # 清單／編輯／建立／詳情等 UI 子元件
-├── hooks/       # 業務邏輯 hooks（查詢、編輯、快速結帳流程）
-├── model/       # Redux slice（UI 狀態管理）
-├── pages/       # React Router 頁面元件
-├── types/       # 前端專用型別（補強 shared 契約外的 UI 型別）
-└── utils/       # 計算與工具函式（快捷鍵、FIFO 等）
+|-- api/         # ts-rest client、RTK Query endpoints、DTO
+|-- components/  # 清單／編輯／建立／詳情 UI
+|-- hooks/       # 業務邏輯 hooks（查詢、編輯、快速結帳流程）
+|-- model/       # Redux slice 與狀態模型
+|-- pages/       # React Router 頁面元件
+|-- types/       # 前端專用型別（延伸 shared 契約以支援 UI）
+\-- utils/       # 計算與轉換工具（快捷鍵、FIFO、金額）
 ```
 
-> 若對本模組提出需求或變更，請在 Issue／PR 描述中附上 `agent_task` YAML，並標註負責的 Agent 角色（例如：Schema Steward、Frontend Builder、Backend Orchestrator），以利稽核與追蹤。
+> 任何模組改動務必在 Issue／PR 描述中附上 `agent_task` YAML，並標註對應 Agent 角色（如 Schema Steward、Frontend Builder、Backend Orchestrator），以確保可追溯並符合治理指引。

@@ -1,9 +1,14 @@
 ﻿import { Schema, model } from 'mongoose';
 import { ISaleDocument } from '../src/types/models';
+import {
+  paymentMethodSchema,
+  paymentStatusSchema,
+  saleLifecycleStatusSchema,
+} from '@pharmacy-pos/shared/schemas/zod/sale';
 
-const saleLifecycleStatuses = ['completed', 'pending', 'cancelled'] as const;
-const paymentMethods = ['cash', 'card', 'transfer', 'other', 'credit_card', 'debit_card', 'mobile_payment'] as const;
-const paymentStatuses = ['paid', 'pending', 'partial', 'cancelled'] as const;
+const saleLifecycleStatuses = [...saleLifecycleStatusSchema.options] as const;
+const paymentMethods = [...paymentMethodSchema.options] as const;
+const paymentStatuses = [...paymentStatusSchema.options] as const;
 
 const SaleSchema = new Schema<ISaleDocument>({
   saleNumber: {
