@@ -39,6 +39,13 @@ export const PAYMENT_STATUS_META: Record<PaymentStatus, PaymentStatusMeta> = {
   cancelled: { text: '已取消', color: 'error', iconType: 'Cancel' },
 };
 
+export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
+  paid: PAYMENT_STATUS_META.paid.text,
+  pending: PAYMENT_STATUS_META.pending.text,
+  partial: PAYMENT_STATUS_META.partial.text,
+  cancelled: PAYMENT_STATUS_META.cancelled.text,
+};
+
 export const parsePaymentMethod = (value: unknown): PaymentMethod | undefined => {
   const result = paymentMethodSchema.safeParse(value);
   return result.success ? result.data : undefined;

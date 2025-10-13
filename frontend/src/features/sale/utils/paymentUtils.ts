@@ -1,6 +1,6 @@
 /**
- * @file ¥I´Ú¤u¨ã¨ç¦¡
- * @description ´£¨Ñ¥I´Ú¤è¦¡»P¥I´Úª¬ºAªºÅã¥Ü¤u¨ã¡C
+ * @file ä»˜æ¬¾ç›¸é—œå·¥å…·å‡½æ•¸
+ * @description è™•ç†ä»˜æ¬¾æ–¹å¼å’Œä»˜æ¬¾ç‹€æ…‹çš„é¡¯ç¤ºå’Œè½‰æ›
  */
 
 import { PaymentStatusInfo } from '../types/detail';
