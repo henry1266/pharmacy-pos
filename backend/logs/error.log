@@ -2301,3 +2301,6 @@
 {"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mFailed to list customers: Database connection failed\u001b[39m","timestamp":"2025-10-12 23:58:37:5837"}
 {"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mFailed to list suppliers: Database connection failed\u001b[39m","timestamp":"2025-10-13 08:21:57:2157"}
 {"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mFailed to list customers: Database connection failed\u001b[39m","timestamp":"2025-10-13 08:22:12:2212"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mFailed to list suppliers: Database connection failed\u001b[39m","timestamp":"2025-10-13 09:20:06:206"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mFailed to list customers: Database connection failed\u001b[39m","timestamp":"2025-10-13 09:20:37:2037"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mlistSales failed: Database connection failed\u001b[39m","timestamp":"2025-10-13 09:21:30:2130"}

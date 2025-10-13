@@ -1,183 +1,53 @@
 # Sale 模組
 
-此模組涵蓋收銀/銷售的完整流程：銷售列表、建立/結帳、編輯、詳細檢視與刪除，並整合 RTK Query、Axios 客戶端、共用型別與多個 UI 子元件。內容也可作為本專案其他模組的結構範例。
+銷售模組涵蓋銷售單建立／結帳、列表檢視、詳細檢視與編輯等流程，前端以 React + RTK Query 管理互動，後端採 ts-rest 合約對接 Express，資料結構以 `shared/` 的 Zod schema 為單一事實來源（SSOT）。
 
-## SSOT 與 ts-rest 檢核摘要（2025-10-13）
+## SSOT 與 ts-rest 檢核（2025-10-14）
 
 - **主要缺口**
-  - `backend/models/Sale.ts:15` 與 `shared/schemas/zod/sale.ts:15` 未對齊：缺少 `unitPrice`、`discount`、`discountAmount`，且 `paymentMethod` 未涵蓋 `'transfer'`、`'card'`。
-  - `backend/modules/sales/sales.types.ts:50`、`backend/modules/sales/utils/sales.utils.ts:148` 在建檔/更新時丟棄 Zod 定義欄位（例如 `discountAmount`、項目 `discount`），資料無法回填。
-  - 前端重複宣告不一致型別（如 `frontend/src/features/sale/types/detail.ts:21`、`frontend/src/features/sale/types/list.ts:24`、`frontend/src/features/sale/hooks/useSaleManagementV2.ts:24`）。
-  - `frontend/src/features/sale/utils/editUtils.ts:31` 將後端返回的 `discount` 歸零，違反 SSOT。
-  - `shared/services/salesApiClient.ts:1` 仍提供非 ts-rest 路徑，可能繞過契約。
+  - `openapi/components/schemas/sales.json:2`、`shared/schemas/zod/sale.ts:15`：OpenAPI schema 遺漏 `unitPrice`、`discount`、`discountAmount`、`notes` 等欄位，`paymentMethod`／`status` 枚舉亦未同步（缺少 `'card'`、`'transfer'`、`saleLifecycleStatus`）。
+  - `frontend/src/features/sale/pages/SalesDetailPage.tsx:71`、`:144`、`:248` 仍以 `axios` 直接呼叫 `/api/sales`、`/api/fifo/sale`，繞過 ts-rest 客戶端與 shared 型別。
+  - `frontend/src/features/sale/hooks/useSaleManagementV2.ts:30`–`:47` 手動宣告的 `paymentMethod`、`paymentStatus` 聯集與 shared 枚舉不符，遺漏 `credit_card`、`debit_card`、`mobile_payment`、`partial` 等值；折扣相關邏輯亦未沿用 Zod 定義。
+  - `shared/services/salesApiClient.ts:1` 仍透過 `shared/index.ts:285` 對外輸出 legacy BaseApiClient，`backend/modules/sales/sales.controller.ts:1` 保留未使用的 Express handler，存在繞過契約的風險。
+- **已符合**
+  - `shared/api/contracts/sales.ts:4` 重用 Zod schema，`backend/modules/sales/sales.routes.ts:3`、`:224` 已以 `createExpressEndpoints` 綁定 ts-rest 合約。
+  - `frontend/src/features/sale/api/saleApi.ts:13` 與 `frontend/src/services/salesServiceV2.ts:226` 皆透過 `salesContractClient` 讀寫銷售資料並保留 typed DTO／Envelope。
 
-- **已符合項目**
-  - `shared/api/contracts/sales.ts:1` 重用 Zod schema，`backend/modules/sales/sales.routes.ts:1` 以 `createExpressEndpoints` 綁定契約。
-  - 前端主要資料流使用共享客戶端（`frontend/src/features/sale/api/client.ts:1`、`frontend/src/features/sale/api/saleApi.ts:1`），DTO 透過 `z.infer` 推導。
+## 整改計畫（優先順序）
 
-- **建議下一步**
-  1. 將 Mongo Schema 及 `buildSaleFields` 與 SSOT 對齊，補整合測試確保 round-trip。
-  2. 移除前端重複型別，改用 shared 型別/guards，修正 discount 與 payment 流程。
-  3. 停用或移除 legacy `salesApiClient`，集中於 ts-rest 客戶端。
+1. **Schema Steward｜API Contract Enforcer**：以 `shared/schemas/zod/sale.ts` 為來源重生 `openapi/components/schemas/sales.json`、`openapi/paths/sales.json`，補齊欄位與枚舉，標註 SemVer（預期 `minor`）。
+2. **Frontend Builder**：將 `SalesDetailPage`、FIFO call 改用 `salesContractClient` 或 shared service，移除殘存 `axios`，並補充契約層錯誤處理。必要時抽共用 mapper 供詳細頁與列表共用。
+3. **Frontend Builder**：導入 `PaymentMethod`、`PaymentStatus` 等 shared 型別，替換 `useSaleManagementV2.ts`、`types/*.ts` 的手動聯集與 magic string；修正 discount reset 等遺留行為並為計算邏輯補測試。
+4. **Backend Orchestrator**：淘汰 legacy `SalesApiClient` 與 `sales.controller.ts`，或改為純粹轉呼叫 ts-rest handler；完成後更新 `shared/index.ts` export，避免下游再引用舊路徑。
 
 ## 功能概述
 
-- 銷售列表：搜尋、萬用字元搜尋、預覽、刪除
-- 銷售建立/結帳：條碼/關鍵字輸入、快捷按鈕、套餐、顧客與付款、結帳動畫
-- 銷售編輯：條碼輸入、單價/小計雙模式、表單狀態管理
-- 銷售詳細：品項明細、FIFO 毛利資訊、列印與刪除
-- 統計與延伸：提供銷售統計、退款 API 端點（由 saleApi 暴露）
+- 銷售列表：搜尋、萬用字元查詢、批次選取與刪除。
+- 銷售建檔／結帳：條碼、快捷鍵、套餐組合、折扣付款流程。
+- 銷售編輯：自動回填、單價／小計雙模式、流程防呆。
+- 銷售詳細：基礎資訊、FIFO 毛利、調整／刪除操作。
+- 統計擴充：`saleApi` 已預留統計端點包裝。
 
 ## 路由
 
-- 列表頁：`/sales`
-- 新增頁：`/sales/new`
-- 編輯頁：`/sales/edit/:id`
-- 詳細頁：`/sales/:id`
+- `GET /sales`：列表頁。
+- `GET /sales/new`：建立／結帳頁。
+- `GET /sales/edit/:id`：編輯頁。
+- `GET /sales/:id`：詳細頁。
 
-對應設定於 `frontend/src/AppRouter.tsx`。
+路由定義於 `frontend/src/AppRouter.tsx`。
 
-## 目錄結構
+## 檔案結構速覽
 
 ```text
 sale/
-├─ api/                       # API 與型別
-│  ├─ client.ts               # Axios 客戶端與攔截器、錯誤映射
-│  ├─ dto.ts                  # 請求/回應 DTO 與對應轉換
-│  └─ saleApi.ts              # RTK Query 端點（查詢/建立/更新/刪除/統計/退款）
-├─ components/                # 共用 UI 元件（新建/輸入區塊與輔助）
-│  ├─ CheckoutSuccessEffect.tsx
-│  ├─ CustomProductsDialog.tsx
-│  ├─ EditShortcutItemsDialog.tsx
-│  ├─ MobileFabButton.tsx
-│  ├─ MobileSalesDrawer.tsx
-│  ├─ SaleInfoCard.tsx
-│  ├─ SalesInputPanel.tsx
-│  ├─ SalesItemsTable.tsx
-│  ├─ SalesPreview.tsx
-│  ├─ SalesProductInput.tsx
-│  ├─ ShortcutButtonManager.tsx
-│  └─ ShortcutButtonSection.tsx
-│  ├─ detail/                 # 詳細頁子元件
-│  │  ├─ CustomContentRenderer.tsx
-│  │  ├─ DetailIconRenderer.tsx
-│  │  ├─ MainContent.tsx
-│  │  ├─ SaleInfoSidebar.tsx
-│  │  ├─ SalesItemRow.tsx
-│  │  ├─ SalesItemsTable.tsx
-│  │  └─ SalesDetailPanel.tsx
-│  ├─ edit/                   # 編輯頁子元件（集中導出於 index.ts）
-│  │  ├─ ErrorState.tsx
-│  │  ├─ HeaderSection.tsx
-│  │  ├─ LoadingState.tsx
-│  │  ├─ NotificationSnackbar.tsx
-│  │  ├─ SaleEditDetailsCard.tsx
-│  │  ├─ SaleEditInfoCard.tsx
-│  │  └─ SalesEditItemsTable.tsx
-│  └─ list/                   # 列表頁子元件（集中導出於 index.ts）
-│     ├─ ActionButtons.tsx
-│     ├─ DeleteConfirmDialog.tsx
-│     ├─ HeaderSection.tsx
-│     ├─ LoadingSkeleton.tsx
-│     ├─ NotificationSnackbar.tsx
-│     ├─ SalesPreviewPopover.tsx
-│     ├─ SalesTable.tsx
-│     └─ SearchBar.tsx
-├─ hooks/                     # 功能邏輯 Hooks
-│  ├─ useSaleEdit.ts          # 編輯頁（RTK Query 版本）
-│  ├─ useSaleEditManagement.ts# 向下相容封裝（內部委派至 useSaleEdit）
-│  ├─ useSaleManagementV2.ts  # 新建/結帳流程管理（服務 v2）
-│  ├─ useSalesData.ts         # 取得產品/客戶資料（服務 v2）
-│  ├─ useSalesEditData.ts     # 取得編輯頁初始資料（服務 v2）
-│  ├─ useSalesList.ts         # 列表頁行為（搜尋/預覽/刪除/導覽）
-│  └─ useSalesListData.ts     # 列表資料（今日清單/條件查詢切換）
-├─ model/
-│  └─ saleSlice.ts            # UI 與表單狀態（列表/編輯/UI）
-├─ pages/                     # 頁面元件（自動透過 index.ts 匯出）
-│  ├─ SalesDetailPage.tsx
-│  ├─ SalesEditPage.tsx
-│  ├─ SalesNewPage.tsx
-│  ├─ SalesPage.tsx
-│  └─ index.ts
-├─ types/                     # 型別定義
-│  ├─ detail.ts
-│  ├─ edit.ts
-│  ├─ index.ts
-│  └─ list.ts
-└─ utils/                     # 工具函式
-   ├─ editUtils.ts            # 轉換/計算/條碼查找
-   ├─ fifoUtils.ts            # FIFO 毛利顯示整理
-   ├─ listUtils.ts            # 列表頁本地化與格式化
-   ├─ paymentUtils.ts         # 付款方式/狀態文案
-   └─ shortcutUtils.ts        # 快捷按鈕驗證
+├── api/                      # ts-rest client、RTK Query endpoints、DTO
+├── components/               # UI 子元件（list/edit/new/detail 分類）
+├── hooks/                    # 業務邏輯 hooks（列表、編輯、結帳流程）
+├── model/                    # Redux slice（UI 狀態）
+├── pages/                    # React Router 頁面組件
+├── types/                    # 前端型別，待全面對齊 shared 型別
+└── utils/                    # 邏輯工具（折扣、FIFO、快捷鍵等）
 ```
 
-## 核心頁面
-
-- 列表（`SalesPage.tsx`）
-  - 使用 `useSalesList` 管理搜尋、萬用字元模式、預覽、刪除與導覽。
-  - 搭配 `useGetSaleByIdQuery` 補齊預覽缺少的項目資料；右側以 `SalesDetailPanel` 呈現。
-- 新增/結帳（`SalesNewPage.tsx`）
-  - 資料：`useSalesData` 取得產品與顧客、`useSalesListData` 取得今日銷售、`usePackageData` 取得套餐。
-  - 狀態/行為：`useSaleManagementV2`（以 `salesServiceV2.createSale` 實際送單；自動產生貨號、完成後顯示 `CheckoutSuccessEffect`）。
-  - UI：`SalesProductInput`、`SalesItemsTable`、`SaleInfoCard`、`ShortcutButtonSection`、行動版的 `MobileFabButton`/`MobileSalesDrawer`。
-- 編輯（`SalesEditPage.tsx`）
-  - 資料：`useSalesEditData`（服務 v2）組合銷售、產品、顧客；格式化為前端可編輯結構。
-  - 行為：`useSaleEdit`（RTK Query）處理條碼、數量、單價/小計切換、提交更新 `useUpdateSaleMutation`。
-  - UI：`SaleEditInfoCard`、`SalesEditItemsTable`、`SaleEditDetailsCard`，另含載入與錯誤狀態元件。
-- 詳細（`SalesDetailPage.tsx`）
-  - 以 Axios `GET /api/sales/:id` 取得資料；搭配 `getCollapsibleDetails` 顯示 FIFO 成本/毛利（若後端提供）。
-  - 版面採 `CommonListPageLayout`，左表右欄資訊，含列印/刪除動作與 Snackbar 通知。
-
-## API 與資料流
-
-- Axios 客戶端（`api/client.ts`）
-  - 基底位址 `/api`，攔截器自動帶 `Authorization`，統一錯誤轉換為 `ApiError`。
-- DTO（`api/dto.ts`）
-  - 定義 `SaleRequestDto`、`SaleResponseDto`、`SaleDataDto`、`SaleRefund*`、`PaginatedResponse` 等。
-  - 提供 `mapSaleResponseToSaleData` 與 `mapSaleDataToSaleRequest` 做前/後端資料結構轉換。
-- RTK Query（`api/saleApi.ts`）
-  - 查詢：`getSales`、`getSaleById`、`getSaleDataById`、`getTodaySales`、`getMonthlySales`、`getCustomerSales`、`getSaleStats`。
-  - 寫入：`createSale`、`updateSale`、`deleteSale`、`processRefund`。
-  - 匯出 hooks：`useGetSalesQuery`、`useCreateSaleMutation` 等，並以 `tagTypes` 管理快取失效。
-
-## 狀態管理（`model/saleSlice.ts`）
-
-- list：篩選、排序、分頁、勾選、檢視模式。
-- edit：表單髒污/提交狀態、驗證錯誤、分頁籤、確認對話框。
-- ui：側欄、行動抽屜、目前檢視、全域通知。
-
-## 主要元件
-
-- `SalesInputPanel`：整合輸入列、品項表、基本資訊與結帳按鈕。
-- `SalesProductInput`：條碼或關鍵字選品，支援套餐與產品筆記（Markdown 預覽）。
-- `SalesItemsTable`：數量/單價/小計編輯、切換輸入模式、筆記檢視。
-- `SaleInfoCard`：顧客、付款方式、折扣、備註與自訂貨號。
-- `ShortcutButtonSection`：使用者快捷按鈕選單；行動板版面最佳化。
-- `MobileFabButton`、`MobileSalesDrawer`：行動裝置操作與今日銷售瀏覽。
-- 詳細頁子元件：`SalesDetailPanel`、`SalesItemsTable`、`SaleInfoSidebar` 等。
-
-## 工具與型別
-
-- 工具：`editUtils.ts`（格式化/計算/條碼查找）、`listUtils.ts`（表格在地化）、`paymentUtils.ts`（付款文案）、`fifoUtils.ts`（毛利欄位整理）。
-- 型別：集中於 `types/`；專案共用 enum 參見 `shared/enums/index.ts`。
-
-## 開發指引
-
-- 新增 API 端點
-  1) 在 `api/dto.ts` 補齊請求/回應型別（必要時提供 map 函式）。
-  2) 於 `api/saleApi.ts` 增加 endpoint，回傳/失敗以 `queryFn` 統一處理。
-  3) 需要攜帶認證時，直接使用 `salesContractClient`。
-- 新增頁面或功能
-  1) 依場景放入 `pages/` 或對應子資料夾（`components/list|edit|detail`）。
-  2) 邏輯放在 `hooks/`，共用 UI 放在 `components/`。
-  3) 若有本地 UI 狀態，酌情使用 `model/saleSlice.ts`。
-  4) 路由更新於 `frontend/src/AppRouter.tsx`。
-- 型別與文字
-  - 優先使用 `types/` 與 `@pharmacy-pos/shared/*` 型別；付款相關可參考 `shared/enums/index.ts`。
-
-## 備註
-
-- 測試模式：部分頁面會依 `TestModeConfig` 切換假資料與顯示（例如新建頁的結帳按鈕標示）。
-- 產品筆記：`SalesItemsTable` 會以 Markdown 呈現產品摘要/詳述，支援連結開新視窗。
-- FIFO 毛利：詳細頁會在後端提供對應資料時顯示成本/毛利與毛利率欄位。
+> 如需啟動任務，請於 Issue/PR 描述附上 `agent_task` 任務卡並標註對應 Agent（Schema Steward、Frontend Builder、Backend Orchestrator 等）。

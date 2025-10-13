@@ -18433,3 +18433,10 @@
 {"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mFailed to list customers: Database connection failed\u001b[39m","timestamp":"2025-10-12 23:58:37:5837"}
 {"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mFailed to list suppliers: Database connection failed\u001b[39m","timestamp":"2025-10-13 08:21:57:2157"}
 {"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mFailed to list customers: Database connection failed\u001b[39m","timestamp":"2025-10-13 08:22:12:2212"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m未找到當天銷貨單號，使用起始序號1\u001b[39m","timestamp":"2025-10-13 08:59:55:5955"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m生成銷貨單號: 20251013001\u001b[39m","timestamp":"2025-10-13 08:59:55:5955"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m為產品 6820148453ecd3eddeef3785 創建銷售庫存記錄，數量: -1, 總金額: 2600\u001b[39m","timestamp":"2025-10-13 08:59:55:5955"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mFailed to list suppliers: Database connection failed\u001b[39m","timestamp":"2025-10-13 09:20:06:206"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mFailed to list customers: Database connection failed\u001b[39m","timestamp":"2025-10-13 09:20:37:2037"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"\u001b[33m產品 測試產品 庫存不足，當前總庫存: 1，請求數量: 5\u001b[39m","timestamp":"2025-10-13 09:21:29:2129"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mlistSales failed: Database connection failed\u001b[39m","timestamp":"2025-10-13 09:21:30:2130"}
