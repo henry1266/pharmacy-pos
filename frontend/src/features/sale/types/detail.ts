@@ -5,6 +5,7 @@
 
 import { ReactNode } from 'react';
 import { ChipProps } from '@mui/material';
+import type { FifoSaleResponse } from '@pharmacy-pos/shared';
 import type {
   Sale as SharedSale,
   SaleItem as SharedSaleItem,
@@ -16,7 +17,7 @@ export type Product = SharedProduct;
 export type Customer = SharedCustomer;
 
 export type SaleItem = Omit<SharedSaleItem, 'product'> & {
-  product?: SharedProduct | { name: string; _id?: string; id?: string; code?: string };
+  product?: string | SharedProduct | { name: string; _id?: string; id?: string; code?: string };
   amount?: number;
   name?: string;
 };
@@ -30,32 +31,14 @@ export type Sale = Omit<SharedSale, 'customer' | 'items'> & {
 /**
  * FIFO 毛利類型
  */
-export interface FifoProfit {
-  totalCost: number;
-  totalProfit: number;
-  profitMargin: string;
-  [key: string]: any; // 允許其他屬性
-}
+type RemoteFifoItem = FifoSaleResponse['items'][number];
+type RemoteFifoSummary = FifoSaleResponse['summary'];
 
-/**
- * FIFO 項目類型
- */
-export interface FifoItem {
-  product?: Product;
-  fifoProfit?: FifoProfit;
-}
-
-/**
- * FIFO 數據類型
- */
+export type FifoProfit = NonNullable<RemoteFifoItem['fifoProfit']>;
+export type FifoItem = RemoteFifoItem;
 export interface FifoData {
-  summary: {
-    totalCost: number;
-    totalProfit: number;
-    grossProfit?: number; // 新增 grossProfit 欄位以兼容後端回傳
-    totalProfitMargin: string;
-  };
-  items?: FifoItem[];
+  summary?: RemoteFifoSummary;
+  items?: RemoteFifoItem[];
 }
 
 /**

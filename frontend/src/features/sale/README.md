@@ -6,12 +6,12 @@
 
 - **主要缺口**
   - `openapi/components/schemas/sales.json:2`、`shared/schemas/zod/sale.ts:15`：OpenAPI schema 遺漏 `unitPrice`、`discount`、`discountAmount`、`notes` 等欄位，`paymentMethod`／`status` 枚舉亦未同步（缺少 `'card'`、`'transfer'`、`saleLifecycleStatus`）。
-  - `frontend/src/features/sale/pages/SalesDetailPage.tsx:71`、`:144`、`:248` 仍以 `axios` 直接呼叫 `/api/sales`、`/api/fifo/sale`，繞過 ts-rest 客戶端與 shared 型別。
-  - `frontend/src/features/sale/hooks/useSaleManagementV2.ts:30`–`:47` 手動宣告的 `paymentMethod`、`paymentStatus` 聯集與 shared 枚舉不符，遺漏 `credit_card`、`debit_card`、`mobile_payment`、`partial` 等值；折扣相關邏輯亦未沿用 Zod 定義。
-  - `shared/services/salesApiClient.ts:1` 仍透過 `shared/index.ts:285` 對外輸出 legacy BaseApiClient，`backend/modules/sales/sales.controller.ts:1` 保留未使用的 Express handler，存在繞過契約的風險。
+- `frontend/src/features/sale/hooks/useSaleManagementV2.ts:30`–`:47` 手動宣告的 `paymentMethod`、`paymentStatus` 聯集與 shared 枚舉不符，遺漏 `credit_card`、`debit_card`、`mobile_payment`、`partial` 等值；折扣相關邏輯亦未沿用 Zod 定義。
+- `shared/services/salesApiClient.ts:1` 仍透過 `shared/index.ts:285` 對外輸出 legacy BaseApiClient，`backend/modules/sales/sales.controller.ts:1` 保留未使用的 Express handler，存在繞過契約的風險。
 - **已符合**
   - `shared/api/contracts/sales.ts:4` 重用 Zod schema，`backend/modules/sales/sales.routes.ts:3`、`:224` 已以 `createExpressEndpoints` 綁定 ts-rest 合約。
   - `frontend/src/features/sale/api/saleApi.ts:13` 與 `frontend/src/services/salesServiceV2.ts:226` 皆透過 `salesContractClient` 讀寫銷售資料並保留 typed DTO／Envelope。
+  - `frontend/src/features/sale/pages/SalesDetailPage.tsx` 已改用 `salesServiceV2` 與 `fifoService`（ts-rest client）載入銷售與 FIFO 毛利資料，移除殘存 `axios`。
 
 ## 整改計畫（優先順序）
 

@@ -46,20 +46,32 @@ export const getCollapsibleDetails = (
   }
 
   // FIFO 相關資料
-  if (!fifoLoading && fifoData?.summary) {
+  const summary = fifoData?.summary;
+
+  if (!fifoLoading && summary) {
+    const totalCost = typeof summary.totalCost === 'number' ? summary.totalCost : null;
+    const totalProfitValue =
+      typeof summary.totalProfit === 'number'
+        ? summary.totalProfit
+        : typeof summary.grossProfit === 'number'
+          ? summary.grossProfit
+          : 0;
+    const totalProfitMargin = summary.totalProfitMargin ?? '0';
+    const parsedMargin = parseFloat(totalProfitMargin || '0');
+
     details.push({
       label: '總成本',
-      value: fifoData.summary.totalCost,
+      value: totalCost,
       iconType: 'MonetizationOn',
       iconColor: 'action',
       condition: true,
       valueFormatter: val => typeof val === 'number' ? val.toFixed(2) : 'N/A'
     });
     
-    const isPositiveProfit = (fifoData.summary.totalProfit || fifoData.summary.grossProfit || 0) >= 0;
+    const isPositiveProfit = totalProfitValue >= 0;
     details.push({
       label: '總毛利',
-      value: fifoData.summary.totalProfit || fifoData.summary.grossProfit || 0,
+      value: totalProfitValue,
       iconType: 'TrendingUp',
       iconColor: isPositiveProfit ? 'success' : 'error',
       color: isPositiveProfit ? 'success.main' : 'error.main',
@@ -68,10 +80,10 @@ export const getCollapsibleDetails = (
       valueFormatter: val => typeof val === 'number' ? val.toFixed(2) : 'N/A'
     });
     
-    const isPositiveMargin = parseFloat(fifoData.summary.totalProfitMargin) >= 0;
+    const isPositiveMargin = parsedMargin >= 0;
     details.push({
       label: '毛利率',
-      value: fifoData.summary.totalProfitMargin,
+      value: totalProfitMargin,
       iconType: 'Percent',
       iconColor: isPositiveMargin ? 'success' : 'error',
       color: isPositiveMargin ? 'success.main' : 'error.main',

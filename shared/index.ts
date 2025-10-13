@@ -421,6 +421,13 @@ export { supplierEntitySchema } from './schemas/zod/supplier';
 export { purchaseOrderEntitySchema } from './schemas/zod/purchaseOrder';
 export { shippingOrderEntitySchema } from './schemas/zod/shippingOrder';
 export { productSchema, productCreateSchema, productUpdateSchema, productQuerySchema, productListFiltersSchema } from './schemas/zod/product';
+export {
+  fifoProfitSchema,
+  fifoSaleItemSchema,
+  fifoSaleSummarySchema,
+  fifoSaleResponseSchema,
+} from './schemas/zod/fifo';
+export type { FifoSaleResponse } from './schemas/zod/fifo';
 
 export { createSalesContractClient } from './api/clients/sales';
 export type { SalesContractClient, SalesClientOptions, HeaderShape as SalesClientHeaderShape } from './api/clients/sales';
@@ -448,6 +455,8 @@ export { createPurchaseOrdersContractClient } from './api/clients/purchaseOrders
 export type { PurchaseOrdersContractClient, PurchaseOrdersClientOptions, HeaderShape as PurchaseOrdersClientHeaderShape } from './api/clients/purchaseOrders';
 export { createShippingOrdersContractClient } from './api/clients/shippingOrders';
 export type { ShippingOrdersContractClient, ShippingOrdersClientOptions, HeaderShape as ShippingOrdersClientHeaderShape } from './api/clients/shippingOrders';
+export { createFifoContractClient } from './api/clients/fifo';
+export type { FifoContractClient, FifoClientOptions, HeaderShape as FifoClientHeaderShape } from './api/clients/fifo';
 
 export {
   shippingOrderSchema,

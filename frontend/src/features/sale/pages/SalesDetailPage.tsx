@@ -4,7 +4,6 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -34,7 +33,8 @@ import {
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
-import { ApiResponse } from '@pharmacy-pos/shared/types/api';
+import { getSaleById, deleteSale } from '@/services/salesServiceV2';
+import { getSaleFifo } from '@/services/fifoService';
 
 import CommonListPageLayout from '@/components/common/CommonListPageLayout';
 import CollapsibleAmountInfo from '@/components/common/CollapsibleAmountInfo';
@@ -65,67 +65,59 @@ const SalesDetailPage: React.FC = () => {
    * 獲取銷售數據
    */
   const fetchSaleData = async (): Promise<void> => {
+    if (!id) {
+      setError('Sale ID is not provided.');
+      setSale(null);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
-      
-      const response = await axios.get<ApiResponse<Sale>>(`/api/sales/${id}`);
-      
-      // 檢查 API 回應格式
-      if (response.data?.success && response.data?.data) {
-        // 驗證銷售資料的完整性
-        const saleData = response.data.data;
-        
-        if (!saleData._id) {
-          throw new Error('銷售資料格式不正確：缺少 ID');
-        }
-        
-        if (!saleData.items || !Array.isArray(saleData.items)) {
-          throw new Error('銷售資料格式不正確：缺少或無效的項目列表');
-        }
-        
-        // 檢查每個銷售項目的商品資料
-        const validatedItems = saleData.items.map((item, index) => {
-          if (!item.product && !item.name) {
-            console.warn(`銷售項目 ${index + 1} 缺少商品資訊`);
-            return {
-              ...item,
-              name: item.name ?? '未知商品'
-            };
-          }
-          
-          // 確保商品資料完整性
-          if (item.product && typeof item.product === 'object') {
-            return {
-              ...item,
-              product: {
-                _id: item.product._id ?? '',
-                name: item.product.name ?? '未知商品',
-                code: (item.product as any).code ?? ''
-              }
-            };
-          }
-          
-          return item;
-        });
-        
-        setSale({
-          ...saleData,
-          items: validatedItems
-        });
-        setError(null);
-      } else {
-        throw new Error('API 回應格式不正確');
+
+      const saleData = await getSaleById(id);
+
+      if (!saleData?._id) {
+        throw new Error('Sale payload is missing identifier.');
       }
+
+      const sourceItems = Array.isArray((saleData as any).items) ? (saleData as any).items : [];
+      if (!Array.isArray(sourceItems)) {
+        throw new Error('Sale payload is missing items array.');
+      }
+
+      const validatedItems = sourceItems.map((item: any, index: number) => {
+        if (!item?.product && !item?.name) {
+          console.warn(`銷售項目 ${index + 1} 缺少商品資訊`);
+          return {
+            ...item,
+            name: item?.name ?? '未知商品',
+          };
+        }
+        // 確保商品資料完整性
+        if (item.product && typeof item.product === 'object') {
+          return {
+            ...item,
+            product: {
+              _id: item.product._id ?? '',
+              name: item.product.name ?? '未知商品',
+              code: (item.product as { code?: string })?.code ?? '',
+            },
+          };
+        }
+
+        return item;
+      });
+
+      setSale({
+        ...(saleData as any),
+        items: validatedItems,
+      });
+      setError(null);
     } catch (err: any) {
-      console.error('獲取銷售數據失敗:', err);
-      let errorMsg = '獲取銷售數據失敗';
-      
-      if (err.response?.data?.message) {
-        errorMsg += ': ' + err.response.data.message;
-      } else if (err.message) {
-        errorMsg += ': ' + err.message;
-      }
-      
+      console.error('Failed to fetch sale detail:', err);
+      const message = err?.message ? String(err.message) : undefined;
+      const errorMsg = message ? 'Failed to fetch sale detail: ' + message : 'Failed to fetch sale detail';
       setError(errorMsg);
       setSale(null);
     } finally {
@@ -137,53 +129,55 @@ const SalesDetailPage: React.FC = () => {
    * 獲取FIFO數據
    */
   const fetchFifoData = async (): Promise<void> => {
+    if (!id) {
+      setFifoError('Sale ID is not provided.');
+      setFifoData(null);
+      setFifoLoading(false);
+      return;
+    }
+
     try {
       setFifoLoading(true);
-      
-      //console.log('🔍 開始獲取 FIFO 數據，銷售ID:', id);
-      const response = await axios.get(`/api/fifo/sale/${id}`);
-      
-      //console.log('📡 FIFO API 原始回應:', response.data);
-      //console.log('📊 回應狀態:', response.status);
-      //console.log('📋 回應標頭:', response.headers);
-      
-      // 後端回傳格式：{ success: true, items: [...], summary: {...} }
-      if (response.data && response.data.success && response.data.summary) {
-        //console.log('✅ FIFO API 回應格式正確');
-        //console.log('💰 Summary 資料:', response.data.summary);
-        //console.log('📦 Items 資料:', response.data.items);
-        
-        // 直接使用後端回傳的格式，將 items 和 summary 組合成 FifoData
-        const fifoData: FifoData = {
-          summary: response.data.summary,
-          items: response.data.items || []
-        };
-        
-        //console.log('🎯 處理後的 FifoData:', fifoData);
-        setFifoData(fifoData);
-        setFifoError(null);
-      } else {
-        console.error('❌ FIFO API 回應格式不正確:', response.data);
-        throw new Error('FIFO API 回應格式不正確');
+
+      const fifoResult = await getSaleFifo(id);
+
+      if (!fifoResult || !fifoResult.summary) {
+        throw new Error('FIFO API returned an incomplete payload');
       }
-    } catch (err: any) {
-      console.error('💥 獲取FIFO毛利數據失敗:', err);
-      console.error('📄 錯誤詳情:', {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status,
-        config: err.config
+
+      const summary = fifoResult.summary;
+      const totalProfitValue = summary.grossProfit != null
+        ? summary.grossProfit
+        : summary.totalProfit != null
+          ? summary.totalProfit
+          : 0;
+
+      const normalizedSummary: FifoData['summary'] = {
+        totalCost: summary.totalCost ?? 0,
+        totalRevenue: summary.totalRevenue ?? 0,
+        totalProfit: totalProfitValue,
+        grossProfit: summary.grossProfit ?? totalProfitValue,
+        totalProfitMargin: summary.totalProfitMargin ?? '0.00%',
+      };
+
+      setFifoData({
+        summary: normalizedSummary,
+        items: fifoResult.items ?? [],
       });
-      
-      let errorMsg = '獲取FIFO毛利數據失敗';
-      
-      if (err.response?.data?.message) {
-        errorMsg += ': ' + err.response.data.message;
-      } else if (err.message) {
-        errorMsg += ': ' + err.message;
+      setFifoError(null);
+    } catch (err) {
+      console.error('Failed to fetch FIFO profit data:', err);
+      let message: string | undefined;
+      if (err instanceof Error) {
+        message = err.message;
+      } else if (err && typeof err === 'object' && 'message' in err) {
+        const maybeMessage = (err as { message?: unknown }).message;
+        if (typeof maybeMessage === 'string') {
+          message = maybeMessage;
+        }
       }
-      
-      setFifoError(errorMsg);
+      const errorText = message ? 'Failed to fetch FIFO profit data: ' + message : 'Failed to fetch FIFO profit data';
+      setFifoError(errorText);
       setFifoData(null);
     } finally {
       setFifoLoading(false);
@@ -245,17 +239,11 @@ const SalesDetailPage: React.FC = () => {
     if (!id || !sale) return;
     
     try {
-      const response = await axios.delete(`/api/sales/${id}`);
-      
-      if (response.status === 200) {
-        showSnackbar('銷售單已成功刪除', 'success');
-        setTimeout(() => {
-          navigate('/sales');
-        }, 1500);
-      } else {
-        const errorData = response.data;
-        showSnackbar(`刪除失敗: ${errorData.message || '未知錯誤'}`, 'error');
-      }
+      const result = await deleteSale(id);
+      showSnackbar(result.message || 'Sale deleted successfully', 'success');
+      setTimeout(() => {
+        navigate('/sales');
+      }, 1500);
     } catch (error: any) {
       console.error('刪除銷售單時發生錯誤:', error);
       showSnackbar(`刪除失敗: ${error.message || '未知錯誤'}`, 'error');
@@ -504,34 +492,71 @@ const SalesDetailPage: React.FC = () => {
   
   // 為DataGrid準備行數據
   const rows = sale?.items?.map((item, index) => {
-    const fifoItem = !fifoLoading && fifoData?.items ?
-      fifoData.items.find(fi => fi.product?._id === item.product?._id) : null;
-    
+    const productValue = item.product;
+    const isObjectProduct =
+      productValue !== null && typeof productValue === 'object' && !Array.isArray(productValue);
+    const productId = typeof productValue === 'string'
+      ? productValue
+      : isObjectProduct
+        ? ((productValue as { _id?: string; id?: string; productId?: string })._id
+            ?? (productValue as { id?: string }).id
+            ?? (productValue as { productId?: string }).productId)
+        : undefined;
+    const productCode = (() => {
+      if (isObjectProduct && 'code' in (productValue as { code?: string })) {
+        const code = (productValue as { code?: string }).code;
+        if (typeof code === 'string' && code.trim().length > 0) {
+          return code;
+        }
+      }
+      if (typeof productValue === 'string') {
+        return productValue;
+      }
+      return '';
+    })();
+    const productName =
+      isObjectProduct && 'name' in (productValue as { name?: string })
+        ? ((productValue as { name?: string }).name ?? item.name ?? 'N/A')
+        : item.name ?? 'N/A';
+
+    const fifoItem = !fifoLoading && fifoData?.items
+      ? fifoData.items.find((fi) => {
+          const fifoProduct = fi.product;
+          if (typeof fifoProduct === 'string') {
+            return fifoProduct === productId;
+          }
+          if (fifoProduct && typeof fifoProduct === 'object') {
+            const fifoId =
+              (fifoProduct as { _id?: string })._id ??
+              (fifoProduct as { id?: string }).id ??
+              (fifoProduct as { productId?: string }).productId;
+            return fifoId === productId;
+          }
+          return false;
+        }) ?? null
+      : null;
+
+    const totalAmount = (item.price ?? 0) * (item.quantity ?? 0);
+    const fifoProfit = fifoItem?.fifoProfit;
+    const totalCost = fifoProfit?.totalCost ?? undefined;
+    const profitValue =
+      fifoProfit?.profit ??
+      fifoProfit?.totalProfit ??
+      (totalCost != null ? totalAmount - totalCost : undefined);
+
     return {
       id: index.toString(),
-      code: item.product?.code || '',
-      name: item.product?.name || item.name || 'N/A',
-      price: item.price || 0,
-      quantity: item.quantity || 0,
-      subtotal: (item.price || 0) * (item.quantity || 0),
-      product: item.product,
-      cost: fifoItem && fifoItem.fifoProfit && (fifoItem.fifoProfit.totalCost !== undefined && fifoItem.fifoProfit.totalCost !== null) ?
-        fifoItem.fifoProfit.totalCost :
-        null,
-      profit: fifoItem && fifoItem.fifoProfit ?
-        // 如果 fifoProfit 中已有 profit 值，則使用它
-        (fifoItem.fifoProfit.profit !== undefined && fifoItem.fifoProfit.profit !== null) ?
-          fifoItem.fifoProfit.profit :
-          (fifoItem.fifoProfit.totalProfit !== undefined && fifoItem.fifoProfit.totalProfit !== null) ?
-            fifoItem.fifoProfit.totalProfit :
-            // 否則，自行計算毛利 = 小計 - 成本
-            (fifoItem.fifoProfit.totalCost !== undefined && fifoItem.fifoProfit.totalCost !== null) ?
-              ((item.price || 0) * (item.quantity || 0)) - fifoItem.fifoProfit.totalCost :
-              null :
-        null,
-      profitMargin: fifoItem && fifoItem.fifoProfit && (fifoItem.fifoProfit.profitMargin !== undefined && fifoItem.fifoProfit.profitMargin !== null) ?
-        fifoItem.fifoProfit.profitMargin :
-        null
+      code: productCode,
+      name: productName,
+      price: item.price ?? 0,
+      quantity: item.quantity ?? 0,
+      subtotal: totalAmount,
+      product: productId || productCode
+        ? { _id: productId, code: productCode || undefined }
+        : null,
+      cost: totalCost ?? null,
+      profit: profitValue ?? null,
+      profitMargin: fifoProfit?.profitMargin ?? null,
     };
   }) || [];
 

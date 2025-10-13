@@ -20,17 +20,60 @@ const SalesItemRow: FC<SalesItemRowProps> = ({
   showSalesProfitColumns 
 }) => {
   // 查找對應的 FIFO 項目
-  const product = (typeof item.product === 'object' && item.product !== null)
-    ? item.product
-    : undefined;
-  const productId = product?._id;
-  const productName = product?.name ?? item.name ?? 'N/A';
-  const fifoItem = !fifoLoading && fifoData?.items?.find(fi => fi.product?._id === productId);
+  const productValue = item.product;
+  const isObjectProduct =
+    productValue !== null && typeof productValue === 'object' && !Array.isArray(productValue);
+  const productId = typeof productValue === 'string'
+    ? productValue
+    : isObjectProduct
+      ? ((productValue as { _id?: string; id?: string; productId?: string })._id
+          ?? (productValue as { id?: string }).id
+          ?? (productValue as { productId?: string }).productId)
+      : undefined;
+  const productCode = (() => {
+    if (isObjectProduct && 'code' in (productValue as { code?: string })) {
+      const code = (productValue as { code?: string }).code;
+      if (typeof code === 'string' && code.trim().length > 0) {
+        return code;
+      }
+    }
+    if (typeof productValue === 'string') {
+      return productValue;
+    }
+    return '';
+  })();
+  const productName =
+    isObjectProduct && 'name' in (productValue as { name?: string })
+      ? ((productValue as { name?: string }).name ?? item.name ?? 'N/A')
+      : item.name ?? 'N/A';
+  const fifoItem =
+    !fifoLoading &&
+    fifoData?.items?.find((fi) => {
+      const fifoProduct = fi.product;
+      if (typeof fifoProduct === 'string') {
+        return fifoProduct === productId;
+      }
+      if (fifoProduct && typeof fifoProduct === 'object') {
+        const fifoId =
+          (fifoProduct as { _id?: string })._id ??
+          (fifoProduct as { id?: string }).id ??
+          (fifoProduct as { productId?: string }).productId;
+        return fifoId === productId;
+      }
+        return false;
+      });
+  const productLinkData: { _id?: string; code?: string } | null =
+    productId || productCode
+      ? {
+          ...(productId ? { _id: productId } : {}),
+          ...(productCode ? { code: productCode } : {}),
+        }
+      : null;
   
   return (
     <TableRow hover>
       <TableCell>
-        <ProductCodeLink product={product ?? null} />
+        <ProductCodeLink product={productLinkData} />
       </TableCell>
       <TableCell>{productName}</TableCell>
       <TableCell align="right">{item.price.toFixed(2)}</TableCell>

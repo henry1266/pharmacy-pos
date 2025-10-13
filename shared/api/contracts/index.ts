@@ -16,6 +16,8 @@ import { accountingContract } from './accounting';
 import type { AccountingContract } from './accounting';
 import { productsContract } from './products';
 import type { ProductsContract } from './products';
+import { fifoContract } from './fifo';
+import type { FifoContract } from './fifo';
 
 export type PharmacyContract = {
   sales: SalesContract;
@@ -27,6 +29,7 @@ export type PharmacyContract = {
   dashboard: DashboardContract;
   accounting: AccountingContract;
   products: ProductsContract;
+  fifo: FifoContract;
 };
 
 export const pharmacyContract: PharmacyContract = {
@@ -39,6 +42,7 @@ export const pharmacyContract: PharmacyContract = {
   dashboard: dashboardContract,
   accounting: accountingContract,
   products: productsContract,
+  fifo: fifoContract,
 };
 
 export {
@@ -51,6 +55,7 @@ export {
   dashboardContract,
   employeesContract,
   productsContract,
+  fifoContract,
 };
 
 export type {
@@ -63,4 +68,5 @@ export type {
   DashboardContract,
   EmployeesContract,
   ProductsContract,
+  FifoContract,
 };
