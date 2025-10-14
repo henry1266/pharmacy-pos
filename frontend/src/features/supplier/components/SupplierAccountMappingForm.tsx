@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import {
   Box,
   Typography,
@@ -8,30 +8,27 @@ import {
   CircularProgress,
   Dialog,
   DialogTitle,
-  DialogContent
+  DialogContent,
 } from '@mui/material';
+import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import {
-  Add as AddIcon,
-  Delete as DeleteIcon
-} from '@mui/icons-material';
-import { 
-  SupplierAccountMapping, 
-  SupplierAccountMappingFormData, 
-  SelectedAccount 
+  SupplierAccountMapping,
+  SupplierAccountMappingFormData,
+  SelectedAccount,
 } from '@pharmacy-pos/shared/types/entities';
 import AccountSelector3 from '../../accounting3/accounts/components/AccountSelector';
+import supplierAccountMappingClient from '../api/accountMappingClient';
 import { useAppDispatch } from '../../../hooks/redux';
 import { fetchAccounts2, fetchOrganizations2 } from '../../../redux/actions';
 
 interface SupplierAccountMappingFormProps {
   supplierId: string;
-  supplierName: string;
   onMappingChange?: (mapping: SupplierAccountMapping | null) => void;
 }
 
 const SupplierAccountMappingForm: React.FC<SupplierAccountMappingFormProps> = ({
   supplierId,
-  onMappingChange
+  onMappingChange,
 }) => {
   const [mapping, setMapping] = useState<SupplierAccountMapping | null>(null);
   const [loading, setLoading] = useState(false);
@@ -42,300 +39,264 @@ const SupplierAccountMappingForm: React.FC<SupplierAccountMappingFormProps> = ({
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    // 載入會計科目和組織資料
     dispatch(fetchAccounts2());
     dispatch(fetchOrganizations2());
   }, [dispatch]);
 
-  useEffect(() => {
-    // 載入現有的配對資料 - 只有在 supplierId 存在且不是 'new' 時才載入
-    if (supplierId && supplierId !== 'new') {
-      fetchMapping();
-    } else {
-      // 清空現有資料
-      setMapping(null);
-      setSelectedAccounts([]);
+  const normalizeAccountId = (value: unknown, fallback: string): string => {
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value;
     }
-  }, [supplierId]);
+
+    if (value && typeof value === 'object') {
+      const candidate = value as { _id?: unknown; id?: unknown };
+      if (typeof candidate._id === 'string' && candidate._id.trim().length > 0) {
+        return candidate._id;
+      }
+      if (typeof candidate.id === 'string' && candidate.id.trim().length > 0) {
+        return candidate.id;
+      }
+    }
+
+    return fallback;
+  };
 
   const fetchMapping = async () => {
-    if (!supplierId) return;
-    
-    console.log('正在載入供應商科目配對，供應商ID:', supplierId);
+    if (!supplierId) {
+      return;
+    }
+
     setLoading(true);
+    setError('');
+
     try {
-      const response = await fetch(`/api/supplier-account-mappings?supplierId=${supplierId}`);
-      console.log('API 回應狀態:', response.status);
-      
-      if (!response.ok) {
-        throw new Error('無法載入供應商科目配對');
+      const result = await supplierAccountMappingClient.listMappings({ query: { supplierId } });
+      if (!(result.status === 200 && result.body?.success)) {
+        const message =
+          typeof result.body === 'object' && result.body && 'message' in result.body
+            ? String((result.body as { message?: unknown }).message ?? 'Failed to load account mapping')
+            : 'Failed to load account mapping';
+        throw new Error(message);
       }
-      const apiResponse = await response.json();
-      console.log('API 回應資料:', apiResponse);
-      
-      // 處理 ApiResponse 格式
-      if (!apiResponse.success) {
-        throw new Error(apiResponse.message || '載入配對失敗');
-      }
-      
-      const mappingsArray = Array.isArray(apiResponse.data) ? apiResponse.data : [];
-      console.log('配對資料陣列:', mappingsArray);
-      console.log('配對資料陣列長度:', mappingsArray.length);
-      
-      if (mappingsArray.length > 0) {
-        const existingMapping = mappingsArray[0];
-        console.log('找到現有配對:', existingMapping);
-        console.log('配對的科目數量:', existingMapping.accountMappings?.length || 0);
-        setMapping(existingMapping);
-        
-        // 設置選中的會計科目
-        if (existingMapping.accountMappings && Array.isArray(existingMapping.accountMappings)) {
-          const accounts: SelectedAccount[] = existingMapping.accountMappings.map((am: any, index: number) => {
-            const accountId = am.accountId as unknown;
-            let normalizedAccountId: string;
 
-            if (typeof accountId === 'string' && accountId.trim().length > 0) {
-              normalizedAccountId = accountId;
-            } else if (accountId && typeof accountId === 'object') {
-              const candidate = accountId as { _id?: unknown; id?: unknown };
-              const candidateValue = typeof candidate._id === 'string' && candidate._id.trim().length > 0
-                ? candidate._id
-                : (typeof candidate.id === 'string' && candidate.id.trim().length > 0 ? candidate.id : null);
-              normalizedAccountId = candidateValue ?? `${am.accountCode ?? 'account'}-${index}`;
-            } else {
-              normalizedAccountId = `${am.accountCode ?? 'account'}-${index}`;
-            }
-
-            return {
-              _id: normalizedAccountId,
-              name: am.accountName,
-              code: am.accountCode,
-              accountType: '',
-              organizationId: existingMapping.organizationId
-            };
-          });
-          console.log('設置選中的會計科目:', accounts);
-          setSelectedAccounts(accounts);
-        } else {
-          console.log('配對資料中沒有有效的科目配對');
-          setSelectedAccounts([]);
-        }
-      } else {
-        console.log('未找到現有配對');
+      const mappingsArray = Array.isArray(result.body.data) ? result.body.data : [];
+      if (mappingsArray.length === 0) {
         setMapping(null);
         setSelectedAccounts([]);
+        onMappingChange?.(null);
+        return;
       }
-    } catch (error) {
-      console.error('載入配對失敗:', error);
-      setError(error instanceof Error ? error.message : '載入配對失敗');
+
+      const existingMapping = mappingsArray[0] as SupplierAccountMapping;
+      setMapping(existingMapping);
+
+      if (Array.isArray(existingMapping.accountMappings)) {
+        const accounts: SelectedAccount[] = existingMapping.accountMappings.map((am: any, index: number) => {
+          const fallbackId = `${am.accountCode ?? 'account'}-${index}`;
+          return {
+            _id: normalizeAccountId(am.accountId, fallbackId),
+            name: am.accountName,
+            code: am.accountCode,
+            accountType: am.account?.accountType ?? '',
+            organizationId: existingMapping.organizationId,
+          };
+        });
+        setSelectedAccounts(accounts);
+      } else {
+        setSelectedAccounts([]);
+      }
+
+      onMappingChange?.(existingMapping);
+    } catch (caught) {
+      console.error('SupplierAccountMappingForm: failed to fetch mapping:', caught);
+      setError(caught instanceof Error ? caught.message : 'Failed to load account mapping');
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchMapping();
+  }, [supplierId]);
+
   const handleSaveMapping = async () => {
     if (selectedAccounts.length === 0) {
-      setError('請選擇至少一個會計科目');
+      setError('Select at least one account');
       return;
     }
 
-    console.log('開始儲存供應商科目配對');
-    console.log('供應商ID:', supplierId);
-    console.log('選中的科目:', selectedAccounts);
-
     setLoading(true);
+    setError('');
+
     try {
-      const formData: SupplierAccountMappingFormData = {
+      const payload: SupplierAccountMappingFormData = {
         supplierId,
-        accountIds: selectedAccounts.map(a => a._id)
+        accountIds: selectedAccounts.map((account) => account._id),
+        ...(mapping?.notes ? { notes: mapping.notes } : {}),
       };
 
-      console.log('發送的表單資料:', formData);
+      if (mapping) {
+        const result = await supplierAccountMappingClient.updateMapping({
+          params: { id: mapping._id },
+          body: {
+            accountIds: payload.accountIds,
+            notes: payload.notes,
+            isActive: mapping.isActive,
+          },
+        });
 
-      const url = mapping
-        ? `/api/supplier-account-mappings/${mapping._id}`
-        : '/api/supplier-account-mappings';
-      
-      const method = mapping ? 'PUT' : 'POST';
-      
-      console.log('API 請求:', method, url);
+        if (!(result.status === 200 && result.body?.success)) {
+          const message =
+            typeof result.body === 'object' && result.body && 'message' in result.body
+              ? String((result.body as { message?: unknown }).message ?? 'Update failed')
+              : 'Update failed';
+          throw new Error(message);
+        }
 
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
+        const savedMapping = result.body.data as SupplierAccountMapping;
+        setMapping(savedMapping);
+        onMappingChange?.(savedMapping);
+      } else {
+        const result = await supplierAccountMappingClient.createMapping({
+          body: payload,
+        });
 
-      console.log('API 回應狀態:', response.status);
+        if (!(result.status === 201 && result.body?.success)) {
+          const message =
+            typeof result.body === 'object' && result.body && 'message' in result.body
+              ? String((result.body as { message?: unknown }).message ?? 'Create failed')
+              : 'Create failed';
+          throw new Error(message);
+        }
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('API 錯誤回應:', errorData);
-        throw new Error(errorData.message || '儲存失敗');
+        const savedMapping = result.body.data as SupplierAccountMapping;
+        setMapping(savedMapping);
+        onMappingChange?.(savedMapping);
       }
-
-      const apiResponse = await response.json();
-      console.log('API 成功回應:', apiResponse);
-      
-      // 處理 ApiResponse 格式
-      if (!apiResponse.success) {
-        throw new Error(apiResponse.message || '儲存失敗');
-      }
-      
-      const savedMapping = apiResponse.data;
-      console.log('儲存的配對資料:', savedMapping);
-      setMapping(savedMapping);
-      
-      if (onMappingChange) {
-        onMappingChange(savedMapping);
-      }
-      
-      setError('');
-      console.log('配對儲存成功');
-    } catch (error) {
-      console.error('儲存失敗:', error);
-      setError(error instanceof Error ? error.message : '儲存失敗');
+    } catch (caught) {
+      console.error('SupplierAccountMappingForm: save failed:', caught);
+      setError(caught instanceof Error ? caught.message : 'Save failed');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDeleteMapping = async () => {
-    if (!mapping || !window.confirm('確定要刪除此科目配對嗎？')) {
+    if (!mapping || !window.confirm('Delete this account mapping?')) {
       return;
     }
 
     setLoading(true);
-    try {
-      const response = await fetch(`/api/supplier-account-mappings/${mapping._id}`, {
-        method: 'DELETE'
-      });
+    setError('');
 
-      if (!response.ok) {
-        throw new Error('刪除失敗');
+    try {
+      const result = await supplierAccountMappingClient.deleteMapping({ params: { id: mapping._id } });
+      if (!(result.status === 200 && result.body?.success)) {
+        const message =
+          typeof result.body === 'object' && result.body && 'message' in result.body
+            ? String((result.body as { message?: unknown }).message ?? 'Delete failed')
+            : 'Delete failed';
+        throw new Error(message);
       }
 
       setMapping(null);
       setSelectedAccounts([]);
-      
-      if (onMappingChange) {
-        onMappingChange(null);
-      }
-    } catch (error) {
-      console.error('刪除失敗:', error);
-      setError(error instanceof Error ? error.message : '刪除失敗');
+      onMappingChange?.(null);
+    } catch (caught) {
+      console.error('SupplierAccountMappingForm: delete failed:', caught);
+      setError(caught instanceof Error ? caught.message : 'Delete failed');
     } finally {
       setLoading(false);
     }
   };
 
   const handleRemoveAccount = (accountId: string) => {
-    const newAccounts = selectedAccounts.filter(a => a._id !== accountId);
-    setSelectedAccounts(newAccounts);
+    const next = selectedAccounts.filter((account) => account._id !== accountId);
+    setSelectedAccounts(next);
   };
 
   return (
     <Box>
-      <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
-        會計科目配對
-      </Typography>
-
       {error && (
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
           {error}
         </Alert>
       )}
 
-      <Box sx={{ mb: 2 }}>
-        <Typography variant="body2" sx={{ mb: 1 }}>
-          已配對的會計科目：
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+          Account Mapping
         </Typography>
-        <Box sx={{ 
-          display: 'flex', 
-          flexWrap: 'wrap', 
-          gap: 1, 
-          mb: 2, 
-          minHeight: 40, 
-          p: 1, 
-          border: '1px solid #ccc', 
-          borderRadius: 1,
-          backgroundColor: '#fafafa'
-        }}>
-          {selectedAccounts.length === 0 ? (
-            <Typography variant="body2" color="text.secondary" sx={{ alignSelf: 'center' }}>
-              尚未配對任何會計科目
-            </Typography>
-          ) : (
-            selectedAccounts.map((account) => (
-              <Chip
-                key={account._id}
-                label={`${account.code} - ${account.name}`}
-                onDelete={() => handleRemoveAccount(account._id)}
-                size="small"
-                color="primary"
-                variant="outlined"
-              />
-            ))
-          )}
-        </Box>
-        
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 2 }}>
-          <Button
-            variant="outlined"
-            onClick={() => setShowAccountSelector(true)}
-            startIcon={<AddIcon />}
-            size="small"
-          >
-            選擇會計科目
-          </Button>
-        </Box>
-
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Button
-            onClick={handleSaveMapping}
-            variant="contained"
-            disabled={loading || selectedAccounts.length === 0}
-            startIcon={loading ? <CircularProgress size={20} /> : null}
+            variant="outlined"
             size="small"
+            startIcon={<AddIcon />}
+            onClick={() => setShowAccountSelector(true)}
           >
-            {mapping ? '更新配對' : '建立配對'}
+            Add Account
           </Button>
-          
           {mapping && (
             <Button
-              onClick={handleDeleteMapping}
               variant="outlined"
               color="error"
-              disabled={loading}
-              startIcon={<DeleteIcon />}
               size="small"
+              startIcon={<DeleteIcon />}
+              onClick={handleDeleteMapping}
             >
-              刪除配對
+              Delete Mapping
             </Button>
           )}
         </Box>
       </Box>
 
-      {/* 會計科目選擇器對話框 */}
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+        {selectedAccounts.length === 0 ? (
+          <Typography variant="body2" color="text.secondary">
+            No accounts selected
+          </Typography>
+        ) : (
+          selectedAccounts.map((account) => (
+            <Chip
+              key={account._id}
+              label={`${account.code} - ${account.name}`}
+              onDelete={() => handleRemoveAccount(account._id)}
+              size="small"
+            />
+          ))
+        )}
+      </Box>
+
+      <Button
+        onClick={handleSaveMapping}
+        variant="contained"
+        disabled={loading || selectedAccounts.length === 0}
+        startIcon={loading ? <CircularProgress size={20} /> : null}
+        size="small"
+      >
+        {mapping ? 'Update Mapping' : 'Create Mapping'}
+      </Button>
+
       <Dialog open={showAccountSelector} onClose={() => setShowAccountSelector(false)} maxWidth="lg" fullWidth>
-        <DialogTitle>選擇會計科目</DialogTitle>
+        <DialogTitle>Select Accounts</DialogTitle>
         <DialogContent>
           <AccountSelector3
             onAccountSelect={(account) => {
-              const newAccount: SelectedAccount = {
-                _id: account._id,
+              const normalizedId = normalizeAccountId(account._id, `account-${Date.now()}`);
+              if (selectedAccounts.find((item) => item._id === normalizedId)) {
+                setShowAccountSelector(false);
+                return;
+              }
+
+              const next: SelectedAccount = {
+                _id: normalizedId,
                 name: account.name,
                 code: account.code,
-                accountType: account.accountType
+                accountType: account.accountType,
+                organizationId: account.organizationId ?? '',
               };
-              
-              // 檢查是否已經選擇過這個科目
-              if (!selectedAccounts.find(a => a._id === account._id)) {
-                setSelectedAccounts([...selectedAccounts, newAccount]);
-              }
-              
+
+              setSelectedAccounts((prev) => [...prev, next]);
               setShowAccountSelector(false);
             }}
             onCancel={() => setShowAccountSelector(false)}
@@ -347,3 +308,6 @@ const SupplierAccountMappingForm: React.FC<SupplierAccountMappingFormProps> = ({
 };
 
 export default SupplierAccountMappingForm;
+
+
+

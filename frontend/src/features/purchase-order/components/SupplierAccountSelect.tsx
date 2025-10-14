@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import {
   Box,
   Typography,
@@ -10,9 +10,10 @@ import {
   OutlinedInput,
   SelectChangeEvent,
   CircularProgress,
-  Alert
+  Alert,
 } from '@mui/material';
 import { SupplierAccountMapping } from '@pharmacy-pos/shared/types/entities';
+import supplierAccountMappingClient from '@/features/supplier/api/accountMappingClient';
 
 interface SupplierAccountSelectProps {
   supplierId: string;
@@ -35,43 +36,42 @@ const SupplierAccountSelect: React.FC<SupplierAccountSelectProps> = ({
   supplierId,
   selectedAccountIds,
   onChange,
-  label = "會計科目",
-  size = "small",
-  disabled = false
+  label = 'Accounting Accounts',
+  size = 'small',
+  disabled = false,
 }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [accountOptions, setAccountOptions] = useState<AccountOption[]>([]);
 
-  // 建構會計科目的階層路徑
   const buildAccountHierarchy = (account: any): string => {
     const hierarchy: string[] = [];
-    
-    // 添加機構名稱
-    if (account.organizationId?.name) {
+
+    if (account?.organizationId?.name) {
       hierarchy.push(account.organizationId.name);
     }
-    
-    // 遞迴建構父科目階層
-    const buildParentHierarchy = (acc: any): string[] => {
-      const parents: string[] = [];
-      if (acc.parentId) {
-        parents.push(...buildParentHierarchy(acc.parentId));
-        parents.push(acc.parentId.name || acc.parentId.code);
+
+    const appendParents = (acc: any, trail: string[]): string[] => {
+      if (!acc?.parentId) {
+        return trail;
       }
-      return parents;
+      const parent = acc.parentId;
+      const updated = appendParents(parent, trail);
+      if (parent?.name || parent?.code) {
+        updated.push(parent.name ?? parent.code);
+      }
+      return updated;
     };
-    
-    // 添加父科目階層
-    hierarchy.push(...buildParentHierarchy(account));
-    
-    // 添加當前科目
-    hierarchy.push(account.name || account.code);
-    
+
+    appendParents(account, hierarchy);
+
+    if (account?.name || account?.code) {
+      hierarchy.push(account.name ?? account.code);
+    }
+
     return hierarchy.join(' > ');
   };
 
-  // 載入供應商的會計科目配對
   const fetchSupplierAccountMappings = async () => {
     if (!supplierId) {
       setAccountOptions([]);
@@ -82,54 +82,56 @@ const SupplierAccountSelect: React.FC<SupplierAccountSelectProps> = ({
     setError('');
 
     try {
-      const response = await fetch(`/api/supplier-account-mappings?supplierId=${supplierId}`);
-      
-      if (!response.ok) {
-        throw new Error(`無法載入供應商科目配對 (${response.status})`);
+      const result = await supplierAccountMappingClient.listMappings({ query: { supplierId } });
+      if (!(result.status === 200 && result.body?.success)) {
+        const message =
+          typeof result.body === 'object' && result.body && 'message' in result.body
+            ? String((result.body as { message?: unknown }).message ?? 'Failed to load account mappings')
+            : 'Failed to load account mappings';
+        throw new Error(message);
       }
 
-      const apiResponse = await response.json();
-      
-      if (!apiResponse.success) {
-        throw new Error(apiResponse.message || '載入配對失敗');
-      }
+      const mappingsArray = Array.isArray(result.body.data) ? result.body.data : [];
 
-      const mappingsArray = Array.isArray(apiResponse.data) ? apiResponse.data : [];
-      
-      // 轉換為選項格式
       const options: AccountOption[] = [];
-      
+
       mappingsArray.forEach((mapping: SupplierAccountMapping) => {
-        if (mapping.accountMappings && Array.isArray(mapping.accountMappings)) {
-          mapping.accountMappings.forEach((accountMapping) => {
-            const accountData = (accountMapping as any).accountId;
-            const hierarchyPath = accountData ? buildAccountHierarchy(accountData) : 
-              `${accountMapping.accountCode} - ${accountMapping.accountName}`;
-            
-            const accountId = typeof accountMapping.accountId === 'string'
-              ? accountMapping.accountId
-              : (accountMapping.accountId as any)?._id || (accountMapping.accountId as any)?.id;
-              
-            if (accountId) {
-              options.push({
-                id: accountId,
-                hierarchyPath,
-                accountCode: accountMapping.accountCode,
-                accountName: accountMapping.accountName,
-                organizationName: accountData?.organizationId?.name
-              });
-            }
-          });
+        if (!Array.isArray(mapping.accountMappings)) {
+          return;
         }
+
+        mapping.accountMappings.forEach((accountMapping, index) => {
+          const accountData: any = (accountMapping as any).accountId ?? (accountMapping as any).account;
+
+          const accountId = typeof accountMapping.accountId === 'string'
+            ? accountMapping.accountId
+            : (accountMapping.accountId as any)?._id
+              || (accountMapping.accountId as any)?.id
+              || `${accountMapping.accountCode}-${index}`;
+
+          if (!accountId) {
+            return;
+          }
+
+          const hierarchyPath = accountData
+            ? buildAccountHierarchy(accountData)
+            : `${accountMapping.accountCode} - ${accountMapping.accountName}`;
+
+          options.push({
+            id: accountId,
+            hierarchyPath,
+            accountCode: accountMapping.accountCode,
+            accountName: accountMapping.accountName,
+            organizationName: accountData?.organizationId?.name ?? mapping.organizationName,
+          });
+        });
       });
 
-      // 按階層路徑排序
       options.sort((a, b) => a.hierarchyPath.localeCompare(b.hierarchyPath));
-      
       setAccountOptions(options);
-    } catch (error) {
-      console.error('載入供應商科目配對失敗:', error);
-      setError(error instanceof Error ? error.message : '載入配對失敗');
+    } catch (caught) {
+      console.error('SupplierAccountSelect: failed to load mappings:', caught);
+      setError(caught instanceof Error ? caught.message : 'Failed to load account mappings');
       setAccountOptions([]);
     } finally {
       setLoading(false);
@@ -143,15 +145,13 @@ const SupplierAccountSelect: React.FC<SupplierAccountSelectProps> = ({
   const handleChange = (event: SelectChangeEvent<string[]>) => {
     const value = event.target.value;
     const accountIds = typeof value === 'string' ? value.split(',') : value;
-    console.log('🔍 SupplierAccountSelect - handleChange value:', value);
-    console.log('🔍 SupplierAccountSelect - accountIds:', accountIds);
     onChange(accountIds);
   };
 
   const renderValue = (selected: string[]) => (
     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
       {selected.map((accountId) => {
-        const option = accountOptions.find(opt => opt.id === accountId);
+        const option = accountOptions.find((opt) => opt.id === accountId);
         return (
           <Chip
             key={accountId}
@@ -193,12 +193,12 @@ const SupplierAccountSelect: React.FC<SupplierAccountSelectProps> = ({
         {loading ? (
           <MenuItem disabled>
             <CircularProgress size={20} sx={{ mr: 1 }} />
-            載入中...
+            Loading...
           </MenuItem>
         ) : accountOptions.length === 0 ? (
           <MenuItem disabled>
             <Typography variant="body2" color="text.secondary">
-              {supplierId ? '此供應商尚未設定會計科目配對' : '請先選擇供應商'}
+              {supplierId ? 'No account mapping found for this supplier' : 'Select a supplier first'}
             </Typography>
           </MenuItem>
         ) : (
@@ -209,7 +209,7 @@ const SupplierAccountSelect: React.FC<SupplierAccountSelectProps> = ({
                   {option.hierarchyPath}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  代碼: {option.accountCode}
+                  Code: {option.accountCode}
                 </Typography>
               </Box>
             </MenuItem>

@@ -1,53 +1,61 @@
-# �����ӼҲ�
+# 供應商模組（Supplier Feature）
 
-供應商模組涵蓋供應夥伴的清單檢視、資料維護（新增 / 編輯 / 刪除）與帳務對照設定。前端採用 React 18、Redux Toolkit、RTK Query，所有資料契約均由 shared Zod schema 推導出 ts-rest contract client，以維持單一事實來源（SSOT）。
+供應商模組涵蓋供應商清單、詳情檢視、維護（新增 / 編輯 / 刪除）與帳務對應設定。前端採用 React 18、Redux Toolkit 與 RTK Query，所有 API 互動均透過 shared Zod schema 推導出的 ts-rest client，落實單一事實來源（SSOT）並避免重複維護資料模型。
 
-## SSOT 與 ts-rest 對應（更新於 2025-10-14）
-- **契約來源**
-  - `shared/schemas/zod/supplier.ts` 為唯一資料結構定義來源，後端驗證中介層、DTO 與前端型別皆應由此推導。
-  - `shared/api/contracts/suppliers.ts` 基於上述 schema 建立 ts-rest contract；`shared/api/clients/suppliers.ts` 與 `frontend/src/features/supplier/api/client.ts` 共用同一份契約。
-  - `backend/modules/suppliers/suppliers.routes.ts` 透過 `@ts-rest/express` 套用 contract，並以 `createValidationErrorHandler` 統一處理驗證錯誤。
-  - `frontend/src/features/supplier/api/supplierApi.ts` 與 `frontend/src/features/supplier/services/supplierServiceV2.ts` 由 contract client 驅動，避免重複維護請求與資料模型。
-- **重用常數與型別**
-  - 列表欄位、權限選項等常數集中於 `frontend/src/features/supplier/constants`，避免散落於 UI。
-  - DTO 與 UI 專用型別以 `z.infer` 從 shared schema 延伸，維持資料一致性。
+## SSOT 與 ts-rest 對應
 
-## 風險與治理
-- 任何欄位調整需先更新 shared schema 與 OpenAPI，再同步產生 contract client，避免結構漂移。
-- 供應商匯入功能依賴 envelope 錯誤模型；調整錯誤結構時須同時更新 `supplierServiceV2` 與 Snackbar 呈現。
-- 牽涉資料結構、匯入匯出邏輯的變更，PR 描述需附上 `agent_task` YAML，指出 Schema Steward / Frontend Builder 等參與角色與測試證據，符合治理要求。
+- `shared/schemas/zod/supplier.ts`：供應商欄位的唯一結構定義來源，前後端驗證、DTO 與 OpenAPI 均由此推導。
+- `shared/api/contracts/suppliers.ts`：以 Zod schema 建立的 ts-rest 合約；`@pharmacy-pos/shared/api/clients/suppliers.ts` 會根據此合約輸出 client。
+- `shared/api/contracts/supplierAccountMappings.ts`：帳務對應專用的合約；`@pharmacy-pos/shared/api/clients/supplierAccountMappings.ts` 提供前後端共用的 contract client。
+- `frontend/src/features/supplier/api/client.ts`：呼叫 shared client 的薄封裝，統一處理 base URL 與授權標頭等共用需求。
+- `frontend/src/features/supplier/api/accountMappingClient.ts`：帳務對應的 contract client 封裝，沿用相同授權流程。
+- `frontend/src/features/supplier/api/supplierApi.ts`：以 ts-rest 合約為基礎的 RTK Query endpoints，負責供應商 CRUD 行為。
+- `frontend/src/features/supplier/api/dto.ts`：使用 `z.infer` 從 shared schema 推導型別，確保前端資料型別與 SSOT 一致。
+- `backend/modules/suppliers/suppliers.routes.ts` 與 `backend/modules/supplierAccountMappings/supplierAccountMappings.routes.ts`：透過 `@ts-rest/express` 套用合約，並搭配 `createValidationErrorHandler` 統一驗證錯誤處理。
 
 ## 功能概覽
-- 供應商清單：支援搜尋、篩選、刪除、快速匯入。
-- 供應商詳情：提供基本資料、聯絡資訊、帳務對映檢視。
-- 資料維護：新增 / 編輯對話框、匯入流程、匯入結果提示。
+
+- 供應商清單：支援篩選、排序、快速查詢與資料分頁。
+- 詳情檢視：顯示供應商基本資料及帳務對應摘要，提供快速操作捷徑。
+- 資料維護：以對話框進行新增 / 編輯，動作完成後自動重新整理清單並更新詳情面板。
+- 匯入與測試模式：提供測試模式下的假資料與匯入模板下載，正式環境會委派 `supplierApi` 呼叫 ts-rest 合約。
 
 ## 前端路由
-- `/suppliers`：供應商清單。
-- `/suppliers/:id`：供應商詳情。
-- `/suppliers/account-mapping`：帳務對映設定。
 
-路由註冊位於 `frontend/src/AppRouter.tsx`。
+- `/suppliers`：供應商清單與詳情面板。
+- `/suppliers/:id`：供應商詳情頁。
+- `/suppliers/account-mapping`：供應商帳務對應設定。
+
+路由註冊請參考 `frontend/src/AppRouter.tsx`。
 
 ## 檔案結構
 
 ```text
 supplier/
-├─ api/         # ts-rest client、RTK Query endpoints、資料傳輸物件
-├─ components/  # 清單、詳情、匯入等 UI 元件
-├─ constants/   # 列表欄位與共用常數
-├─ hooks/       # 業務邏輯 hooks（查詢、維護、匯入、通知）
-├─ model/       # Redux slice 與 selector（預留，依需求擴充）
-├─ pages/       # React Router 頁面元件
-├─ types/       # 前端專用型別（由 shared 契約延伸）
-├─ utils/       # 計算與轉換工具（預留，共用邏輯集中於此）
-└─ README.md    # 模組說明與治理規範
+├─ api/          # ts-rest client、RTK Query endpoints、型別推導
+├─ components/   # 清單、詳情、匯入等 UI 元件
+├─ constants/    # 表格欄位、共用常數
+├─ hooks/        # 資料載入、搜尋、匯入、Snackbar 等邏輯封裝
+├─ model/        # Redux slice 與 selector（如需擴充）
+├─ pages/        # React Router 頁面元件
+├─ types/        # Feature 專用型別（由 shared schema 延伸）
+└─ utils/        # payload 正規化、錯誤訊息處理等工具函式
 ```
 
-## Migration Notes
+## 開發指引
 
-- Legacy `config/` constants now live in `constants/`; update imports to reference `../constants`.
-- Feature-local types are re-exported via `../types`, removing the need to import `supplier.types` directly.
-- Shared data transformers and error helpers were moved into `../utils` to avoid duplication across hooks.
+1. **調整資料欄位**：務必先更新 `shared/schemas/zod/supplier.ts`，再同步調整相關合約與 UI。
+2. **擴充 API**：新增或變更 API 行為時，請修改對應合約（`suppliers.ts`、`supplierAccountMappings.ts`）並重新產生 client，避免直接在前端手寫 `fetch`。
+3. **新增畫面或互動**：優先使用既有 hooks 與 contract client；若需新資料流，請先檢查 SSOT 是否完備。
+4. **帳務對應維護**：全部改用 `supplierAccountMappings` 合約，前後端共享 Zod schema 與 ts-rest client，延伸欄位時記得同步更新。
+5. **測試與驗證**：
+   ```bash
+   pnpm --filter @pharmacy-pos/frontend test -- supplier   # 供應商元件 / hooks 測試
+   pnpm --filter @pharmacy-pos/frontend lint                # Lint / 型別檢查
+   pnpm --filter @pharmacy-pos/shared run generate:openapi  # 更新共享 OpenAPI / client
+   ```
 
-> 任何模組或結構變更，請在 Issue / PR 描述中附上最新的 `agent_task` YAML 與相關開放規格（OpenSpec）變更，以維持可追溯性。
+## 後續待辦（Technical Debt）
+
+- 持續擴充帳務對應合約的測試案例與示例資料，確保跨模組整合可追溯。
+- 針對匯入流程補強合約化方案，避免測試模式與正式流程分歧。

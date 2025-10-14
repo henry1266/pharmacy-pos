@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -149,7 +149,6 @@ const SupplierFormDialog: React.FC<SupplierFormDialogProps> = ({
             <Box sx={{ mt: 1 }}>
               <SupplierAccountMappingForm
                 supplierId={currentSupplierState.id}
-                supplierName={currentSupplierState.name}
                 onMappingChange={(mapping) => {
                   console.log('Mapping changed:', mapping);
                 }}

@@ -12,6 +12,7 @@ import type {
   SaleLifecycleStatus,
 } from '../schemas/zod/sale';
 import type { SupplierEntity as SupplierEntityType } from '../schemas/zod/supplier';
+import type { SupplierAccountMapping as SupplierAccountMappingType } from '../schemas/zod/supplierAccountMapping';
 
 type StripIndexSignature<T> = {
   [K in keyof T as string extends K ? never : number extends K ? never : symbol extends K ? never : K]: T[K];
@@ -468,26 +469,7 @@ export interface OvertimeRecord {
 /**
  * 供應商科目配對相關型別
  */
-export interface SupplierAccountMapping {
-  _id: string;
-  supplierId: string;
-  supplierName: string;
-  organizationId: string;
-  organizationName?: string;
-  accountMappings: {
-    accountId: string;
-    accountCode: string;
-    accountName: string;
-    isDefault: boolean;
-    priority: number;
-  }[];
-  isActive: boolean;
-  notes?: string;
-  createdBy: string;
-  updatedBy: string;
-  createdAt: string | Date;
-  updatedAt: string | Date;
-}
+export type SupplierAccountMapping = SupplierAccountMappingType;
 
 export interface SupplierAccountMappingFormData {
   supplierId: string;

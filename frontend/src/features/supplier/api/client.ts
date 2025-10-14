@@ -6,7 +6,7 @@ import {
   type SuppliersClientHeaderShape,
 } from '@pharmacy-pos/shared';
 
-const resolveHeaderValue = (
+export const resolveHeaderValue = (
   value: string | ((options: FetchApiOptions) => string) | undefined,
   options: FetchApiOptions,
 ): string | undefined => {
@@ -16,14 +16,14 @@ const resolveHeaderValue = (
   return value;
 };
 
-const withAuthHeader = (
-  baseHeaders: SuppliersClientHeaderShape = {},
-): SuppliersClientHeaderShape => {
-  const headers: SuppliersClientHeaderShape = {
-    ...baseHeaders,
+export const withAuthHeader = <THeaders extends Record<string, string | ((options: FetchApiOptions) => string)>>(
+  baseHeaders: THeaders | undefined = {} as THeaders,
+): THeaders => {
+  const headers: Record<string, string | ((options: FetchApiOptions) => string)> = {
+    ...(baseHeaders ?? {}),
   };
 
-  const baseAuthorization = baseHeaders?.Authorization;
+  const baseAuthorization = headers.Authorization;
 
   headers.Authorization = (options: FetchApiOptions) => {
     const token = typeof window !== 'undefined'
@@ -38,7 +38,7 @@ const withAuthHeader = (
     return fallback ?? '';
   };
 
-  return headers;
+  return headers as THeaders;
 };
 
 export const createSupplierContractClient = (
@@ -53,7 +53,7 @@ export const createSupplierContractClient = (
   return createSuppliersContractClient({
     baseUrl,
     throwOnUnknownStatus,
-    baseHeaders: withAuthHeader(baseHeaders),
+    baseHeaders: withAuthHeader<SuppliersClientHeaderShape>(baseHeaders),
   });
 };
 

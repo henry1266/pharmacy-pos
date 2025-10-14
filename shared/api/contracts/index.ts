@@ -18,6 +18,8 @@ import { productsContract } from './products';
 import type { ProductsContract } from './products';
 import { fifoContract } from './fifo';
 import type { FifoContract } from './fifo';
+import { supplierAccountMappingsContract } from './supplierAccountMappings';
+import type { SupplierAccountMappingsContract } from './supplierAccountMappings';
 
 export type PharmacyContract = {
   sales: SalesContract;
@@ -30,6 +32,7 @@ export type PharmacyContract = {
   accounting: AccountingContract;
   products: ProductsContract;
   fifo: FifoContract;
+  supplierAccountMappings: SupplierAccountMappingsContract;
 };
 
 export const pharmacyContract: PharmacyContract = {
@@ -43,6 +46,7 @@ export const pharmacyContract: PharmacyContract = {
   accounting: accountingContract,
   products: productsContract,
   fifo: fifoContract,
+  supplierAccountMappings: supplierAccountMappingsContract,
 };
 
 export {
@@ -56,6 +60,7 @@ export {
   employeesContract,
   productsContract,
   fifoContract,
+  supplierAccountMappingsContract,
 };
 
 export type {
@@ -69,4 +74,5 @@ export type {
   EmployeesContract,
   ProductsContract,
   FifoContract,
+  SupplierAccountMappingsContract,
 };

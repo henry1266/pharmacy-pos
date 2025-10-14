@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -16,6 +16,7 @@ import {
   Edit as EditIcon
 } from '@mui/icons-material';
 import { SupplierAccountMapping } from '@pharmacy-pos/shared/types/entities';
+import supplierAccountMappingClient from '../api/accountMappingClient';
 
 interface SupplierAccountMappingDisplayProps {
   supplierId: string;
@@ -79,54 +80,42 @@ const SupplierAccountMappingDisplay: React.FC<SupplierAccountMappingDisplayProps
     
     console.log('SupplierAccountMappingDisplay: 開始載入配對資料，供應商ID:', supplierId);
     setLoading(true);
-    setError(''); // 清除之前的錯誤
-    
+    setError('');
+
     try {
-      const url = `/api/supplier-account-mappings?supplierId=${supplierId}`;
-      console.log('SupplierAccountMappingDisplay: API 請求 URL:', url);
-      
-      const response = await fetch(url);
-      console.log('SupplierAccountMappingDisplay: API 回應狀態:', response.status);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('SupplierAccountMappingDisplay: API 錯誤回應:', errorText);
-        throw new Error(`無法載入供應商科目配對 (${response.status})`);
+      const result = await supplierAccountMappingClient.listMappings({ query: { supplierId } });
+      console.log('SupplierAccountMappingDisplay: 契約回應狀態:', result.status);
+
+      if (!(result.status === 200 && result.body?.success)) {
+        const message =
+          typeof result.body === 'object' && result.body && 'message' in result.body
+            ? String((result.body as { message?: unknown }).message ?? '載入供應商帳務對應失敗')
+            : '載入供應商帳務對應失敗';
+        throw new Error(message);
       }
-      
-      const apiResponse = await response.json();
-      console.log('SupplierAccountMappingDisplay: API 回應資料:', apiResponse);
-      
-      // 處理 ApiResponse 格式
-      if (!apiResponse.success) {
-        console.error('SupplierAccountMappingDisplay: API 回應失敗:', apiResponse.message);
-        throw new Error(apiResponse.message || '載入配對失敗');
-      }
-      
-      const mappingsArray = Array.isArray(apiResponse.data) ? apiResponse.data : [];
-      console.log('SupplierAccountMappingDisplay: 配對資料陣列:', mappingsArray);
-      console.log('SupplierAccountMappingDisplay: 配對資料陣列長度:', mappingsArray.length);
-      
+
+      const mappingsArray = Array.isArray(result.body.data) ? result.body.data : [];
+      console.log('SupplierAccountMappingDisplay: 回傳筆數:', mappingsArray.length);
+
       if (mappingsArray.length > 0) {
-        const existingMapping = mappingsArray[0];
-        console.log('SupplierAccountMappingDisplay: 找到現有配對:', existingMapping);
-        console.log('SupplierAccountMappingDisplay: 配對的科目數量:', existingMapping.accountMappings?.length || 0);
-        
-        // 確保 accountMappings 存在且為陣列
-        if (existingMapping.accountMappings && Array.isArray(existingMapping.accountMappings)) {
-          console.log('SupplierAccountMappingDisplay: 科目配對詳細資料:', existingMapping.accountMappings);
+        const existingMapping = mappingsArray[0] as SupplierAccountMapping;
+        console.log('SupplierAccountMappingDisplay: 取得帳務對應:', existingMapping);
+
+        if (Array.isArray(existingMapping.accountMappings) && existingMapping.accountMappings.length > 0) {
+          console.log('SupplierAccountMappingDisplay: 科目明細:', existingMapping.accountMappings);
           setMapping(existingMapping);
         } else {
-          console.log('SupplierAccountMappingDisplay: 配對資料中沒有有效的科目配對');
+          console.log('SupplierAccountMappingDisplay: 回應缺少科目資料');
           setMapping(null);
         }
       } else {
-        console.log('SupplierAccountMappingDisplay: 未找到現有配對');
+        console.log('SupplierAccountMappingDisplay: 尚未建立帳務對應');
         setMapping(null);
       }
-    } catch (error) {
-      console.error('SupplierAccountMappingDisplay: 載入配對失敗:', error);
-      setError(error instanceof Error ? error.message : '載入配對失敗');
+    } catch (caught) {
+      console.error('SupplierAccountMappingDisplay: 載入失敗:', caught);
+      setError(caught instanceof Error ? caught.message : '載入供應商帳務對應失敗');
+      setMapping(null);
     } finally {
       setLoading(false);
     }

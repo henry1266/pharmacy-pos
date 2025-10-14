@@ -270,12 +270,6 @@ export {
 } from './services/productApiClient';
 
 export {
-  SupplierApiClient,
-  createSupplierApiClient,
-  SupplierQueryParams
-} from './services/supplierApiClient';
-
-export {
   CustomerApiClient,
   createCustomerApiClient,
   CustomerQueryParams
@@ -413,6 +407,15 @@ export { customerEntitySchema } from './schemas/zod/customer';
 export { supplierEntitySchema } from './schemas/zod/supplier';
 export { purchaseOrderEntitySchema } from './schemas/zod/purchaseOrder';
 export { shippingOrderEntitySchema } from './schemas/zod/shippingOrder';
+export {
+  supplierAccountMappingEntitySchema,
+  supplierAccountMappingSchema,
+  supplierAccountMappingItemSchema,
+  createSupplierAccountMappingSchema,
+  updateSupplierAccountMappingSchema,
+  supplierAccountMappingListQuerySchema,
+  supplierAccountMappingBySupplierQuerySchema,
+} from './schemas/zod/supplierAccountMapping';
 export { productSchema, productCreateSchema, productUpdateSchema, productQuerySchema, productListFiltersSchema } from './schemas/zod/product';
 
 export {
@@ -458,6 +461,12 @@ export type { ProductsContractClient, ProductsClientOptions, ProductsClientHeade
 
 export { createSuppliersContractClient } from './api/clients/suppliers';
 export type { SuppliersContractClient, SuppliersClientOptions, HeaderShape as SuppliersClientHeaderShape } from './api/clients/suppliers';
+export { createSupplierAccountMappingsContractClient } from './api/clients/supplierAccountMappings';
+export type {
+  SupplierAccountMappingsContractClient,
+  SupplierAccountMappingsClientOptions,
+  SupplierAccountMappingsHeaderShape,
+} from './api/clients/supplierAccountMappings';
 
 export { createPurchaseOrdersContractClient } from './api/clients/purchaseOrders';
 export type { PurchaseOrdersContractClient, PurchaseOrdersClientOptions, HeaderShape as PurchaseOrdersClientHeaderShape } from './api/clients/purchaseOrders';

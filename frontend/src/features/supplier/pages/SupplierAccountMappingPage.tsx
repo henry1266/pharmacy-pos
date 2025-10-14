@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -36,6 +36,8 @@ import {
   SupplierAccountMappingFormData,
   SelectedAccount
 } from '@pharmacy-pos/shared/types/entities';
+import supplierAccountMappingClient from '../api/accountMappingClient';
+import supplierContractClient from '../api/client';
 import AccountSelector3 from '../../accounting3/accounts/components/AccountSelector';
 import { useOrganizations } from '../../../hooks/useOrganizations';
 import { useAppDispatch } from '../../../hooks/redux';
@@ -51,9 +53,9 @@ const SupplierAccountMappingPage: React.FC = () => {
   const [formData, setFormData] = useState<SupplierAccountMappingFormData>({
     supplierId: '',
     accountIds: [],
-    priority: 1 // 系統預設，不再顯示給用戶選擇
-  });
-  const [selectedAccounts, setSelectedAccounts] = useState<SelectedAccount[]>([]);
+    priority: 1, // 系統預設，主要顯示給使用者參考
+    notes: '',
+  });  const [selectedAccounts, setSelectedAccounts] = useState<SelectedAccount[]>([]);
   const [showAccountSelector, setShowAccountSelector] = useState(false);
 
   const { organizations } = useOrganizations();
@@ -70,18 +72,23 @@ const SupplierAccountMappingPage: React.FC = () => {
   const fetchMappings = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/supplier-account-mappings');
-      if (!response.ok) {
-        throw new Error('無法載入供應商科目配對');
+      const result = await supplierAccountMappingClient.listMappings({});
+      if (result.status === 200 && result.body?.success) {
+        const data = Array.isArray(result.body.data) ? result.body.data : [];
+        setMappings(data as SupplierAccountMapping[]);
+        setError('');
+        return;
       }
-      const data = await response.json();
-      // 確保 data 是陣列，如果是包裝在 success/data 結構中則取出 data
-      const mappingsArray = Array.isArray(data) ? data : (data.data || []);
-      setMappings(mappingsArray);
-    } catch (error) {
-      console.error('載入配對失敗:', error);
-      setError(error instanceof Error ? error.message : '載入配對失敗');
-      setMappings([]); // 設定為空陣列以防止錯誤
+      const message =
+        typeof result.body === 'object' && result.body && 'message' in result.body
+          ? String((result.body as { message?: unknown }).message ?? '載入供應商帳務對應失敗')
+          : '載入供應商帳務對應失敗';
+      throw new Error(message);
+    } catch (caught) {
+      const errorMessage = caught instanceof Error ? caught.message : '載入供應商帳務對應失敗';
+      console.error('載入資料失敗:', caught);
+      setError(errorMessage);
+      setMappings([]);
     } finally {
       setLoading(false);
     }
@@ -89,20 +96,22 @@ const SupplierAccountMappingPage: React.FC = () => {
 
   const fetchSuppliers = async () => {
     try {
-      const response = await fetch('/api/suppliers');
-      if (!response.ok) {
-        throw new Error('無法載入供應商');
+      const result = await supplierContractClient.listSuppliers({ query: {} });
+      if (result.status === 200 && result.body?.success) {
+        const data = Array.isArray(result.body.data) ? result.body.data : [];
+        setSuppliers(data as Supplier[]);
+        return;
       }
-      const data = await response.json();
-      // 確保 data 是陣列，如果是包裝在 success/data 結構中則取出 data
-      const suppliersArray = Array.isArray(data) ? data : (data.data || []);
-      setSuppliers(suppliersArray);
-    } catch (error) {
-      console.error('載入供應商失敗:', error);
-      setSuppliers([]); // 設定為空陣列以防止錯誤
+      const message =
+        typeof result.body === 'object' && result.body && 'message' in result.body
+          ? String((result.body as { message?: unknown }).message ?? '載入供應商失敗')
+          : '載入供應商失敗';
+      throw new Error(message);
+    } catch (caught) {
+      console.error('載入供應商失敗:', caught);
+      setSuppliers([]);
     }
   };
-
   const handleOpenDialog = (mapping?: SupplierAccountMapping) => {
     if (mapping) {
       setEditingMapping(mapping);
@@ -112,10 +121,11 @@ const SupplierAccountMappingPage: React.FC = () => {
       setFormData({
         supplierId: mapping.supplierId,
         accountIds: accountIds,
-        priority: priority
+        priority: priority,
+        notes: mapping.notes ?? '',
       });
       
-      // 設置選中的會計科目
+      // 閮剔蔭?訾葉??閮???
       const accounts: SelectedAccount[] = mapping.accountMappings.map(am => ({
         _id: am.accountId,
         name: am.accountName,
@@ -129,7 +139,8 @@ const SupplierAccountMappingPage: React.FC = () => {
       setFormData({
         supplierId: '',
         accountIds: [],
-        priority: 1
+        priority: 1,
+        notes: '',
       });
       setSelectedAccounts([]);
     }
@@ -144,65 +155,80 @@ const SupplierAccountMappingPage: React.FC = () => {
 
   const handleSave = async () => {
     if (!formData.supplierId || formData.accountIds.length === 0) {
-      setError('請填寫所有必填欄位');
+      setError('請填寫必填欄位');
       return;
     }
 
     setLoading(true);
     try {
-      const url = editingMapping 
-        ? `/api/supplier-account-mappings/${editingMapping._id}`
-        : '/api/supplier-account-mappings';
-      
-      const method = editingMapping ? 'PUT' : 'POST';
-      
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
+      if (editingMapping) {
+        const result = await supplierAccountMappingClient.updateMapping({
+          params: { id: editingMapping._id },
+          body: {
+            accountIds: formData.accountIds,
+            notes: formData.notes,
+            isActive: editingMapping.isActive,
+          },
+        });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || '儲存失敗');
+        if (!(result.status === 200 && result.body?.success)) {
+          const message =
+            typeof result.body === 'object' && result.body && 'message' in result.body
+              ? String((result.body as { message?: unknown }).message ?? '更新失敗')
+              : '更新失敗';
+          throw new Error(message);
+        }
+      } else {
+        const result = await supplierAccountMappingClient.createMapping({
+          body: {
+            supplierId: formData.supplierId,
+            accountIds: formData.accountIds,
+            notes: formData.notes,
+          },
+        });
+
+        if (!(result.status === 201 && result.body?.success)) {
+          const message =
+            typeof result.body === 'object' && result.body && 'message' in result.body
+              ? String((result.body as { message?: unknown }).message ?? '建立失敗')
+              : '建立失敗';
+          throw new Error(message);
+        }
       }
 
       await fetchMappings();
       handleCloseDialog();
-    } catch (error) {
-      console.error('儲存失敗:', error);
-      setError(error instanceof Error ? error.message : '儲存失敗');
+    } catch (caught) {
+      console.error('儲存失敗:', caught);
+      setError(caught instanceof Error ? caught.message : '儲存失敗');
     } finally {
       setLoading(false);
     }
   };
-
   const handleDelete = async (mappingId: string) => {
-    if (!window.confirm('確定要刪除此配對嗎？')) {
+    if (!window.confirm('確定要刪除此帳務對應嗎？')) {
       return;
     }
 
     setLoading(true);
     try {
-      const response = await fetch(`/api/supplier-account-mappings/${mappingId}`, {
-        method: 'DELETE'
-      });
-
-      if (!response.ok) {
-        throw new Error('刪除失敗');
+      const result = await supplierAccountMappingClient.deleteMapping({ params: { id: mappingId } });
+      if (!(result.status === 200 && result.body?.success)) {
+        const message =
+          typeof result.body === 'object' && result.body && 'message' in result.body
+            ? String((result.body as { message?: unknown }).message ?? '刪除失敗')
+            : '刪除失敗';
+        throw new Error(message);
       }
 
       await fetchMappings();
-    } catch (error) {
-      console.error('刪除失敗:', error);
-      setError(error instanceof Error ? error.message : '刪除失敗');
+    } catch (caught) {
+      console.error('刪除失敗:', caught);
+      setError(caught instanceof Error ? caught.message : '刪除失敗');
     } finally {
       setLoading(false);
     }
   };
-
   const getSupplierName = (supplierId: string): string => {
     const supplier = suppliers.find(s => s._id === supplierId);
     return supplier?.name || '未知供應商';

@@ -59,7 +59,7 @@ import organizationsRoutes from "./modules/accounting-old/organizations";
 import { accountRoutes, transactionRoutes, fundingRoutes } from "./modules/accounting-new";
 
 // 新增供應商科目配對路由
-import supplierAccountMappingsRoutes from "./routes/supplierAccountMappings";
+import supplierAccountMappingsRoutes from "./modules/supplierAccountMappings";
 
 // 監控路由
 import monitoringRoutes from "./routes/monitoring";
@@ -150,7 +150,7 @@ export function createApp(): Application {
   app.use("/api/organizations", organizationsRoutes);
 
   // 供應商科目配對路由
-  app.use("/api/supplier-account-mappings", supplierAccountMappingsRoutes);
+  app.use("/api", supplierAccountMappingsRoutes);
 
   // 監控路由
   app.use("/api/monitoring", monitoringRoutes);
