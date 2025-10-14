@@ -18668,3 +18668,26 @@
 {"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 11:10:29:1029"}
 {"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e4d52aa597229df074c486"},"supplierId":"67e4d52aa597229df074c486","timestamp":"2025-10-14 11:10:30:1030"}
 {"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 11:10:30:1030"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":2,"timestamp":"2025-10-14 14:47:41:4741","totalCount":50,"unpaidCount":48}
+{"0":"6881ede993a4e6567f1de484","1":"68a7e61594e5e83283dcca9a","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - selectedAccountIds:\u001b[39m","timestamp":"2025-10-14 14:57:16:5716"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - items:\u001b[39m","timestamp":"2025-10-14 14:57:16:5716"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建進貨單 - processedItems:\u001b[39m","timestamp":"2025-10-14 14:57:16:5716"}
+{"0":"6881ede993a4e6567f1de484","1":"68a7e61594e5e83283dcca9a","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單已儲存 - selectedAccountIds:\u001b[39m","timestamp":"2025-10-14 14:57:16:5716"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 68562cfa72394eec183d3eb1 創建新庫存記錄，進貨單號: 20251014001, 數量: 1000, 總金額: 1000\u001b[39m","timestamp":"2025-10-14 14:57:16:5716"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 67f89e0edc77b2092c185fbe 創建新庫存記錄，進貨單號: 20251014001, 數量: 1000, 總金額: 600\u001b[39m","timestamp":"2025-10-14 14:57:16:5716"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m已為產品 67e7f5d6e65a3e4b8191686c 創建新庫存記錄，進貨單號: 20251014001, 數量: 1000, 總金額: 1630\u001b[39m","timestamp":"2025-10-14 14:57:16:5716"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m檢查進貨單自動會計分錄條件:\u001b[39m","poid":"20251014001","timestamp":"2025-10-14 14:57:16:5716"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m進貨單沒有機構ID，將嘗試從會計科目獲取\u001b[39m","timestamp":"2025-10-14 14:57:16:5716"}
+{"accountCount":2,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m滿足自動會計分錄條件:\u001b[39m","organizationId":"未設置","timestamp":"2025-10-14 14:57:16:5716","totalAmount":3230}
+{"asset":true,"expense":false,"level":"\u001b[37mdebug\u001b[39m","liability":true,"message":"\u001b[37m科目類型分析:\u001b[39m","timestamp":"2025-10-14 14:57:16:5716"}
+{"entryType":"asset-liability","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m自動推斷分錄類型:\u001b[39m","timestamp":"2025-10-14 14:57:16:5716"}
+{"entryType":"asset-liability","level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m已更新進貨單分錄類型:\u001b[39m","poid":"20251014001","timestamp":"2025-10-14 14:57:16:5716"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m從會計科目推斷機構ID:\u001b[39m","organizationId":"68639ad3d2823bbee3a59e25","timestamp":"2025-10-14 14:57:16:5716"}
+{"date":"2025-10-13","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m從進貨單號解析日期:\u001b[39m","poid":"20251014001","timestamp":"2025-10-14 14:57:16:5716"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m創建嵌入式交易群組:\u001b[39m","organizationId":"68639ad3d2823bbee3a59e25","timestamp":"2025-10-14 14:57:16:5716"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m成功創建自動會計分錄:\u001b[39m","organizationId":"68639ad3d2823bbee3a59e25","poid":"20251014001","timestamp":"2025-10-14 14:57:16:5716"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m進貨單 20251014001 已關聯交易群組 68edf44cee572077e9d7bb07\u001b[39m","timestamp":"2025-10-14 14:57:16:5716"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m批量付款狀態檢查結果\u001b[39m","paidCount":0,"timestamp":"2025-10-14 14:57:20:5720","totalCount":1,"unpaidCount":1}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m產品 部分負擔 設定為不扣庫存，略過庫存檢查\u001b[39m","timestamp":"2025-10-14 15:21:45:2145"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m生成銷貨單號: 20251014004\u001b[39m","timestamp":"2025-10-14 15:21:45:2145"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m為不扣庫存產品 部分負擔 創建毛利記錄，數量: 1, 售價: 40, 進價: 0, 毛利: 40\u001b[39m","timestamp":"2025-10-14 15:21:45:2145"}

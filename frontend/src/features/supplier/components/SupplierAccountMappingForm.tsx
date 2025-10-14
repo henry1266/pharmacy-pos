@@ -18,8 +18,12 @@ import {
 } from '@pharmacy-pos/shared/types/entities';
 import AccountSelector3 from '../../accounting3/accounts/components/AccountSelector';
 import supplierAccountMappingClient from '../api/accountMappingClient';
-import { useAppDispatch } from '../../../hooks/redux';
+import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
 import { fetchAccounts2, fetchOrganizations2 } from '../../../redux/actions';
+
+type FormSelectedAccount = SelectedAccount & {
+  organizationName?: string;
+};
 
 interface SupplierAccountMappingFormProps {
   supplierId: string;
@@ -33,10 +37,12 @@ const SupplierAccountMappingForm: React.FC<SupplierAccountMappingFormProps> = ({
   const [mapping, setMapping] = useState<SupplierAccountMapping | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
-  const [selectedAccounts, setSelectedAccounts] = useState<SelectedAccount[]>([]);
+  const [selectedAccounts, setSelectedAccounts] = useState<FormSelectedAccount[]>([]);
   const [showAccountSelector, setShowAccountSelector] = useState(false);
 
   const dispatch = useAppDispatch();
+  const { accounts } = useAppSelector((state) => state.account2);
+  const { organizations } = useAppSelector((state) => state.organization);
 
   useEffect(() => {
     dispatch(fetchAccounts2());
@@ -59,6 +65,100 @@ const SupplierAccountMappingForm: React.FC<SupplierAccountMappingFormProps> = ({
     }
 
     return fallback;
+  };
+
+  const resolveEntityId = (value: unknown): string | undefined => {
+    if (!value) {
+      return undefined;
+    }
+
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      return trimmed.length > 0 ? trimmed : undefined;
+    }
+
+    if (typeof value === 'object' && value !== null) {
+      const candidate = value as { _id?: unknown; id?: unknown; toString?: () => unknown };
+      if (candidate._id !== undefined) {
+        return resolveEntityId(candidate._id);
+      }
+      if (candidate.id !== undefined) {
+        return resolveEntityId(candidate.id);
+      }
+      if (typeof candidate.toString === 'function') {
+        const str = candidate.toString();
+        if (typeof str === 'string' && str !== '[object Object]') {
+          const trimmed = str.trim();
+          return trimmed.length > 0 ? trimmed : undefined;
+        }
+      }
+    }
+
+    return undefined;
+  };
+
+  const findAccountById = (id: string) =>
+    accounts.find((candidate: any) => normalizeAccountId(candidate?._id, '') === id);
+
+  const resolveAccountPresentation = (account: FormSelectedAccount): { label: string; code: string } => {
+    const accountRecord = findAccountById(account._id);
+
+    const recordName =
+      typeof accountRecord?.name === 'string' && accountRecord.name.trim().length > 0
+        ? accountRecord.name.trim()
+        : undefined;
+
+    const recordCode =
+      typeof accountRecord?.code === 'string' && accountRecord.code.trim().length > 0
+        ? accountRecord.code.trim()
+        : undefined;
+
+    const selectionName = typeof account.name === 'string' ? account.name.trim() : '';
+    const selectionCode = typeof account.code === 'string' ? account.code.trim() : '';
+
+    const displayCode = selectionCode || recordCode || '';
+    const baseName = selectionName || recordName || displayCode || 'Account';
+
+    const selectionOrgId =
+      typeof account.organizationId === 'string' && account.organizationId.trim().length > 0
+        ? account.organizationId.trim()
+        : undefined;
+
+    const recordOrgId = resolveEntityId(accountRecord?.organizationId);
+    const resolvedOrgId = selectionOrgId ?? recordOrgId;
+
+    const organizationNameHint =
+      typeof account.organizationName === 'string' && account.organizationName.trim().length > 0
+        ? account.organizationName.trim()
+        : undefined;
+
+    const organizationNameFromRecord =
+      accountRecord && typeof (accountRecord as any)?.organizationName === 'string'
+        ? ((accountRecord as any).organizationName as string).trim()
+        : accountRecord &&
+          typeof (accountRecord as any)?.organizationId === 'object' &&
+          typeof (accountRecord as any)?.organizationId?.name === 'string'
+        ? ((accountRecord as any)?.organizationId?.name as string).trim()
+        : undefined;
+
+    const organizationNameFromStore =
+      resolvedOrgId
+        ? organizations.find((org: any) => resolveEntityId(org?._id) === resolvedOrgId)?.name
+        : undefined;
+
+    const organizationName =
+      organizationNameHint ??
+      (typeof organizationNameFromStore === 'string' && organizationNameFromStore.trim().length > 0
+        ? organizationNameFromStore.trim()
+        : undefined) ??
+      organizationNameFromRecord;
+
+    const label = organizationName ? `${organizationName} > ${baseName}` : baseName;
+
+    return {
+      label,
+      code: displayCode,
+    };
   };
 
   const fetchMapping = async () => {
@@ -91,14 +191,40 @@ const SupplierAccountMappingForm: React.FC<SupplierAccountMappingFormProps> = ({
       setMapping(existingMapping);
 
       if (Array.isArray(existingMapping.accountMappings)) {
-        const accounts: SelectedAccount[] = existingMapping.accountMappings.map((am: any, index: number) => {
+        const accounts: FormSelectedAccount[] = existingMapping.accountMappings.map((am: any, index: number) => {
           const fallbackId = `${am.accountCode ?? 'account'}-${index}`;
+          const resolvedName =
+            (typeof am.accountName === 'string' && am.accountName.trim().length > 0
+              ? am.accountName
+              : undefined) ??
+            (typeof am.account?.name === 'string' && am.account.name.trim().length > 0
+              ? am.account.name
+              : undefined) ??
+            am.accountCode ??
+            `Account-${index + 1}`;
+
+          const resolvedOrgName =
+            (typeof am.account?.organizationId === 'object' && typeof am.account?.organizationId?.name === 'string'
+              ? am.account.organizationId.name.trim()
+              : undefined) ??
+            (typeof am.account?.organizationName === 'string' && am.account.organizationName.trim().length > 0
+              ? am.account.organizationName.trim()
+              : undefined) ??
+            (typeof existingMapping.organizationName === 'string' &&
+            existingMapping.organizationName.trim().length > 0
+              ? existingMapping.organizationName.trim()
+              : undefined);
+
           return {
             _id: normalizeAccountId(am.accountId, fallbackId),
-            name: am.accountName,
-            code: am.accountCode,
+            name: resolvedName,
+            code: am.accountCode ?? '',
             accountType: am.account?.accountType ?? '',
-            organizationId: existingMapping.organizationId,
+            organizationId:
+              (typeof existingMapping.organizationId === 'string' && existingMapping.organizationId.trim().length > 0
+                ? existingMapping.organizationId.trim()
+                : undefined) ?? resolveEntityId(am.account?.organizationId) ?? '',
+            organizationName: resolvedOrgName,
           };
         });
         setSelectedAccounts(accounts);
@@ -256,14 +382,23 @@ const SupplierAccountMappingForm: React.FC<SupplierAccountMappingFormProps> = ({
             No accounts selected
           </Typography>
         ) : (
-          selectedAccounts.map((account) => (
-            <Chip
-              key={account._id}
-              label={`${account.code} - ${account.name}`}
-              onDelete={() => handleRemoveAccount(account._id)}
-              size="small"
-            />
-          ))
+          selectedAccounts.map((account) => {
+            const presentation = resolveAccountPresentation(account);
+            const chipLabel = presentation.label;
+            const chipTitle = presentation.code
+              ? `${presentation.label} (${presentation.code})`
+              : presentation.label;
+
+            return (
+              <Chip
+                key={account._id}
+                label={chipLabel}
+                title={chipTitle}
+                onDelete={() => handleRemoveAccount(account._id)}
+                size="small"
+              />
+            );
+          })
         )}
       </Box>
 
@@ -288,12 +423,51 @@ const SupplierAccountMappingForm: React.FC<SupplierAccountMappingFormProps> = ({
                 return;
               }
 
-              const next: SelectedAccount = {
+              const resolvedOrganizationId =
+                (typeof account.organizationId === 'string' && account.organizationId.trim().length > 0
+                  ? account.organizationId.trim()
+                  : undefined) ??
+                resolveEntityId((account as any).organizationId) ??
+                '';
+
+              const organizationNameHint =
+                (typeof (account as any).organizationName === 'string' &&
+                (account as any).organizationName.trim().length > 0
+                  ? (account as any).organizationName.trim()
+                  : undefined) ??
+                (typeof (account as any).organization?.name === 'string' &&
+                (account as any).organization.name.trim().length > 0
+                  ? (account as any).organization.name.trim()
+                  : undefined) ??
+                (resolvedOrganizationId
+                  ? organizations.find((org: any) => resolveEntityId(org?._id) === resolvedOrganizationId)?.name?.trim()
+                  : undefined);
+
+              const next: FormSelectedAccount = {
                 _id: normalizedId,
-                name: account.name,
-                code: account.code,
+                name:
+                  (typeof account.name === 'string' && account.name.trim().length > 0
+                    ? account.name.trim()
+                    : undefined) ??
+                  (typeof (account as any).accountName === 'string' &&
+                  (account as any).accountName.trim().length > 0
+                    ? (account as any).accountName.trim()
+                    : undefined) ??
+                  (typeof account.code === 'string' && account.code.trim().length > 0
+                    ? account.code.trim()
+                    : (typeof (account as any).code === 'string' && (account as any).code.trim().length > 0
+                        ? (account as any).code.trim()
+                        : 'Account')),
+                code:
+                  (typeof account.code === 'string' && account.code.trim().length > 0
+                    ? account.code.trim()
+                    : undefined) ??
+                  (typeof (account as any).code === 'string' && (account as any).code.trim().length > 0
+                    ? (account as any).code.trim()
+                    : ''),
                 accountType: account.accountType,
-                organizationId: account.organizationId ?? '',
+                organizationId: resolvedOrganizationId,
+                organizationName: organizationNameHint,
               };
 
               setSelectedAccounts((prev) => [...prev, next]);

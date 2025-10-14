@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -40,8 +40,12 @@ import supplierAccountMappingClient from '../api/accountMappingClient';
 import supplierContractClient from '../api/client';
 import AccountSelector3 from '../../accounting3/accounts/components/AccountSelector';
 import { useOrganizations } from '../../../hooks/useOrganizations';
-import { useAppDispatch } from '../../../hooks/redux';
+import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
 import { fetchAccounts2, fetchOrganizations2 } from '../../../redux/actions';
+
+type PageSelectedAccount = SelectedAccount & { organizationName: string | undefined;
+  organizationName?: string;
+};
 
 const SupplierAccountMappingPage: React.FC = () => {
   const [mappings, setMappings] = useState<SupplierAccountMapping[]>([]);
@@ -55,11 +59,13 @@ const SupplierAccountMappingPage: React.FC = () => {
     accountIds: [],
     priority: 1, // 系統預設，主要顯示給使用者參考
     notes: '',
-  });  const [selectedAccounts, setSelectedAccounts] = useState<SelectedAccount[]>([]);
+  });
+  const [selectedAccounts, setSelectedAccounts] = useState<PageSelectedAccount[]>([]);
   const [showAccountSelector, setShowAccountSelector] = useState(false);
 
   const { organizations } = useOrganizations();
   const dispatch = useAppDispatch();
+  const { accounts } = useAppSelector((state) => state.account2);
 
   useEffect(() => {
     fetchMappings();
@@ -68,6 +74,190 @@ const SupplierAccountMappingPage: React.FC = () => {
     dispatch(fetchAccounts2());
     dispatch(fetchOrganizations2());
   }, [dispatch]);
+
+  const normalizeAccountId = (value: unknown, fallback: string): string => {
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value.trim();
+    }
+
+    if (value && typeof value === 'object') {
+      const candidate = value as { _id?: unknown; id?: unknown };
+      if (typeof candidate._id === 'string' && candidate._id.trim().length > 0) {
+        return candidate._id.trim();
+      }
+      if (typeof candidate.id === 'string' && candidate.id.trim().length > 0) {
+        return candidate.id.trim();
+      }
+    }
+
+    return fallback;
+  };
+
+  const resolveEntityId = (value: unknown): string | undefined => {
+    if (!value) {
+      return undefined;
+    }
+
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      return trimmed.length > 0 ? trimmed : undefined;
+    }
+
+    if (typeof value === 'object' && value !== null) {
+      const candidate = value as { _id?: unknown; id?: unknown; toString?: () => unknown };
+      if (candidate._id !== undefined) {
+        return resolveEntityId(candidate._id);
+      }
+      if (candidate.id !== undefined) {
+        return resolveEntityId(candidate.id);
+      }
+      if (typeof candidate.toString === 'function') {
+        const asString = candidate.toString();
+        if (typeof asString === 'string' && asString !== '[object Object]') {
+          const trimmed = asString.trim();
+          return trimmed.length > 0 ? trimmed : undefined;
+        }
+      }
+    }
+
+    return undefined;
+  };
+
+  const findAccountById = (id: string) =>
+    accounts.find((candidate: any) => normalizeAccountId(candidate?._id, '') === id);
+
+  const resolveOrganizationNameFromAccount = (account: any): string | undefined => {
+    if (!account) {
+      return undefined;
+    }
+
+    const organizationRef = account.organizationId;
+    if (
+      organizationRef &&
+      typeof organizationRef === 'object' &&
+      typeof (organizationRef as { name?: unknown }).name === 'string'
+    ) {
+      const name = ((organizationRef as { name: string }).name || '').trim();
+      if (name.length > 0) {
+        return name;
+      }
+    }
+
+    if (typeof account.organizationName === 'string') {
+      const trimmed = account.organizationName.trim();
+      if (trimmed.length > 0) {
+        return trimmed;
+      }
+    }
+
+    return undefined;
+  };
+
+  const resolveAccountPresentation = (account: PageSelectedAccount): { label: string; code: string } => {
+    const accountRecord = findAccountById(account._id);
+
+    const recordName =
+      typeof accountRecord?.name === 'string' && accountRecord.name.trim().length > 0
+        ? accountRecord.name.trim()
+        : undefined;
+
+    const recordCode =
+      typeof accountRecord?.code === 'string' && accountRecord.code.trim().length > 0
+        ? accountRecord.code.trim()
+        : undefined;
+
+    const selectionName = typeof account.name === 'string' ? account.name.trim() : '';
+    const selectionCode = typeof account.code === 'string' ? account.code.trim() : '';
+
+    const displayCode = selectionCode || recordCode || '';
+    const baseName = selectionName || recordName || displayCode || 'Account';
+
+    const selectionOrgId =
+      typeof account.organizationId === 'string' && account.organizationId.trim().length > 0
+        ? account.organizationId.trim()
+        : undefined;
+
+    const recordOrgId = resolveEntityId(accountRecord?.organizationId);
+    const resolvedOrgId = selectionOrgId ?? recordOrgId;
+
+    const organizationNameHint =
+      typeof account.organizationName === 'string' && account.organizationName.trim().length > 0
+        ? account.organizationName.trim()
+        : undefined;
+
+    const organizationNameFromRecord = resolveOrganizationNameFromAccount(accountRecord);
+
+    const organizationNameFromStore =
+      resolvedOrgId
+        ? organizations.find((org) => resolveEntityId(org?._id) === resolvedOrgId)?.name
+        : undefined;
+
+    const organizationName =
+      organizationNameHint ??
+      (typeof organizationNameFromStore === 'string' && organizationNameFromStore.trim().length > 0
+        ? organizationNameFromStore.trim()
+        : undefined) ??
+      organizationNameFromRecord;
+
+    const label = organizationName ? `${organizationName} > ${baseName}` : baseName;
+
+    return {
+      label,
+      code: displayCode,
+    };
+  };
+
+  const resolveMappingPresentation = (
+    accountMapping: SupplierAccountMapping['accountMappings'][number],
+    fallbackOrganizationId: string,
+  ): { label: string; code: string } => {
+    const normalizedId = normalizeAccountId(accountMapping.accountId, accountMapping.accountCode ?? '');
+    const accountName =
+      (typeof accountMapping.accountName === 'string' && accountMapping.accountName.trim().length > 0
+        ? accountMapping.accountName.trim()
+        : undefined) ??
+      (typeof accountMapping.account?.name === 'string' && accountMapping.account.name.trim().length > 0
+        ? accountMapping.account.name.trim()
+        : undefined) ??
+      (typeof accountMapping.accountCode === 'string' && accountMapping.accountCode.trim().length > 0
+        ? accountMapping.accountCode.trim()
+        : undefined) ??
+      'Account';
+
+    const accountCode =
+      (typeof accountMapping.accountCode === 'string' && accountMapping.accountCode.trim().length > 0
+        ? accountMapping.accountCode.trim()
+        : undefined) ?? '';
+
+    const organizationId =
+      resolveEntityId((accountMapping as any).organizationId) ??
+      resolveEntityId(accountMapping.account?.organizationId) ??
+      (typeof fallbackOrganizationId === 'string' && fallbackOrganizationId.trim().length > 0
+        ? fallbackOrganizationId.trim()
+        : undefined) ??
+      '';
+
+    const organizationNameHint =
+      resolveOrganizationNameFromAccount(accountMapping.account) ??
+      (typeof (accountMapping as any).organizationName === 'string' &&
+        (accountMapping as any).organizationName.trim().length > 0
+        ? (accountMapping as any).organizationName.trim()
+        : undefined) ??
+      (organizationId
+        ? organizations.find((org) => resolveEntityId(org?._id) === organizationId)?.name?.trim()
+        : undefined);
+
+    const selection: PageSelectedAccount = {
+      _id: normalizedId,
+      name: accountName,
+      code: accountCode,
+      accountType: accountMapping.account?.accountType ?? '',
+      organizationId,
+      organizationName: organizationNameHint,
+    };
+
+    return resolveAccountPresentation(selection);
+  };
 
   const fetchMappings = async () => {
     setLoading(true);
@@ -125,14 +315,51 @@ const SupplierAccountMappingPage: React.FC = () => {
         notes: mapping.notes ?? '',
       });
       
-      // 閮剔蔭?訾葉??閮???
-      const accounts: SelectedAccount[] = mapping.accountMappings.map(am => ({
-        _id: am.accountId,
-        name: am.accountName,
-        code: am.accountCode,
-        accountType: '',
-        organizationId: mapping.organizationId
-      }));
+
+      const accounts: PageSelectedAccount[] = mapping.accountMappings.map((am, index) => {
+        const normalizedId = normalizeAccountId(am.accountId, `${am.accountCode ?? 'account'}-${index}`);
+        const resolvedName =
+          (typeof am.accountName === 'string' && am.accountName.trim().length > 0
+            ? am.accountName.trim()
+            : undefined) ??
+          (typeof am.account?.name === 'string' && am.account.name.trim().length > 0
+            ? am.account.name.trim()
+            : undefined) ??
+          (typeof am.accountCode === 'string' && am.accountCode.trim().length > 0
+            ? am.accountCode.trim()
+            : `Account-${index + 1}`);
+
+        const resolvedCode =
+          (typeof am.accountCode === 'string' && am.accountCode.trim().length > 0
+            ? am.accountCode.trim()
+            : undefined) ?? '';
+
+        const resolvedOrganizationId =
+          resolveEntityId((am as any).organizationId) ??
+          resolveEntityId(am.account?.organizationId) ??
+          (typeof mapping.organizationId === 'string' && mapping.organizationId.trim().length > 0
+            ? mapping.organizationId.trim()
+            : undefined) ??
+          '';
+
+        const resolvedOrganizationName =
+          resolveOrganizationNameFromAccount(am.account) ??
+          (typeof mapping.organizationName === 'string' && mapping.organizationName.trim().length > 0
+            ? mapping.organizationName.trim()
+            : undefined) ??
+          (resolvedOrganizationId
+            ? organizations.find((org) => resolveEntityId(org?._id) === resolvedOrganizationId)?.name?.trim()
+            : undefined);
+
+        return {
+          _id: normalizedId,
+          name: resolvedName,
+          code: resolvedCode,
+          accountType: am.account?.accountType ?? '',
+          organizationId: resolvedOrganizationId,
+          organizationName: resolvedOrganizationName,
+        };
+      });
       setSelectedAccounts(accounts);
     } else {
       setEditingMapping(null);
@@ -296,9 +523,15 @@ const SupplierAccountMappingPage: React.FC = () => {
                     <TableCell>{mapping.organizationName || getOrganizationName(mapping.organizationId)}</TableCell>
                     <TableCell>
                       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                        {mapping.accountMappings.map((am, index) => (
-                          <Chip key={index} label={`${am.accountCode} - ${am.accountName}`} size="small" />
-                        ))}
+                        {mapping.accountMappings.map((am, index) => {
+                          const presentation = resolveMappingPresentation(am, mapping.organizationId);
+                          const chipLabel = presentation.label;
+                          const chipTitle = presentation.code
+                            ? `${presentation.label} (${presentation.code})`
+                            : presentation.label;
+
+                          return <Chip key={index} label={chipLabel} title={chipTitle} size="small" />;
+                        })}
                       </Box>
                     </TableCell>
                     <TableCell>
@@ -372,18 +605,25 @@ const SupplierAccountMappingPage: React.FC = () => {
                       請選擇會計科目
                     </Typography>
                   ) : (
-                    selectedAccounts.map((account) => (
-                      <Chip
-                        key={account._id}
-                        label={`${account.code} - ${account.name}`}
-                        onDelete={() => {
-                          const newAccounts = selectedAccounts.filter(a => a._id !== account._id);
-                          setSelectedAccounts(newAccounts);
-                          setFormData({ ...formData, accountIds: newAccounts.map(a => a._id) });
-                        }}
-                        size="small"
-                      />
-                    ))
+                    selectedAccounts.map((account) => {
+                      const presentation = resolveAccountPresentation(account);
+                      const chipLabel = presentation.label;
+                      const chipTitle = presentation.code ? `${presentation.label} (${presentation.code})` : presentation.label;
+
+                      return (
+                        <Chip
+                          key={account._id}
+                          label={chipLabel}
+                          title={chipTitle}
+                          onDelete={() => {
+                            const newAccounts = selectedAccounts.filter(a => a._id !== account._id);
+                            setSelectedAccounts(newAccounts);
+                            setFormData({ ...formData, accountIds: newAccounts.map(a => a._id) });
+                          }}
+                          size="small"
+                        />
+                      );
+                    })
                   )}
                 </Box>
                 <Button
@@ -424,20 +664,60 @@ const SupplierAccountMappingPage: React.FC = () => {
         <DialogContent>
           <AccountSelector3
             onAccountSelect={(account) => {
-              const newAccount: SelectedAccount = {
-                _id: account._id,
-                name: account.name,
-                code: account.code,
-                accountType: account.accountType
+              const normalizedId = normalizeAccountId(account._id, account.code ?? `account-${Date.now()}`);
+
+              const resolvedOrganizationId =
+                (typeof account.organizationId === 'string' && account.organizationId.trim().length > 0
+                  ? account.organizationId.trim()
+                  : undefined) ??
+                resolveEntityId((account as any).organizationId) ??
+                '';
+
+              const organizationNameHint =
+                (typeof (account as any).organizationName === 'string' &&
+                (account as any).organizationName.trim().length > 0
+                  ? (account as any).organizationName.trim()
+                  : undefined) ??
+                (typeof (account as any).organization?.name === 'string' &&
+                (account as any).organization.name.trim().length > 0
+                  ? (account as any).organization.name.trim()
+                  : undefined) ??
+                (resolvedOrganizationId
+                  ? organizations.find((org) => resolveEntityId(org?._id) === resolvedOrganizationId)?.name?.trim()
+                  : undefined);
+
+              const newAccount: PageSelectedAccount = {
+                _id: normalizedId,
+                name:
+                  (typeof account.name === 'string' && account.name.trim().length > 0
+                    ? account.name.trim()
+                    : undefined) ??
+                  (typeof (account as any).accountName === 'string' && (account as any).accountName.trim().length > 0
+                    ? (account as any).accountName.trim()
+                    : undefined) ??
+                  (typeof account.code === 'string' && account.code.trim().length > 0
+                    ? account.code.trim()
+                    : (typeof (account as any).code === 'string' && (account as any).code.trim().length > 0
+                        ? (account as any).code.trim()
+                        : 'Account')),
+                code:
+                  (typeof account.code === 'string' && account.code.trim().length > 0
+                    ? account.code.trim()
+                    : undefined) ??
+                  (typeof (account as any).code === 'string' && (account as any).code.trim().length > 0
+                    ? (account as any).code.trim()
+                    : ''),
+                accountType: account.accountType,
+                organizationId: resolvedOrganizationId,
+                organizationName: organizationNameHint,
               };
-              
-              // 檢查是否已經選擇過這個科目
-              if (!selectedAccounts.find(a => a._id === account._id)) {
+
+              if (!selectedAccounts.find(a => a._id === normalizedId)) {
                 const newAccounts = [...selectedAccounts, newAccount];
                 setSelectedAccounts(newAccounts);
                 setFormData({ ...formData, accountIds: newAccounts.map(a => a._id) });
               }
-              
+
               setShowAccountSelector(false);
             }}
             onCancel={() => setShowAccountSelector(false)}

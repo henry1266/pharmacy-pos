@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -39,12 +39,16 @@ const SupplierAccountMappingDisplay: React.FC<SupplierAccountMappingDisplayProps
     // 添加機構名稱
     if (account.organizationId?.name) {
       hierarchy.push(account.organizationId.name);
+    } else if (typeof account.organizationName === 'string' && account.organizationName.trim().length > 0) {
+      hierarchy.push(account.organizationName.trim());
+    } else if (typeof account.organizationId === 'string' && account.organizationId.trim().length > 0) {
+      hierarchy.push(account.organizationId.trim());
     }
     
     // 遞迴建構父科目階層
     const buildParentHierarchy = (acc: any): string[] => {
       const parents: string[] = [];
-      if (acc.parentId) {
+      if (acc.parentId && typeof acc.parentId === 'object') {
         parents.push(...buildParentHierarchy(acc.parentId));
         parents.push(acc.parentId.name || acc.parentId.code);
       }
@@ -55,8 +59,26 @@ const SupplierAccountMappingDisplay: React.FC<SupplierAccountMappingDisplayProps
     hierarchy.push(...buildParentHierarchy(account));
     
     // 添加當前科目
-    hierarchy.push(account.name || account.code);
-    
+    const displayName =
+      (typeof account.name === 'string' && account.name.trim().length > 0 ? account.name.trim() : undefined) ??
+      (typeof account.accountName === 'string' && account.accountName.trim().length > 0
+        ? account.accountName.trim()
+        : undefined) ??
+      (typeof account.code === 'string' && account.code.trim().length > 0 ? account.code.trim() : undefined) ??
+      undefined;
+
+    if (displayName) {
+      hierarchy.push(displayName);
+    }
+
+    if (hierarchy.length === 0) {
+      return (
+        (typeof account.code === 'string' && account.code.trim().length > 0 ? account.code.trim() : undefined) ??
+        (typeof account._id === 'string' && account._id.trim().length > 0 ? account._id.trim() : undefined) ??
+        'Account'
+      );
+    }
+
     return hierarchy.join(' > ');
   };
 
@@ -211,12 +233,48 @@ const SupplierAccountMappingDisplay: React.FC<SupplierAccountMappingDisplayProps
               ?.sort((a, b) => a.priority - b.priority)
               ?.map((accountMapping, index) => {
                 // 獲取完整的會計科目資料（包含階層資訊）
-                const accountData = (accountMapping as any).accountId;
-                const hierarchyPath = accountData ? buildAccountHierarchy(accountData) :
-                  `${accountMapping.accountCode} - ${accountMapping.accountName}`;
-                const mappingKey = typeof accountData === 'string'
-                  ? accountData
-                  : accountData?._id ?? accountMapping.accountCode ?? `account-${index}`;
+                const accountDocument =
+                  (accountMapping as any).accountId && typeof (accountMapping as any).accountId === 'object'
+                    ? (accountMapping as any).accountId
+                    : accountMapping.account && typeof accountMapping.account === 'object'
+                    ? accountMapping.account
+                    : null;
+
+                const code =
+                  typeof accountMapping.accountCode === 'string' && accountMapping.accountCode.trim().length > 0
+                    ? accountMapping.accountCode.trim()
+                    : undefined;
+
+                const name =
+                  (typeof accountMapping.accountName === 'string' && accountMapping.accountName.trim().length > 0
+                    ? accountMapping.accountName.trim()
+                    : undefined) ??
+                  (typeof accountDocument?.name === 'string' && accountDocument.name.trim().length > 0
+                    ? accountDocument.name.trim()
+                    : undefined) ??
+                  code ??
+                  `Account-${index + 1}`;
+
+                const documentId =
+                  accountDocument && typeof accountDocument._id === 'string'
+                    ? accountDocument._id.trim()
+                    : undefined;
+
+                const fallbackLabel = name ?? code ?? `Account-${index + 1}`;
+
+                const hierarchyPath =
+                  accountDocument && typeof accountDocument === 'object'
+                    ? buildAccountHierarchy(accountDocument)
+                    : code && name && name !== code
+                    ? `${code} - ${name}`
+                    : fallbackLabel;
+
+                const mappingKey =
+                  (typeof accountMapping.accountId === 'string' && accountMapping.accountId.trim().length > 0
+                    ? accountMapping.accountId.trim()
+                    : undefined) ??
+                  (documentId && documentId.length > 0 ? documentId : undefined) ??
+                  (code ?? `account-${index}`);
                 
                 return (
                   <React.Fragment key={mappingKey}>
