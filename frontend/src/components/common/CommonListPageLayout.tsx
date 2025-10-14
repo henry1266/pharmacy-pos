@@ -1,14 +1,15 @@
-import React from 'react';
+import React from "react";
 import {
   Box,
   Typography,
   Grid as MuiGrid,
   Paper,
-  CircularProgress
-} from '@mui/material';
-import DataTable from '../DataTable'; // Assuming DataTable is in ./tables/
-import PageHeaderSection from './PageHeaderSection';
-import HomeIcon from '@mui/icons-material/Home';
+  CircularProgress,
+  PaperProps
+} from "@mui/material";
+import HomeIcon from "@mui/icons-material/Home";
+import DataTable from "../DataTable";
+import PageHeaderSection from "./PageHeaderSection";
 
 // 直接使用 MuiGrid
 const Grid = MuiGrid;
@@ -21,7 +22,7 @@ interface Column {
   renderCell?: (params: any) => React.ReactNode;
   valueGetter?: (params: any) => any;
   type?: string;
-  [key: string]: any; // 其他可能的欄位屬性
+  [key: string]: any;
 }
 
 /**
@@ -39,7 +40,36 @@ interface CommonListPageLayoutProps {
   tableGridWidth?: number;
   detailGridWidth?: number;
   dataTableProps?: Record<string, any>;
+  breadcrumbLabel?: string;
 }
+
+const extractText = (node: React.ReactNode): string | undefined => {
+  if (node === null || node === undefined) {
+    return undefined;
+  }
+
+  if (typeof node === "string" || typeof node === "number") {
+    return String(node);
+  }
+
+  if (Array.isArray(node)) {
+    const parts = node
+      .map(extractText)
+      .filter((part): part is string => Boolean(part));
+    return parts.length ? parts.join(" ") : undefined;
+  }
+
+  if (React.isValidElement(node)) {
+    const props = node.props as Record<string, unknown>;
+    return (
+      extractText(props.title as React.ReactNode) ||
+      extractText(props.label as React.ReactNode) ||
+      extractText(props.children as React.ReactNode)
+    );
+  }
+
+  return undefined;
+};
 
 const CommonListPageLayout: React.FC<CommonListPageLayoutProps> = ({
   title,
@@ -52,8 +82,61 @@ const CommonListPageLayout: React.FC<CommonListPageLayoutProps> = ({
   detailPanel,
   tableGridWidth = 9,
   detailGridWidth = 3,
-  dataTableProps = {}
+  dataTableProps = {},
+  breadcrumbLabel,
 }) => {
+  const {
+    containerPaperProps: incomingContainerPaperProps,
+    height: incomingHeight,
+    pageSize: incomingPageSize,
+    ...restDataTableProps
+  } = dataTableProps;
+
+  const tableHeight = incomingHeight ?? "74vh";
+  const pageSize = incomingPageSize ?? 10;
+
+  const defaultContainerPaperSx = {
+    display: "flex",
+    flexDirection: "column" as const,
+    borderRadius: 2,
+  };
+
+  const {
+    sx: containerPaperSx,
+    elevation: containerPaperElevation,
+    variant: containerPaperVariant,
+    ...otherContainerPaperProps
+  } = (incomingContainerPaperProps as PaperProps | undefined) ?? {};
+
+  const mergedContainerPaperProps: PaperProps = {
+    elevation: containerPaperElevation ?? 0,
+    variant: containerPaperVariant ?? "outlined",
+    ...otherContainerPaperProps,
+    sx: containerPaperSx
+      ? Array.isArray(containerPaperSx)
+        ? [defaultContainerPaperSx, ...containerPaperSx]
+        : [defaultContainerPaperSx, containerPaperSx]
+      : defaultContainerPaperSx,
+  };
+
+  const resolvedBreadcrumbLabel = breadcrumbLabel ?? extractText(title);
+
+  const breadcrumbItems = [
+    {
+      label: "Home",
+      path: "/",
+      icon: <HomeIcon sx={{ fontSize: "1.1rem" }} />,
+    },
+    ...(resolvedBreadcrumbLabel
+      ? [
+          {
+            label: resolvedBreadcrumbLabel,
+            icon: null,
+          },
+        ]
+      : []),
+  ];
+
   return (
     <Box sx={{ maxWidth: '100%', pl: 0 }}>
       {/* Header: Title and Action Buttons using PageHeaderSection */}
@@ -79,56 +162,37 @@ const CommonListPageLayout: React.FC<CommonListPageLayoutProps> = ({
         </Typography>
       )}
 
-      {/* Main Content Grid */}
-      <Grid container spacing={2}>
-        {/* Left/Main: Data Table */}
-        <Grid item xs={12} md={detailPanel ? tableGridWidth : 12}> {/* Full width if no detail panel */}
-          <Paper elevation={0} variant="outlined"
-  sx={{
-    p: { xs: 0, md: 0 },   // 小螢幕加內距，大螢幕維持原本 0
-    mb: { xs: 0, md: 0 },    // 小螢幕保留更多底部空間給分頁
-    height: '74vh',         // 設定高度為視窗高度的75vh
-    overflow: 'auto',       // 內容超出時顯示滾動條
-    display: 'flex',        // 使用 flex 佈局
-    flexDirection: 'column' // 垂直排列子元素
-  }}
->  {/* 添加底部外邊距，確保有足夠空間顯示分頁控制器 */}
-            {loading && !rows.length ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+      <Grid container spacing={2} sx={{ mt: 0 }}>
+        <Grid item xs={12} md={detailPanel ? tableGridWidth : 12}>
+          {loading && !rows.length ? (
+            <Paper {...mergedContainerPaperProps}>
+              <Box sx={{
+                flex: 1,
+                minHeight: tableHeight,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+              }}>
                 <CircularProgress />
               </Box>
-            ) : (
-              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', width: '100%', height: '100%', p: 0, m: 0, border: 'none', borderRadius: 0, boxShadow: 'none', backgroundColor: 'transparent' }}>
-                <DataTable
-                  rows={rows}
-                  columns={columns}
-                  loading={loading}
-                  pageSize={10}
-                  checkboxSelection={false}
-                  sx={{
-                    width: '100%',
-                    height: '100%',
-                    p: 0,
-                    m: 0,
-                    '& .MuiDataGrid-root': {
-                      border: 'none',
-                      backgroundColor: 'transparent'
-                    },
-                    '& .MuiDataGrid-footerContainer': {
-                      borderTop: 'none'
-                    }
-                  }}
-                  {...(onRowClick && { onRowClick })}
-                  {...dataTableProps} // Spread any additional DataTable props including sorting if needed
-                />
-              </Box>
-            )}
-          </Paper>
+            </Paper>
+          ) : (
+            <DataTable
+              rows={rows}
+              columns={columns}
+              loading={loading}
+              checkboxSelection={false}
+              pageSize={pageSize}
+              containerPaperProps={mergedContainerPaperProps}
+              height={tableHeight}
+              {...(onRowClick && { onRowClick })}
+              {...restDataTableProps}
+            />
+          )}
         </Grid>
 
-        {/* Right: Detail Panel (Optional) */}
         {detailPanel && (
-          <Grid item xs={12} md={detailGridWidth}>
+          <Grid item xs={12} md={detailGridWidth} sx={{ minHeight: 0 }}>
             {detailPanel}
           </Grid>
         )}

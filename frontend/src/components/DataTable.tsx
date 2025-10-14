@@ -1,8 +1,26 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { DataGrid, GridColumnMenu, useGridApiContext, GridColDef, GridRowParams, GridInitialState } from '@mui/x-data-grid';
-import { Paper, Box, Typography, TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import React, { useEffect, useState, useRef, useCallback } from "react";
+import {
+  DataGrid,
+  GridColumnMenu,
+  useGridApiContext,
+  GridColDef,
+  GridRowParams,
+  GridInitialState
+} from "@mui/x-data-grid";
+import {
+  Paper,
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  PaperProps
+} from "@mui/material";
+import { SxProps, Theme } from "@mui/material/styles";
 
-// 自定義菜單項按鈕屬性介面
 interface ColumnMenuUserItemButtonProps {
   onClick: () => void;
 }
@@ -11,7 +29,7 @@ interface ColumnMenuUserItemButtonProps {
 const ColumnMenuUserItemButton: React.FC<ColumnMenuUserItemButtonProps> = ({ onClick }) => (
   <Button
     onClick={onClick}
-    sx={{ width: '100%', justifyContent: 'flex-start', textAlign: 'left', pl: 2 }}
+    sx={{ width: "100%", justifyContent: "flex-start", textAlign: "left", pl: 2 }}
   >
     設置列寬
   </Button>
@@ -45,11 +63,11 @@ const CustomColumnMenu: React.FC<CustomColumnMenuProps> = (props) => {
     <>
       <GridColumnMenu
         {...props}
-        open={true}
+        open
         currentColumn={colDef}
       />
       <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>設置列寬</DialogTitle>
+        <DialogTitle>Set Column Width</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
@@ -87,7 +105,8 @@ interface DataTableProps {
   onRowClick?: (params: GridRowParams) => void;
   height?: number | string;
   disablePagination?: boolean;
-  [key: string]: any; // 允許其他 DataGrid 屬性
+  containerPaperProps?: PaperProps;
+  [key: string]: any;
 }
 
 /**
@@ -100,8 +119,9 @@ const DataTable: React.FC<DataTableProps> = ({
   loading = false,
   checkboxSelection = false,
   onRowClick,
-  height = 600,
+  height = "74vh",
   disablePagination = false,
+  containerPaperProps,
   ...rest
 }) => {
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
@@ -110,22 +130,12 @@ const DataTable: React.FC<DataTableProps> = ({
   // 處理鍵盤事件
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     if (!rows || rows.length === 0) return;
-    
-    // 只處理上下鍵
-    if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+
+    if (event.key === "ArrowUp" || event.key === "ArrowDown") {
       event.preventDefault();
-      
-      let newIndex: number;
-      
-      if (event.key === 'ArrowUp') {
-        // 上鍵：選擇上一行，如果已經是第一行則不變
-        newIndex = Math.max(0, selectedIndex - 1);
-      } else {
-        // 下鍵：選擇下一行，如果已經是最後一行則不變
-        newIndex = Math.min(rows.length - 1, selectedIndex + 1);
-      }
-      
-      // 如果索引變化了，觸發行點擊事件
+      const delta = event.key === "ArrowUp" ? -1 : 1;
+      const newIndex = Math.min(Math.max(0, selectedIndex + delta), rows.length - 1);
+
       if (newIndex !== selectedIndex) {
         setSelectedIndex(newIndex);
         const selectedRow = rows[newIndex];
@@ -148,44 +158,102 @@ const DataTable: React.FC<DataTableProps> = ({
   // 添加和移除鍵盤事件監聽
   useEffect(() => {
     const gridElement = gridRef.current;
-    if (gridElement) {
-      gridElement.addEventListener('keydown', handleKeyDown as EventListener);
-      
-      return () => {
-        gridElement.removeEventListener('keydown', handleKeyDown as EventListener);
-      };
+    if (!gridElement) {
+      return () => undefined;
     }
-    
-    // 如果沒有 gridElement，返回空的清理函數
-    return () => {};
+
+    gridElement.addEventListener("keydown", handleKeyDown as EventListener);
+    return () => {
+      gridElement.removeEventListener("keydown", handleKeyDown as EventListener);
+    };
   }, [handleKeyDown]);
 
-  // 確保所有列都有最小寬度（移除 resizable 因為使用的是 MIT 版本）
   const columnsWithResizing = columns.map(column => ({
     ...column,
-    minWidth: 50, // 設置最小寬度
+    minWidth: 50,
   }));
 
-  // 初始狀態 - 優先使用傳入的 initialState，否則使用預設值
+  const {
+    initialState,
+    sx: customSx,
+    ...dataGridProps
+  } = rest;
+
   const defaultInitialState: GridInitialState = disablePagination ? {} : {
     pagination: {
       pageSize: 50,
     },
   };
-  
-  const finalInitialState = rest.initialState || defaultInitialState;
+
+  const finalInitialState: GridInitialState = (initialState as GridInitialState | undefined) ?? defaultInitialState;
+
+  const defaultContainerSx: SxProps<Theme> = {
+    width: "100%",
+    overflow: "hidden",
+  };
+
+  const {
+    sx: containerCustomSx,
+    elevation: containerElevation,
+    variant: containerVariant,
+    ...restContainerPaperProps
+  } = containerPaperProps ?? {};
+
+  const mergedContainerSx = containerCustomSx
+    ? Array.isArray(containerCustomSx)
+      ? [defaultContainerSx, ...containerCustomSx]
+      : [defaultContainerSx, containerCustomSx]
+    : defaultContainerSx;
+
+  const mergedContainerPaperProps: PaperProps = {
+    elevation: containerElevation ?? 2,
+    variant: containerVariant ?? "outlined",
+    sx: mergedContainerSx,
+    ...restContainerPaperProps,
+  };
+
+  const baseGridSx: SxProps<Theme> = {
+    height: "100%",
+    width: "100%",
+    border: "none",
+    backgroundColor: "transparent",
+    "& .MuiDataGrid-main": { overflow: "hidden" },
+    "& .MuiDataGrid-virtualScroller": {
+      overflow: "auto",
+      marginTop: "0 !important",
+    },
+    "& .MuiDataGrid-columnHeaders": {
+      backgroundColor: "action.hover",
+      borderBottom: "1px solid",
+      borderColor: "divider",
+      position: "sticky",
+      top: 0,
+      zIndex: 1,
+    },
+    "& .MuiDataGrid-footerContainer": {
+      borderTop: "none",
+      display: disablePagination ? "none" : "flex",
+    },
+  };
+
+  const mergedGridSx = customSx
+    ? Array.isArray(customSx)
+      ? [baseGridSx, ...customSx]
+      : [baseGridSx, customSx]
+    : baseGridSx;
 
   return (
-    <Paper elevation={2} sx={{ width: '100%', overflow: 'hidden' }}>
+    <Paper {...mergedContainerPaperProps}>
       {title && (
-        <Box sx={{ p: 2, borderBottom: '1px solid rgba(224, 224, 224, 1)' }}>
+        <Box sx={{ p: 2, borderBottom: "1px solid rgba(224, 224, 224, 1)" }}>
           <Typography variant="h6" component="div">
             {title}
           </Typography>
         </Box>
       )}
-      <Box sx={{ width: '100%', height: '74vh' }} ref={gridRef} tabIndex={0}>
+      <Box sx={{ width: "100%", height }} ref={gridRef} tabIndex={0}>
         <DataGrid
+          {...dataGridProps}
           rows={rows}
           columns={columnsWithResizing}
           loading={loading}
@@ -195,28 +263,7 @@ const DataTable: React.FC<DataTableProps> = ({
           disableSelectionOnClick
           onRowClick={handleRowClickInternal}
           initialState={finalInitialState}
-          sx={{
-            height: '100%',
-            width: '100%',
-            '& .MuiDataGrid-main': { overflow: 'hidden' },
-            '& .MuiDataGrid-virtualScroller': {
-              overflow: 'auto',
-              marginTop: '0 !important'
-            },
-            '& .MuiDataGrid-columnHeaders': {
-              backgroundColor: 'action.hover',
-              borderBottom: '1px solid',
-              borderColor: 'divider',
-              position: 'sticky',
-              top: 0,
-              zIndex: 1,
-            },
-            // 隱藏分頁工具列（當禁用分頁時）
-            '& .MuiDataGrid-footerContainer': {
-              display: disablePagination ? 'none' : 'flex'
-            }
-          }}
-          {...rest}
+          sx={mergedGridSx}
         />
       </Box>
     </Paper>
