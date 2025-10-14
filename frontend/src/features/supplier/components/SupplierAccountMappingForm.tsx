@@ -22,7 +22,7 @@ import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
 import { fetchAccounts2, fetchOrganizations2 } from '../../../redux/actions';
 
 type FormSelectedAccount = SelectedAccount & {
-  organizationName?: string;
+  organizationName: string | undefined;
 };
 
 interface SupplierAccountMappingFormProps {
@@ -48,6 +48,43 @@ const SupplierAccountMappingForm: React.FC<SupplierAccountMappingFormProps> = ({
     dispatch(fetchAccounts2());
     dispatch(fetchOrganizations2());
   }, [dispatch]);
+
+  const sanitizeOrganizationName = (name: string | undefined, organizationId?: string): string | undefined => {
+    if (!name) {
+      return undefined;
+    }
+    const trimmed = name.trim();
+    if (!trimmed) {
+      return undefined;
+    }
+    const normalizedId = organizationId?.trim();
+    const looksLikeObjectId = /^[0-9a-fA-F]{24}$/.test(trimmed);
+    if ((normalizedId && trimmed === normalizedId) || looksLikeObjectId) {
+      return undefined;
+    }
+    return trimmed;
+  };
+
+  const resolveOrganizationNameFromAccount = (account: any): string | undefined => {
+    if (!account) {
+      return undefined;
+    }
+
+    const orgRef = account.organizationId;
+    if (
+      orgRef &&
+      typeof orgRef === 'object' &&
+      typeof (orgRef as { name?: unknown }).name === 'string'
+    ) {
+      return sanitizeOrganizationName((orgRef as { name: string }).name);
+    }
+
+    if (typeof account.organizationName === 'string') {
+      return sanitizeOrganizationName(account.organizationName);
+    }
+
+    return undefined;
+  };
 
   const normalizeAccountId = (value: unknown, fallback: string): string => {
     if (typeof value === 'string' && value.trim().length > 0) {
@@ -127,31 +164,21 @@ const SupplierAccountMappingForm: React.FC<SupplierAccountMappingFormProps> = ({
     const recordOrgId = resolveEntityId(accountRecord?.organizationId);
     const resolvedOrgId = selectionOrgId ?? recordOrgId;
 
-    const organizationNameHint =
-      typeof account.organizationName === 'string' && account.organizationName.trim().length > 0
-        ? account.organizationName.trim()
-        : undefined;
+    const organizationNameHint = sanitizeOrganizationName(account.organizationName, resolvedOrgId);
 
-    const organizationNameFromRecord =
-      accountRecord && typeof (accountRecord as any)?.organizationName === 'string'
-        ? ((accountRecord as any).organizationName as string).trim()
-        : accountRecord &&
-          typeof (accountRecord as any)?.organizationId === 'object' &&
-          typeof (accountRecord as any)?.organizationId?.name === 'string'
-        ? ((accountRecord as any)?.organizationId?.name as string).trim()
-        : undefined;
+    const organizationNameFromRecord = sanitizeOrganizationName(
+      resolveOrganizationNameFromAccount(accountRecord),
+      resolvedOrgId,
+    );
 
-    const organizationNameFromStore =
+    const organizationNameFromStore = sanitizeOrganizationName(
       resolvedOrgId
         ? organizations.find((org: any) => resolveEntityId(org?._id) === resolvedOrgId)?.name
-        : undefined;
+        : undefined,
+      resolvedOrgId,
+    );
 
-    const organizationName =
-      organizationNameHint ??
-      (typeof organizationNameFromStore === 'string' && organizationNameFromStore.trim().length > 0
-        ? organizationNameFromStore.trim()
-        : undefined) ??
-      organizationNameFromRecord;
+    const organizationName = organizationNameHint ?? organizationNameFromStore ?? organizationNameFromRecord;
 
     const label = organizationName ? `${organizationName} > ${baseName}` : baseName;
 
@@ -204,16 +231,11 @@ const SupplierAccountMappingForm: React.FC<SupplierAccountMappingFormProps> = ({
             `Account-${index + 1}`;
 
           const resolvedOrgName =
-            (typeof am.account?.organizationId === 'object' && typeof am.account?.organizationId?.name === 'string'
-              ? am.account.organizationId.name.trim()
-              : undefined) ??
-            (typeof am.account?.organizationName === 'string' && am.account.organizationName.trim().length > 0
-              ? am.account.organizationName.trim()
-              : undefined) ??
-            (typeof existingMapping.organizationName === 'string' &&
-            existingMapping.organizationName.trim().length > 0
-              ? existingMapping.organizationName.trim()
-              : undefined);
+            sanitizeOrganizationName(
+              resolveOrganizationNameFromAccount(am.account),
+              resolveEntityId(am.account?.organizationId),
+            ) ??
+            sanitizeOrganizationName(existingMapping.organizationName, existingMapping.organizationId);
 
           return {
             _id: normalizeAccountId(am.accountId, fallbackId),
@@ -431,17 +453,14 @@ const SupplierAccountMappingForm: React.FC<SupplierAccountMappingFormProps> = ({
                 '';
 
               const organizationNameHint =
-                (typeof (account as any).organizationName === 'string' &&
-                (account as any).organizationName.trim().length > 0
-                  ? (account as any).organizationName.trim()
-                  : undefined) ??
-                (typeof (account as any).organization?.name === 'string' &&
-                (account as any).organization.name.trim().length > 0
-                  ? (account as any).organization.name.trim()
-                  : undefined) ??
-                (resolvedOrganizationId
-                  ? organizations.find((org: any) => resolveEntityId(org?._id) === resolvedOrganizationId)?.name?.trim()
-                  : undefined);
+                sanitizeOrganizationName(
+                  resolveOrganizationNameFromAccount(account),
+                  resolvedOrganizationId,
+                ) ??
+                sanitizeOrganizationName(
+                  organizations.find((org: any) => resolveEntityId(org?._id) === resolvedOrganizationId)?.name,
+                  resolvedOrganizationId,
+                );
 
               const next: FormSelectedAccount = {
                 _id: normalizedId,

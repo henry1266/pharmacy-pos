@@ -43,8 +43,8 @@ import { useOrganizations } from '../../../hooks/useOrganizations';
 import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
 import { fetchAccounts2, fetchOrganizations2 } from '../../../redux/actions';
 
-type PageSelectedAccount = SelectedAccount & { organizationName: string | undefined;
-  organizationName?: string;
+type PageSelectedAccount = SelectedAccount & {
+  organizationName: string | undefined;
 };
 
 const SupplierAccountMappingPage: React.FC = () => {
@@ -74,6 +74,42 @@ const SupplierAccountMappingPage: React.FC = () => {
     dispatch(fetchAccounts2());
     dispatch(fetchOrganizations2());
   }, [dispatch]);
+  const sanitizeOrganizationName = (name: string | undefined, organizationId?: string): string | undefined => {
+    if (!name) {
+      return undefined;
+    }
+    const trimmed = name.trim();
+    if (!trimmed) {
+      return undefined;
+    }
+    const normalizedId = organizationId?.trim();
+    const looksLikeObjectId = /^[0-9a-fA-F]{24}$/.test(trimmed);
+    if ((normalizedId && trimmed === normalizedId) || looksLikeObjectId) {
+      return undefined;
+    }
+    return trimmed;
+  };
+
+  const resolveOrganizationNameFromAccount = (account: any): string | undefined => {
+    if (!account) {
+      return undefined;
+    }
+
+    const orgRef = account.organizationId;
+    if (
+      orgRef &&
+      typeof orgRef === 'object' &&
+      typeof (orgRef as { name?: unknown }).name === 'string'
+    ) {
+      return sanitizeOrganizationName((orgRef as { name: string }).name);
+    }
+
+    if (typeof account.organizationName === 'string') {
+      return sanitizeOrganizationName(account.organizationName);
+    }
+
+    return undefined;
+  };
 
   const normalizeAccountId = (value: unknown, fallback: string): string => {
     if (typeof value === 'string' && value.trim().length > 0) {
