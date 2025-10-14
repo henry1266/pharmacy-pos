@@ -108,6 +108,13 @@ const SupplierAccountMappingPage: React.FC = () => {
       return sanitizeOrganizationName(account.organizationName);
     }
 
+    if (typeof orgRef === 'string') {
+      const matchedOrg = organizations.find((org) => org._id === orgRef.trim());
+      if (matchedOrg) {
+        return sanitizeOrganizationName(matchedOrg.name, matchedOrg._id);
+      }
+    }
+
     return undefined;
   };
 

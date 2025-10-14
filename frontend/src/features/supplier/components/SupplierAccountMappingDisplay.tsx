@@ -17,6 +17,7 @@ import {
 } from '@mui/icons-material';
 import { SupplierAccountMapping } from '@pharmacy-pos/shared/types/entities';
 import supplierAccountMappingClient from '../api/accountMappingClient';
+import { useOrganizations } from '../../../hooks/useOrganizations';
 
 interface SupplierAccountMappingDisplayProps {
   supplierId: string;
@@ -31,6 +32,7 @@ const SupplierAccountMappingDisplay: React.FC<SupplierAccountMappingDisplayProps
   const [mapping, setMapping] = useState<SupplierAccountMapping | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
+  const { organizations } = useOrganizations();
 
   // 建構會計科目的階層路徑
   const sanitizeDisplayName = (value: unknown): string | undefined => {
@@ -47,11 +49,41 @@ const SupplierAccountMappingDisplay: React.FC<SupplierAccountMappingDisplayProps
     return trimmed;
   };
 
-  const buildAccountHierarchy = (account: any): string => {
+const resolveOrganizationName = (organizationId?: string, fallbackName?: string): string | undefined => {
+    const nameFromFallback = sanitizeDisplayName(fallbackName);
+    if (nameFromFallback) {
+      return nameFromFallback;
+    }
+
+    if (typeof organizationId !== 'string') {
+      return undefined;
+    }
+    const trimmedId = organizationId.trim();
+    if (!trimmedId) {
+      return undefined;
+    }
+
+    return sanitizeDisplayName(
+      organizations.find((org) => org._id === trimmedId)?.name,
+    );
+  };
+
+  const buildAccountHierarchy = (account: any, fallbackOrganizationName?: string): string => {
     const hierarchy: string[] = [];
 
-    const organizationName =
-      sanitizeDisplayName(account.organizationId?.name) ?? sanitizeDisplayName(account.organizationName);
+    let organizationName = resolveOrganizationName(
+      typeof account.organizationId === 'string' ? account.organizationId : account.organizationId?._id,
+      account.organizationName,
+    );
+
+    if (!organizationName && fallbackOrganizationName) {
+      organizationName = sanitizeDisplayName(fallbackOrganizationName);
+    }
+
+    if (!organizationName && typeof account.organizationId === 'string') {
+      organizationName = resolveOrganizationName(account.organizationId);
+    }
+
     if (organizationName) {
       hierarchy.push(organizationName);
     }
@@ -80,7 +112,7 @@ const SupplierAccountMappingDisplay: React.FC<SupplierAccountMappingDisplayProps
     }
 
     if (hierarchy.length === 0) {
-      const fallbackCode = sanitizeDisplayName(account.code);
+      const fallbackCode = sanitizeDisplayName(account.code) ?? sanitizeDisplayName(account._id);
       return fallbackCode ?? 'Account';
     }
 
@@ -259,14 +291,17 @@ const SupplierAccountMappingDisplay: React.FC<SupplierAccountMappingDisplayProps
                     ? accountDocument._id.trim()
                     : undefined;
 
-                const fallbackLabel = name ?? code ?? `Account-${index + 1}`;
+                const fallbackOrganizationName =
+                  resolveOrganizationName(accountMapping.account?.organizationId, (accountMapping as any).organizationName) ??
+                  resolveOrganizationName(mapping.organizationId, mapping.organizationName);
 
                 const hierarchyPath =
                   accountDocument && typeof accountDocument === 'object'
-                    ? buildAccountHierarchy(accountDocument)
-                    : code && name && name !== code
-                    ? `${code} - ${name}`
-                    : fallbackLabel;
+                    ? buildAccountHierarchy(accountDocument, fallbackOrganizationName)
+                    : (() => {
+                        const baseLabel = name;
+                        return fallbackOrganizationName ? `${fallbackOrganizationName} > ${baseLabel}` : baseLabel;
+                      })();
 
                 const mappingKey =
                   (typeof accountMapping.accountId === 'string' && accountMapping.accountId.trim().length > 0
