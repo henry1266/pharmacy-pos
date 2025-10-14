@@ -1,6 +1,6 @@
 import React from 'react';
 import { Snackbar, Alert } from '@mui/material';
-import { SnackbarState } from '../types/supplier.types';
+import { SnackbarState } from '../types';
 
 interface SupplierSnackbarProps {
   snackbar: SnackbarState;

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { AlertProps } from '@mui/material';
-import { SnackbarState } from '../types/supplier.types';
+import { SnackbarState } from '../types';
 
 export const useSnackbar = () => {
   const [snackbar, setSnackbar] = useState<SnackbarState>({

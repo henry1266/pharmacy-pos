@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ImportResult } from '../types/supplier.types';
+import { ImportResult } from '../types';
 import useSupplierData from './useSupplierData';
 
 export const useSupplierImport = (isTestMode: boolean) => {

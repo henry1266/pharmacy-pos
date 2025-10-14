@@ -1,4 +1,4 @@
-# 供應商模組
+# �����ӼҲ�
 
 供應商模組涵蓋供應夥伴的清單檢視、資料維護（新增 / 編輯 / 刪除）與帳務對照設定。前端採用 React 18、Redux Toolkit、RTK Query，所有資料契約均由 shared Zod schema 推導出 ts-rest contract client，以維持單一事實來源（SSOT）。
 
@@ -43,5 +43,11 @@ supplier/
 ├─ utils/       # 計算與轉換工具（預留，共用邏輯集中於此）
 └─ README.md    # 模組說明與治理規範
 ```
+
+## Migration Notes
+
+- Legacy `config/` constants now live in `constants/`; update imports to reference `../constants`.
+- Feature-local types are re-exported via `../types`, removing the need to import `supplier.types` directly.
+- Shared data transformers and error helpers were moved into `../utils` to avoid duplication across hooks.
 
 > 任何模組或結構變更，請在 Issue / PR 描述中附上最新的 `agent_task` YAML 與相關開放規格（OpenSpec）變更，以維持可追溯性。

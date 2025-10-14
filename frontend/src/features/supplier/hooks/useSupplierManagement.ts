@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { SupplierData, SupplierFormState } from '../types/supplier.types';
+import type { SupplierResponseDto } from '../api/dto';
+import { SupplierData, SupplierFormState } from '../types';
+import { ensureSupplierId } from '../utils';
 import useSupplierData from './useSupplierData';
 import testModeDataService from '@/testMode/services/TestModeDataService';
 
@@ -35,9 +37,9 @@ export const useSupplierManagement = () => {
       })) as unknown as SupplierData[];
       setLocalSuppliers(convertedSuppliers);
     } else {
-      const convertedSuppliers = (actualSuppliers ?? []).map(supplier => ({
+      const convertedSuppliers = (actualSuppliers ?? []).map((supplier: SupplierResponseDto) => ({
         ...supplier,
-        id: supplier._id
+        id: ensureSupplierId(supplier)
       })) as unknown as SupplierData[];
       setLocalSuppliers(convertedSuppliers);
     }

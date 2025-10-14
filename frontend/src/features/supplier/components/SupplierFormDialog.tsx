@@ -11,7 +11,7 @@ import {
   Divider,
   Box
 } from '@mui/material';
-import { SupplierFormState } from '../types/supplier.types';
+import { SupplierFormState } from '../types';
 import SupplierAccountMappingForm from './SupplierAccountMappingForm';
 
 interface SupplierFormDialogProps {

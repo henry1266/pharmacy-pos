@@ -18,7 +18,7 @@ import SupplierDetailPanel from '../components/SupplierDetailPanel';
 import SupplierSnackbar from '../components/SupplierSnackbar';
 
 // 導入類型
-import { SupplierData } from '../types/supplier.types';
+import { SupplierData } from '../types';
 
 const SuppliersPage: FC<{}> = () => {
   const navigate = useNavigate();

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { SupplierData, SupplierFormState } from '../types/supplier.types';
+import { SupplierData, SupplierFormState } from '../types';
 
 const createDefaultState = (): SupplierFormState => ({
   id: null,

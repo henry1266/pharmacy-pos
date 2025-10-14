@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { SupplierData } from '../types/supplier.types';
+import { SupplierData } from '../types';
 
 export const useSupplierSearch = (suppliers: SupplierData[]) => {
   const [searchTerm, setSearchTerm] = useState<string>('');

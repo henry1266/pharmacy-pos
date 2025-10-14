@@ -21,7 +21,7 @@ import {
   ArrowBack as ArrowBackIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { SupplierData } from '../types/supplier.types';
+import { SupplierData } from '../types';
 import SupplierAccountMappingDisplay from './SupplierAccountMappingDisplay';
 
 interface SupplierDetailPanelProps {

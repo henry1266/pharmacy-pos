@@ -13,7 +13,7 @@ import {
   ListItemText
 } from '@mui/material';
 import { FileDownload as FileDownloadIcon, UploadFile as UploadFileIcon } from '@mui/icons-material';
-import { ImportResult } from '../types/supplier.types';
+import { ImportResult } from '../types';
 
 interface SupplierImportDialogProps {
   open: boolean;

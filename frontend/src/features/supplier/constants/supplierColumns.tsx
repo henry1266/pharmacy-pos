@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, IconButton, Tooltip } from '@mui/material';
 import { Visibility as VisibilityIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
-import { SupplierData } from '../types/supplier.types';
+import { SupplierData } from '../types';
 
 interface ColumnActions {
   onEdit: (id: string) => void;
