@@ -18596,3 +18596,75 @@
 {"error":"Cannot find module '../../models/TransactionGroupWithEntries'\nRequire stack:\n- D:\\pharmacy-pos\\backend\\modules\\accounting-new\\controllers\\TransactionController.ts\n- D:\\pharmacy-pos\\backend\\modules\\accounting-old\\controllers\\index.ts\n- D:\\pharmacy-pos\\backend\\modules\\accounting-new\\accountRoutes.ts\n- D:\\pharmacy-pos\\backend\\modules\\accounting-new\\index.ts\n- D:\\pharmacy-pos\\backend\\app.ts\n- D:\\pharmacy-pos\\backend\\server.ts","level":"\u001b[31merror\u001b[39m","message":"\u001b[31m取得科目統計聚合資料錯誤\u001b[39m","timestamp":"2025-10-14 11:06:47:647"}
 {"error":"Cannot find module '../../models/TransactionGroupWithEntries'\nRequire stack:\n- D:\\pharmacy-pos\\backend\\modules\\accounting-new\\controllers\\TransactionController.ts\n- D:\\pharmacy-pos\\backend\\modules\\accounting-old\\controllers\\index.ts\n- D:\\pharmacy-pos\\backend\\modules\\accounting-new\\accountRoutes.ts\n- D:\\pharmacy-pos\\backend\\modules\\accounting-new\\index.ts\n- D:\\pharmacy-pos\\backend\\app.ts\n- D:\\pharmacy-pos\\backend\\server.ts","level":"\u001b[31merror\u001b[39m","message":"\u001b[31m取得科目統計聚合資料錯誤\u001b[39m","timestamp":"2025-10-14 11:07:01:71"}
 {"error":"Cannot find module '../../models/TransactionGroupWithEntries'\nRequire stack:\n- D:\\pharmacy-pos\\backend\\modules\\accounting-new\\controllers\\TransactionController.ts\n- D:\\pharmacy-pos\\backend\\modules\\accounting-old\\controllers\\index.ts\n- D:\\pharmacy-pos\\backend\\modules\\accounting-new\\accountRoutes.ts\n- D:\\pharmacy-pos\\backend\\modules\\accounting-new\\index.ts\n- D:\\pharmacy-pos\\backend\\app.ts\n- D:\\pharmacy-pos\\backend\\server.ts","level":"\u001b[31merror\u001b[39m","message":"\u001b[31m取得科目統計聚合資料錯誤\u001b[39m","timestamp":"2025-10-14 11:07:09:79"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-10-14 11:07:47:747"}
+{"executionTime":"8ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":55,"timestamp":"2025-10-14 11:07:47:747"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-10-14 11:07:56:756"}
+{"executionTime":"119ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":55,"timestamp":"2025-10-14 11:07:56:756"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-10-14 11:08:21:821"}
+{"executionTime":"16ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":55,"timestamp":"2025-10-14 11:08:21:821"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-10-14 11:08:21:821"}
+{"executionTime":"7ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":55,"timestamp":"2025-10-14 11:08:21:821"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-10-14 11:08:21:821"}
+{"executionTime":"5ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":55,"timestamp":"2025-10-14 11:08:21:821"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m執行科目統計聚合查詢\u001b[39m","timestamp":"2025-10-14 11:08:21:821"}
+{"executionTime":"6ms","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m聚合查詢完成\u001b[39m","resultCount":55,"timestamp":"2025-10-14 11:08:21:821"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e4d52aa597229df074c486"},"supplierId":"67e4d52aa597229df074c486","timestamp":"2025-10-14 11:08:26:826"}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 11:08:26:826"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e4d52aa597229df074c486"},"supplierId":"67e4d52aa597229df074c486","timestamp":"2025-10-14 11:08:26:826"}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 11:08:26:826"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e4d52aa597229df074c486"},"supplierId":"67e4d52aa597229df074c486","timestamp":"2025-10-14 11:08:28:828"}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 11:08:28:828"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e4d52aa597229df074c486"},"supplierId":"67e4d52aa597229df074c486","timestamp":"2025-10-14 11:08:28:828"}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 11:08:28:828"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e4df4aa6f9d4c76b0461d0"},"supplierId":"67e4df4aa6f9d4c76b0461d0","timestamp":"2025-10-14 11:08:53:853"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 11:08:53:853"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e4d52aa597229df074c486"},"supplierId":"67e4d52aa597229df074c486","timestamp":"2025-10-14 11:08:54:854"}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 11:08:54:854"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e4d52aa597229df074c486"},"supplierId":"67e4d52aa597229df074c486","timestamp":"2025-10-14 11:08:58:858"}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 11:08:59:859"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e4d52aa597229df074c486"},"supplierId":"67e4d52aa597229df074c486","timestamp":"2025-10-14 11:08:59:859"}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 11:08:59:859"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e4d52aa597229df074c486"},"supplierId":"67e4d52aa597229df074c486","timestamp":"2025-10-14 11:09:01:91"}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 11:09:01:91"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e4d52aa597229df074c486"},"supplierId":"67e4d52aa597229df074c486","timestamp":"2025-10-14 11:09:01:91"}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 11:09:01:91"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e4df4aa6f9d4c76b0461d0"},"supplierId":"67e4df4aa6f9d4c76b0461d0","timestamp":"2025-10-14 11:09:14:914"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 11:09:14:914"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e4d52aa597229df074c486"},"supplierId":"67e4d52aa597229df074c486","timestamp":"2025-10-14 11:09:15:915"}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 11:09:15:915"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e4df4aa6f9d4c76b0461d0"},"supplierId":"67e4df4aa6f9d4c76b0461d0","timestamp":"2025-10-14 11:09:20:920"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 11:09:20:920"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67eb4d412d1b8bb06f5dfa14"},"supplierId":"67eb4d412d1b8bb06f5dfa14","timestamp":"2025-10-14 11:09:22:922"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 11:09:22:922"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67eb565d0f2cf9d2647e3adf"},"supplierId":"67eb565d0f2cf9d2647e3adf","timestamp":"2025-10-14 11:09:24:924"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 11:09:24:924"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67ebc72ab2970b41d0827ce1"},"supplierId":"67ebc72ab2970b41d0827ce1","timestamp":"2025-10-14 11:09:25:925"}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 11:09:25:925"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67fe27f6c2347c64b93a3409"},"supplierId":"67fe27f6c2347c64b93a3409","timestamp":"2025-10-14 11:09:34:934"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 11:09:34:934"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67fe27f6c2347c64b93a3409"},"supplierId":"67fe27f6c2347c64b93a3409","timestamp":"2025-10-14 11:09:35:935"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 11:09:35:935"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67fe27f6c2347c64b93a3409"},"supplierId":"67fe27f6c2347c64b93a3409","timestamp":"2025-10-14 11:09:35:935"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 11:09:35:935"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67fe27f6c2347c64b93a3409"},"supplierId":"67fe27f6c2347c64b93a3409","timestamp":"2025-10-14 11:09:53:953"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 11:09:53:953"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67fe27f6c2347c64b93a3409"},"supplierId":"67fe27f6c2347c64b93a3409","timestamp":"2025-10-14 11:09:53:953"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 11:09:53:953"}
+{"accountIds":["689fdde748adf1dc3fb02655","6881ede993a4e6567f1de484"],"accountIdsType":"object","isArray":true,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mPUT 請求資料:\u001b[39m","timestamp":"2025-10-14 11:10:00:100"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mPUT: 允許混合不同機構的會計科目\u001b[39m","timestamp":"2025-10-14 11:10:00:100"}
+{"id":"689fdde748adf1dc3fb02655","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m處理會計科目 ID:\u001b[39m","originalType":"string","originalValue":"689fdde748adf1dc3fb02655","timestamp":"2025-10-14 11:10:00:100"}
+{"id":"6881ede993a4e6567f1de484","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m處理會計科目 ID:\u001b[39m","originalType":"string","originalValue":"6881ede993a4e6567f1de484","timestamp":"2025-10-14 11:10:00:100"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e4d52aa597229df074c486"},"supplierId":"67e4d52aa597229df074c486","timestamp":"2025-10-14 11:10:07:107"}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 11:10:07:107"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e4d52aa597229df074c486"},"supplierId":"67e4d52aa597229df074c486","timestamp":"2025-10-14 11:10:08:108"}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 11:10:08:108"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e4d52aa597229df074c486"},"supplierId":"67e4d52aa597229df074c486","timestamp":"2025-10-14 11:10:08:108"}
+{"count":0,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 11:10:08:108"}
+{"accountIds":["6881ede993a4e6567f1de484","68edbea5dd9ed49ab65caec0"],"accountIdsType":"object","isArray":true,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mPOST 請求資料:\u001b[39m","supplierId":"67e4d52aa597229df074c486","timestamp":"2025-10-14 11:10:26:1026"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m允許混合不同機構的會計科目\u001b[39m","timestamp":"2025-10-14 11:10:26:1026"}
+{"id":"6881ede993a4e6567f1de484","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m處理會計科目 ID:\u001b[39m","originalType":"string","originalValue":"6881ede993a4e6567f1de484","timestamp":"2025-10-14 11:10:26:1026"}
+{"id":"68edbea5dd9ed49ab65caec0","level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m處理會計科目 ID:\u001b[39m","originalType":"string","originalValue":"68edbea5dd9ed49ab65caec0","timestamp":"2025-10-14 11:10:26:1026"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e4df4aa6f9d4c76b0461d0"},"supplierId":"67e4df4aa6f9d4c76b0461d0","timestamp":"2025-10-14 11:10:29:1029"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 11:10:29:1029"}
+{"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37mGET /api/supplier-account-mappings 查詢參數:\u001b[39m","query":{"supplierId":"67e4d52aa597229df074c486"},"supplierId":"67e4d52aa597229df074c486","timestamp":"2025-10-14 11:10:30:1030"}
+{"count":1,"level":"\u001b[37mdebug\u001b[39m","message":"\u001b[37m查詢結果:\u001b[39m","timestamp":"2025-10-14 11:10:30:1030"}
