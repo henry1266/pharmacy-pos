@@ -626,7 +626,7 @@ export class TransactionController {
       const { organizationId } = req.query;
 
       // 使用 MongoDB aggregation pipeline 進行高效能統計
-      const TransactionGroupWithEntries = require('../../models/TransactionGroupWithEntries').default;
+      const TransactionGroupWithEntries = require('../../accounting-old/models/TransactionGroupWithEntries').default;
       
       const pipeline = [
         // 1. 基本過濾條件
