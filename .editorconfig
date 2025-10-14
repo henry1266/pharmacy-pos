@@ -1,4 +1,0 @@
-root = true
-
-[*.{ts,js,tsx,jsx}]
-charset = utf-8

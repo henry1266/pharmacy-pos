@@ -10,7 +10,7 @@ import { useSupplierForm } from '../hooks/useSupplierForm';
 import { useSupplierSearch } from '../hooks/useSupplierSearch';
 import { useSupplierImport } from '../hooks/useSupplierImport';
 import { useSnackbar } from '../hooks/useSnackbar';
-import { getSupplierColumns } from '../config/supplierColumns';
+import { getSupplierColumns } from '../constants';
 import SupplierFormDialog from '../components/SupplierFormDialog';
 import SupplierImportDialog from '../components/SupplierImportDialog';
 import SupplierActionButtons from '../components/SupplierActionButtons';

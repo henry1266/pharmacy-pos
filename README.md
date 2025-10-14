@@ -4,9 +4,9 @@
 
 前端 **React 18 + TypeScript**（MUI v5, RTK/RTK Query, React Router v6）
 
-後端 **Node.js 20 + Express 5**
+後端 **Node.js 20 + Express 4**
 
-以 **Zod Schemas + OpenAPI** 作為單一事實來源（SSOT），並使用 **pnpm workspace** 維運
+以 **Zod Schemas** 作為單一事實來源（SSOT），並使用 **pnpm workspace** 維運
 
 [![Node.js](https://img.shields.io/badge/node-20.x-339933?logo=node.js\&logoColor=white)](https://nodejs.org/)
 [![pnpm](https://img.shields.io/badge/pnpm-9%2B-F69220?logo=pnpm\&logoColor=white)](https://pnpm.io/)
