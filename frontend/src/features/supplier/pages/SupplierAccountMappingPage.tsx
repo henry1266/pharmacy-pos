@@ -72,7 +72,7 @@ const SupplierAccountMappingPage: React.FC = () => {
   const fetchMappings = async () => {
     setLoading(true);
     try {
-      const result = await supplierAccountMappingClient.listMappings({});
+      const result = await supplierAccountMappingClient.listMappings({ query: {} });
       if (result.status === 200 && result.body?.success) {
         const data = Array.isArray(result.body.data) ? result.body.data : [];
         setMappings(data as SupplierAccountMapping[]);
