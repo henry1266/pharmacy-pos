@@ -33,50 +33,55 @@ const SupplierAccountMappingDisplay: React.FC<SupplierAccountMappingDisplayProps
   const [error, setError] = useState<string>('');
 
   // 建構會計科目的階層路徑
+  const sanitizeDisplayName = (value: unknown): string | undefined => {
+    if (typeof value !== 'string') {
+      return undefined;
+    }
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return undefined;
+    }
+    if (/^[0-9a-fA-F]{24}$/.test(trimmed)) {
+      return undefined;
+    }
+    return trimmed;
+  };
+
   const buildAccountHierarchy = (account: any): string => {
     const hierarchy: string[] = [];
-    
-    // 添加機構名稱
-    if (account.organizationId?.name) {
-      hierarchy.push(account.organizationId.name);
-    } else if (typeof account.organizationName === 'string' && account.organizationName.trim().length > 0) {
-      hierarchy.push(account.organizationName.trim());
-    } else if (typeof account.organizationId === 'string' && account.organizationId.trim().length > 0) {
-      hierarchy.push(account.organizationId.trim());
+
+    const organizationName =
+      sanitizeDisplayName(account.organizationId?.name) ?? sanitizeDisplayName(account.organizationName);
+    if (organizationName) {
+      hierarchy.push(organizationName);
     }
-    
-    // 遞迴建構父科目階層
+
     const buildParentHierarchy = (acc: any): string[] => {
       const parents: string[] = [];
       if (acc.parentId && typeof acc.parentId === 'object') {
         parents.push(...buildParentHierarchy(acc.parentId));
-        parents.push(acc.parentId.name || acc.parentId.code);
+        const parentName = sanitizeDisplayName(acc.parentId.name) ?? sanitizeDisplayName(acc.parentId.code);
+        if (parentName) {
+          parents.push(parentName);
+        }
       }
       return parents;
     };
-    
-    // 添加父科目階層
+
     hierarchy.push(...buildParentHierarchy(account));
-    
-    // 添加當前科目
+
     const displayName =
-      (typeof account.name === 'string' && account.name.trim().length > 0 ? account.name.trim() : undefined) ??
-      (typeof account.accountName === 'string' && account.accountName.trim().length > 0
-        ? account.accountName.trim()
-        : undefined) ??
-      (typeof account.code === 'string' && account.code.trim().length > 0 ? account.code.trim() : undefined) ??
-      undefined;
+      sanitizeDisplayName(account.name) ??
+      sanitizeDisplayName(account.accountName) ??
+      sanitizeDisplayName(account.code);
 
     if (displayName) {
       hierarchy.push(displayName);
     }
 
     if (hierarchy.length === 0) {
-      return (
-        (typeof account.code === 'string' && account.code.trim().length > 0 ? account.code.trim() : undefined) ??
-        (typeof account._id === 'string' && account._id.trim().length > 0 ? account._id.trim() : undefined) ??
-        'Account'
-      );
+      const fallbackCode = sanitizeDisplayName(account.code);
+      return fallbackCode ?? 'Account';
     }
 
     return hierarchy.join(' > ');
@@ -241,20 +246,14 @@ const SupplierAccountMappingDisplay: React.FC<SupplierAccountMappingDisplayProps
                     : null;
 
                 const code =
-                  typeof accountMapping.accountCode === 'string' && accountMapping.accountCode.trim().length > 0
-                    ? accountMapping.accountCode.trim()
-                    : undefined;
+                  sanitizeDisplayName(accountMapping.accountCode) ??
+                  (typeof accountMapping.accountCode === 'string' ? accountMapping.accountCode.trim() : undefined);
 
                 const name =
-                  (typeof accountMapping.accountName === 'string' && accountMapping.accountName.trim().length > 0
-                    ? accountMapping.accountName.trim()
-                    : undefined) ??
-                  (typeof accountDocument?.name === 'string' && accountDocument.name.trim().length > 0
-                    ? accountDocument.name.trim()
-                    : undefined) ??
+                  sanitizeDisplayName(accountMapping.accountName) ??
+                  sanitizeDisplayName(accountDocument?.name) ??
                   code ??
                   `Account-${index + 1}`;
-
                 const documentId =
                   accountDocument && typeof accountDocument._id === 'string'
                     ? accountDocument._id.trim()
@@ -326,3 +325,9 @@ const SupplierAccountMappingDisplay: React.FC<SupplierAccountMappingDisplayProps
 };
 
 export default SupplierAccountMappingDisplay;
+
+
+
+
+
+

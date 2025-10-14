@@ -162,33 +162,6 @@ const SupplierAccountMappingPage: React.FC = () => {
   const findAccountById = (id: string) =>
     accounts.find((candidate: any) => normalizeAccountId(candidate?._id, '') === id);
 
-  const resolveOrganizationNameFromAccount = (account: any): string | undefined => {
-    if (!account) {
-      return undefined;
-    }
-
-    const organizationRef = account.organizationId;
-    if (
-      organizationRef &&
-      typeof organizationRef === 'object' &&
-      typeof (organizationRef as { name?: unknown }).name === 'string'
-    ) {
-      const name = ((organizationRef as { name: string }).name || '').trim();
-      if (name.length > 0) {
-        return name;
-      }
-    }
-
-    if (typeof account.organizationName === 'string') {
-      const trimmed = account.organizationName.trim();
-      if (trimmed.length > 0) {
-        return trimmed;
-      }
-    }
-
-    return undefined;
-  };
-
   const resolveAccountPresentation = (account: PageSelectedAccount): { label: string; code: string } => {
     const accountRecord = findAccountById(account._id);
 
@@ -229,11 +202,9 @@ const SupplierAccountMappingPage: React.FC = () => {
         : undefined;
 
     const organizationName =
-      organizationNameHint ??
-      (typeof organizationNameFromStore === 'string' && organizationNameFromStore.trim().length > 0
-        ? organizationNameFromStore.trim()
-        : undefined) ??
-      organizationNameFromRecord;
+      sanitizeOrganizationName(organizationNameHint, resolvedOrgId) ??
+      sanitizeOrganizationName(organizationNameFromStore, resolvedOrgId) ??
+      sanitizeOrganizationName(organizationNameFromRecord, resolvedOrgId);
 
     const label = organizationName ? `${organizationName} > ${baseName}` : baseName;
 
@@ -274,14 +245,19 @@ const SupplierAccountMappingPage: React.FC = () => {
       '';
 
     const organizationNameHint =
-      resolveOrganizationNameFromAccount(accountMapping.account) ??
-      (typeof (accountMapping as any).organizationName === 'string' &&
-        (accountMapping as any).organizationName.trim().length > 0
-        ? (accountMapping as any).organizationName.trim()
-        : undefined) ??
-      (organizationId
-        ? organizations.find((org) => resolveEntityId(org?._id) === organizationId)?.name?.trim()
-        : undefined);
+      sanitizeOrganizationName(resolveOrganizationNameFromAccount(accountMapping.account), organizationId) ??
+      sanitizeOrganizationName(
+        typeof (accountMapping as any).organizationName === 'string'
+          ? (accountMapping as any).organizationName
+          : undefined,
+        organizationId,
+      ) ??
+      sanitizeOrganizationName(
+        organizationId
+          ? organizations.find((org) => resolveEntityId(org?._id) === organizationId)?.name
+          : undefined,
+        organizationId,
+      );
 
     const selection: PageSelectedAccount = {
       _id: normalizedId,
@@ -379,13 +355,15 @@ const SupplierAccountMappingPage: React.FC = () => {
           '';
 
         const resolvedOrganizationName =
-          resolveOrganizationNameFromAccount(am.account) ??
-          (typeof mapping.organizationName === 'string' && mapping.organizationName.trim().length > 0
-            ? mapping.organizationName.trim()
-            : undefined) ??
-          (resolvedOrganizationId
-            ? organizations.find((org) => resolveEntityId(org?._id) === resolvedOrganizationId)?.name?.trim()
-            : undefined);
+          sanitizeOrganizationName(
+            resolveOrganizationNameFromAccount(am.account),
+            resolvedOrganizationId,
+          ) ??
+          sanitizeOrganizationName(mapping.organizationName, mapping.organizationId) ??
+          sanitizeOrganizationName(
+            organizations.find((org) => resolveEntityId(org?._id) === resolvedOrganizationId)?.name,
+            resolvedOrganizationId,
+          );
 
         return {
           _id: normalizedId,
@@ -710,17 +688,14 @@ const SupplierAccountMappingPage: React.FC = () => {
                 '';
 
               const organizationNameHint =
-                (typeof (account as any).organizationName === 'string' &&
-                (account as any).organizationName.trim().length > 0
-                  ? (account as any).organizationName.trim()
-                  : undefined) ??
-                (typeof (account as any).organization?.name === 'string' &&
-                (account as any).organization.name.trim().length > 0
-                  ? (account as any).organization.name.trim()
-                  : undefined) ??
-                (resolvedOrganizationId
-                  ? organizations.find((org) => resolveEntityId(org?._id) === resolvedOrganizationId)?.name?.trim()
-                  : undefined);
+                sanitizeOrganizationName(
+                  resolveOrganizationNameFromAccount(account),
+                  resolvedOrganizationId,
+                ) ??
+                sanitizeOrganizationName(
+                  organizations.find((org) => resolveEntityId(org?._id) === resolvedOrganizationId)?.name,
+                  resolvedOrganizationId,
+                );
 
               const newAccount: PageSelectedAccount = {
                 _id: normalizedId,
@@ -765,3 +740,7 @@ const SupplierAccountMappingPage: React.FC = () => {
 };
 
 export default SupplierAccountMappingPage;
+
+
+
+
