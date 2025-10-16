@@ -179,6 +179,14 @@ export const usePurchaseOrdersList = (initialSupplierId: string | null = null) =
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [purchaseOrderToDelete, setPurchaseOrderToDelete] = useState<PurchaseOrder | null>(null);
   const [snackbar, setSnackbar] = useState<SnackbarState>({ open: false, message: '', severity: 'success' });
+
+  const showSnackbar = useCallback((message: string, severity: SnackbarState['severity'] = 'success') => {
+    setSnackbar({ open: true, message, severity });
+  }, []);
+
+  const handleCloseSnackbar = useCallback(() => {
+    setSnackbar((prev) => ({ ...prev, open: false }));
+  }, []);
   const [previewOpen, setPreviewOpen] = useState<boolean>(false);
   const [previewAnchorEl, setPreviewAnchorEl] = useState<HTMLElement | null>(null);
   const [previewPurchaseOrder, setPreviewPurchaseOrder] = useState<PurchaseOrderDetail | null>(null);
@@ -377,14 +385,6 @@ export const usePurchaseOrdersList = (initialSupplierId: string | null = null) =
     }
   }, [purchaseOrders, paginationModel.page, paginationModel.pageSize, checkAllPaymentStatuses]);
 
-  const showSnackbar = useCallback((message: string, severity: SnackbarState['severity'] = 'success') => {
-    setSnackbar({ open: true, message, severity });
-  }, []);
-
-  const handleCloseSnackbar = useCallback(() => {
-    setSnackbar((prev) => ({ ...prev, open: false }));
-  }, []);
-
   const handleSearch = useCallback(() => {
     const hasFilters =
       searchParams.searchTerm?.trim() ||
@@ -439,7 +439,7 @@ export const usePurchaseOrdersList = (initialSupplierId: string | null = null) =
     navigate(`/accounting3/transaction/${transactionGroupId}`);
   }, [navigate]);
 
-  const handleUnlock = useCallback(async (id: string): Promise<void> =>
+  const handleUnlock = useCallback(async (id: string): Promise<void> => {
     try {
       const response = await purchaseOrdersContractClient.updatePurchaseOrder({
         params: { id },
