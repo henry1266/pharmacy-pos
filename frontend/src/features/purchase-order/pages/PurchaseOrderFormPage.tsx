@@ -436,9 +436,6 @@ const PurchaseOrderFormPage: React.FC = () => {
   // 處理編輯模式下的機構資料載入
   useEffect(() => {
     if (isEditMode && orderDataLoaded && formData.organizationId) {
-      // 這裡我們需要從 organizations 中找到對應的機構
-      // 但由於 organizations 是在 BasicInfoForm 中載入的，我們需要另一種方式
-      // 暫時先設置一個空的 selectedOrganization，讓 BasicInfoForm 自己處理
       console.log('編輯模式下的機構ID:', formData.organizationId);
     }
   }, [isEditMode, orderDataLoaded, formData.organizationId]);
@@ -541,22 +538,142 @@ const PurchaseOrderFormPage: React.FC = () => {
     const status = formData.status as "pending" | "approved" | "received" | "cancelled";
     
     // 保持原始的 formData 結構，只轉換數據類型
+    const trimmedPoid = typeof formData.poid === 'string' ? formData.poid.trim() : '';
+
+    const isValidObjectId = (value: unknown): value is string => {
+      return typeof value === 'string' && /^[0-9a-fA-F]{24}$/.test(value.trim());
+    };
+
+    const maybeNumber = (value: unknown): number | undefined => {
+      if (value === '' || value === null || value === undefined) {
+        return undefined;
+      }
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : undefined;
+    };
+
+    const sanitizeItem = (item: CurrentItem) => {
+      const {
+        _id,
+        product,
+        did,
+        dname,
+        dquantity,
+        dtotalCost,
+        batchNumber,
+        packageQuantity,
+        boxQuantity,
+        notes,
+        unitPrice,
+        receivedQuantity,
+      } = item as any;
+
+      const sanitized: Record<string, unknown> = {
+        did,
+        dname,
+        dquantity: Number(dquantity),
+        dtotalCost: Number(dtotalCost),
+      };
+
+      if (_id && isValidObjectId(_id)) {
+        sanitized._id = _id;
+      }
+
+      let productId: string | undefined;
+      if (typeof product === 'string') {
+        productId = isValidObjectId(product) ? product : undefined;
+      } else if (product && typeof product === 'object' && '_id' in product) {
+        const candidate = (product as { _id?: unknown })._id;
+        productId = isValidObjectId(candidate) ? candidate : undefined;
+      }
+      if (productId) {
+        sanitized.product = productId;
+      }
+
+      const trimmedBatch = typeof batchNumber === 'string' ? batchNumber.trim() : '';
+      if (trimmedBatch.length > 0) {
+        sanitized.batchNumber = trimmedBatch;
+      }
+
+      const sanitizedPackageQuantity = maybeNumber(packageQuantity);
+      if (sanitizedPackageQuantity !== undefined) {
+        sanitized.packageQuantity = sanitizedPackageQuantity;
+      }
+
+      const sanitizedBoxQuantity = maybeNumber(boxQuantity);
+      if (sanitizedBoxQuantity !== undefined) {
+        sanitized.boxQuantity = sanitizedBoxQuantity;
+      }
+
+      const sanitizedUnitPrice = maybeNumber(unitPrice);
+      if (sanitizedUnitPrice !== undefined) {
+        sanitized.unitPrice = sanitizedUnitPrice;
+      }
+
+      const sanitizedReceivedQuantity = maybeNumber(receivedQuantity);
+      if (sanitizedReceivedQuantity !== undefined) {
+        sanitized.receivedQuantity = sanitizedReceivedQuantity;
+      }
+
+      if (typeof notes === 'string' && notes.trim().length > 0) {
+        sanitized.notes = notes.trim();
+      }
+
+      return sanitized;
+    };
+
+    const sanitizedSupplier = isValidObjectId(formData.supplier) ? formData.supplier : undefined;
+    const sanitizedOrganizationId = isValidObjectId(formData.organizationId)
+      ? formData.organizationId
+      : undefined;
+    const sanitizedAccountIds = Array.isArray(formData.selectedAccountIds)
+      ? formData.selectedAccountIds.filter(isValidObjectId)
+      : [];
+    const sanitizedPobill =
+      typeof formData.pobill === 'string' && formData.pobill.trim().length > 0
+        ? formData.pobill.trim()
+        : undefined;
+    const sanitizedPaymentStatus =
+      typeof formData.paymentStatus === 'string' && formData.paymentStatus.trim().length > 0
+        ? formData.paymentStatus.trim()
+        : undefined;
+    const sanitizedTransactionType =
+      typeof formData.transactionType === 'string' && formData.transactionType.trim().length > 0
+        ? formData.transactionType.trim()
+        : undefined;
+    const sanitizedAccountingEntryType =
+      typeof formData.accountingEntryType === 'string' && formData.accountingEntryType.trim().length > 0
+        ? formData.accountingEntryType.trim()
+        : undefined;
+    const sanitizedNotes =
+      typeof formData.notes === 'string' && formData.notes.trim().length > 0
+        ? formData.notes.trim()
+        : undefined;
+
+    const sanitizedPosupplier =
+      typeof formData.posupplier === 'string' ? formData.posupplier.trim() : formData.posupplier;
+
+    const sanitizedItems = finalAdjustedItems.map(sanitizeItem);
+
     const submitData = {
-      ...formData,
+      posupplier: sanitizedPosupplier,
       pobilldate: format(formData.pobilldate, 'yyyy-MM-dd'),
-      items: finalAdjustedItems.map(item => ({
-        ...item,
-        dquantity: Number(item.dquantity),
-        dtotalCost: Number(item.dtotalCost),
-        packageQuantity: item.packageQuantity ? Number(item.packageQuantity) : undefined,
-        boxQuantity: item.boxQuantity ? Number(item.boxQuantity) : undefined,
-      })),
-      status: status
+      items: sanitizedItems,
+      status,
+      ...(trimmedPoid ? { poid: trimmedPoid } : {}),
+      ...(sanitizedSupplier ? { supplier: sanitizedSupplier } : {}),
+      ...(sanitizedOrganizationId ? { organizationId: sanitizedOrganizationId } : {}),
+      ...(sanitizedAccountIds.length > 0 ? { selectedAccountIds: sanitizedAccountIds } : {}),
+      ...(sanitizedPobill ? { pobill: sanitizedPobill } : {}),
+      ...(sanitizedPaymentStatus ? { paymentStatus: sanitizedPaymentStatus } : {}),
+      ...(sanitizedTransactionType ? { transactionType: sanitizedTransactionType } : {}),
+      ...(sanitizedAccountingEntryType ? { accountingEntryType: sanitizedAccountingEntryType } : {}),
+      ...(sanitizedNotes ? { notes: sanitizedNotes } : {}),
     };
     
     console.log('🔍 前端 - 提交資料 selectedAccountIds:', submitData.selectedAccountIds);
-    console.log('🔍 前端 - 提交資料 items:', JSON.stringify(submitData.items, null, 2));
-    console.log('🔍 前端 - 包裝數量詳細資訊:', submitData.items.map(item => ({
+    console.log('🔍 前端 - 提交資料 items:', JSON.stringify(submitData.items ?? [], null, 2));
+    console.log('🔍 前端 - 包裝數量詳細資訊:', sanitizedItems.map(item => ({
       did: item.did,
       dname: item.dname,
       packageQuantity: item.packageQuantity,
@@ -572,12 +689,12 @@ const PurchaseOrderFormPage: React.FC = () => {
         });
 
         if (response.status === 200 && response.body?.success) {
-          showSnackbar('?i?f??w???\?s', 'success');
+          showSnackbar('成功新增進貨單', 'success');
         } else {
           const message =
             typeof response.body === 'object' && response.body !== null && 'message' in response.body
-              ? ((response.body as { message?: string }).message ?? '?????s??')
-              : '?????s??';
+              ? ((response.body as { message?: string }).message ?? '--')
+              : '--';
           throw new Error(message);
         }
       } else {
@@ -586,12 +703,12 @@ const PurchaseOrderFormPage: React.FC = () => {
         });
 
         if (response.status === 200 && response.body?.success) {
-          showSnackbar('?i?f??w???\?s?W', 'success');
+          showSnackbar('--', 'success');
         } else {
           const message =
             typeof response.body === 'object' && response.body !== null && 'message' in response.body
-              ? ((response.body as { message?: string }).message ?? '?????s??')
-              : '?????s??';
+              ? ((response.body as { message?: string }).message ?? '--')
+              : '--';
           throw new Error(message);
         }
       }

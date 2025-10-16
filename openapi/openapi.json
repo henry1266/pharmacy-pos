@@ -14185,9 +14185,26 @@
                 "type": "object",
                 "properties": {
                   "poid": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 64
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 64
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          ""
+                        ]
+                      },
+                      {},
+                      {
+                        "type": "string",
+                        "format": "null",
+                        "nullable": true
+                      }
+                    ],
+                    "nullable": true
                   },
                   "orderNumber": {
                     "type": "string",
@@ -14504,7 +14521,6 @@
                   }
                 },
                 "required": [
-                  "poid",
                   "posupplier",
                   "items"
                 ]

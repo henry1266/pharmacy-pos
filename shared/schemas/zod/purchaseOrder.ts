@@ -122,7 +122,24 @@ const purchaseOrderCoreSchema = z.object({
   notes: z.string().trim().max(1000, { message: 'Notes must not exceed 1000 characters.' }).optional(),
 });
 
-export const createPurchaseOrderSchema = purchaseOrderCoreSchema;
+const optionalPoidInputSchema = z
+  .union([
+    trimmedString('Purchase order code', 64),
+    z.literal(''),
+    z.undefined(),
+    z.null(),
+  ])
+  .transform((value) => {
+    if (typeof value !== 'string') {
+      return undefined;
+    }
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  });
+
+export const createPurchaseOrderSchema = purchaseOrderCoreSchema.extend({
+  poid: optionalPoidInputSchema,
+});
 export const updatePurchaseOrderSchema = purchaseOrderCoreSchema.partial();
 
 const purchaseOrderResponseItemSchema = purchaseOrderItemSchema.extend({
@@ -225,5 +242,4 @@ export default {
   purchaseOrderPaymentStatusValues,
   purchaseOrderTransactionTypeValues,
 };
-
 
