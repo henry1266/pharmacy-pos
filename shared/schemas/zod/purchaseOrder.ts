@@ -189,6 +189,23 @@ export const purchaseOrderIdSchema = z.object({
   id: objectIdSchema,
 });
 
+export const purchaseOrderRecentQuerySchema = z.object({
+  limit: z
+    .coerce.number({ invalid_type_error: 'Limit must be a number.' })
+    .int()
+    .min(1)
+    .max(API_CONSTANTS.PAGINATION?.MAX_LIMIT ?? 100)
+    .optional(),
+});
+
+export const purchaseOrderSupplierParamsSchema = z.object({
+  supplierId: objectIdSchema,
+});
+
+export const purchaseOrderProductParamsSchema = z.object({
+  productId: objectIdSchema,
+});
+
 export const purchaseOrderStatusValues = purchaseOrderStatusEnum.options;
 export const purchaseOrderPaymentStatusValues = paymentStatusEnum.options;
 export const purchaseOrderTransactionTypeValues = transactionTypeEnum.options;
@@ -201,10 +218,12 @@ export default {
   purchaseOrderItemSchema,
   purchaseOrderSearchSchema,
   purchaseOrderIdSchema,
+  purchaseOrderRecentQuerySchema,
+  purchaseOrderSupplierParamsSchema,
+  purchaseOrderProductParamsSchema,
   purchaseOrderStatusValues,
   purchaseOrderPaymentStatusValues,
   purchaseOrderTransactionTypeValues,
 };
-
 
 

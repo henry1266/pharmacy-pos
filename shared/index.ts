@@ -410,6 +410,18 @@ export {
   purchaseOrderSummarySchema,
   purchaseOrderSummaryListSchema,
   purchaseOrderDetailSchema,
+  purchaseOrderCreateInputSchema,
+  purchaseOrderUpdateInputSchema,
+  purchaseOrderMutationResponseSchema,
+  purchaseOrderDeleteResponseSchema,
+  purchaseOrderFilteredListResponseSchema,
+  purchaseOrderRecentQueryFilterSchema,
+  purchaseOrderSupplierFilterSchema,
+  purchaseOrderProductFilterSchema,
+  purchaseOrderErrorSchema,
+  purchaseOrderErrorCodeSchema,
+  buildCreatePurchaseOrderPayload,
+  buildUpdatePurchaseOrderPayload,
 } from './schemas/purchase-orders';
 export { shippingOrderEntitySchema } from './schemas/zod/shippingOrder';
 export {

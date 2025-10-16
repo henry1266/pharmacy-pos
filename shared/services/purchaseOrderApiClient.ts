@@ -168,7 +168,7 @@ export class PurchaseOrderApiClient extends BaseApiClient {
    * @returns Promise<PurchaseOrder[]>
    */
   async getRecentPurchaseOrders(limit: number = 10): Promise<PurchaseOrder[]> {
-    return this.getList<PurchaseOrder>(`/recent/list?limit=${limit}`);
+    return this.getList<PurchaseOrder>(`/recent?limit=${limit}`);
   }
 
   // ==================== 匯入功能 ====================

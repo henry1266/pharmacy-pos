@@ -1,16 +1,26 @@
-﻿import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { purchaseOrderApiClient } from './client';
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+
+import {
+  purchaseOrdersContractClient,
+} from './client';
 import type {
   PurchaseOrderCreateRequest,
   PurchaseOrderUpdateRequest,
   PurchaseOrderResponseDto,
-  PurchaseOrderQueryParams
+  PurchaseOrderQueryParams,
 } from './dto';
 
-const toQueryError = (error: any) => ({
-  status: error?.status ?? 500,
-  data: error?.message ?? 'Request failed'
-});
+const toContractError = (status: number, body: unknown, fallback: string) => {
+  const message =
+    typeof body === 'object' && body !== null && 'message' in body
+      ? ((body as { message?: string }).message ?? fallback)
+      : fallback;
+
+  return {
+    status,
+    data: message,
+  };
+};
 
 export const purchaseOrderApi = createApi({
   reducerPath: 'purchaseOrderApi',
@@ -19,75 +29,94 @@ export const purchaseOrderApi = createApi({
   endpoints: (builder) => ({
     getPurchaseOrders: builder.query<PurchaseOrderResponseDto[], PurchaseOrderQueryParams | void>({
       queryFn: async (params = {}) => {
-        try {
-          const response = await purchaseOrderApiClient.get('', { params });
-          const payload = Array.isArray(response.data) ? response.data : (response.data?.data ?? []);
-          return { data: payload };
-        } catch (error: any) {
-          return { error: toQueryError(error) };
+        const query = Object.keys(params).length > 0 ? params : undefined;
+        const response = await purchaseOrdersContractClient.listPurchaseOrders({ query });
+
+        if (response.status === 200 && response.body?.data) {
+          return { data: response.body.data };
         }
+
+        return {
+          error: toContractError(response.status, response.body, 'Failed to load purchase orders'),
+        };
       },
-      providesTags: (result) => result
-        ? [
-            ...result.map((order) => ({ type: 'PurchaseOrder' as const, id: order._id })),
-            { type: 'PurchaseOrder', id: 'LIST' }
-          ]
-        : [{ type: 'PurchaseOrder', id: 'LIST' }]
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map((order) => ({ type: 'PurchaseOrder' as const, id: order._id })),
+              { type: 'PurchaseOrder', id: 'LIST' },
+            ]
+          : [{ type: 'PurchaseOrder', id: 'LIST' }],
     }),
     getPurchaseOrderById: builder.query<PurchaseOrderResponseDto, string>({
       queryFn: async (id) => {
-        try {
-          const response = await purchaseOrderApiClient.get(`/${id}`);
-          const data = response.data?.data ?? response.data;
-          return { data };
-        } catch (error: any) {
-          return { error: toQueryError(error) };
+        const response = await purchaseOrdersContractClient.getPurchaseOrderById({ params: { id } });
+
+        if (response.status === 200 && response.body?.data) {
+          return { data: response.body.data };
         }
+
+        return {
+          error: toContractError(response.status, response.body, 'Failed to load purchase order'),
+        };
       },
-      providesTags: (_result, _error, id) => [{ type: 'PurchaseOrder', id }]
+      providesTags: (_result, _error, id) => [{ type: 'PurchaseOrder', id }],
     }),
     createPurchaseOrder: builder.mutation<PurchaseOrderResponseDto, PurchaseOrderCreateRequest>({
       queryFn: async (body) => {
-        try {
-          const response = await purchaseOrderApiClient.post('', body);
-          const data = response.data?.data ?? response.data;
-          return { data };
-        } catch (error: any) {
-          return { error: toQueryError(error) };
+        const response = await purchaseOrdersContractClient.createPurchaseOrder({ body });
+
+        if (response.status === 200 && response.body?.data) {
+          return { data: response.body.data };
         }
+
+        return {
+          error: toContractError(response.status, response.body, 'Failed to create purchase order'),
+        };
       },
-      invalidatesTags: [{ type: 'PurchaseOrder', id: 'LIST' }]
+      invalidatesTags: [{ type: 'PurchaseOrder', id: 'LIST' }],
     }),
-    updatePurchaseOrder: builder.mutation<PurchaseOrderResponseDto, { id: string; data: PurchaseOrderUpdateRequest }>({
+    updatePurchaseOrder: builder.mutation<
+      PurchaseOrderResponseDto,
+      { id: string; data: PurchaseOrderUpdateRequest }
+    >({
       queryFn: async ({ id, data }) => {
-        try {
-          const response = await purchaseOrderApiClient.put(`/${id}`, data);
-          const payload = response.data?.data ?? response.data;
-          return { data: payload };
-        } catch (error: any) {
-          return { error: toQueryError(error) };
+        const response = await purchaseOrdersContractClient.updatePurchaseOrder({
+          params: { id },
+          body: data,
+        });
+
+        if (response.status === 200 && response.body?.data) {
+          return { data: response.body.data };
         }
+
+        return {
+          error: toContractError(response.status, response.body, 'Failed to update purchase order'),
+        };
       },
       invalidatesTags: (_result, _error, { id }) => [
         { type: 'PurchaseOrder', id },
-        { type: 'PurchaseOrder', id: 'LIST' }
-      ]
+        { type: 'PurchaseOrder', id: 'LIST' },
+      ],
     }),
     deletePurchaseOrder: builder.mutation<{ id: string }, string>({
       queryFn: async (id) => {
-        try {
-          await purchaseOrderApiClient.delete(`/${id}`);
+        const response = await purchaseOrdersContractClient.deletePurchaseOrder({ params: { id } });
+
+        if (response.status === 200) {
           return { data: { id } };
-        } catch (error: any) {
-          return { error: toQueryError(error) };
         }
+
+        return {
+          error: toContractError(response.status, response.body, 'Failed to delete purchase order'),
+        };
       },
       invalidatesTags: (_result, _error, id) => [
         { type: 'PurchaseOrder', id },
-        { type: 'PurchaseOrder', id: 'LIST' }
-      ]
-    })
-  })
+        { type: 'PurchaseOrder', id: 'LIST' },
+      ],
+    }),
+  }),
 });
 
 export const {
@@ -95,7 +124,7 @@ export const {
   useGetPurchaseOrderByIdQuery,
   useCreatePurchaseOrderMutation,
   useUpdatePurchaseOrderMutation,
-  useDeletePurchaseOrderMutation
+  useDeletePurchaseOrderMutation,
 } = purchaseOrderApi;
 
 export default purchaseOrderApi;

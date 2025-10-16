@@ -39,8 +39,16 @@ export type {
   PurchaseOrderRequest,
   PurchaseOrderUpdateRequest,
   PurchaseOrder,
+  PurchaseOrderSummary,
+  PurchaseOrderDetail,
   PurchaseOrderItem,
-  PurchaseOrderSearchParams
+  PurchaseOrderSearchParams,
+  PurchaseOrderRecentQuery,
+  PurchaseOrdersBySupplierParams,
+  PurchaseOrdersByProductParams,
+  PurchaseOrderMutationResponse,
+  PurchaseOrderDeleteResponse,
+  PurchaseOrderError
 } from './purchase-order';
 
 export type {

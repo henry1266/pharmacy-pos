@@ -16,6 +16,12 @@ import {
 import {
   purchaseOrderSummarySchema,
   purchaseOrderDetailSchema,
+  purchaseOrderMutationResponseSchema,
+  purchaseOrderDeleteResponseSchema,
+  purchaseOrderErrorSchema,
+  purchaseOrderRecentQueryFilterSchema,
+  purchaseOrderSupplierFilterSchema,
+  purchaseOrderProductFilterSchema,
 } from '../schemas/purchase-orders';
 
 /**
@@ -32,6 +38,9 @@ export type PurchaseOrderItem = z.infer<typeof purchaseOrderItemSchema>;
 export type PurchaseOrder = z.infer<typeof purchaseOrderSchema>;
 export type PurchaseOrderSummary = z.infer<typeof purchaseOrderSummarySchema>;
 export type PurchaseOrderDetail = z.infer<typeof purchaseOrderDetailSchema>;
+export type PurchaseOrderMutationResponse = z.infer<typeof purchaseOrderMutationResponseSchema>;
+export type PurchaseOrderDeleteResponse = z.infer<typeof purchaseOrderDeleteResponseSchema>;
+export type PurchaseOrderError = z.infer<typeof purchaseOrderErrorSchema>;
 
 /**
  * API request payload types
@@ -43,6 +52,9 @@ export type PurchaseOrderUpdateRequest = z.infer<typeof updatePurchaseOrderSchem
  * Query parameters type
  */
 export type PurchaseOrderSearchParams = z.infer<typeof purchaseOrderSearchSchema>;
+export type PurchaseOrderRecentQuery = z.infer<typeof purchaseOrderRecentQueryFilterSchema>;
+export type PurchaseOrdersBySupplierParams = z.infer<typeof purchaseOrderSupplierFilterSchema>;
+export type PurchaseOrdersByProductParams = z.infer<typeof purchaseOrderProductFilterSchema>;
 
 /**
  * Frontend form data model

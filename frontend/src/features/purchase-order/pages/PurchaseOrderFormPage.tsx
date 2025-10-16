@@ -16,9 +16,9 @@ import { format } from 'date-fns';
 import { DropResult } from 'react-beautiful-dnd';
 import { Product, Supplier } from '@pharmacy-pos/shared/types/entities';
 import { PurchaseOrder } from '@pharmacy-pos/shared/types/purchase-order';
-import { purchaseOrderServiceV2 } from '@/services/purchaseOrderServiceV2';
 import usePurchaseOrderData from '../hooks/usePurchaseOrderData';
 import usePurchaseOrderItems from '../hooks/usePurchaseOrderItems';
+import { purchaseOrdersContractClient } from '../api/client';
 import BasicInfoForm from '../components/BasicInfoForm';
 import ProductItemForm from '../components/ProductItemForm';
 import ProductItemsTable from '@/features/purchase-order/components/ProductItemsTable';
@@ -566,11 +566,34 @@ const PurchaseOrderFormPage: React.FC = () => {
 
     try {
       if (isEditMode && id) {
-        await purchaseOrderServiceV2.updatePurchaseOrder(id, submitData as any);
-        showSnackbar('進貨單已成功更新', 'success');
+        const response = await purchaseOrdersContractClient.updatePurchaseOrder({
+          params: { id },
+          body: submitData as any,
+        });
+
+        if (response.status === 200 && response.body?.success) {
+          showSnackbar('?i?f??w???\?s', 'success');
+        } else {
+          const message =
+            typeof response.body === 'object' && response.body !== null && 'message' in response.body
+              ? ((response.body as { message?: string }).message ?? '?????s??')
+              : '?????s??';
+          throw new Error(message);
+        }
       } else {
-        await purchaseOrderServiceV2.createPurchaseOrder(submitData as any);
-        showSnackbar('進貨單已成功新增', 'success');
+        const response = await purchaseOrdersContractClient.createPurchaseOrder({
+          body: submitData as any,
+        });
+
+        if (response.status === 200 && response.body?.success) {
+          showSnackbar('?i?f??w???\?s?W', 'success');
+        } else {
+          const message =
+            typeof response.body === 'object' && response.body !== null && 'message' in response.body
+              ? ((response.body as { message?: string }).message ?? '?????s??')
+              : '?????s??';
+          throw new Error(message);
+        }
       }
       setTimeout(() => { navigate('/purchase-orders'); }, 1500);
     } catch (err: unknown) {
