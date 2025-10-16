@@ -13,6 +13,10 @@ import {
   purchaseOrderPaymentStatusValues,
   purchaseOrderTransactionTypeValues,
 } from '../schemas/zod/purchaseOrder';
+import {
+  purchaseOrderSummarySchema,
+  purchaseOrderDetailSchema,
+} from '../schemas/purchase-orders';
 
 /**
  * Enumerations derived from Zod enums
@@ -26,6 +30,8 @@ export type PurchaseOrderTransactionType = typeof purchaseOrderTransactionTypeVa
  */
 export type PurchaseOrderItem = z.infer<typeof purchaseOrderItemSchema>;
 export type PurchaseOrder = z.infer<typeof purchaseOrderSchema>;
+export type PurchaseOrderSummary = z.infer<typeof purchaseOrderSummarySchema>;
+export type PurchaseOrderDetail = z.infer<typeof purchaseOrderDetailSchema>;
 
 /**
  * API request payload types

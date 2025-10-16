@@ -29,6 +29,7 @@ import {
 import { ActionButtons } from '@/features/purchase-order/shared/components';
 import { usePurchaseOrdersList } from '../hooks/usePurchaseOrdersList';
 import { PurchaseOrdersPageProps, PurchaseOrder } from '../types/list';
+import { purchaseOrdersContractClient } from '../api/client';
 import SupplierCheckboxFilter from '@/components/filters/SupplierCheckboxFilter';
 import CsvImportDialog from '@/features/purchase-order/components/CsvImportDialog';
 import GenericConfirmDialog from '@/components/common/GenericConfirmDialog';
@@ -373,7 +374,7 @@ const PurchaseOrdersPage: FC<PurchaseOrdersPageProps> = ({ initialSupplierId = n
     </Box>
   );
 
-  // 詳情面板
+  // 詳�??�板
   const detailPanel = showDetailPanel ? (
     <PurchaseOrderDetailPanel
       selectedPurchaseOrder={previewPurchaseOrder as any}

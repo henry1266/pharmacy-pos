@@ -406,6 +406,11 @@ export { saleEntitySchema } from './schemas/zod/sale';
 export { customerEntitySchema } from './schemas/zod/customer';
 export { supplierEntitySchema } from './schemas/zod/supplier';
 export { purchaseOrderEntitySchema } from './schemas/zod/purchaseOrder';
+export {
+  purchaseOrderSummarySchema,
+  purchaseOrderSummaryListSchema,
+  purchaseOrderDetailSchema,
+} from './schemas/purchase-orders';
 export { shippingOrderEntitySchema } from './schemas/zod/shippingOrder';
 export {
   supplierAccountMappingEntitySchema,
