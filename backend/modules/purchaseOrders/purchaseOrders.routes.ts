@@ -138,25 +138,32 @@ const mapSummaryItems = (items: unknown): NonNullable<PurchaseOrderSummary['item
   if (!Array.isArray(items)) {
     return [];
   }
-  return items
-    .map((item) => {
-      const candidate = item as Record<string, any>;
-      if (!candidate?.did || !candidate?.dname) {
-        return undefined;
-      }
-      return {
-        _id: ensureString(candidate._id),
-        did: candidate.did,
-        dname: candidate.dname,
-        dquantity: Number(candidate.dquantity ?? 0),
-        dtotalCost: Number(candidate.dtotalCost ?? 0),
-        unitPrice:
-          candidate.unitPrice === undefined || candidate.unitPrice === null
-            ? undefined
-            : Number(candidate.unitPrice),
-      };
-    })
-    .filter((value): value is NonNullable<PurchaseOrderSummary['items']>[number] => Boolean(value));
+
+  const mapped: NonNullable<PurchaseOrderSummary['items']> = [];
+
+  for (const item of items) {
+    const candidate = item as Record<string, any> | undefined;
+    const did = ensureString(candidate?.did);
+    const dname = ensureString(candidate?.dname);
+
+    if (!did || !dname) {
+      continue;
+    }
+
+    mapped.push({
+      _id: ensureString(candidate?._id),
+      did,
+      dname,
+      dquantity: Number(candidate?.dquantity ?? 0),
+      dtotalCost: Number(candidate?.dtotalCost ?? 0),
+      unitPrice:
+        candidate?.unitPrice === undefined || candidate?.unitPrice === null
+          ? undefined
+          : Number(candidate?.unitPrice),
+    });
+  }
+
+  return mapped;
 };
 
 const mapDetailItems = (items: unknown, sourceItems: unknown[]): PurchaseOrderDetail['items'] => {

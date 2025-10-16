@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
+import type { AxiosRequestConfig } from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import purchaseOrderApiClient, { purchaseOrdersContractClient } from '../api/client';
 import type { PurchaseOrderDetail } from '../types/list';
@@ -42,25 +43,45 @@ const buildFilteredRow = (
   order: PurchaseOrder,
   paymentStatusCache: Map<string, boolean>,
 ): FilteredRow => {
-  const pobilldate = formatDateValue(order.pobilldate ?? order.orderDate);
-  const updatedAt = formatDateValue(order.updatedAt ?? order.pobilldate ?? order.orderDate);
+  const pobilldate = formatDateValue(order.pobilldate);
+  const updatedAt = formatDateValue(order.updatedAt ?? order.pobilldate ?? order.createdAt);
 
-  return {
+  const row: FilteredRow = {
     id: order._id,
     _id: order._id,
     poid: order.poid ?? order.orderNumber ?? '',
     pobill: order.pobill ?? '',
-    pobilldate,
     posupplier: resolveSupplierName(order),
     totalAmount: Number(order.totalAmount ?? 0),
     status: order.status,
-    paymentStatus: order.paymentStatus,
-    relatedTransactionGroupId: order.relatedTransactionGroupId,
-    accountingEntryType: order.accountingEntryType,
-    selectedAccountIds: order.selectedAccountIds,
-    updatedAt,
     hasPaidAmount: paymentStatusCache.get(order._id) ?? false,
   };
+
+  if (pobilldate) {
+    row.pobilldate = pobilldate;
+  }
+
+  if (order.paymentStatus) {
+    row.paymentStatus = order.paymentStatus;
+  }
+
+  if (order.relatedTransactionGroupId) {
+    row.relatedTransactionGroupId = order.relatedTransactionGroupId;
+  }
+
+  if (order.accountingEntryType) {
+    row.accountingEntryType = order.accountingEntryType;
+  }
+
+  if (order.selectedAccountIds) {
+    row.selectedAccountIds = order.selectedAccountIds;
+  }
+
+  if (updatedAt) {
+    row.updatedAt = updatedAt;
+  }
+
+  return row;
 };
 
 const matchesText = (value: string | undefined, term: string): boolean => {
@@ -170,9 +191,15 @@ export const usePurchaseOrdersList = (initialSupplierId: string | null = null) =
   const fetchSuppliers = useCallback(async () => {
     try {
       const token = typeof window !== 'undefined' ? window.localStorage.getItem('token') : undefined;
-      const response = await axios.get('/api/suppliers', {
-        headers: token ? { 'x-auth-token': token, Authorization: `Bearer ${token}` } : undefined,
-      });
+      const config: AxiosRequestConfig | undefined = token
+        ? {
+            headers: {
+              'x-auth-token': token,
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        : undefined;
+      const response = await axios.get('/api/suppliers', config);
 
       const payload = response.data;
       if (payload?.success && Array.isArray(payload.data)) {
@@ -195,7 +222,10 @@ export const usePurchaseOrdersList = (initialSupplierId: string | null = null) =
         setPurchaseOrders(response.body.data);
         setError(null);
       } else {
-        const message = response.body?.message ?? 'Failed to load purchase orders';
+        const message =
+          typeof response.body === 'object' && response.body !== null && 'message' in response.body
+            ? ((response.body as { message?: string }).message ?? 'Failed to load purchase orders')
+            : 'Failed to load purchase orders';
         setPurchaseOrders([]);
         setError(message);
       }
@@ -235,11 +265,17 @@ export const usePurchaseOrdersList = (initialSupplierId: string | null = null) =
   const checkPaymentStatus = useCallback(async (purchaseOrderId: string): Promise<boolean> => {
     try {
       const token = typeof window !== 'undefined' ? window.localStorage.getItem('token') : undefined;
+      const config: AxiosRequestConfig | undefined = token
+        ? {
+            headers: {
+              'x-auth-token': token,
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        : undefined;
       const response = await axios.get<{ hasPaidAmount?: boolean }>(
         `/api/accounting2/transactions/purchase-order/${purchaseOrderId}/payment-status`,
-        {
-          headers: token ? { 'x-auth-token': token, Authorization: `Bearer ${token}` } : undefined,
-        },
+        config,
       );
       return Boolean(response.data?.hasPaidAmount);
     } catch (err) {
@@ -408,7 +444,10 @@ export const usePurchaseOrdersList = (initialSupplierId: string | null = null) =
       if (response.status === 200 && response.body?.data) {
         setPreviewPurchaseOrder(response.body.data);
       } else {
-        const message = response.body?.message ?? '無法取得採購單詳細內容';
+        const message =
+          typeof response.body === 'object' && response.body !== null && 'message' in response.body
+            ? ((response.body as { message?: string }).message ?? '無法取得採購單詳細內容')
+            : '無法取得採購單詳細內容';
         setPreviewError(message);
       }
     } catch (err) {
