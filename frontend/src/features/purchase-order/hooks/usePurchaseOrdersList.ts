@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import axios from 'axios';
 import type { AxiosRequestConfig } from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -187,6 +187,11 @@ export const usePurchaseOrdersList = (initialSupplierId: string | null = null) =
   const [paginationModel, setPaginationModel] = useState({ pageSize: 50, page: 0 });
   const [paymentStatusMap, setPaymentStatusMap] = useState<Map<string, boolean>>(new Map());
   const [isCheckingPaymentStatus, setIsCheckingPaymentStatus] = useState<boolean>(false);
+  const isCheckingPaymentStatusRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    isCheckingPaymentStatusRef.current = isCheckingPaymentStatus;
+  }, [isCheckingPaymentStatus]);
 
   const fetchSuppliers = useCallback(async () => {
     try {
@@ -262,34 +267,10 @@ export const usePurchaseOrdersList = (initialSupplierId: string | null = null) =
     setFilteredRows(filterRows(rows, searchParams, selectedSuppliers));
   }, [purchaseOrders, paymentStatusMap, searchParams, selectedSuppliers]);
 
-  const checkPaymentStatus = useCallback(async (purchaseOrderId: string): Promise<boolean> => {
-    try {
-      const token = typeof window !== 'undefined' ? window.localStorage.getItem('token') : undefined;
-      const config: AxiosRequestConfig | undefined = token
-        ? {
-            headers: {
-              'x-auth-token': token,
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        : undefined;
-      const response = await axios.get<{ hasPaidAmount?: boolean }>(
-        `/api/accounting2/transactions/purchase-order/${purchaseOrderId}/payment-status`,
-        config,
-      );
-      return Boolean(response.data?.hasPaidAmount);
-    } catch (err) {
-      console.error('Failed to check purchase order payment status', err);
-      return false;
-    }
-  }, []);
-
   const checkAllPaymentStatuses = useCallback(async (orders: PurchaseOrder[]) => {
-    if (isCheckingPaymentStatus) {
+    if (isCheckingPaymentStatusRef.current) {
       return;
     }
-
-    setIsCheckingPaymentStatus(true);
 
     try {
       const start = paginationModel.page * paginationModel.pageSize;
@@ -309,45 +290,86 @@ export const usePurchaseOrdersList = (initialSupplierId: string | null = null) =
       }
 
       const now = Date.now();
-      const ordersToCheck = currentPageOrders.filter((order) => {
-        const entry = cached[order._id];
-        if (!entry) {
-          return true;
-        }
-        return now - entry.timestamp > PAYMENT_STATUS_CACHE_TTL;
-      });
+      const orderIdsNeedingRefresh = currentPageOrders
+        .filter((order) => {
+          const entry = cached[order._id];
+          return !entry || now - entry.timestamp > PAYMENT_STATUS_CACHE_TTL;
+        })
+        .map((order) => order._id);
 
-      if (ordersToCheck.length > 0) {
-        const results = await Promise.all(
-          ordersToCheck.map(async (order) => {
-            const status = await checkPaymentStatus(order._id);
-            return { id: order._id, status };
-          }),
-        );
+      const updateStateFromCache = (cache: Record<string, { status: boolean; timestamp: number }>) => {
+        setPaymentStatusMap((prev) => {
+          let changed = false;
+          const next = new Map(prev);
 
-        results.forEach(({ id, status }) => {
-          cached[id] = { status, timestamp: now };
+          currentPageOrders.forEach((order) => {
+            const entry = cache[order._id];
+            if (entry && next.get(order._id) !== entry.status) {
+              next.set(order._id, entry.status);
+              changed = true;
+            }
+          });
+
+          return changed ? next : prev;
         });
+      };
 
-        if (typeof window !== 'undefined') {
-          window.localStorage.setItem(PAYMENT_STATUS_CACHE_KEY, JSON.stringify(cached));
-        }
+      if (orderIdsNeedingRefresh.length === 0) {
+        updateStateFromCache(cached);
+        return;
       }
 
-      const nextMap = new Map(paymentStatusMap);
-      currentPageOrders.forEach((order) => {
-        const cachedEntry = cached[order._id];
-        if (cachedEntry) {
-          nextMap.set(order._id, cachedEntry.status);
+      setIsCheckingPaymentStatus(true);
+      isCheckingPaymentStatusRef.current = true;
+
+      const token = typeof window !== 'undefined' ? window.localStorage.getItem('token') : undefined;
+      const config: AxiosRequestConfig | undefined = token
+        ? {
+            headers: {
+              'x-auth-token': token,
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        : undefined;
+
+      const response = await axios.post<{
+        success?: boolean;
+        data?: Array<{ purchaseOrderId?: string; hasPaidAmount?: boolean }>;
+      }>(
+        '/api/accounting2/transactions/purchase-orders/batch-payment-status',
+        { purchaseOrderIds: orderIdsNeedingRefresh },
+        config,
+      );
+
+      const payload = response.data;
+      const data = Array.isArray(payload?.data) ? payload?.data : [];
+      const statusMap = new Map<string, boolean>();
+
+      data.forEach((item) => {
+        if (item?.purchaseOrderId) {
+          statusMap.set(item.purchaseOrderId, Boolean(item.hasPaidAmount));
         }
       });
-      setPaymentStatusMap(nextMap);
+
+      orderIdsNeedingRefresh.forEach((id) => {
+        const status = statusMap.get(id) ?? false;
+        cached[id] = { status, timestamp: now };
+      });
+
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(PAYMENT_STATUS_CACHE_KEY, JSON.stringify(cached));
+      }
+
+      updateStateFromCache(cached);
     } catch (err) {
       console.error('Failed to batch check payment status', err);
     } finally {
-      setIsCheckingPaymentStatus(false);
+      if (isCheckingPaymentStatusRef.current) {
+        isCheckingPaymentStatusRef.current = false;
+        setIsCheckingPaymentStatus(false);
+      }
     }
-  }, [checkPaymentStatus, isCheckingPaymentStatus, paginationModel.page, paginationModel.pageSize, paymentStatusMap]);
+  }, [paginationModel.page, paginationModel.pageSize]);
 
   useEffect(() => {
     if (purchaseOrders.length > 0) {

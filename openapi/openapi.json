@@ -13968,6 +13968,107 @@
               }
             }
           },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "entityId": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "enum": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        409,
+                        500
+                      ]
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_FAILED",
+                        "NOT_FOUND",
+                        "CONFLICT",
+                        "UNAUTHORIZED",
+                        "FORBIDDEN",
+                        "SERVER_ERROR"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "statusCode",
+                    "code"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "500": {
             "description": "500",
             "content": {
@@ -14009,12 +14110,31 @@
                     },
                     "details": {
                       "type": "object",
-                      "additionalProperties": {
-                        "nullable": true
+                      "properties": {
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "entityId": {
+                          "type": "string"
+                        }
                       }
                     },
                     "statusCode": {
-                      "type": "number"
+                      "type": "number",
+                      "enum": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        409,
+                        500
+                      ]
                     },
                     "timestamp": {
                       "oneOf": [
@@ -14026,12 +14146,2933 @@
                           "format": "date-time"
                         }
                       ]
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_FAILED",
+                        "NOT_FOUND",
+                        "CONFLICT",
+                        "UNAUTHORIZED",
+                        "FORBIDDEN",
+                        "SERVER_ERROR"
+                      ]
                     }
                   },
                   "required": [
                     "success",
-                    "message"
+                    "message",
+                    "statusCode",
+                    "code"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "purchaseOrders"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "description": "Body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "poid": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "orderNumber": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "pobill": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "pobilldate": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    ]
+                  },
+                  "posupplier": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "supplier": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[0-9a-fA-F]{24}$"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "_id": {
+                            "type": "string",
+                            "pattern": "^[0-9a-fA-F]{24}$"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          },
+                          "shortCode": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      }
+                    ]
+                  },
+                  "organizationId": {
+                    "type": "string",
+                    "pattern": "^[0-9a-fA-F]{24}$"
+                  },
+                  "transactionType": {
+                    "type": "string",
+                    "enum": [
+                      "進貨",
+                      "退貨",
+                      "支出"
+                    ]
+                  },
+                  "selectedAccountIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^[0-9a-fA-F]{24}$"
+                    }
+                  },
+                  "accountingEntryType": {
+                    "type": "string",
+                    "enum": [
+                      "expense-asset",
+                      "asset-liability"
+                    ]
+                  },
+                  "orderDate": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    ]
+                  },
+                  "expectedDeliveryDate": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    ]
+                  },
+                  "actualDeliveryDate": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    ]
+                  },
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "_id": {
+                          "type": "string",
+                          "pattern": "^[0-9a-fA-F]{24}$"
+                        },
+                        "product": {
+                          "type": "string",
+                          "pattern": "^[0-9a-fA-F]{24}$"
+                        },
+                        "did": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 64
+                        },
+                        "dname": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "dquantity": {
+                          "type": "number",
+                          "minimum": 0,
+                          "exclusiveMinimum": 0,
+                          "maximum": 999999
+                        },
+                        "dtotalCost": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 999999.99,
+                          "nullable": true
+                        },
+                        "unitPrice": {
+                          "oneOf": [
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 999999.99,
+                              "nullable": true
+                            },
+                            {},
+                            {
+                              "type": "object",
+                              "enum": [
+                                null
+                              ],
+                              "nullable": true
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                ""
+                              ]
+                            }
+                          ],
+                          "nullable": true
+                        },
+                        "receivedQuantity": {
+                          "oneOf": [
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 999999,
+                              "nullable": true
+                            },
+                            {},
+                            {
+                              "type": "object",
+                              "enum": [
+                                null
+                              ],
+                              "nullable": true
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                ""
+                              ]
+                            }
+                          ],
+                          "nullable": true
+                        },
+                        "batchNumber": {
+                          "type": "string",
+                          "maxLength": 100
+                        },
+                        "packageQuantity": {
+                          "oneOf": [
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 999999,
+                              "nullable": true
+                            },
+                            {},
+                            {
+                              "type": "object",
+                              "enum": [
+                                null
+                              ],
+                              "nullable": true
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                ""
+                              ]
+                            }
+                          ],
+                          "nullable": true
+                        },
+                        "boxQuantity": {
+                          "oneOf": [
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 999999,
+                              "nullable": true
+                            },
+                            {},
+                            {
+                              "type": "object",
+                              "enum": [
+                                null
+                              ],
+                              "nullable": true
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                ""
+                              ]
+                            }
+                          ],
+                          "nullable": true
+                        },
+                        "notes": {
+                          "type": "string",
+                          "maxLength": 500
+                        }
+                      },
+                      "required": [
+                        "did",
+                        "dname",
+                        "dquantity",
+                        "dtotalCost"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "minItems": 1
+                  },
+                  "totalAmount": {
+                    "oneOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 999999.99,
+                        "nullable": true
+                      },
+                      {},
+                      {
+                        "type": "object",
+                        "enum": [
+                          null
+                        ],
+                        "nullable": true
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          ""
+                        ]
+                      }
+                    ],
+                    "nullable": true
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "pending",
+                      "approved",
+                      "received",
+                      "completed",
+                      "cancelled"
+                    ]
+                  },
+                  "paymentStatus": {
+                    "type": "string",
+                    "enum": [
+                      "未付",
+                      "已付款",
+                      "已下收",
+                      "已匯款"
+                    ]
+                  },
+                  "notes": {
+                    "type": "string",
+                    "maxLength": 1000
+                  }
+                },
+                "required": [
+                  "poid",
+                  "posupplier",
+                  "items"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "_id": {
+                          "type": "string",
+                          "pattern": "^[0-9a-fA-F]{24}$"
+                        },
+                        "poid": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 64
+                        },
+                        "orderNumber": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 64
+                        },
+                        "pobill": {
+                          "type": "string",
+                          "maxLength": 100
+                        },
+                        "pobilldate": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          ]
+                        },
+                        "posupplier": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "supplier": {
+                          "oneOf": [
+                            {
+                              "type": "string",
+                              "pattern": "^[0-9a-fA-F]{24}$"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "_id": {
+                                  "type": "string",
+                                  "pattern": "^[0-9a-fA-F]{24}$"
+                                },
+                                "name": {
+                                  "type": "string"
+                                },
+                                "code": {
+                                  "type": "string"
+                                },
+                                "shortCode": {
+                                  "type": "string"
+                                }
+                              },
+                              "additionalProperties": true
+                            }
+                          ]
+                        },
+                        "organizationId": {
+                          "type": "string",
+                          "pattern": "^[0-9a-fA-F]{24}$"
+                        },
+                        "transactionType": {
+                          "type": "string",
+                          "enum": [
+                            "進貨",
+                            "退貨",
+                            "支出"
+                          ]
+                        },
+                        "selectedAccountIds": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "pattern": "^[0-9a-fA-F]{24}$"
+                          }
+                        },
+                        "accountingEntryType": {
+                          "type": "string",
+                          "enum": [
+                            "expense-asset",
+                            "asset-liability"
+                          ]
+                        },
+                        "orderDate": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          ]
+                        },
+                        "expectedDeliveryDate": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          ]
+                        },
+                        "actualDeliveryDate": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          ]
+                        },
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "_id": {
+                                "type": "string",
+                                "pattern": "^[0-9a-fA-F]{24}$"
+                              },
+                              "product": {
+                                "oneOf": [
+                                  {
+                                    "type": "string",
+                                    "pattern": "^[0-9a-fA-F]{24}$"
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "_id": {
+                                        "type": "string",
+                                        "pattern": "^[0-9a-fA-F]{24}$"
+                                      },
+                                      "name": {
+                                        "type": "string"
+                                      },
+                                      "code": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "additionalProperties": true
+                                  }
+                                ]
+                              },
+                              "did": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 64
+                              },
+                              "dname": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200
+                              },
+                              "dquantity": {
+                                "type": "number",
+                                "minimum": 0,
+                                "exclusiveMinimum": 0,
+                                "maximum": 999999
+                              },
+                              "dtotalCost": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 999999.99,
+                                "nullable": true
+                              },
+                              "unitPrice": {
+                                "oneOf": [
+                                  {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 999999.99,
+                                    "nullable": true
+                                  },
+                                  {},
+                                  {
+                                    "type": "object",
+                                    "enum": [
+                                      null
+                                    ],
+                                    "nullable": true
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      ""
+                                    ]
+                                  }
+                                ],
+                                "nullable": true
+                              },
+                              "receivedQuantity": {
+                                "oneOf": [
+                                  {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 999999,
+                                    "nullable": true
+                                  },
+                                  {},
+                                  {
+                                    "type": "object",
+                                    "enum": [
+                                      null
+                                    ],
+                                    "nullable": true
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      ""
+                                    ]
+                                  }
+                                ],
+                                "nullable": true
+                              },
+                              "batchNumber": {
+                                "type": "string",
+                                "maxLength": 100
+                              },
+                              "packageQuantity": {
+                                "oneOf": [
+                                  {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 999999,
+                                    "nullable": true
+                                  },
+                                  {},
+                                  {
+                                    "type": "object",
+                                    "enum": [
+                                      null
+                                    ],
+                                    "nullable": true
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      ""
+                                    ]
+                                  }
+                                ],
+                                "nullable": true
+                              },
+                              "boxQuantity": {
+                                "oneOf": [
+                                  {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 999999,
+                                    "nullable": true
+                                  },
+                                  {},
+                                  {
+                                    "type": "object",
+                                    "enum": [
+                                      null
+                                    ],
+                                    "nullable": true
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      ""
+                                    ]
+                                  }
+                                ],
+                                "nullable": true
+                              },
+                              "notes": {
+                                "type": "string",
+                                "maxLength": 500
+                              }
+                            },
+                            "required": [
+                              "did",
+                              "dname",
+                              "dquantity",
+                              "dtotalCost"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "totalAmount": {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "pending",
+                            "approved",
+                            "received",
+                            "completed",
+                            "cancelled"
+                          ]
+                        },
+                        "paymentStatus": {
+                          "type": "string",
+                          "enum": [
+                            "未付",
+                            "已付款",
+                            "已下收",
+                            "已匯款"
+                          ]
+                        },
+                        "notes": {
+                          "type": "string",
+                          "maxLength": 1000
+                        },
+                        "createdBy": {
+                          "oneOf": [
+                            {
+                              "type": "string",
+                              "pattern": "^[0-9a-fA-F]{24}$"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "_id": {
+                                  "type": "string",
+                                  "pattern": "^[0-9a-fA-F]{24}$"
+                                },
+                                "username": {
+                                  "type": "string"
+                                },
+                                "name": {
+                                  "type": "string"
+                                }
+                              },
+                              "additionalProperties": true
+                            }
+                          ]
+                        },
+                        "relatedTransactionGroupId": {
+                          "type": "string",
+                          "pattern": "^[0-9a-fA-F]{24}$"
+                        },
+                        "createdAt": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          ]
+                        },
+                        "updatedAt": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "_id",
+                        "poid",
+                        "orderNumber",
+                        "posupplier",
+                        "items",
+                        "totalAmount",
+                        "status",
+                        "createdAt",
+                        "updatedAt"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success"
                   ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "entityId": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "enum": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        409,
+                        500
+                      ]
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_FAILED",
+                        "NOT_FOUND",
+                        "CONFLICT",
+                        "UNAUTHORIZED",
+                        "FORBIDDEN",
+                        "SERVER_ERROR"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "statusCode",
+                    "code"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "entityId": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "enum": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        409,
+                        500
+                      ]
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_FAILED",
+                        "NOT_FOUND",
+                        "CONFLICT",
+                        "UNAUTHORIZED",
+                        "FORBIDDEN",
+                        "SERVER_ERROR"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "statusCode",
+                    "code"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "entityId": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "enum": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        409,
+                        500
+                      ]
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_FAILED",
+                        "NOT_FOUND",
+                        "CONFLICT",
+                        "UNAUTHORIZED",
+                        "FORBIDDEN",
+                        "SERVER_ERROR"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "statusCode",
+                    "code"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "409",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "entityId": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "enum": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        409,
+                        500
+                      ]
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_FAILED",
+                        "NOT_FOUND",
+                        "CONFLICT",
+                        "UNAUTHORIZED",
+                        "FORBIDDEN",
+                        "SERVER_ERROR"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "statusCode",
+                    "code"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "entityId": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "enum": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        409,
+                        500
+                      ]
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_FAILED",
+                        "NOT_FOUND",
+                        "CONFLICT",
+                        "UNAUTHORIZED",
+                        "FORBIDDEN",
+                        "SERVER_ERROR"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "statusCode",
+                    "code"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/purchase-orders/recent": {
+      "get": {
+        "tags": [
+          "purchaseOrders"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "_id": {
+                            "type": "string",
+                            "pattern": "^[0-9a-fA-F]{24}$"
+                          },
+                          "poid": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 64
+                          },
+                          "orderNumber": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 64
+                          },
+                          "pobill": {
+                            "type": "string",
+                            "maxLength": 100
+                          },
+                          "pobilldate": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            ]
+                          },
+                          "posupplier": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 200
+                          },
+                          "supplier": {
+                            "oneOf": [
+                              {
+                                "type": "string",
+                                "pattern": "^[0-9a-fA-F]{24}$"
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "_id": {
+                                    "type": "string",
+                                    "pattern": "^[0-9a-fA-F]{24}$"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "code": {
+                                    "type": "string"
+                                  },
+                                  "shortCode": {
+                                    "type": "string"
+                                  }
+                                },
+                                "additionalProperties": true
+                              }
+                            ]
+                          },
+                          "organizationId": {
+                            "type": "string",
+                            "pattern": "^[0-9a-fA-F]{24}$"
+                          },
+                          "transactionType": {
+                            "type": "string",
+                            "enum": [
+                              "進貨",
+                              "退貨",
+                              "支出"
+                            ]
+                          },
+                          "accountingEntryType": {
+                            "type": "string",
+                            "enum": [
+                              "expense-asset",
+                              "asset-liability"
+                            ]
+                          },
+                          "selectedAccountIds": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "pattern": "^[0-9a-fA-F]{24}$"
+                            }
+                          },
+                          "relatedTransactionGroupId": {
+                            "type": "string",
+                            "pattern": "^[0-9a-fA-F]{24}$"
+                          },
+                          "totalAmount": {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "pending",
+                              "approved",
+                              "received",
+                              "completed",
+                              "cancelled"
+                            ]
+                          },
+                          "paymentStatus": {
+                            "type": "string",
+                            "enum": [
+                              "未付",
+                              "已付款",
+                              "已下收",
+                              "已匯款"
+                            ]
+                          },
+                          "notes": {
+                            "type": "string",
+                            "maxLength": 1000
+                          },
+                          "createdAt": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            ]
+                          },
+                          "updatedAt": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            ]
+                          },
+                          "items": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "_id": {
+                                  "type": "string",
+                                  "pattern": "^[0-9a-fA-F]{24}$"
+                                },
+                                "did": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 64
+                                },
+                                "dname": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 200
+                                },
+                                "dquantity": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "exclusiveMinimum": 0,
+                                  "maximum": 999999
+                                },
+                                "dtotalCost": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 999999.99,
+                                  "nullable": true
+                                },
+                                "unitPrice": {
+                                  "oneOf": [
+                                    {
+                                      "type": "number",
+                                      "minimum": 0,
+                                      "maximum": 999999.99,
+                                      "nullable": true
+                                    },
+                                    {},
+                                    {
+                                      "type": "object",
+                                      "enum": [
+                                        null
+                                      ],
+                                      "nullable": true
+                                    },
+                                    {
+                                      "type": "string",
+                                      "enum": [
+                                        ""
+                                      ]
+                                    }
+                                  ],
+                                  "nullable": true
+                                }
+                              },
+                              "required": [
+                                "did",
+                                "dname",
+                                "dquantity",
+                                "dtotalCost"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "_id",
+                          "poid",
+                          "orderNumber",
+                          "posupplier",
+                          "totalAmount",
+                          "status",
+                          "createdAt",
+                          "updatedAt"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "entityId": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "enum": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        409,
+                        500
+                      ]
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_FAILED",
+                        "NOT_FOUND",
+                        "CONFLICT",
+                        "UNAUTHORIZED",
+                        "FORBIDDEN",
+                        "SERVER_ERROR"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "statusCode",
+                    "code"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "entityId": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "enum": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        409,
+                        500
+                      ]
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_FAILED",
+                        "NOT_FOUND",
+                        "CONFLICT",
+                        "UNAUTHORIZED",
+                        "FORBIDDEN",
+                        "SERVER_ERROR"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "statusCode",
+                    "code"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/purchase-orders/supplier/{supplierId}": {
+      "get": {
+        "tags": [
+          "purchaseOrders"
+        ],
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-fA-F]{24}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "_id": {
+                            "type": "string",
+                            "pattern": "^[0-9a-fA-F]{24}$"
+                          },
+                          "poid": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 64
+                          },
+                          "orderNumber": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 64
+                          },
+                          "pobill": {
+                            "type": "string",
+                            "maxLength": 100
+                          },
+                          "pobilldate": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            ]
+                          },
+                          "posupplier": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 200
+                          },
+                          "supplier": {
+                            "oneOf": [
+                              {
+                                "type": "string",
+                                "pattern": "^[0-9a-fA-F]{24}$"
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "_id": {
+                                    "type": "string",
+                                    "pattern": "^[0-9a-fA-F]{24}$"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "code": {
+                                    "type": "string"
+                                  },
+                                  "shortCode": {
+                                    "type": "string"
+                                  }
+                                },
+                                "additionalProperties": true
+                              }
+                            ]
+                          },
+                          "organizationId": {
+                            "type": "string",
+                            "pattern": "^[0-9a-fA-F]{24}$"
+                          },
+                          "transactionType": {
+                            "type": "string",
+                            "enum": [
+                              "進貨",
+                              "退貨",
+                              "支出"
+                            ]
+                          },
+                          "accountingEntryType": {
+                            "type": "string",
+                            "enum": [
+                              "expense-asset",
+                              "asset-liability"
+                            ]
+                          },
+                          "selectedAccountIds": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "pattern": "^[0-9a-fA-F]{24}$"
+                            }
+                          },
+                          "relatedTransactionGroupId": {
+                            "type": "string",
+                            "pattern": "^[0-9a-fA-F]{24}$"
+                          },
+                          "totalAmount": {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "pending",
+                              "approved",
+                              "received",
+                              "completed",
+                              "cancelled"
+                            ]
+                          },
+                          "paymentStatus": {
+                            "type": "string",
+                            "enum": [
+                              "未付",
+                              "已付款",
+                              "已下收",
+                              "已匯款"
+                            ]
+                          },
+                          "notes": {
+                            "type": "string",
+                            "maxLength": 1000
+                          },
+                          "createdAt": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            ]
+                          },
+                          "updatedAt": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            ]
+                          },
+                          "items": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "_id": {
+                                  "type": "string",
+                                  "pattern": "^[0-9a-fA-F]{24}$"
+                                },
+                                "did": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 64
+                                },
+                                "dname": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 200
+                                },
+                                "dquantity": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "exclusiveMinimum": 0,
+                                  "maximum": 999999
+                                },
+                                "dtotalCost": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 999999.99,
+                                  "nullable": true
+                                },
+                                "unitPrice": {
+                                  "oneOf": [
+                                    {
+                                      "type": "number",
+                                      "minimum": 0,
+                                      "maximum": 999999.99,
+                                      "nullable": true
+                                    },
+                                    {},
+                                    {
+                                      "type": "object",
+                                      "enum": [
+                                        null
+                                      ],
+                                      "nullable": true
+                                    },
+                                    {
+                                      "type": "string",
+                                      "enum": [
+                                        ""
+                                      ]
+                                    }
+                                  ],
+                                  "nullable": true
+                                }
+                              },
+                              "required": [
+                                "did",
+                                "dname",
+                                "dquantity",
+                                "dtotalCost"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "_id",
+                          "poid",
+                          "orderNumber",
+                          "posupplier",
+                          "totalAmount",
+                          "status",
+                          "createdAt",
+                          "updatedAt"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "entityId": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "enum": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        409,
+                        500
+                      ]
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_FAILED",
+                        "NOT_FOUND",
+                        "CONFLICT",
+                        "UNAUTHORIZED",
+                        "FORBIDDEN",
+                        "SERVER_ERROR"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "statusCode",
+                    "code"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "entityId": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "enum": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        409,
+                        500
+                      ]
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_FAILED",
+                        "NOT_FOUND",
+                        "CONFLICT",
+                        "UNAUTHORIZED",
+                        "FORBIDDEN",
+                        "SERVER_ERROR"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "statusCode",
+                    "code"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "entityId": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "enum": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        409,
+                        500
+                      ]
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_FAILED",
+                        "NOT_FOUND",
+                        "CONFLICT",
+                        "UNAUTHORIZED",
+                        "FORBIDDEN",
+                        "SERVER_ERROR"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "statusCode",
+                    "code"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/purchase-orders/product/{productId}": {
+      "get": {
+        "tags": [
+          "purchaseOrders"
+        ],
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-fA-F]{24}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "_id": {
+                            "type": "string",
+                            "pattern": "^[0-9a-fA-F]{24}$"
+                          },
+                          "poid": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 64
+                          },
+                          "orderNumber": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 64
+                          },
+                          "pobill": {
+                            "type": "string",
+                            "maxLength": 100
+                          },
+                          "pobilldate": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            ]
+                          },
+                          "posupplier": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 200
+                          },
+                          "supplier": {
+                            "oneOf": [
+                              {
+                                "type": "string",
+                                "pattern": "^[0-9a-fA-F]{24}$"
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "_id": {
+                                    "type": "string",
+                                    "pattern": "^[0-9a-fA-F]{24}$"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "code": {
+                                    "type": "string"
+                                  },
+                                  "shortCode": {
+                                    "type": "string"
+                                  }
+                                },
+                                "additionalProperties": true
+                              }
+                            ]
+                          },
+                          "organizationId": {
+                            "type": "string",
+                            "pattern": "^[0-9a-fA-F]{24}$"
+                          },
+                          "transactionType": {
+                            "type": "string",
+                            "enum": [
+                              "進貨",
+                              "退貨",
+                              "支出"
+                            ]
+                          },
+                          "accountingEntryType": {
+                            "type": "string",
+                            "enum": [
+                              "expense-asset",
+                              "asset-liability"
+                            ]
+                          },
+                          "selectedAccountIds": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "pattern": "^[0-9a-fA-F]{24}$"
+                            }
+                          },
+                          "relatedTransactionGroupId": {
+                            "type": "string",
+                            "pattern": "^[0-9a-fA-F]{24}$"
+                          },
+                          "totalAmount": {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "pending",
+                              "approved",
+                              "received",
+                              "completed",
+                              "cancelled"
+                            ]
+                          },
+                          "paymentStatus": {
+                            "type": "string",
+                            "enum": [
+                              "未付",
+                              "已付款",
+                              "已下收",
+                              "已匯款"
+                            ]
+                          },
+                          "notes": {
+                            "type": "string",
+                            "maxLength": 1000
+                          },
+                          "createdAt": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            ]
+                          },
+                          "updatedAt": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            ]
+                          },
+                          "items": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "_id": {
+                                  "type": "string",
+                                  "pattern": "^[0-9a-fA-F]{24}$"
+                                },
+                                "did": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 64
+                                },
+                                "dname": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 200
+                                },
+                                "dquantity": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "exclusiveMinimum": 0,
+                                  "maximum": 999999
+                                },
+                                "dtotalCost": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 999999.99,
+                                  "nullable": true
+                                },
+                                "unitPrice": {
+                                  "oneOf": [
+                                    {
+                                      "type": "number",
+                                      "minimum": 0,
+                                      "maximum": 999999.99,
+                                      "nullable": true
+                                    },
+                                    {},
+                                    {
+                                      "type": "object",
+                                      "enum": [
+                                        null
+                                      ],
+                                      "nullable": true
+                                    },
+                                    {
+                                      "type": "string",
+                                      "enum": [
+                                        ""
+                                      ]
+                                    }
+                                  ],
+                                  "nullable": true
+                                }
+                              },
+                              "required": [
+                                "did",
+                                "dname",
+                                "dquantity",
+                                "dtotalCost"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "_id",
+                          "poid",
+                          "orderNumber",
+                          "posupplier",
+                          "totalAmount",
+                          "status",
+                          "createdAt",
+                          "updatedAt"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "entityId": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "enum": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        409,
+                        500
+                      ]
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_FAILED",
+                        "NOT_FOUND",
+                        "CONFLICT",
+                        "UNAUTHORIZED",
+                        "FORBIDDEN",
+                        "SERVER_ERROR"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "statusCode",
+                    "code"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "entityId": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "enum": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        409,
+                        500
+                      ]
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_FAILED",
+                        "NOT_FOUND",
+                        "CONFLICT",
+                        "UNAUTHORIZED",
+                        "FORBIDDEN",
+                        "SERVER_ERROR"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "statusCode",
+                    "code"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "entityId": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "enum": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        409,
+                        500
+                      ]
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_FAILED",
+                        "NOT_FOUND",
+                        "CONFLICT",
+                        "UNAUTHORIZED",
+                        "FORBIDDEN",
+                        "SERVER_ERROR"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "statusCode",
+                    "code"
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -14518,12 +17559,31 @@
                     },
                     "details": {
                       "type": "object",
-                      "additionalProperties": {
-                        "nullable": true
+                      "properties": {
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "entityId": {
+                          "type": "string"
+                        }
                       }
                     },
                     "statusCode": {
-                      "type": "number"
+                      "type": "number",
+                      "enum": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        409,
+                        500
+                      ]
                     },
                     "timestamp": {
                       "oneOf": [
@@ -14535,12 +17595,26 @@
                           "format": "date-time"
                         }
                       ]
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_FAILED",
+                        "NOT_FOUND",
+                        "CONFLICT",
+                        "UNAUTHORIZED",
+                        "FORBIDDEN",
+                        "SERVER_ERROR"
+                      ]
                     }
                   },
                   "required": [
                     "success",
-                    "message"
-                  ]
+                    "message",
+                    "statusCode",
+                    "code"
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -14586,12 +17660,31 @@
                     },
                     "details": {
                       "type": "object",
-                      "additionalProperties": {
-                        "nullable": true
+                      "properties": {
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "entityId": {
+                          "type": "string"
+                        }
                       }
                     },
                     "statusCode": {
-                      "type": "number"
+                      "type": "number",
+                      "enum": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        409,
+                        500
+                      ]
                     },
                     "timestamp": {
                       "oneOf": [
@@ -14603,12 +17696,1869 @@
                           "format": "date-time"
                         }
                       ]
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_FAILED",
+                        "NOT_FOUND",
+                        "CONFLICT",
+                        "UNAUTHORIZED",
+                        "FORBIDDEN",
+                        "SERVER_ERROR"
+                      ]
                     }
                   },
                   "required": [
                     "success",
-                    "message"
+                    "message",
+                    "statusCode",
+                    "code"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "purchaseOrders"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-fA-F]{24}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "poid": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "orderNumber": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "pobill": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "pobilldate": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    ]
+                  },
+                  "posupplier": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "supplier": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[0-9a-fA-F]{24}$"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "_id": {
+                            "type": "string",
+                            "pattern": "^[0-9a-fA-F]{24}$"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          },
+                          "shortCode": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      }
+                    ]
+                  },
+                  "organizationId": {
+                    "type": "string",
+                    "pattern": "^[0-9a-fA-F]{24}$"
+                  },
+                  "transactionType": {
+                    "type": "string",
+                    "enum": [
+                      "進貨",
+                      "退貨",
+                      "支出"
+                    ]
+                  },
+                  "selectedAccountIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^[0-9a-fA-F]{24}$"
+                    }
+                  },
+                  "accountingEntryType": {
+                    "type": "string",
+                    "enum": [
+                      "expense-asset",
+                      "asset-liability"
+                    ]
+                  },
+                  "orderDate": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    ]
+                  },
+                  "expectedDeliveryDate": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    ]
+                  },
+                  "actualDeliveryDate": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    ]
+                  },
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "_id": {
+                          "type": "string",
+                          "pattern": "^[0-9a-fA-F]{24}$"
+                        },
+                        "product": {
+                          "type": "string",
+                          "pattern": "^[0-9a-fA-F]{24}$"
+                        },
+                        "did": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 64
+                        },
+                        "dname": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "dquantity": {
+                          "type": "number",
+                          "minimum": 0,
+                          "exclusiveMinimum": 0,
+                          "maximum": 999999
+                        },
+                        "dtotalCost": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 999999.99,
+                          "nullable": true
+                        },
+                        "unitPrice": {
+                          "oneOf": [
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 999999.99,
+                              "nullable": true
+                            },
+                            {},
+                            {
+                              "type": "object",
+                              "enum": [
+                                null
+                              ],
+                              "nullable": true
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                ""
+                              ]
+                            }
+                          ],
+                          "nullable": true
+                        },
+                        "receivedQuantity": {
+                          "oneOf": [
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 999999,
+                              "nullable": true
+                            },
+                            {},
+                            {
+                              "type": "object",
+                              "enum": [
+                                null
+                              ],
+                              "nullable": true
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                ""
+                              ]
+                            }
+                          ],
+                          "nullable": true
+                        },
+                        "batchNumber": {
+                          "type": "string",
+                          "maxLength": 100
+                        },
+                        "packageQuantity": {
+                          "oneOf": [
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 999999,
+                              "nullable": true
+                            },
+                            {},
+                            {
+                              "type": "object",
+                              "enum": [
+                                null
+                              ],
+                              "nullable": true
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                ""
+                              ]
+                            }
+                          ],
+                          "nullable": true
+                        },
+                        "boxQuantity": {
+                          "oneOf": [
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 999999,
+                              "nullable": true
+                            },
+                            {},
+                            {
+                              "type": "object",
+                              "enum": [
+                                null
+                              ],
+                              "nullable": true
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                ""
+                              ]
+                            }
+                          ],
+                          "nullable": true
+                        },
+                        "notes": {
+                          "type": "string",
+                          "maxLength": 500
+                        }
+                      },
+                      "required": [
+                        "did",
+                        "dname",
+                        "dquantity",
+                        "dtotalCost"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "minItems": 1
+                  },
+                  "totalAmount": {
+                    "oneOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 999999.99,
+                        "nullable": true
+                      },
+                      {},
+                      {
+                        "type": "object",
+                        "enum": [
+                          null
+                        ],
+                        "nullable": true
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          ""
+                        ]
+                      }
+                    ],
+                    "nullable": true
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "pending",
+                      "approved",
+                      "received",
+                      "completed",
+                      "cancelled"
+                    ]
+                  },
+                  "paymentStatus": {
+                    "type": "string",
+                    "enum": [
+                      "未付",
+                      "已付款",
+                      "已下收",
+                      "已匯款"
+                    ]
+                  },
+                  "notes": {
+                    "type": "string",
+                    "maxLength": 1000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "_id": {
+                          "type": "string",
+                          "pattern": "^[0-9a-fA-F]{24}$"
+                        },
+                        "poid": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 64
+                        },
+                        "orderNumber": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 64
+                        },
+                        "pobill": {
+                          "type": "string",
+                          "maxLength": 100
+                        },
+                        "pobilldate": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          ]
+                        },
+                        "posupplier": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "supplier": {
+                          "oneOf": [
+                            {
+                              "type": "string",
+                              "pattern": "^[0-9a-fA-F]{24}$"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "_id": {
+                                  "type": "string",
+                                  "pattern": "^[0-9a-fA-F]{24}$"
+                                },
+                                "name": {
+                                  "type": "string"
+                                },
+                                "code": {
+                                  "type": "string"
+                                },
+                                "shortCode": {
+                                  "type": "string"
+                                }
+                              },
+                              "additionalProperties": true
+                            }
+                          ]
+                        },
+                        "organizationId": {
+                          "type": "string",
+                          "pattern": "^[0-9a-fA-F]{24}$"
+                        },
+                        "transactionType": {
+                          "type": "string",
+                          "enum": [
+                            "進貨",
+                            "退貨",
+                            "支出"
+                          ]
+                        },
+                        "selectedAccountIds": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "pattern": "^[0-9a-fA-F]{24}$"
+                          }
+                        },
+                        "accountingEntryType": {
+                          "type": "string",
+                          "enum": [
+                            "expense-asset",
+                            "asset-liability"
+                          ]
+                        },
+                        "orderDate": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          ]
+                        },
+                        "expectedDeliveryDate": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          ]
+                        },
+                        "actualDeliveryDate": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          ]
+                        },
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "_id": {
+                                "type": "string",
+                                "pattern": "^[0-9a-fA-F]{24}$"
+                              },
+                              "product": {
+                                "oneOf": [
+                                  {
+                                    "type": "string",
+                                    "pattern": "^[0-9a-fA-F]{24}$"
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "_id": {
+                                        "type": "string",
+                                        "pattern": "^[0-9a-fA-F]{24}$"
+                                      },
+                                      "name": {
+                                        "type": "string"
+                                      },
+                                      "code": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "additionalProperties": true
+                                  }
+                                ]
+                              },
+                              "did": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 64
+                              },
+                              "dname": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200
+                              },
+                              "dquantity": {
+                                "type": "number",
+                                "minimum": 0,
+                                "exclusiveMinimum": 0,
+                                "maximum": 999999
+                              },
+                              "dtotalCost": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 999999.99,
+                                "nullable": true
+                              },
+                              "unitPrice": {
+                                "oneOf": [
+                                  {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 999999.99,
+                                    "nullable": true
+                                  },
+                                  {},
+                                  {
+                                    "type": "object",
+                                    "enum": [
+                                      null
+                                    ],
+                                    "nullable": true
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      ""
+                                    ]
+                                  }
+                                ],
+                                "nullable": true
+                              },
+                              "receivedQuantity": {
+                                "oneOf": [
+                                  {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 999999,
+                                    "nullable": true
+                                  },
+                                  {},
+                                  {
+                                    "type": "object",
+                                    "enum": [
+                                      null
+                                    ],
+                                    "nullable": true
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      ""
+                                    ]
+                                  }
+                                ],
+                                "nullable": true
+                              },
+                              "batchNumber": {
+                                "type": "string",
+                                "maxLength": 100
+                              },
+                              "packageQuantity": {
+                                "oneOf": [
+                                  {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 999999,
+                                    "nullable": true
+                                  },
+                                  {},
+                                  {
+                                    "type": "object",
+                                    "enum": [
+                                      null
+                                    ],
+                                    "nullable": true
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      ""
+                                    ]
+                                  }
+                                ],
+                                "nullable": true
+                              },
+                              "boxQuantity": {
+                                "oneOf": [
+                                  {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 999999,
+                                    "nullable": true
+                                  },
+                                  {},
+                                  {
+                                    "type": "object",
+                                    "enum": [
+                                      null
+                                    ],
+                                    "nullable": true
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      ""
+                                    ]
+                                  }
+                                ],
+                                "nullable": true
+                              },
+                              "notes": {
+                                "type": "string",
+                                "maxLength": 500
+                              }
+                            },
+                            "required": [
+                              "did",
+                              "dname",
+                              "dquantity",
+                              "dtotalCost"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "totalAmount": {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "pending",
+                            "approved",
+                            "received",
+                            "completed",
+                            "cancelled"
+                          ]
+                        },
+                        "paymentStatus": {
+                          "type": "string",
+                          "enum": [
+                            "未付",
+                            "已付款",
+                            "已下收",
+                            "已匯款"
+                          ]
+                        },
+                        "notes": {
+                          "type": "string",
+                          "maxLength": 1000
+                        },
+                        "createdBy": {
+                          "oneOf": [
+                            {
+                              "type": "string",
+                              "pattern": "^[0-9a-fA-F]{24}$"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "_id": {
+                                  "type": "string",
+                                  "pattern": "^[0-9a-fA-F]{24}$"
+                                },
+                                "username": {
+                                  "type": "string"
+                                },
+                                "name": {
+                                  "type": "string"
+                                }
+                              },
+                              "additionalProperties": true
+                            }
+                          ]
+                        },
+                        "relatedTransactionGroupId": {
+                          "type": "string",
+                          "pattern": "^[0-9a-fA-F]{24}$"
+                        },
+                        "createdAt": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          ]
+                        },
+                        "updatedAt": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "_id",
+                        "poid",
+                        "orderNumber",
+                        "posupplier",
+                        "items",
+                        "totalAmount",
+                        "status",
+                        "createdAt",
+                        "updatedAt"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success"
                   ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "entityId": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "enum": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        409,
+                        500
+                      ]
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_FAILED",
+                        "NOT_FOUND",
+                        "CONFLICT",
+                        "UNAUTHORIZED",
+                        "FORBIDDEN",
+                        "SERVER_ERROR"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "statusCode",
+                    "code"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "entityId": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "enum": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        409,
+                        500
+                      ]
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_FAILED",
+                        "NOT_FOUND",
+                        "CONFLICT",
+                        "UNAUTHORIZED",
+                        "FORBIDDEN",
+                        "SERVER_ERROR"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "statusCode",
+                    "code"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "entityId": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "enum": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        409,
+                        500
+                      ]
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_FAILED",
+                        "NOT_FOUND",
+                        "CONFLICT",
+                        "UNAUTHORIZED",
+                        "FORBIDDEN",
+                        "SERVER_ERROR"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "statusCode",
+                    "code"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "entityId": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "enum": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        409,
+                        500
+                      ]
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_FAILED",
+                        "NOT_FOUND",
+                        "CONFLICT",
+                        "UNAUTHORIZED",
+                        "FORBIDDEN",
+                        "SERVER_ERROR"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "statusCode",
+                    "code"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "409",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "entityId": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "enum": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        409,
+                        500
+                      ]
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_FAILED",
+                        "NOT_FOUND",
+                        "CONFLICT",
+                        "UNAUTHORIZED",
+                        "FORBIDDEN",
+                        "SERVER_ERROR"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "statusCode",
+                    "code"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "entityId": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "enum": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        409,
+                        500
+                      ]
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_FAILED",
+                        "NOT_FOUND",
+                        "CONFLICT",
+                        "UNAUTHORIZED",
+                        "FORBIDDEN",
+                        "SERVER_ERROR"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "statusCode",
+                    "code"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "purchaseOrders"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-fA-F]{24}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "entityId": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "enum": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        409,
+                        500
+                      ]
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_FAILED",
+                        "NOT_FOUND",
+                        "CONFLICT",
+                        "UNAUTHORIZED",
+                        "FORBIDDEN",
+                        "SERVER_ERROR"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "statusCode",
+                    "code"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "entityId": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "enum": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        409,
+                        500
+                      ]
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_FAILED",
+                        "NOT_FOUND",
+                        "CONFLICT",
+                        "UNAUTHORIZED",
+                        "FORBIDDEN",
+                        "SERVER_ERROR"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "statusCode",
+                    "code"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "409",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "entityId": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "enum": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        409,
+                        500
+                      ]
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_FAILED",
+                        "NOT_FOUND",
+                        "CONFLICT",
+                        "UNAUTHORIZED",
+                        "FORBIDDEN",
+                        "SERVER_ERROR"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "statusCode",
+                    "code"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg"
+                        ]
+                      }
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "entityId": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "enum": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        409,
+                        500
+                      ]
+                    },
+                    "timestamp": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_FAILED",
+                        "NOT_FOUND",
+                        "CONFLICT",
+                        "UNAUTHORIZED",
+                        "FORBIDDEN",
+                        "SERVER_ERROR"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "statusCode",
+                    "code"
+                  ],
+                  "additionalProperties": false
                 }
               }
             }

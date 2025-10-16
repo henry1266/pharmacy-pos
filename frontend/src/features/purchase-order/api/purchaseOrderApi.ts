@@ -6,7 +6,8 @@ import {
 import type {
   PurchaseOrderCreateRequest,
   PurchaseOrderUpdateRequest,
-  PurchaseOrderResponseDto,
+  PurchaseOrderListItemDto,
+  PurchaseOrderDetailDto,
   PurchaseOrderQueryParams,
 } from './dto';
 
@@ -27,13 +28,14 @@ export const purchaseOrderApi = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
   tagTypes: ['PurchaseOrder'],
   endpoints: (builder) => ({
-    getPurchaseOrders: builder.query<PurchaseOrderResponseDto[], PurchaseOrderQueryParams | void>({
-      queryFn: async (params = {}) => {
-        const query = Object.keys(params).length > 0 ? params : undefined;
+    getPurchaseOrders: builder.query<PurchaseOrderListItemDto[], PurchaseOrderQueryParams | undefined>({
+      queryFn: async (params) => {
+        const hasParams = params && Object.keys(params).length > 0;
+        const query = hasParams ? params : undefined;
         const response = await purchaseOrdersContractClient.listPurchaseOrders({ query });
 
         if (response.status === 200 && response.body?.data) {
-          return { data: response.body.data };
+          return { data: response.body.data as PurchaseOrderListItemDto[] };
         }
 
         return {
@@ -48,12 +50,12 @@ export const purchaseOrderApi = createApi({
             ]
           : [{ type: 'PurchaseOrder', id: 'LIST' }],
     }),
-    getPurchaseOrderById: builder.query<PurchaseOrderResponseDto, string>({
+    getPurchaseOrderById: builder.query<PurchaseOrderDetailDto, string>({
       queryFn: async (id) => {
         const response = await purchaseOrdersContractClient.getPurchaseOrderById({ params: { id } });
 
         if (response.status === 200 && response.body?.data) {
-          return { data: response.body.data };
+          return { data: response.body.data as PurchaseOrderDetailDto };
         }
 
         return {
@@ -62,12 +64,12 @@ export const purchaseOrderApi = createApi({
       },
       providesTags: (_result, _error, id) => [{ type: 'PurchaseOrder', id }],
     }),
-    createPurchaseOrder: builder.mutation<PurchaseOrderResponseDto, PurchaseOrderCreateRequest>({
+    createPurchaseOrder: builder.mutation<PurchaseOrderDetailDto, PurchaseOrderCreateRequest>({
       queryFn: async (body) => {
         const response = await purchaseOrdersContractClient.createPurchaseOrder({ body });
 
         if (response.status === 200 && response.body?.data) {
-          return { data: response.body.data };
+          return { data: response.body.data as PurchaseOrderDetailDto };
         }
 
         return {
@@ -77,7 +79,7 @@ export const purchaseOrderApi = createApi({
       invalidatesTags: [{ type: 'PurchaseOrder', id: 'LIST' }],
     }),
     updatePurchaseOrder: builder.mutation<
-      PurchaseOrderResponseDto,
+      PurchaseOrderDetailDto,
       { id: string; data: PurchaseOrderUpdateRequest }
     >({
       queryFn: async ({ id, data }) => {
@@ -87,7 +89,7 @@ export const purchaseOrderApi = createApi({
         });
 
         if (response.status === 200 && response.body?.data) {
-          return { data: response.body.data };
+          return { data: response.body.data as PurchaseOrderDetailDto };
         }
 
         return {
