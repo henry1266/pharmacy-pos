@@ -218,19 +218,31 @@ const PurchaseOrderDetailPage: React.FC = () => {
   // 處理解鎖按鈕點擊事件
   const handleUnlock = useCallback(async (): Promise<void> => {
     if (!id) return;
-    
+
     try {
-      await purchaseOrderServiceV2.unlockPurchaseOrder(id);
-      // 重新載入進貨單資料
+      const response = await purchaseOrdersContractClient.updatePurchaseOrder({
+        params: { id },
+        body: { status: 'pending' },
+      });
+
+      if (response.status !== 200 || !response.body?.success) {
+        const message =
+          typeof response.body === 'object' && response.body !== null && 'message' in response.body
+            ? ((response.body as { message?: string }).message ?? '解鎖進貨單失敗')
+            : '解鎖進貨單失敗';
+        throw new Error(message);
+      }
+
       dispatch(fetchPurchaseOrder(id));
-      showSnackbar('進貨單已解鎖並改為待處理狀態', 'success');
+      showSnackbar(response.body.message ?? '進貨單已解鎖並改為待處理狀態', 'success');
     } catch (error: any) {
       console.error('解鎖進貨單時發生錯誤:', error);
-      const errorMessage = error.response?.data?.message || error.message || '未知錯誤';
-      showSnackbar(`解鎖失敗: ${errorMessage}`, 'error');
+      const message = error instanceof Error ? error.message : '解鎖進貨單失敗';
+      showSnackbar(message, 'error');
     }
-  }, [id, dispatch]);
+  }, [id, dispatch, showSnackbar]);
 
+  // 顯示 Snackbar
   // 顯示 Snackbar
   const showSnackbar = (message: string, severity: 'success' | 'info' | 'warning' | 'error') => {
     setSnackbar({
