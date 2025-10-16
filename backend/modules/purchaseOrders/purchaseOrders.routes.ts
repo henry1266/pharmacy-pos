@@ -8,6 +8,10 @@ import type {
   PurchaseOrderRequest,
   PurchaseOrderUpdateRequest,
 } from '@pharmacy-pos/shared/types/purchase-order';
+import {
+  purchaseOrderSummaryListSchema,
+  purchaseOrderDetailSchema,
+} from '@pharmacy-pos/shared/schemas/purchase-orders';
 import auth from '../../middleware/auth';
 import type { AuthenticatedRequest } from '../../src/types/express';
 import * as purchaseOrdersService from './purchaseOrders.service';
@@ -246,6 +250,30 @@ const toPurchaseOrderDetail = (order: IPurchaseOrderDocument): PurchaseOrderDeta
   };
 };
 
+const validateSummaryList = (
+  data: PurchaseOrderSummary[],
+): PurchaseOrderSummary[] | undefined => {
+  const result = purchaseOrderSummaryListSchema.safeParse(data);
+  if (!result.success) {
+    logger.error('Purchase order summary schema validation failed', {
+      issues: result.error.issues,
+    });
+    return undefined;
+  }
+  return result.data;
+};
+
+const validateDetail = (data: PurchaseOrderDetail): PurchaseOrderDetail | undefined => {
+  const result = purchaseOrderDetailSchema.safeParse(data);
+  if (!result.success) {
+    logger.error('Purchase order detail schema validation failed', {
+      issues: result.error.issues,
+    });
+    return undefined;
+  }
+  return result.data;
+};
+
 function buildSuccessBody<T>(message: string, data: T): SuccessBody<T> {
   return {
     success: true,
@@ -290,9 +318,16 @@ const contractRouter = server.router(purchaseOrdersContract, {
     try {
       const purchaseOrders = await purchaseOrdersService.getAllPurchaseOrders();
       const data = purchaseOrders.map((order) => toPurchaseOrderSummary(order));
+      const validated = validateSummaryList(data);
+      if (!validated) {
+        return {
+          status: 500,
+          body: buildErrorBody(500, ERROR_MESSAGES.GENERIC.SERVER_ERROR),
+        };
+      }
       return {
         status: 200,
-        body: buildSuccessBody(SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS, data),
+        body: buildSuccessBody(SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS, validated),
       };
     } catch (error) {
       const body = handleException(error, 'Failed to list purchase orders');
@@ -312,11 +347,19 @@ const contractRouter = server.router(purchaseOrdersContract, {
           body,
         };
       }
+      const detail = toPurchaseOrderDetail(purchaseOrder);
+      const validated = validateDetail(detail);
+      if (!validated) {
+        return {
+          status: 500,
+          body: buildErrorBody(500, ERROR_MESSAGES.GENERIC.SERVER_ERROR),
+        };
+      }
       return {
         status: 200,
         body: buildSuccessBody(
           SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
-          toPurchaseOrderDetail(purchaseOrder),
+          validated,
         ),
       };
     } catch (error) {
@@ -341,8 +384,14 @@ router.get('/purchase-orders/recent/list', async (req, res) => {
     const rawLimit = typeof req.query?.limit === 'string' ? Number(req.query.limit) : undefined;
     const limit = Number.isFinite(rawLimit) ? Number(rawLimit) : 10;
     const purchaseOrders = await purchaseOrdersService.getRecentPurchaseOrders(limit);
-    const data = purchaseOrders.map((order) => toPurchaseOrderSummary(order));
-    res.status(200).json(buildSuccessBody(SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS, data));
+    const summaries = purchaseOrders.map((order) => toPurchaseOrderSummary(order));
+    const validated = validateSummaryList(summaries);
+    if (!validated) {
+      const body = buildErrorBody(500, ERROR_MESSAGES.GENERIC.SERVER_ERROR);
+      res.status(body.statusCode).json(body);
+      return;
+    }
+    res.status(200).json(buildSuccessBody(SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS, validated));
   } catch (err) {
     const body = handleException(err, 'Failed to list recent purchase orders');
     res.status(body.statusCode).json(body);
@@ -353,8 +402,14 @@ router.get('/purchase-orders/supplier/:supplierId', async (req, res) => {
   try {
     const { supplierId } = req.params;
     const purchaseOrders = await purchaseOrdersService.getPurchaseOrdersBySupplier(supplierId);
-    const data = purchaseOrders.map((order) => toPurchaseOrderSummary(order));
-    res.status(200).json(buildSuccessBody(SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS, data));
+    const summaries = purchaseOrders.map((order) => toPurchaseOrderSummary(order));
+    const validated = validateSummaryList(summaries);
+    if (!validated) {
+      const body = buildErrorBody(500, ERROR_MESSAGES.GENERIC.SERVER_ERROR);
+      res.status(body.statusCode).json(body);
+      return;
+    }
+    res.status(200).json(buildSuccessBody(SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS, validated));
   } catch (err) {
     const body = handleException(err, 'Failed to list purchase orders by supplier');
     res.status(body.statusCode).json(body);
@@ -365,8 +420,14 @@ router.get('/purchase-orders/product/:productId', async (req, res) => {
   try {
     const { productId } = req.params;
     const purchaseOrders = await purchaseOrdersService.getPurchaseOrdersByProduct(productId);
-    const data = purchaseOrders.map((order) => toPurchaseOrderSummary(order));
-    res.status(200).json(buildSuccessBody(SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS, data));
+    const summaries = purchaseOrders.map((order) => toPurchaseOrderSummary(order));
+    const validated = validateSummaryList(summaries);
+    if (!validated) {
+      const body = buildErrorBody(500, ERROR_MESSAGES.GENERIC.SERVER_ERROR);
+      res.status(body.statusCode).json(body);
+      return;
+    }
+    res.status(200).json(buildSuccessBody(SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS, validated));
   } catch (err) {
     const body = handleException(err, 'Failed to list purchase orders by product');
     res.status(body.statusCode).json(body);
