@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import axios from 'axios';
 import type { AxiosRequestConfig } from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
-import purchaseOrderApiClient, { purchaseOrdersContractClient } from '../api/client';
+import { purchaseOrdersContractClient } from '../api/client';
 import type { PurchaseOrderDetail } from '../types/list';
 import {
   PurchaseOrder,
@@ -439,23 +439,32 @@ export const usePurchaseOrdersList = (initialSupplierId: string | null = null) =
     navigate(`/accounting3/transaction/${transactionGroupId}`);
   }, [navigate]);
 
-  const handleUnlock = useCallback(async (id: string): Promise<void> => {
+  const handleUnlock = useCallback(async (id: string): Promise<void> =>
     try {
-      const response = await purchaseOrderApiClient.put(`/${id}`, { status: 'pending' });
-      if (response.data?.success) {
-        showSnackbar('採購單已解鎖並改為待處理', 'success');
+      const response = await purchaseOrdersContractClient.updatePurchaseOrder({
+        params: { id },
+        body: { status: 'pending' },
+      });
+
+      if (response.status === 200 && response.body?.success) {
+        showSnackbar(response.body.message ?? '進貨單已解鎖並改為待處理狀態', 'success');
         void fetchPurchaseOrders();
-      } else {
-        throw new Error(response.data?.message ?? '解鎖失敗');
+        return;
       }
+
+      const message =
+        typeof response.body === 'object' && response.body !== null && 'message' in response.body
+          ? ((response.body as { message?: string }).message ?? '操作失敗')
+          : '操作失敗';
+      throw new Error(message);
     } catch (err) {
       console.error('Failed to unlock purchase order', err);
-      const message = err instanceof Error ? err.message : '解鎖失敗，請稍後再試';
+      const message = err instanceof Error ? err.message : '操作失敗，請稍後再試';
       showSnackbar(message, 'error');
     }
   }, [fetchPurchaseOrders, showSnackbar]);
 
-  const handlePreviewMouseEnter = useCallback(async (event: React.MouseEvent<HTMLElement>, id: string) => {
+const handlePreviewMouseEnter = useCallback(async (event: React.MouseEvent<HTMLElement>, id: string) => {
     setPreviewAnchorEl(event.currentTarget);
     setPreviewOpen(true);
     setPreviewLoading(true);
@@ -499,25 +508,31 @@ export const usePurchaseOrdersList = (initialSupplierId: string | null = null) =
     }
 
     try {
-      const response = await purchaseOrderApiClient.delete(`/${purchaseOrderToDelete._id}`);
-      if (response.data?.success === false) {
-        const message = response.data?.message ?? '刪除採購單失敗';
-        showSnackbar(message, 'error');
+      const response = await purchaseOrdersContractClient.deletePurchaseOrder({
+        params: { id: purchaseOrderToDelete._id },
+      });
+
+      if (response.status === 200 && response.body?.success) {
+        setPurchaseOrders((prev) => prev.filter((order) => order._id !== purchaseOrderToDelete._id));
+        setDeleteDialogOpen(false);
+        setPurchaseOrderToDelete(null);
+        showSnackbar(response.body.message ?? '進貨單已刪除', 'success');
         return;
       }
 
-      setPurchaseOrders((prev) => prev.filter((order) => order._id !== purchaseOrderToDelete._id));
-      setDeleteDialogOpen(false);
-      setPurchaseOrderToDelete(null);
-      showSnackbar('採購單已刪除', 'success');
+      const message =
+        typeof response.body === 'object' && response.body !== null && 'message' in response.body
+          ? ((response.body as { message?: string }).message ?? '刪除進貨單失敗')
+          : '刪除進貨單失敗';
+      showSnackbar(message, 'error');
     } catch (err) {
       console.error('Failed to delete purchase order', err);
-      const message = err instanceof Error ? err.message : '刪除採購單失敗，請稍後再試';
+      const message = err instanceof Error ? err.message : '刪除進貨單失敗，請稍後再試';
       showSnackbar(message, 'error');
     }
   }, [purchaseOrderToDelete, showSnackbar]);
 
-  const handleDeleteCancel = useCallback(() => {
+const handleDeleteCancel = useCallback(() => {
     setDeleteDialogOpen(false);
     setPurchaseOrderToDelete(null);
   }, []);

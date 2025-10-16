@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getAllSuppliers } from '@/services/supplierServiceV2';
 import { productServiceV2 } from '@/services/productServiceV2';
-import { purchaseOrderServiceV2 } from '@/services/purchaseOrderServiceV2';
+import { purchaseOrdersContractClient } from '../api/client';
 import { Supplier, Product, PurchaseOrder } from '@pharmacy-pos/shared/types/entities';
 
 /**
