@@ -216,6 +216,17 @@ const PurchaseOrderDetailPage: React.FC = () => {
   };
 
   // 處理解鎖按鈕點擊事件
+  const showSnackbar = useCallback(
+    (message: string, severity: 'success' | 'info' | 'warning' | 'error') => {
+      setSnackbar({
+        open: true,
+        message,
+        severity,
+      });
+    },
+    []
+  );
+
   const handleUnlock = useCallback(async (): Promise<void> => {
     if (!id) return;
 
@@ -244,14 +255,6 @@ const PurchaseOrderDetailPage: React.FC = () => {
 
   // 顯示 Snackbar
   // 顯示 Snackbar
-  const showSnackbar = (message: string, severity: 'success' | 'info' | 'warning' | 'error') => {
-    setSnackbar({
-      open: true,
-      message,
-      severity
-    });
-  };
-
   // 關閉 Snackbar
   const handleCloseSnackbar = () => {
     setSnackbar(prev => ({
