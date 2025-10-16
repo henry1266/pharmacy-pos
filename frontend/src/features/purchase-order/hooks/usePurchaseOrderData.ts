@@ -80,20 +80,35 @@ const usePurchaseOrderData = (
   const fetchPurchaseOrderData = useCallback(async (currentOrderId: string): Promise<PurchaseOrder | null> => {
     if (!currentOrderId) return null;
     try {
-      const data = await purchaseOrderServiceV2.getPurchaseOrderById(currentOrderId);
-      console.log('🔍 usePurchaseOrderData 獲取的原始資料:', data);
-      console.log('🔍 第一個項目的詳細資料:', data?.items?.[0]);
-      setOrderData(data);
-      setOrderDataLoaded(true);
-      return data;
+      const response = await purchaseOrdersContractClient.getPurchaseOrderById({ params: { id: currentOrderId } });
+
+      if (response.status === 200 && response.body?.data) {
+        const detail = response.body.data as PurchaseOrder;
+        console.log('🔍 usePurchaseOrderData 獲取的原始資料:', detail);
+        console.log('🔍 第一個項目的詳細資料:', detail?.items?.[0]);
+        setOrderData(detail);
+        setOrderDataLoaded(true);
+        return detail;
+      }
+
+      const fallbackMessage = '獲取進貨單數據失敗';
+      const message =
+        typeof response.body === 'object' && response.body !== null && 'message' in response.body
+          ? ((response.body as { message?: string }).message ?? fallbackMessage)
+          : fallbackMessage;
+
+      setError(message);
+      showSnackbar(message === fallbackMessage ? fallbackMessage : `${fallbackMessage}: ${message}`, 'error');
+      return null;
     } catch (err: any) {
-      setError('獲取進貨單數據失敗');
-      showSnackbar('獲取進貨單數據失敗: ' + (err.response?.data?.msg ?? err.message), 'error');
+      const message = err instanceof Error ? err.message : '獲取進貨單數據失敗';
+      setError(message);
+      showSnackbar('獲取進貨單數據失敗: ' + message, 'error');
       throw err;
     }
   }, [showSnackbar]);
 
-  /**
+/**
    * 獲取項目的產品詳情
    */
   const fetchProductDetailsForItems = useCallback(async (items: OrderItem[]): Promise<void> => {

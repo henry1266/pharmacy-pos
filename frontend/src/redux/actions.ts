@@ -20,9 +20,12 @@ import {
   ERROR_MESSAGES,
   ApiResponse,
   LoginRequest,
-  LoginResponse
+  LoginResponse,
+  buildCreatePurchaseOrderPayload,
+  buildUpdatePurchaseOrderPayload
 } from '@pharmacy-pos/shared';
 import axios from 'axios';
+import { purchaseOrdersContractClient } from '@/features/purchase-order/api/client';
 import { getApiBaseUrl } from '../utils/apiConfig';
 import { ThunkAction, ThunkDispatch } from 'redux-thunk';
 import { Action, RootState } from './reducers';
@@ -58,6 +61,11 @@ const setAuthToken = (token: string | null): void => {
     delete axios.defaults.headers.common['Authorization'];
   }
 };
+
+const extractContractMessage = (body: unknown, fallback: string): string =>
+  typeof body === 'object' && body !== null && 'message' in body
+    ? ((body as { message?: string }).message ?? fallback)
+    : fallback;
 
 // 定義 Thunk 類型
 export type AppThunk<ReturnType = void> = ThunkAction<
@@ -372,23 +380,26 @@ export const fetchReportsData = (reportType: string, params: Record<string, any>
 export const fetchPurchaseOrders = (): AppThunk => async (
   dispatch: ThunkDispatch<RootState, unknown, Action>
 ) => {
+  dispatch({ type: ActionTypes.FETCH_PURCHASE_ORDERS_REQUEST });
+
   try {
-    dispatch({ type: ActionTypes.FETCH_PURCHASE_ORDERS_REQUEST });
-    
-    const res = await axios.get<ApiResponse<PurchaseOrder[]>>(API_ENDPOINTS.PURCHASE_ORDERS.LIST);
-    
-    if (res.data.success) {
+    const response = await purchaseOrdersContractClient.listPurchaseOrders({ query: undefined });
+
+    if (response.status === 200 && response.body?.data) {
       dispatch({
         type: ActionTypes.FETCH_PURCHASE_ORDERS_SUCCESS,
-        payload: res.data.data ?? []
+        payload: response.body.data ?? [],
       });
-    } else {
-      throw new Error(res.data.message ?? ERROR_MESSAGES.FETCH_PURCHASE_ORDERS_FAILED);
+      return;
     }
+
+    const message = extractContractMessage(response.body, ERROR_MESSAGES.FETCH_PURCHASE_ORDERS_FAILED);
+    throw new Error(message);
   } catch (err: any) {
+    const message = err instanceof Error ? err.message : ERROR_MESSAGES.FETCH_PURCHASE_ORDERS_FAILED;
     dispatch({
       type: ActionTypes.FETCH_PURCHASE_ORDERS_FAILURE,
-      payload: err.response?.data?.message ?? ERROR_MESSAGES.FETCH_PURCHASE_ORDERS_FAILED
+      payload: message,
     });
   }
 };
@@ -397,23 +408,26 @@ export const fetchPurchaseOrders = (): AppThunk => async (
 export const fetchPurchaseOrder = (id: string): AppThunk => async (
   dispatch: ThunkDispatch<RootState, unknown, Action>
 ) => {
+  dispatch({ type: ActionTypes.FETCH_PURCHASE_ORDER_REQUEST });
+
   try {
-    dispatch({ type: ActionTypes.FETCH_PURCHASE_ORDER_REQUEST });
-    
-    const res = await axios.get<ApiResponse<PurchaseOrder>>(`${API_ENDPOINTS.PURCHASE_ORDERS.BASE}/${id}`);
-    
-    if (res.data.success) {
+    const response = await purchaseOrdersContractClient.getPurchaseOrderById({ params: { id } });
+
+    if (response.status === 200 && response.body?.data) {
       dispatch({
         type: ActionTypes.FETCH_PURCHASE_ORDER_SUCCESS,
-        payload: res.data.data ?? {}
+        payload: response.body.data ?? {},
       });
-    } else {
-      throw new Error(res.data.message ?? ERROR_MESSAGES.FETCH_PURCHASE_ORDER_FAILED);
+      return;
     }
+
+    const message = extractContractMessage(response.body, ERROR_MESSAGES.FETCH_PURCHASE_ORDER_FAILED);
+    throw new Error(message);
   } catch (err: any) {
+    const message = err instanceof Error ? err.message : ERROR_MESSAGES.FETCH_PURCHASE_ORDER_FAILED;
     dispatch({
       type: ActionTypes.FETCH_PURCHASE_ORDER_FAILURE,
-      payload: err.response?.data?.message ?? ERROR_MESSAGES.FETCH_PURCHASE_ORDER_FAILED
+      payload: message,
     });
   }
 };
@@ -422,34 +436,31 @@ export const fetchPurchaseOrder = (id: string): AppThunk => async (
 export const addPurchaseOrder = (formData: PurchaseOrderCreateRequest, navigate?: NavigateFunction): AppThunk => async (
   dispatch: ThunkDispatch<RootState, unknown, Action>
 ) => {
+  dispatch({ type: ActionTypes.ADD_PURCHASE_ORDER_REQUEST });
+
   try {
-    dispatch({ type: ActionTypes.ADD_PURCHASE_ORDER_REQUEST });
-    
-    const config = {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    };
-    
-    const res = await axios.post<ApiResponse<PurchaseOrder>>(API_ENDPOINTS.PURCHASE_ORDERS.CREATE, formData, config);
-    
-    if (res.data.success) {
+    const payload = buildCreatePurchaseOrderPayload(formData);
+    const response = await purchaseOrdersContractClient.createPurchaseOrder({ body: payload });
+
+    if (response.status === 200 && response.body?.data) {
       dispatch({
         type: ActionTypes.ADD_PURCHASE_ORDER_SUCCESS,
-        payload: res.data.data
+        payload: response.body.data,
       });
-      
-      // 導航到進貨單列表頁面
+
       if (navigate) {
         navigate('/purchase-orders');
       }
-    } else {
-      throw new Error(res.data.message ?? ERROR_MESSAGES.ADD_PURCHASE_ORDER_FAILED);
+      return;
     }
+
+    const message = extractContractMessage(response.body, ERROR_MESSAGES.ADD_PURCHASE_ORDER_FAILED);
+    throw new Error(message);
   } catch (err: any) {
+    const message = err instanceof Error ? err.message : ERROR_MESSAGES.ADD_PURCHASE_ORDER_FAILED;
     dispatch({
       type: ActionTypes.ADD_PURCHASE_ORDER_FAILURE,
-      payload: err.response?.data?.message ?? ERROR_MESSAGES.ADD_PURCHASE_ORDER_FAILED
+      payload: message,
     });
   }
 };
@@ -458,34 +469,34 @@ export const addPurchaseOrder = (formData: PurchaseOrderCreateRequest, navigate?
 export const updatePurchaseOrder = (id: string, formData: PurchaseOrderUpdateRequest, navigate?: NavigateFunction): AppThunk => async (
   dispatch: ThunkDispatch<RootState, unknown, Action>
 ) => {
+  dispatch({ type: ActionTypes.UPDATE_PURCHASE_ORDER_REQUEST });
+
   try {
-    dispatch({ type: ActionTypes.UPDATE_PURCHASE_ORDER_REQUEST });
-    
-    const config = {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    };
-    
-    const res = await axios.put<ApiResponse<PurchaseOrder>>(`${API_ENDPOINTS.PURCHASE_ORDERS.BASE}/${id}`, formData, config);
-    
-    if (res.data.success) {
+    const payload = buildUpdatePurchaseOrderPayload(formData);
+    const response = await purchaseOrdersContractClient.updatePurchaseOrder({
+      params: { id },
+      body: payload,
+    });
+
+    if (response.status === 200 && response.body?.data) {
       dispatch({
         type: ActionTypes.UPDATE_PURCHASE_ORDER_SUCCESS,
-        payload: res.data.data
+        payload: response.body.data,
       });
-      
-      // 導航到進貨單列表頁面
+
       if (navigate) {
         navigate('/purchase-orders');
       }
-    } else {
-      throw new Error(res.data.message ?? ERROR_MESSAGES.UPDATE_PURCHASE_ORDER_FAILED);
+      return;
     }
+
+    const message = extractContractMessage(response.body, ERROR_MESSAGES.UPDATE_PURCHASE_ORDER_FAILED);
+    throw new Error(message);
   } catch (err: any) {
+    const message = err instanceof Error ? err.message : ERROR_MESSAGES.UPDATE_PURCHASE_ORDER_FAILED;
     dispatch({
       type: ActionTypes.UPDATE_PURCHASE_ORDER_FAILURE,
-      payload: err.response?.data?.message ?? ERROR_MESSAGES.UPDATE_PURCHASE_ORDER_FAILED
+      payload: message,
     });
   }
 };
@@ -494,29 +505,30 @@ export const updatePurchaseOrder = (id: string, formData: PurchaseOrderUpdateReq
 export const deletePurchaseOrder = (id: string): AppThunk => async (
   dispatch: ThunkDispatch<RootState, unknown, Action>
 ) => {
+  dispatch({ type: ActionTypes.DELETE_PURCHASE_ORDER_REQUEST });
+
   try {
-    dispatch({ type: ActionTypes.DELETE_PURCHASE_ORDER_REQUEST });
-    
-    const res = await axios.delete<ApiResponse>(`${API_ENDPOINTS.PURCHASE_ORDERS.BASE}/${id}`);
-    
-    if (res.data.success) {
+    const response = await purchaseOrdersContractClient.deletePurchaseOrder({ params: { id } });
+
+    if (response.status === 200 && response.body?.success) {
       dispatch({
         type: ActionTypes.DELETE_PURCHASE_ORDER_SUCCESS,
-        payload: id
+        payload: id,
       });
-    } else {
-      throw new Error(res.data.message ?? ERROR_MESSAGES.DELETE_PURCHASE_ORDER_FAILED);
+      return;
     }
+
+    const message = extractContractMessage(response.body, ERROR_MESSAGES.DELETE_PURCHASE_ORDER_FAILED);
+    throw new Error(message);
   } catch (err: any) {
+    const message = err instanceof Error ? err.message : ERROR_MESSAGES.DELETE_PURCHASE_ORDER_FAILED;
     dispatch({
       type: ActionTypes.DELETE_PURCHASE_ORDER_FAILURE,
-      payload: err.response?.data?.message ?? ERROR_MESSAGES.DELETE_PURCHASE_ORDER_FAILED
+      payload: message,
     });
   }
 };
 
-// 搜索進貨單 - 已棄用，使用 usePurchaseOrdersData hook 中的前端過濾功能替代
-// @deprecated 此函數已棄用，請使用 usePurchaseOrdersData hook 中的前端過濾功能
 export const searchPurchaseOrders = (_searchParams: Record<string, string>): AppThunk => async (
   dispatch: ThunkDispatch<RootState, unknown, Action>
 ) => {

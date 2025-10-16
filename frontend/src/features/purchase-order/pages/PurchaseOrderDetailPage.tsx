@@ -43,7 +43,7 @@ import { RootState } from '@/types/store';
 import { Product, PurchaseOrder, PurchaseOrderItem } from '@pharmacy-pos/shared/types/entities';
 import { Organization } from '@pharmacy-pos/shared/types/organization';
 import { usePurchaseOrderActions } from '../components/PurchaseOrderActions';
-import { purchaseOrderServiceV2 } from '@/services/purchaseOrderServiceV2';
+import { purchaseOrdersContractClient } from '../api/client';
 import { useOrganizations } from '@/hooks/useOrganizations';
 import StatusChip from '@/components/common/StatusChip';
 import PaymentStatusChip from '@/components/common/PaymentStatusChip';

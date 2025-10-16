@@ -100,16 +100,17 @@ const PurchaseOrdersPage: FC<PurchaseOrdersPageProps> = ({ initialSupplierId = n
       // 直接從 purchaseOrders 中查找選中的進貨單
       let selectedOrder = purchaseOrders.find(po => po._id === id);
       
-      // 如果找到了進貨單，但沒有 items 數據，則需要獲取詳細數據
-      if (selectedOrder && !selectedOrder.items) {
+      if (!selectedOrder || !selectedOrder.items) {
         try {
-          // 使用 purchaseOrderServiceV2 獲取詳細數據
-          const response = await fetch(`/api/purchase-orders/${id}`);
-          if (response.ok) {
-            const data = await response.json();
-            if (data.success) {
-              selectedOrder = data.data;
-            }
+          const response = await purchaseOrdersContractClient.getPurchaseOrderById({ params: { id } });
+          if (response.status === 200 && response.body?.data) {
+            selectedOrder = response.body.data as PurchaseOrder;
+          } else {
+            const message =
+              typeof response.body === 'object' && response.body !== null && 'message' in response.body
+                ? ((response.body as { message?: string }).message ?? '獲取進貨單詳細數據失敗')
+                : '獲取進貨單詳細數據失敗';
+            console.error('獲取進貨單詳細數據失敗:', message);
           }
         } catch (error) {
           console.error('獲取進貨單詳細數據失敗:', error);

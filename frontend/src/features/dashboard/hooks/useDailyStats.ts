@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { format } from 'date-fns';
-import { purchaseOrderServiceV2 } from '../../../services/purchaseOrderServiceV2';
+import { purchaseOrdersContractClient } from '@/features/purchase-order/api/client';
 import { shippingOrderServiceV2 } from '../../../services/shippingOrderServiceV2';
 import type { PurchaseOrder, ShippingOrder } from '@pharmacy-pos/shared/types/entities';
 
@@ -88,36 +87,31 @@ export const useDailyStats = (date: string | null | undefined) => {
       let purchaseRecords: PurchaseOrder[] = [];
       try {
         console.log('正在獲取進貨數據，目標日期:', targetDate);
-        
-        // 先嘗試獲取所有進貨單，然後在前端過濾
-        purchaseRecords = await purchaseOrderServiceV2.getAllPurchaseOrders();
-        console.log('獲取到的所有進貨單數量:', purchaseRecords.length);
-        
-        // 在前端過濾指定日期的進貨單
-        // 使用 try-catch 處理可能的無效日期
-        let targetDateFormatted: string = '';
-        try {
-          targetDateFormatted = format(new Date(targetDate), 'yyyy-MM-dd');
-        } catch (dateError) {
-          console.error('無效的日期格式:', targetDate, dateError);
-          throw new Error('無效的日期格式');
-        }
-        purchaseRecords = purchaseRecords.filter(order => {
-          if (!order.orderDate) return false;
-          const orderDate = format(new Date(order.orderDate), 'yyyy-MM-dd');
-          return orderDate === targetDateFormatted;
+
+        const response = await purchaseOrdersContractClient.listPurchaseOrders({
+          query: { startDate: targetDate, endDate: targetDate },
         });
-        
-        console.log(`過濾後 ${targetDate} 的進貨單數量:`, purchaseRecords.length);
-        console.log('進貨單詳細資料:', purchaseRecords);
-        
+
+        if (response.status === 200 && response.body?.data) {
+          purchaseRecords = response.body.data as PurchaseOrder[];
+          console.log('獲取到的進貨單數量:', purchaseRecords.length);
+        } else {
+          const message =
+            typeof response.body === 'object' && response.body !== null && 'message' in response.body
+              ? ((response.body as { message?: string }).message ?? '載入進貨資料失敗')
+              : '載入進貨資料失敗';
+          console.warn('載入進貨資料失敗:', message);
+          purchaseRecords = [];
+        }
+
         purchaseCount = purchaseRecords.length;
         purchaseTotal = purchaseRecords.reduce((sum, order) => {
           return sum + (order.totalAmount || 0);
         }, 0);
-        
+
         console.log('進貨單統計 - 數量:', purchaseCount, '總金額:', purchaseTotal);
-      } catch (purchaseError) {
+      }
+            } catch (purchaseError) {
         console.warn('無法載入進貨數據:', purchaseError);
       }
 

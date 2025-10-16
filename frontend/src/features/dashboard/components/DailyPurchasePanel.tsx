@@ -2,7 +2,6 @@ import React from 'react';
 import { Chip, Typography } from '@mui/material';
 import { ShoppingCart as ShoppingCartIcon, Business as BusinessIcon } from '@mui/icons-material';
 import type { PurchaseOrder } from '@pharmacy-pos/shared/types/entities';
-import { purchaseOrderServiceV2 } from '../../../services/purchaseOrderServiceV2';
 import {
   DailyPanel,
   DailyPanelConfig,
@@ -19,6 +18,41 @@ import {
   convertToStandardItems,
   DAILY_PANEL_STYLES
 } from '.';
+
+const ORDER_STATUS_LABELS: Record<string, string> = {
+  pending: '待處理',
+  approved: '已核准',
+  received: '已接收',
+  completed: '已完成',
+  cancelled: '已取消',
+};
+
+const ORDER_STATUS_COLORS: Record<string, 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning'> = {
+  pending: 'warning',
+  approved: 'info',
+  received: 'primary',
+  completed: 'success',
+  cancelled: 'error',
+};
+
+const PAYMENT_STATUS_LABELS: Record<string, string> = {
+  '未付': '未付款',
+  '已付款': '已付款',
+  '已下收': '已下收',
+  '已匯款': '已匯款',
+};
+
+const PAYMENT_STATUS_COLORS: Record<string, 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning'> = {
+  '未付': 'error',
+  '已付款': 'primary',
+  '已下收': 'warning',
+  '已匯款': 'success',
+};
+
+const formatOrderStatus = (status?: string) => ORDER_STATUS_LABELS[status ?? ''] ?? (status ?? '');
+const getStatusColor = (status?: string) => ORDER_STATUS_COLORS[status ?? ''] ?? 'default';
+const formatPaymentStatus = (status?: string) => PAYMENT_STATUS_LABELS[status ?? ''] ?? (status ?? '');
+const getPaymentStatusColor = (status?: string) => PAYMENT_STATUS_COLORS[status ?? ''] ?? 'default';
 
 interface DailyPurchasePanelProps {
   purchaseOrders: PurchaseOrder[];
@@ -76,8 +110,8 @@ const createPurchaseConfig = (onPurchaseOrderClick?: (order: PurchaseOrder) => v
             {getSupplierName(order.supplier)}
           </Typography>
           <Chip
-            label={purchaseOrderServiceV2.formatPaymentStatus(order.paymentStatus || '未付')}
-            color={purchaseOrderServiceV2.getPaymentStatusColor(order.paymentStatus || '未付')}
+            label={formatPaymentStatus(order.paymentStatus || '未付')}
+            color={getPaymentStatusColor(order.paymentStatus || '未付')}
             size="small"
             sx={DAILY_PANEL_STYLES.chip.medium}
           />
@@ -95,15 +129,15 @@ const createPurchaseConfig = (onPurchaseOrderClick?: (order: PurchaseOrder) => v
         rightContent={
           <>
             <Chip
-              label={purchaseOrderServiceV2.formatOrderStatus(order.status)}
-              color={purchaseOrderServiceV2.getStatusColor(order.status)}
+              label={formatOrderStatus(order.status)}
+              color={getStatusColor(order.status)}
               size="small"
               variant="outlined"
               sx={DAILY_PANEL_STYLES.chip.small}
             />
             <Chip
-              label={purchaseOrderServiceV2.formatPaymentStatus(order.paymentStatus || '未付')}
-              color={purchaseOrderServiceV2.getPaymentStatusColor(order.paymentStatus || '未付')}
+              label={formatPaymentStatus(order.paymentStatus || '未付')}
+              color={getPaymentStatusColor(order.paymentStatus || '未付')}
               size="small"
               sx={DAILY_PANEL_STYLES.chip.small}
             />
